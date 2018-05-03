@@ -4,17 +4,20 @@ const Discord = require('discord.js');
 const client = new Discord.Client();
 
 //get config data
-const conf = require("./conf.json");
-const token = conf.token;
+const { prefix, token } = require('./conf.json');
 // will only do stuff after it's ready
 client.on('ready', () => {
   console.log('ready to rumble');
 });
 
 client.on('message', message => {
-  console.log("MSG: ", message.content);
+  console.log('MSG: ', message.content);
   if(message.content == 'hej'){
     message.channel.send('lul')
+  }
+  if(message.content === `${prefix}ping`){
+  	console.log('PingAlert, user had !ping as command');
+  	message.channel.send('Pong');
   }
 });
 
