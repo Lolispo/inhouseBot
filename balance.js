@@ -3,6 +3,10 @@
 const ArrayList = require('arraylist');
 const moment = require('moment');
 const db_sequelize = require('./db-sequelize');
+const bot = require('./bot');
+
+var t1 = [];
+var t2 = [];
 /*
  	TODO Big:
  		Database for saving data connected to user
@@ -10,6 +14,7 @@ const db_sequelize = require('./db-sequelize');
  		Refactor ugly solutions
 		Implement MMR Update (Req mmr save for full implementation)
 			ELO math theory could be looked at
+		Consistent between Mmr and MMR
 
 		Player
 			Add dynamic storage of mmr for support of more games, potential of aim map skill 2v2
@@ -20,26 +25,54 @@ exports.initializePlayers = function(players, dbpw){
 	db_sequelize.initDb(dbpw);
 	var uids = [];
 	for(var i = 0; i < players.size(); i++){
-		uids.push(players[i].discID);
+		uids.push(players[i].uid);
 	}
-	console.log('DEBUG: @initializePlayers, uids =', uids);
-	var usersTable = db_sequelize.getTable(players);
-	console.log('usersTable result = ' + usersTable);
-	return balanceTeams(players);		
+	//console.log('DEBUG: @initializePlayers, uids =', uids);
+	var usersTable = db_sequelize.getTable(players, function(data){
+		//console.log('DEBUG: @initPlayers, usersTable result = ' + data);
+		balanceTeams(players, data);				
+	});
 }
 
 // @param players should contain ArrayList of initialized Players of people playing
-function balanceTeams(players){
+function balanceTeams(players, data){
 	// console.log('DEBUG: @balanceTeams');
 	// Generate team combs, all possibilities of the 10 players
+
+	addMissingUsers(players, data); // players are updated from within method
+	/*
+	console.log('DEBUG: @balanceTeams, updated players with mmr:');
+	for(var i = 0; i < players.size(); i++){
+		console.log(players[i].uid + ', ' + players[i].userName + ', ' + players[i].mmr);
+	}
+	*/
 	var teamCombs = generateTeamCombs(players);
 	
 	var result = findBestTeamComb(players, teamCombs);
-
-	var stringToReturn = buildReturnString(result);
+	
 	// Return string to message to clients
-	console.log(stringToReturn);
-	return stringToReturn;
+	buildReturnString(result, callbackStageAndMessage); // callbackStageAndMessage = method 
+}
+
+// Adds missing users to database 
+// Updates players mmr entry correctly
+function addMissingUsers(players, data){
+	//console.log('DEBUG: @addMissingUsers, Insert the mmr from data: ');
+	for(var i = 0; i < players.size(); i++){
+		// Check database for this data
+		var existingMMR = -1;
+		data.forEach(function(oneData){
+			if(players[i].uid === oneData.uid){
+				existingMMR = oneData.mmr;
+			}
+		});
+		if(existingMMR === -1){ // Make new entry in database since entry doesn't exist
+			db_sequelize.createUser(players[i].uid, players[i].userName, players[i].defaultMMR);
+			players[i].setMMR(players[i].defaultMMR);
+		} else{ // Update players[i] mmr to the correct value
+			players[i].setMMR(existingMMR);
+		}
+	}
 }
 
 // TODO Refactor: Should make less repetitive code
@@ -55,7 +88,7 @@ function generateTeamCombs(players){
 			for(var k = j+1; k < len; k++){
 				for(var l = k+1; l < len; l++){
 					for(var m = l+1; m < len; m++){
-						if(len === 10){
+						if(len === 10){ // TODO: Hitta ett sätt att undvika combinations som t.ex. 0,1,2,3,4 vs 5,6,7,8,9 och 5,6,7,8,9 vs 0,1,2,3,4 (Halverar svar om fix)
 							var uniqueSum = uniVal(i) + uniVal(j) + uniVal(k) + uniVal(l) + uniVal(m); 
 							if(!uniqueCombs.contains(uniqueSum)){	
 								var teamComb = [i,j,k,l,m]
@@ -100,8 +133,6 @@ function generateTeamCombs(players){
 function findBestTeamComb(players, teamCombs){
 	// Compare elo matchup between teamCombinations, lowest difference wins
 	var bestPossibleTeamComb = Number.MAX_VALUE;
-	var t1 = [];
-	var t2 = [];
 	var avgTeam1 = -1;
 	var avgTeam2 = -1;
 	var index = -1;
@@ -170,10 +201,40 @@ function addTeamMMR(team){ // Function to be used in summing over players
 	return sum;
 }
 
+exports.updateMMR = function(team1Won, callback){
+	if(team1Won){
+		updateTeamMMR(T1, true);
+		updateTeamMMR(T2, false);
+	} else{
+		updateTeamMMR(T1, false);
+		updateTeamMMR(T2, true);
+	}
+
+	buildMMRUpdateString(team1Won, callbackStageAndMessage);
+}
+
+function updateTeamMMR(team, won){ // Updated mmr for the given team given if they won or not
+	for(var i = 0; i < team.size(); i++){
+		var newMMR = calcMMRChange(won, team[i].mmr);
+		db_sequelize.updateMMR(team[i].uid, newMMR);
+		team[i].setMMR(newMMR);
+	}
+}
+
+// TODO: Update with big math
+function calcMMRChange(wonGame, mmr){ // Can use T1 and T2 since they are global variables
+	if(wonGame){
+		mmr += 5; // TEMP
+	} else{
+		mmr -= 5; // TEMP
+	}
+	return mmr; // Return new calculated mmr
+}
+
 // Build a string to return to print as message
-function buildReturnString(obj){ // TODO: Make print consistently nice
-	// Check if adjustment is needed
-	var date = moment().format('LLL'); // 
+function buildReturnString(obj, callback){ // TODO: Make print consistently nice
+	// TODO: Adjust printout
+	var date = moment().format('LLL'); // Date format. TODO: Change from AM/PM to military time
 	var s = '';
 	s += 'MMR Average difference: ' + obj.avgDiff + ' (Total: ' + obj.difference + 'p). ';
 	s += String(date);
@@ -190,30 +251,41 @@ function buildReturnString(obj){ // TODO: Make print consistently nice
 	}
 	s += '. \tAvg: ' + obj.avgT2;
 	s += '\n';
-	return s;
+	callback(1, s); // Should send the message back to the bot
+}
+
+// TODO: Print MMR update for everyone
+function buildMMRUpdateString(team1Won, callback){
+	var date = moment().format('LLL'); // Date format. TODO: Change from AM/PM to military time
+	var s = '';
+	s += 'Team ' + (team1Won ? '1' : '2') + ' won! Updated mmr is: \n';
+	s += 'T1: ' + T1[0].userName + ' (' + T1[0].mmr + ')';
+	for(var i = 0; i < T1.size(); i++){
+		s += ',\t' + T1[i].userName + ' (' + T1[i].mmr + ')';
+	}
+	s += '\n';
+	s += 'T2: ' + T2[0].userName + ' (' + T2[0].mmr + ')';
+	for(var i = 0; i < T2.size(); i++){
+		s += ',\t' + T2[i].userName + ' (' + T2[i].mmr + ')';
+	}
+	s += '\n';
+	callback(0, s);
+}
+
+function callbackStageAndMessage(stage, message){
+	bot.setStage(stage);
+	bot.printMessage(message);
 }
 
 function Player(username, discId){
 	this.userName = username;
-	this.discID = discId;
+	this.uid = discId;
 	this.defaultMMR = 1000; // TODO: Adjust to elo system
-	this.mmr; 
-	// Check if existing mmr exist for discID in database, otherwise set as default mmr
-	if( false ){ // <- Check in db
-		// TODO
-	} else{
-		this.mmr = this.defaultMMR;
-	}
-	
+	this.mmr = this.defaultMMR; // MMR is updated when all players are fetched
+
 	this.setMMR = function(value){
 		this.mmr = value;
 	}
-}
-
-exports.createTempPlayer = function(username, discId, mmr){
-	var player = new Player(username, discId);
-	player.setMMR(mmr);
-	return player;
 }
 
 exports.createPlayer = function(username, discId){

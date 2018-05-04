@@ -18,8 +18,8 @@ exports.initDb = function(dbpw){
 	*/
 
 	Users = sequelize.define('users', {
-		uid: Sequelize.INTEGER, 
-		userName: Sequelize.STRING,
+		uid: {type: Sequelize.INTEGER, primaryKey: true},
+		userName: Sequelize.TEXT,
 		mmr: Sequelize.INTEGER,
 	}, {
 		timestamps: false
@@ -27,26 +27,41 @@ exports.initDb = function(dbpw){
 }
 
 /* Returns table of users */
-exports.getTable = function(uids){
+exports.getTable = function(uids, callback){
+	Users.findAll({
+	})
+	.then(function(result) {
+		callback(result);
+	})
+	/*
 	Users
 	.findAll({
 	where: {
-		uid: uids 	/* Should be where uid is in uids */
+		uid: uids 	/* Should be where uid is in uids *//*
 	}, 
 	order: [['userName', 'ASC']]
 	})
 	.then(function(result) {
 		return result;
 	})
+	*/
 }; 
 
+// TODO: Test if this works
 exports.updateMMR = function(uid, newMmr){
 	Users.findById(uid).then(function(user) {
 		user
 		.update({
 			mmr: newMmr
 	    }).then(function(){
-			console.log('User (id =', uid + ') new mmr set to ' + newMmr)
+			//console.log('User (id =', uid + ') new mmr set to ' + newMmr)
 		})
+	});
+}
+
+exports.createUser = function(uid, userName, mmr){
+	Users.create({ uid: uid, userName: userName, mmr: mmr})
+	.then(function(result){
+		console.log(result.get({plain:true}))
 	});
 }
