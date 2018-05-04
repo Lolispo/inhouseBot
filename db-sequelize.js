@@ -7,7 +7,8 @@ var Users = {};
 exports.initDb = function(dbpw){
 	sequelize = new Sequelize('pettea', 'pettea_admin', dbpw, {
 		host: 'mysql-vt2016.csc.kth.se',
-		dialect: 'mysql'
+		dialect: 'mysql',
+		operatorsAliases: false
 	});
 
 	/* Table: 'users': 

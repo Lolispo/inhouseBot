@@ -17,10 +17,8 @@ const db_sequelize = require('./db-sequelize');
 
 exports.initializePlayers = function(players, dbpw){
 	// Init mmr for players
-	db_sequelize.initDb(dbpw)
-	.then(function(){
-		return balanceTeams(players);		
-	});
+	db_sequelize.initDb(dbpw);
+	return balanceTeams(players);		
 }
 
 // @param players should contain ArrayList of initialized Players of people playing
