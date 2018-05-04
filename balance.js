@@ -2,7 +2,7 @@
 
 const ArrayList = require('arraylist');
 const moment = require('moment');
-
+const db_sequelize = require('./db-sequelize');
 /*
  	TODO Big:
  		Database for saving data connected to user
@@ -10,9 +10,21 @@ const moment = require('moment');
  		Refactor ugly solutions
 		Implement MMR Update (Req mmr save for full implementation)
 			ELO math theory could be looked at
+
+		Player
+			Add dynamic storage of mmr for support of more games, potential of aim map skill 2v2
 */
+
+exports.initializePlayers = function(players, dbpw){
+	// Init mmr for players
+	db_sequelize.initDb(dbpw)
+	.then(function(){
+		return balanceTeams(players);		
+	});
+}
+
 // @param players should contain ArrayList of initialized Players of people playing
-exports.balanceTeams = function(players){
+function balanceTeams(players){
 	// console.log('DEBUG: @balanceTeams');
 	// Generate team combs, all possibilities of the 10 players
 	var teamCombs = generateTeamCombs(players);
