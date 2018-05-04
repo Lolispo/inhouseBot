@@ -173,7 +173,7 @@ function addTeamMMR(team){ // Function to be used in summing over players
 // Build a string to return to print as message
 function buildReturnString(obj){ // TODO: Make print consistently nice
 	// Check if adjustment is needed
-	var date = moment().format('LLL');
+	var date = moment().format('LLL'); // 
 	var s = '';
 	s += 'MMR Average difference: ' + obj.avgDiff + ' (Total: ' + obj.difference + 'p). ';
 	s += String(date);
@@ -204,7 +204,7 @@ function Player(username, discId){
 	} else{
 		this.mmr = this.defaultMMR;
 	}
-
+	
 	this.setMMR = function(value){
 		this.mmr = value;
 	}

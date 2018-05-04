@@ -37,23 +37,13 @@ client.on('message', message => {
 	}
 	if(message.content === `${prefix}active`){
 		//console.log(message); // Can print for information about hierarchy in discord message
-
 		var voiceChannel = message.guild.member(message.author).voiceChannel;
 			
 		if(voiceChannel !== null && typeof voiceChannel != 'undefined'){ // Makes sure user is in a voice channel
-			//console.log('First way:',voiceChannel);
 			findPlayersStart(message, voiceChannel);
+		} else {
+			message.channel.send('Author must be in voiceChannel');
 		}
-		/*
-		else{ // If first doesn't work, old solution
-			var channels = message.guild.channels;
-			channels.forEach(function(channel, id) {
-				if(channel.type === 'voice'){
-					console.log('Second way:',channel);
-					findPlayersStart(message, channel);
-				}
-			}); 
-		}*/
 	}
 
 	// TODO Feat: Add functionality to remove player written message after ~5 sec, prevent flooding
@@ -83,7 +73,7 @@ function findPlayersStart(message, channel){
 		// Show result to discord users
 		message.channel.send(result);
 	} else if((numPlayers === 1 || numPlayers === 2) && (message.author.username === 'Petter' || message.author.username === 'Obtained') ){
-		console.log(' <--- Testing Environment: 4 games, different sizes, players with random mmr, res in console -->');
+		console.log('\t<-- Testing Environment: 10 player game, players with random mmr, res in console -->');
 		var players = new ArrayList;
 		for(var i = 0; i < 10; i++){
 			var tempPlayer = balance.createTempPlayer('Player ' + i, i, 900 + ( Math.floor(Math.random() * Math.floor(200))) );
