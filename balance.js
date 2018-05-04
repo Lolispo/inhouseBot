@@ -27,9 +27,7 @@ exports.initializePlayers = function(players, dbpw){
 	for(var i = 0; i < players.size(); i++){
 		uids.push(players[i].uid);
 	}
-	//console.log('DEBUG: @initializePlayers, uids =', uids);
 	var usersTable = db_sequelize.getTable(players, function(data){
-		//console.log('DEBUG: @initPlayers, usersTable result = ' + data);
 		balanceTeams(players, data);				
 	});
 }
@@ -80,53 +78,58 @@ function addMissingUsers(players, data){
 // uniqueCombs makes sure that duplicates aren't saved (Unsure if uniqueSum even helps, should in theory)
 // @return teamCombs is returned with all possible matchups
 function generateTeamCombs(players){
+	//console.log('DEBUG: @generateTeamCombs');
 	var teamCombs = [];   // Saves all team combination, as arrays of indexes of 5 (other team is implied)
-	var uniqueCombs = new ArrayList; // A number combination for each comb, to prevent saving duplicates.
+	var uniqueCombs = new Set(); // A number combination for each comb, to prevent saving duplicates.
 	var len = players.size();
 	for(var i = 0; i < len; i++){
 		for(var j = i+1; j < len; j++){
 			for(var k = j+1; k < len; k++){
 				for(var l = k+1; l < len; l++){
 					for(var m = l+1; m < len; m++){
-						if(len === 10){ // TODO: Hitta ett sätt att undvika combinations som t.ex. 0,1,2,3,4 vs 5,6,7,8,9 och 5,6,7,8,9 vs 0,1,2,3,4 (Halverar svar om fix)
+						if(len === 10){ // Hitta ett sätt att undvika combinations som t.ex. 0,1,2,3,4 vs 5,6,7,8,9 och 5,6,7,8,9 vs 0,1,2,3,4 (Halverar svar om fix)
 							var uniqueSum = uniVal(i) + uniVal(j) + uniVal(k) + uniVal(l) + uniVal(m); 
-							if(!uniqueCombs.contains(uniqueSum)){	
+							if(!uniqueCombs.has(uniqueSum)){	
 								var teamComb = [i,j,k,l,m]
 								teamCombs.push(teamComb); // Add new combination to teamCombs // [i,j,k,l,m]
 								uniqueCombs.add(uniqueSum);
+								uniqueCombs.add(reverseUniqueSum([i,j,k,l,m], len));
 							} 	
 						}					
 					}
 					if(len === 8){
 						var uniqueSum = uniVal(i) + uniVal(j) + uniVal(k) + uniVal(l); 
-						if(!uniqueCombs.contains(uniqueSum)){	
+						if(!uniqueCombs.has(uniqueSum)){	
 							var teamComb = [i,j,k,l]
 							teamCombs.push(teamComb); // Add new combination to teamCombs // [i,j,k,l]
 							uniqueCombs.add(uniqueSum);
+							uniqueCombs.add(reverseUniqueSum([i,j,k,l], len));
 						} 	
 					}
 				}
 				if(len === 6){
 					var uniqueSum = uniVal(i) + uniVal(j) + uniVal(k); 
-					if(!uniqueCombs.contains(uniqueSum)){	
+					if(!uniqueCombs.has(uniqueSum)){	
 						var teamComb = [i,j,k]
 						teamCombs.push(teamComb); // Add new combination to teamCombs // [i,j,k]
 						uniqueCombs.add(uniqueSum);
+						uniqueCombs.add(reverseUniqueSum([i,j,k], len));
 					} 	
 				}
 			}
 			if(len === 4){
 				var uniqueSum = uniVal(i) + uniVal(j); 
-				if(!uniqueCombs.contains(uniqueSum)){	
+				if(!uniqueCombs.has(uniqueSum)){	
 					var teamComb = [i,j]
 					teamCombs.push(teamComb); // Add new combination to teamCombs // [i,j]
 					uniqueCombs.add(uniqueSum);
+					uniqueCombs.add(reverseUniqueSum([i,j], len));
 				} 	
 			}
 		}
 	}
 
-	//console.log('DEBUG: @generateTeamCombs, teamCombs = ', teamCombs, teamCombs.length, uniqueCombs, uniqueCombs.size());
+	//console.log('DEBUG: @generateTeamCombs, teamCombs = ', teamCombs, teamCombs.length, uniqueCombs, uniqueCombs.size);
 	return teamCombs;
 }
 
@@ -157,9 +160,26 @@ function findBestTeamComb(players, teamCombs){
 
 // Unique number combinations for combinations of 5.
 // Should give (check): 0: 0, 1: 10, 2: 200, 3: 3000, 4: 40000, 5: 5, 6: 60, 7: 700, 8: 8000; 9: 90000
-// TODO Test
 function uniVal(x){
 	return (x * Math.pow(10, (x % 5)));
+}
+
+function reverseUniqueSum(list, len){
+	//console.log('DEBUG: @reverseUniqueSum', list, len);
+	var sum = 0;
+	for(var i = 0; i < len; i++){
+		var exists = false;
+		for(var j = 0; j < list.length; j++){
+			if(list[j] === i){
+				exists = true;
+				break;
+			}
+		}
+		if(!exists){
+			sum += uniVal(i);
+		}
+	}
+	return sum;
 }
 
 // Get the two teams of players from the teamComb
@@ -233,6 +253,8 @@ function calcMMRChange(wonGame, mmr){ // Can use T1 and T2 since they are global
 
 // Build a string to return to print as message
 function buildReturnString(obj, callback){ // TODO: Make print consistently nice
+	//console.log('DEBUG: @buildReturnString');
+
 	var date = moment().format('LLL'); // Date format. TODO: Change from AM/PM to military time
 	var s = '';
 	s += 'MMR Average difference: ' + obj.avgDiff + ' (Total: ' + obj.difference + 'p). ';

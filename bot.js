@@ -118,7 +118,7 @@ function findPlayersStart(message, channel){
 		var result = balance.initializePlayers(players, dbpw); // Initialize balancing, return result
 		// Show result to discord users
 		message.channel.send(result);
-	} else if((numPlayers === 1 || numPlayers === 2) && (message.author.username === 'Petter' || message.author.username === 'Obtained') ){
+	} else if((numPlayers <= 2) && (message.author.username === 'Petter' || message.author.username === 'Obtained') ){
 		console.log('\t<-- Testing Environment: 10 player game, res in console -->');
 		var players = new ArrayList;
 		for(var i = 0; i < 10; i++){
