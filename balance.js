@@ -24,7 +24,7 @@ exports.initializePlayers = function(players, dbpw){
 	}
 	console.log('DEBUG: @initializePlayers, uids =', uids);
 	var usersTable = db_sequelize.getTable(players);
-	console.log(usersTable);
+	console.log('usersTable result = ' + usersTable);
 	return balanceTeams(players);		
 }
 

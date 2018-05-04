@@ -68,26 +68,21 @@ client.login(token);
 
 function findPlayersStart(message, channel){
 	console.log('VoiceChannel', channel.name, ' (id =',channel.id,') active users: (Total: ', channel.members.size ,')');
-	var playerInformation = new ArrayList;
-	channel.members.forEach(function(members){
-		if(!members.bot){ // Only real users
-			console.log('\t', members.user.username, '(', members.user.id, ')'); // Printar alla activa users i denna voice chatt
-			playerInformation.add({id : members.user.id, userName : members.user.userName});
-		}
-	});
-	console.log('DEBUG: Go to test: ', playerInformation.size(), message.author.username);
-	var numPlayers = playerInformation.size();
+	var numPlayers = channel.members.size
 	if(numPlayers == 10 || numPlayers == 8 || numPlayers == 6 || numPlayers == 4){
 		// initalize 10 Player objects with playerInformation
 		var players = new ArrayList;
-		for(var i = 0; i < playerInformation.size(); i++){
-			var tempPlayer = balance.createPlayer(playerInformation[i].userName, playerInformation[i].id);
-			players.add(tempPlayer);
-		}
+		channel.members.forEach(function(members){
+			if(!members.bot){ // Only real users
+				console.log('\t' + members.user.username + '(' + members.user.id + ')'); // Printar alla activa users i denna voice chatt
+				var tempPlayer = balance.createPlayer(members.user.userName, members.user.id);
+				players.add(tempPlayer);
+			}
+		});
 		var result = balance.initializePlayers(players, dbpw); // Initialize balancing, return result
 		// Show result to discord users
 		message.channel.send(result);
-	} else if((playerInformation.size() === 1 || playerInformation.size() === 2) && (message.author.username === 'Petter' || message.author.username === 'Obtained') ){
+	} else if((numPlayers === 1 || numPlayers === 2) && (message.author.username === 'Petter' || message.author.username === 'Obtained') ){
 		console.log(' <--- Testing Environment: 4 games, different sizes, players with random mmr, res in console -->');
 		var players = new ArrayList;
 		for(var i = 0; i < 10; i++){
