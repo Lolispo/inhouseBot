@@ -63,14 +63,14 @@ client.on('message', message => {
 	else if(stage === 1){ // stage = 1 -> balance is made
 		// Add some confirmation step, also game was not player command
 		if(message.content === `${prefix}team1Won`){
-			// Calculate mmr difference for both teams
-			balance.updateMMR(true);
+			balance.updateMMR(true); // Update mmr for both teams
 		}
 		else if(message.content === `${prefix}team2Won`){
-
+			balance.updateMMR(false); // Update mmr for both teams
 		}
 		else if(message.content === `${prefix}gameNotPlayed` || message.content === `${prefix}noGame`){
-
+			// balance.resetVariables(); // Might be needed to avoid bugs?
+			stage = 0;
 		}
 
 		// TODO: Split and unite voice channels, need to have special channels perhapz
