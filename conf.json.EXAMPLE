@@ -1,4 +1,5 @@
 { 
 	"prefix": "!",
-	"token": "Replace-me-with-a-real-token"
+	"token": "Replace-me-with-a-real-token",
+	"dbpw": "database-pw-insert"
 }
