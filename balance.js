@@ -18,6 +18,13 @@ const db_sequelize = require('./db-sequelize');
 exports.initializePlayers = function(players, dbpw){
 	// Init mmr for players
 	db_sequelize.initDb(dbpw);
+	var uids = [];
+	for(var i = 0; i < players.size(); i++){
+		uids.push(players[i].discID);
+	}
+	console.log('DEBUG: @initializePlayers, uids =', uids);
+	var usersTable = db_sequelize.getTable(players);
+	console.log(usersTable);
 	return balanceTeams(players);		
 }
 
@@ -33,29 +40,6 @@ function balanceTeams(players){
 	// Return string to message to clients
 	console.log(stringToReturn);
 	return stringToReturn;
-}
-
-// Build a string to return to print as message
-function buildReturnString(obj){ // TODO: Make print consistently nice
-	// Check if adjustment is needed
-	var date = moment().format('LLL');
-	var s = '';
-	s += 'MMR Average difference: ' + obj.avgDiff + ' (Total: ' + obj.difference + 'p). ';
-	s += String(date);
-	s += '\n';
-	s += 'T1: ' + obj.team1[0].userName + ' (' + obj.team1[0].mmr + ')';
-	for(var i = 1; i < obj.team1.length; i++){
-		s += ',\t' + obj.team1[i].userName + ' (' + obj.team1[i].mmr + ')';
-	}	
-	s += '. \tAvg: ' + obj.avgT1;
-	s += '\n';
-	s += 'T2: ' + obj.team2[0].userName + ' (' + obj.team2[0].mmr + ')';
-	for(var i = 1; i < obj.team2.length; i++){
-		s += ',\t' + obj.team2[i].userName + ' (' + obj.team2[i].mmr + ')';
-	}
-	s += '. \tAvg: ' + obj.avgT2;
-	s += '\n';
-	return s;
 }
 
 // TODO Refactor: Should make less repetitive code
@@ -186,6 +170,28 @@ function addTeamMMR(team){ // Function to be used in summing over players
 	return sum;
 }
 
+// Build a string to return to print as message
+function buildReturnString(obj){ // TODO: Make print consistently nice
+	// Check if adjustment is needed
+	var date = moment().format('LLL');
+	var s = '';
+	s += 'MMR Average difference: ' + obj.avgDiff + ' (Total: ' + obj.difference + 'p). ';
+	s += String(date);
+	s += '\n';
+	s += 'T1: ' + obj.team1[0].userName + ' (' + obj.team1[0].mmr + ')';
+	for(var i = 1; i < obj.team1.length; i++){
+		s += ',\t' + obj.team1[i].userName + ' (' + obj.team1[i].mmr + ')';
+	}	
+	s += '. \tAvg: ' + obj.avgT1;
+	s += '\n';
+	s += 'T2: ' + obj.team2[0].userName + ' (' + obj.team2[0].mmr + ')';
+	for(var i = 1; i < obj.team2.length; i++){
+		s += ',\t' + obj.team2[i].userName + ' (' + obj.team2[i].mmr + ')';
+	}
+	s += '. \tAvg: ' + obj.avgT2;
+	s += '\n';
+	return s;
+}
 
 function Player(username, discId){
 	this.userName = username;
@@ -213,3 +219,5 @@ exports.createTempPlayer = function(username, discId, mmr){
 exports.createPlayer = function(username, discId){
 	return new Player(username, discId);
 }
+
+

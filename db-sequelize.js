@@ -27,7 +27,7 @@ exports.initDb = function(dbpw){
 }
 
 /* Returns table of users */
-exports.getTable = function(dbpw, uids){
+exports.getTable = function(uids){
 	Users
 	.findAll({
 	where: {
@@ -36,19 +36,17 @@ exports.getTable = function(dbpw, uids){
 	order: [['userName', 'ASC']]
 	})
 	.then(function(result) {
-		
+		return result;
 	})
 }; 
 
-exports.updateMMR = function(dbpw, uids, mmrs){
-	Users
-	.update({
-	where: {
-		uid: uids 	
-	}, 
-	
-	})
-	.then(function(result) {
-		
-	})	
+exports.updateMMR = function(uid, newMmr){
+	Users.findById(uid).then(function(user) {
+		user
+		.update({
+			mmr: newMmr
+	    }).then(function(){
+			console.log('User (id =', uid + ') new mmr set to ' + newMmr)
+		})
+	});
 }
