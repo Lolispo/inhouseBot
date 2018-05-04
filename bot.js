@@ -30,7 +30,7 @@ client.on('ready', () => {
 });
 
 // TODO: Design differ maybe? make a start stage = 1, mapveto/split/start, and a end stage = 2 -> team1Won/Team2won/unite/gnp etc
-// Stage = 0 -> nothing started yet, default. Stage = 1 -> rdy for: mapVeto/split/team1Won/team2Won/gameNotPlayed. 
+// Current: Stage = 0 -> nothing started yet, default. Stage = 1 -> rdy for: mapVeto/split/team1Won/team2Won/gameNotPlayed. 
 var stage = 0;
 var glblMessage;
 
@@ -43,7 +43,6 @@ client.on('message', message => {
 		console.log('PingAlert, user had !ping as command');
 		message.channel.send('Pong');
 	}
-	// TODO: Remove player written message
 	else if(message.content === `${prefix}inhouseBalance` || message.content === `${prefix}b` || message.content === `${prefix}active`){
 		//console.log(message); // Can print for information about hierarchy in discord message
 		if(stage === 0){
@@ -132,7 +131,7 @@ function findPlayersStart(message, channel){
 		
 		//message.channel.send(result);
 	} else{
-		console.log('Currently only support games for 4, 6, 8 and 10 players'); // TODO, support more sizes
+		console.log('Currently only support games for 4, 6, 8 and 10 players'); 
 	}
 }
 

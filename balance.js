@@ -233,7 +233,6 @@ function calcMMRChange(wonGame, mmr){ // Can use T1 and T2 since they are global
 
 // Build a string to return to print as message
 function buildReturnString(obj, callback){ // TODO: Make print consistently nice
-	// TODO: Adjust printout
 	var date = moment().format('LLL'); // Date format. TODO: Change from AM/PM to military time
 	var s = '';
 	s += 'MMR Average difference: ' + obj.avgDiff + ' (Total: ' + obj.difference + 'p). ';
@@ -254,7 +253,7 @@ function buildReturnString(obj, callback){ // TODO: Make print consistently nice
 	callback(1, s); // Should send the message back to the bot
 }
 
-// TODO: Print MMR update for everyone
+// After a finished game, prints out new updated mmr
 function buildMMRUpdateString(team1Won, callback){
 	var date = moment().format('LLL'); // Date format. TODO: Change from AM/PM to military time
 	var s = '';
@@ -280,7 +279,7 @@ function callbackStageAndMessage(stage, message){
 function Player(username, discId){
 	this.userName = username;
 	this.uid = discId;
-	this.defaultMMR = 1000; // TODO: Adjust to elo system
+	this.defaultMMR = 1000; 
 	this.mmr = this.defaultMMR; // MMR is updated when all players are fetched
 
 	this.setMMR = function(value){
