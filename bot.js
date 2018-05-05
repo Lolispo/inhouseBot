@@ -42,7 +42,6 @@ client.on('message', message => {
 	console.log('MSG: ', message.content); // Doesn't print bot messages to console
 	if(message.content == 'hej'){
 		message.channel.send('lul')
-		message.delete(300000);
 	}
 	else if(message.content === prefix+'ping'){
 		console.log('PingAlert, user had !ping as command');
