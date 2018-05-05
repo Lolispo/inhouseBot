@@ -227,27 +227,21 @@ function addTeamMMR(team){ // Function to be used in summing over players
 exports.updateMMR = function(winner, team1, team2){ // winner = 0 -> draw, 1 -> team 1, 2 -> team 2
 	T1 = team1;
 	T2 = team2; 
+	var mmrChange = mmr_js.eloupdate(team1, team2, winner); // TODO: Do the math, based on how fair the game was
+	updateTeamMMR(team1, mmrChange.t1);
+	updateTeamMMR(team2, mmrChange.t2);
 
-	for(var i = 0; i < team.size(); i++){
-		var mmrUpdated = calcMMRChange(won, team[i].mmr);
-		team[i].setMMRChange(mmrUpdated.mmrChange);
-		team[i].setMMR(mmrUpdated.newMMR);
-		team[i].setPlusMinus((won ? '+' : '-'));
-		db_sequelize.updateMMR(team[i].uid, mmrUpdated.newMMR);
-	}
-
-	buildMMRUpdateString(team1Won, callbackStageAndMessage);
+	buildMMRUpdateString(winner, callbackStageAndMessage);
 }
 
-// TODO: Update with big math
-function calcMMRChange(wonGame, mmr){ // Can use T1 and T2 since they are global variables
-	var mmrChange = 25; // TODO: Do the math, based on how fair the game was
-	if(wonGame){
-		mmr += mmrChange; 
-	} else{
-		mmr -= mmrChange; 
+function updateTeamMMR(team, change){
+	for(var i = 0; i < team.size(); i++){
+		var newMMR = team[i].mmr + change;
+		team[i].setMMRChange(change);
+		team[i].setMMR(newMMR);
+		team[i].setPlusMinus((winner ? '+' : ''));
+		db_sequelize.updateMMR(team[i].uid, newMMR);
 	}
-	return {newMMR : mmr, mmrChange : mmrChange}; 
 }
 
 // Build a string to return to print as message
@@ -300,7 +294,7 @@ function callbackStageAndMessage(stage, message, messageTime, team1, team2){
 function Player(username, discId){
 	this.userName = username;
 	this.uid = discId;
-	this.defaultMMR = 1000; 
+	this.defaultMMR = 2500; 
 	this.mmr = this.defaultMMR; // MMR is updated when all players are fetched
 	this.prevMMR = this.defaultMMR;
 	this.latestUpdate = 0;
