@@ -48,6 +48,8 @@ function balanceTeams(players, data){
 	
 	var result = findBestTeamComb(players, teamCombs);
 	
+	//console.log('DEBUG: @balanceTeams, TEAMS T1 AND T2: ', t1, t2);
+
 	// Return string to message to clients
 	buildReturnString(result, callbackStageAndMessage); // callbackStageAndMessage = method 
 }
@@ -221,7 +223,9 @@ function addTeamMMR(team){ // Function to be used in summing over players
 	return sum;
 }
 
-exports.updateMMR = function(team1Won, callback){
+exports.updateMMR = function(team1Won, team1, team2){
+	T1 = team1;
+	T2 = team2; 
 	if(team1Won){
 		updateTeamMMR(T1, true);
 		updateTeamMMR(T2, false);
@@ -235,20 +239,23 @@ exports.updateMMR = function(team1Won, callback){
 
 function updateTeamMMR(team, won){ // Updated mmr for the given team given if they won or not
 	for(var i = 0; i < team.size(); i++){
-		var newMMR = calcMMRChange(won, team[i].mmr);
-		db_sequelize.updateMMR(team[i].uid, newMMR);
-		team[i].setMMR(newMMR);
+		var mmrUpdated = calcMMRChange(won, team[i].mmr);
+		team[i].setMMRChange(mmrUpdated.mmrChange);
+		team[i].setMMR(mmrUpdated.newMMR);
+		team[i].setPlusMinus((won ? '+' : '-'));
+		db_sequelize.updateMMR(team[i].uid, mmrUpdated.newMMR);
 	}
 }
 
 // TODO: Update with big math
 function calcMMRChange(wonGame, mmr){ // Can use T1 and T2 since they are global variables
+	var mmrChange = 25; // TODO: Do the math, based on how fair the game was
 	if(wonGame){
-		mmr += 5; // TEMP
+		mmr += mmrChange; 
 	} else{
-		mmr -= 5; // TEMP
+		mmr -= mmrChange; 
 	}
-	return mmr; // Return new calculated mmr
+	return {newMMR : mmr, mmrChange : mmrChange}; 
 }
 
 // Build a string to return to print as message
@@ -257,45 +264,45 @@ function buildReturnString(obj, callback){ // TODO: Make print consistently nice
 
 	var date = moment().format('LLL'); // Date format. TODO: Change from AM/PM to military time
 	var s = '';
-	s += 'MMR Average difference: ' + obj.avgDiff + ' (Total: ' + obj.difference + 'p). ';
+	s += '**New Game!** MMR Average difference: ' + obj.avgDiff + ' (Total: ' + obj.difference + 'p). ';
 	s += String(date);
 	s += '\n';
-	s += 'T1: ' + obj.team1[0].userName + ' (' + obj.team1[0].mmr + ')';
+	s += '**Team 1** \t(Avg: ' + obj.avgT1 + ' mmr): \n*' + obj.team1[0].userName + ' (' + obj.team1[0].mmr + ')';
 	for(var i = 1; i < obj.team1.length; i++){
 		s += ',\t' + obj.team1[i].userName + ' (' + obj.team1[i].mmr + ')';
 	}	
-	s += '. \tAvg: ' + obj.avgT1;
-	s += '\n';
-	s += 'T2: ' + obj.team2[0].userName + ' (' + obj.team2[0].mmr + ')';
+	s += '*\n';
+	s += '**Team 2** \t(Avg: ' + obj.avgT2 + ' mmr): \n*' + obj.team2[0].userName + ' (' + obj.team2[0].mmr + ')';
 	for(var i = 1; i < obj.team2.length; i++){
 		s += ',\t' + obj.team2[i].userName + ' (' + obj.team2[i].mmr + ')';
 	}
-	s += '. \tAvg: ' + obj.avgT2;
-	s += '\n';
-	callback(1, s); // Should send the message back to the bot
+	s += '*\n';
+	callback(1, s, 600000, obj.team1, obj.team2); // Should send the message back to the bot
 }
 
 // After a finished game, prints out new updated mmr
 function buildMMRUpdateString(team1Won, callback){
+	// TODO: Which is better? if 1100 -> 1150: (1100 +50) or (1150 +50)
 	var date = moment().format('LLL'); // Date format. TODO: Change from AM/PM to military time
 	var s = '';
-	s += 'Team ' + (team1Won ? '1' : '2') + ' won! Updated mmr is: \n';
-	s += 'T1: ' + T1[0].userName + ' (' + T1[0].mmr + ')';
-	for(var i = 0; i < T1.size(); i++){
-		s += ',\t' + T1[i].userName + ' (' + T1[i].mmr + ')';
+	s += '**Team ' + (team1Won ? '1' : '2') + ' won!** Updated mmr is: \n';
+	s += '**Team 1**: \n\t*' + T1[0].userName + ' (' + T1[0].mmr + ' mmr, ' + T1[0].prevMMR + ' ' + T1[0].latestUpdatePrefix + T1[0].latestUpdate + ')';
+	for(var i = 1; i < T1.size(); i++){
+		s += '\n\t' + T1[i].userName + ' (' + T1[i].mmr + ' mmr, ' + T1[i].prevMMR + ' ' + T1[i].latestUpdatePrefix + T1[i].latestUpdate + ')';
 	}
-	s += '\n';
-	s += 'T2: ' + T2[0].userName + ' (' + T2[0].mmr + ')';
-	for(var i = 0; i < T2.size(); i++){
-		s += ',\t' + T2[i].userName + ' (' + T2[i].mmr + ')';
+	s += '*\n';
+	s += '**Team 2**: \n\t*' + T2[0].userName + ' (' + T2[0].mmr + ' mmr, ' + T2[0].prevMMR + ' ' + T2[0].latestUpdatePrefix + T2[0].latestUpdate + ')';
+	for(var i = 1; i < T2.size(); i++){
+		s += '\n\t' + T2[i].userName + ' (' + T2[i].mmr + ' mmr, ' + T2[i].prevMMR + ' ' + T2[i].latestUpdatePrefix + T2[i].latestUpdate + ')';
 	}
-	s += '\n';
-	callback(0, s);
+	s += '*\n';
+	callback(0, s, -1, T1, T2);
 }
 
-function callbackStageAndMessage(stage, message){
+function callbackStageAndMessage(stage, message, messageTime, team1, team2){
 	bot.setStage(stage);
-	bot.printMessage(message);
+	bot.printMessage(message, messageTime);
+	bot.setTeams(team1, team2);
 }
 
 function Player(username, discId){
@@ -303,9 +310,21 @@ function Player(username, discId){
 	this.uid = discId;
 	this.defaultMMR = 1000; 
 	this.mmr = this.defaultMMR; // MMR is updated when all players are fetched
+	this.prevMMR = this.defaultMMR;
+	this.latestUpdate = 0;
+	this.latestUpdatePrefix = '';
 
 	this.setMMR = function(value){
+		this.prevMMR = this.mmr; // Keeps track of last recorded mmr
 		this.mmr = value;
+	}
+
+	this.setMMRChange = function(value){
+		this.latestUpdate = value;
+	}
+
+	this.setPlusMinus = function(value){
+		this.latestUpdatePrefix = value;
 	}
 }
 

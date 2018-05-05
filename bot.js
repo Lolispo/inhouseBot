@@ -33,9 +33,13 @@ client.on('ready', () => {
 // Current: Stage = 0 -> nothing started yet, default. Stage = 1 -> rdy for: mapVeto/split/team1Won/team2Won/gameNotPlayed. 
 var stage = 0;
 var glblMessage;
+var T1;
+var T2;
 
 client.on('message', message => {
-	console.log('MSG: ', message.content);
+	if(!message.author.bot){
+		console.log('MSG: ', message.content); // Doesn't print bot messages to console
+	}
 	if(message.content == 'hej'){
 		message.channel.send('lul')
 	}
@@ -43,7 +47,13 @@ client.on('message', message => {
 		console.log('PingAlert, user had !ping as command');
 		message.channel.send('Pong');
 	}
-	else if(message.content === `${prefix}inhouseBalance` || message.content === `${prefix}b` || message.content === `${prefix}active`){
+	else if(message.content === prefix+'help' || message.content === prefix+'h'){
+		message.channel.send(buildHelpString());
+	}
+	else if(message.content === prefix+'clear'){
+		// TODO: Delete the inhouse-bot created messages
+	}
+	else if(message.content === `${prefix}b` || message.content === `${prefix}balance` || message.content === `${prefix}inhouseBalance`){
 		//console.log(message); // Can print for information about hierarchy in discord message
 		if(stage === 0){
 			glblMessage = message;
@@ -54,20 +64,29 @@ client.on('message', message => {
 			} else {
 				message.channel.send('Author must be in voiceChannel');
 			}
+			message.delete(15000);
 		} else{
-			print(message, 'Invalid command: Inhouse already ongoing');
+			print(message, 'Invalid command: Inhouse already ongoing', 5000);
+			message.delete(5000);
 		}
+	}
+
+	// TODO Show top 3 MMR 
+	else if(message.content === `${prefix}leaderboard`){
+		message.delete(5000);
 	}
 
 	else if(stage === 1){ // stage = 1 -> balance is made
 		// Add some confirmation step, also game was not player command
 		if(message.content === `${prefix}team1Won`){
-			balance.updateMMR(true); // Update mmr for both teams
+			balance.updateMMR(true, T1, T2); // Update mmr for both teams
+			message.delete(15000);
 		}
 		else if(message.content === `${prefix}team2Won`){
-			balance.updateMMR(false); // Update mmr for both teams
+			balance.updateMMR(false, T1, T2); // Update mmr for both teams
+			message.delete(15000);
 		}
-		else if(message.content === `${prefix}gameNotPlayed` || message.content === `${prefix}noGame`){
+		else if(message.content === `${prefix}gameNotPlayed` || message.content === `${prefix}noGame` || message.content === `${prefix}cancel`){
 			// balance.resetVariables(); // Might be needed to avoid bugs?
 			stage = 0;
 		}
@@ -76,7 +95,8 @@ client.on('message', message => {
 		else if(message.content === `${prefix}split`){
 
 		}
-		else if(message.content === `${prefix}unite`){
+		// TODO: Take every user in 'Team 1' and 'Team 2' and move them to some default voice
+		else if(message.content === `${prefix}unite` || message.content === `${prefix}u`){ 
 
 		}
 
@@ -88,7 +108,7 @@ client.on('message', message => {
 	// TODO Feat: Add functionality to remove player written message after ~5 sec, prevent flooding
 
 	/*
-	// TODO: Handle that command could not be read (ex. !memes)
+	// TODO: Handle that command could not be read (ex. !memes) TODO: GIVE MESSAGE 'use !help' SOMETHING
 	else if(){ // <- logic check for string starting with `${prefix}`
 		console.log('Invalid command')
 	}
@@ -115,36 +135,49 @@ function findPlayersStart(message, channel){
 				players.add(tempPlayer);
 			}
 		});
-		var result = balance.initializePlayers(players, dbpw); // Initialize balancing, return result
-		// Show result to discord users
-		message.channel.send(result);
-	} else if((numPlayers <= 2) && (message.author.username === 'Petter' || message.author.username === 'Obtained') ){
+		balance.initializePlayers(players, dbpw); // Initialize balancing, Result is printed when done
+	} else if((numPlayers === 1 ||numPlayers === 2) && (message.author.username === 'Petter' || message.author.username === 'Obtained') ){
 		console.log('\t<-- Testing Environment: 10 player game, res in console -->');
 		var players = new ArrayList;
 		for(var i = 0; i < 10; i++){
 			var tempPlayer = balance.createPlayer('Player ' + i, i);
-			console.log('DEBUG: @findPlayersStart, tempPlayer =', tempPlayer);
+			//console.log('DEBUG: @findPlayersStart, tempPlayer =', tempPlayer);
 			players.add(tempPlayer);
 		}
-		var result = balance.initializePlayers(players, dbpw); // Initialize balancing, return result
-		// Show result to discord users
-		
-		//message.channel.send(result);
+		balance.initializePlayers(players, dbpw); // Initialize balancing, return result
 	} else{
 		console.log('Currently only support games for 4, 6, 8 and 10 players'); 
 	}
 }
 
-function print(messageVar, message){
+function print(messageVar, message, deleteTime){
 	console.log(message);
-	messageVar.channel.send(message);
+	if(deleteTime === -1){
+		messageVar.channel.send(message);
+	}else {
+		messageVar.channel.send(message)
+		.then(msg => msg.delete(deleteTime))
+		.catch(console.error);;
+	}
+}
+
+// TODO: Add all available commands
+function buildHelpString(){
+	s = 'Available commands are: ';
+	s += '**' + prefix + 'b | '+ prefix + 'balance | '+ prefix + 'inhouseBalance** Starts an inhouse game with the teams ready in the lobby';
+	s += '**' + prefix + 'help** Gives the available commands';
+	return s;
 }
 
 exports.setStage = function(value){
 	stage = value;
 }
 
-exports.printMessage = function(message){
-	print(glblMessage, message);
+exports.printMessage = function(message, time){
+	print(glblMessage, message, -1);
 }
 
+exports.setTeams = function(team1, team2){
+	T1 = team1;
+	T2 = team2;
+}
