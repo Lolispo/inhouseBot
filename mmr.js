@@ -31,9 +31,11 @@ exports.eloupdate = function(t1mmr, t2mmr, winner){
 	var t1_new = t1mmr + K * (score1 - est1);
 	var t2_new = t2mmr + K * (score2 - est2);
 
-	return {
-		t1: Math.round(t1_new)-t1mmr,
-		t2: Math.round(t2_new)-t2mmr
+	//console.log('DEBUG: @eloupdate, ', t1_new, t1mmr, Math.round(t1_new), Math.round(t1_new)-t1mmr, Math.round(t1_new-t1mmr));
+
+	return { // Changed to round everything since t1mmr are averages and can be doubles
+		t1: Math.round(t1_new-t1mmr),
+		t2: Math.round(t2_new-t2mmr)
 	};
 }
 

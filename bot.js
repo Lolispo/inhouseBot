@@ -61,9 +61,11 @@ client.on('message', message => {
 			if(voiceChannel !== null && typeof voiceChannel != 'undefined'){ // Makes sure user is in a voice channel
 				findPlayersStart(message, voiceChannel);
 			} else {
-				message.channel.send('Author must be in voiceChannel');
+				message.channel.send('Author must be in voiceChannel')
+				.then(msg => msg.delete(10000)) // TODO: Should Deletes message after 10 sec
+				.catch(console.error); 
 			}
-			message.delete(15000);
+			message.delete(10000);
 		} else{
 			print(message, 'Invalid command: Inhouse already ongoing', 5000);
 			message.delete(5000);
@@ -158,8 +160,8 @@ function print(messageVar, message, deleteTime){
 	if(deleteTime === -1){
 		messageVar.channel.send(message);
 	}else {
-		messageVar.channel.send(message)
-		.then(msg => msg.delete(deleteTime))
+		messageVar.channel.send(message) 
+		.then(msg => msg.delete(deleteTime)) // TODO: Check how to remove own message
 		.catch(console.error);;
 	}
 }
