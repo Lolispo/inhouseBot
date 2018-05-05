@@ -79,11 +79,15 @@ client.on('message', message => {
 	else if(stage === 1){ // stage = 1 -> balance is made
 		// Add some confirmation step, also game was not player command
 		if(message.content === `${prefix}team1Won`){
-			balance.updateMMR(true, T1, T2); // Update mmr for both teams
+			balance.updateMMR(1, T1, T2); // Update mmr for both teams
 			message.delete(15000);
 		}
 		else if(message.content === `${prefix}team2Won`){
-			balance.updateMMR(false, T1, T2); // Update mmr for both teams
+			balance.updateMMR(2, T1, T2); // Update mmr for both teams
+			message.delete(15000);
+		}
+		else if(message.content === `${prefix}tie`){
+			balance.updateMMR(0, T1, T2); // Update mmr for both teams
 			message.delete(15000);
 		}
 		else if(message.content === `${prefix}gameNotPlayed` || message.content === `${prefix}noGame` || message.content === `${prefix}cancel`){

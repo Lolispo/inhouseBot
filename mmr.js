@@ -65,5 +65,3 @@ function tester(){
     ", t2wins=", (games-t1wins),
     ", draws=", draws);
 }
-
-tester();

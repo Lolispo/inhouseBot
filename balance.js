@@ -4,6 +4,7 @@ const ArrayList = require('arraylist');
 const moment = require('moment');
 const db_sequelize = require('./db-sequelize');
 const bot = require('./bot');
+const mmr_js = require('./mmr');
 
 var t1 = [];
 var t2 = [];
@@ -223,21 +224,10 @@ function addTeamMMR(team){ // Function to be used in summing over players
 	return sum;
 }
 
-exports.updateMMR = function(team1Won, team1, team2){
+exports.updateMMR = function(winner, team1, team2){ // winner = 0 -> draw, 1 -> team 1, 2 -> team 2
 	T1 = team1;
 	T2 = team2; 
-	if(team1Won){
-		updateTeamMMR(T1, true);
-		updateTeamMMR(T2, false);
-	} else{
-		updateTeamMMR(T1, false);
-		updateTeamMMR(T2, true);
-	}
 
-	buildMMRUpdateString(team1Won, callbackStageAndMessage);
-}
-
-function updateTeamMMR(team, won){ // Updated mmr for the given team given if they won or not
 	for(var i = 0; i < team.size(); i++){
 		var mmrUpdated = calcMMRChange(won, team[i].mmr);
 		team[i].setMMRChange(mmrUpdated.mmrChange);
@@ -245,6 +235,8 @@ function updateTeamMMR(team, won){ // Updated mmr for the given team given if th
 		team[i].setPlusMinus((won ? '+' : '-'));
 		db_sequelize.updateMMR(team[i].uid, mmrUpdated.newMMR);
 	}
+
+	buildMMRUpdateString(team1Won, callbackStageAndMessage);
 }
 
 // TODO: Update with big math
