@@ -42,13 +42,16 @@ client.on('message', message => {
 	console.log('MSG: ', message.content); // Doesn't print bot messages to console
 	if(message.content == 'hej'){
 		message.channel.send('lul')
+		message.delete(300000);
 	}
 	else if(message.content === prefix+'ping'){
 		console.log('PingAlert, user had !ping as command');
 		message.channel.send('Pong');
+		message.delete(300000);
 	}
 	else if(message.content === prefix+'help' || message.content === prefix+'h'){
 		message.channel.send(buildHelpString());
+		message.delete(300000);
 	}
 	else if(message.content === prefix+'clear'){
 		// TODO: Delete the inhouse-bot created messages
@@ -62,7 +65,7 @@ client.on('message', message => {
 			if(voiceChannel !== null && typeof voiceChannel != 'undefined'){ // Makes sure user is in a voice channel
 				findPlayersStart(message, voiceChannel);
 			} else {
-				message.channel.send('Author must be in voiceChannel'); 
+				message.channel.send('Author of message must be in voiceChannel'); 
 			}
 			message.delete(10000);
 		} else{
@@ -173,6 +176,7 @@ function print(messageVar, message, deleteTime){
 function buildHelpString(){
 	s = 'Available commands are: ';
 	s += '**' + prefix + 'b | '+ prefix + 'balance | '+ prefix + 'inhouseBalance** Starts an inhouse game with the teams ready in the lobby';
+	s += '**' + prefix + 'team1Won | ' + prefix + 'team2Won | '+ prefix + 'draw | ' + prefix + 'cancel** Different commands for ending a game'
 	s += '**' + prefix + 'help** Gives the available commands';
 	return s;
 }
