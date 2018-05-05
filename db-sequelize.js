@@ -47,7 +47,7 @@ exports.getTable = function(uids, callback){
 	*/
 }; 
 
-// TODO: Test if this works
+// TODO Feature: Record amount of games played
 exports.updateMMR = function(uid, newMmr){
 	Users.findById(uid).then(function(user) {
 		user

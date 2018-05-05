@@ -36,9 +36,10 @@ var glblMessage;
 var balanceInfo;
 
 client.on('message', message => {
-	if(!message.author.bot){
-		console.log('MSG: ', message.content); // Doesn't print bot messages to console
+	if(message.author.bot){
+		message.delete(300000);
 	}
+	console.log('MSG: ', message.content); // Doesn't print bot messages to console
 	if(message.content == 'hej'){
 		message.channel.send('lul')
 	}
@@ -61,9 +62,7 @@ client.on('message', message => {
 			if(voiceChannel !== null && typeof voiceChannel != 'undefined'){ // Makes sure user is in a voice channel
 				findPlayersStart(message, voiceChannel);
 			} else {
-				message.channel.send('Author must be in voiceChannel')
-				.then(msg => msg.delete(10000)) // TODO: Should Deletes message after 10 sec
-				.catch(console.error); 
+				message.channel.send('Author must be in voiceChannel'); 
 			}
 			message.delete(10000);
 		} else{
@@ -74,6 +73,9 @@ client.on('message', message => {
 
 	// TODO Show top 3 MMR 
 	else if(message.content === `${prefix}leaderboard`){
+		message.delete(5000);
+	}
+	else if(message.content === `${prefix}stats`){ // TODO: Prints private mmr
 		message.delete(5000);
 	}
 
@@ -91,9 +93,10 @@ client.on('message', message => {
 			balance.updateMMR(0, balanceInfo); // Update mmr for both teams
 			message.delete(15000);
 		}
-		else if(message.content === `${prefix}gameNotPlayed` || message.content === `${prefix}noGame` || message.content === `${prefix}cancel`){
+		else if(message.content === `${prefix}gameNotPlayed` || message.content === `${prefix}noGame` || message.content === `${prefix}cancel` || message.content === `${prefix}c`){
 			// balance.resetVariables(); // Might be needed to avoid bugs?
 			stage = 0;
+			message.delete(15000);
 		}
 
 		// TODO: Split and unite voice channels, need to have special channels perhapz
