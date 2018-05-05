@@ -32,8 +32,8 @@ function eloupdate(t1mmr, t2mmr, winner){
   var t2_new = t2mmr + K * (score2 - est2);
 
   return {
-    t1: Math.round(t1_new),
-    t2: Math.round(t2_new)
+    t1: Math.round(t1_new)-t1mmr,
+    t2: Math.round(t2_new)-t2mmr
   };
 }
 
@@ -54,10 +54,10 @@ function tester(){
     var result = eloupdate(t1, t2, winner);
     var t1old = t1;
     var t2old = t2;
-    t1 = result.t1;
-    t2 = result.t2;
+    t1 += result.t1;
+    t2 += result.t2;
     console.log("Winner match", i, ": ", winner, "\n(t1old, t2old)=", t1old, ",", t2old,
-    "\n(new)=",t1,",",t2,
+    "\n(new)=",t1,",",t2, " diff(t1/t2)", result.t1, ",", result.t2,
     "\n###########");
   }
   console.log(
@@ -66,4 +66,4 @@ function tester(){
     ", draws=", draws);
 }
 
-tester();
+//tester();
