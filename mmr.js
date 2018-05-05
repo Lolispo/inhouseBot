@@ -28,11 +28,42 @@ function eloupdate(t1mmr, t2mmr, winner){
   }
 
   //new mmr for t1 and t2
-  t1_new = t1mmr + K * (score1 - est1);
-  t2_new = t2mrr + K * (score2 - est2);
+  var t1_new = t1mmr + K * (score1 - est1);
+  var t2_new = t2mmr + K * (score2 - est2);
 
   return {
-    "1": t1_new,
-    "2": t2_new
+    t1: t1_new,
+    t2: t2_new
   };
 }
+
+function tester(){
+  var t1 = 2000;
+  var t2 = 2400;
+  var t1wins = 0;
+  var draws = 0;
+  var games = 10;
+
+  for(var i = 0; i < games; i++){
+    var winner = Math.floor((Math.random()*3));
+    if(winner === 0){
+      draws++;
+    }else if(winner === 1){
+      t1wins++;
+    }
+    var result = eloupdate(t1, t2, winner);
+    var t1old = t1;
+    var t2old = t2;
+    t1 = result.t1;
+    t2 = result.t2;
+    console.log("Winner match", i, ": ", winner, "\n(t1old, t2old)=", t1old, ",", t2old,
+    "\n(new)=",t1,",",t2,
+    "\n###########");
+  }
+  console.log(
+    "t1wins=", t1wins,
+    ", t2wins=", (games-t1wins),
+    ", draws=", draws);
+}
+
+tester();
