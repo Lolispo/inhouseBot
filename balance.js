@@ -52,7 +52,7 @@ function balanceTeams(players, data){
 	//console.log('DEBUG: @balanceTeams, TEAMS T1 AND T2: ', t1, t2);
 
 	// Return string to message to clients
-	buildReturnString(result, callbackStageAndMessage); // callbackStageAndMessage = method 
+	buildReturnString(result, callbackBalanceInfo); // callbackBalanceInfo = method 
 }
 
 // Adds missing users to database 
@@ -224,14 +224,14 @@ function addTeamMMR(team){ // Function to be used in summing over players
 	return sum;
 }
 
-exports.updateMMR = function(winner, team1, team2){ // winner = 0 -> draw, 1 -> team 1, 2 -> team 2
-	T1 = team1;
-	T2 = team2; 
-	var mmrChange = mmr_js.eloupdate(team1, team2, winner); // TODO: Do the math, based on how fair the game was
-	updateTeamMMR(team1, mmrChange.t1);
-	updateTeamMMR(team2, mmrChange.t2);
+exports.updateMMR = function(winner, balanceInfo){ // winner = 0 -> draw, 1 -> team 1, 2 -> team 2
+	T1 = balanceInfo.team1;
+	T2 = balanceInfo.team2; 
+	var mmrChange = mmr_js.eloupdate(balanceInfo.avgT1, balanceInfo.avgT2, winner); // TODO: Do the math, based on how fair the game was
+	updateTeamMMR(balanceInfo.team1, mmrChange.t1);
+	updateTeamMMR(balanceInfo.team2, mmrChange.t2);
 
-	buildMMRUpdateString(winner, callbackStageAndMessage);
+	buildMMRUpdateString(winner, callbackResult);
 }
 
 function updateTeamMMR(team, change){
@@ -239,7 +239,7 @@ function updateTeamMMR(team, change){
 		var newMMR = team[i].mmr + change;
 		team[i].setMMRChange(change);
 		team[i].setMMR(newMMR);
-		team[i].setPlusMinus((winner ? '+' : ''));
+		team[i].setPlusMinus((change > 0 ? '+' : ''));
 		db_sequelize.updateMMR(team[i].uid, newMMR);
 	}
 }
@@ -263,7 +263,7 @@ function buildReturnString(obj, callback){ // TODO: Make print consistently nice
 		s += ',\t' + obj.team2[i].userName + ' (' + obj.team2[i].mmr + ')';
 	}
 	s += '*\n';
-	callback(1, s, 600000, obj.team1, obj.team2); // Should send the message back to the bot
+	callback(1, s, 600000, obj); // Should send the message back to the bot
 }
 
 // After a finished game, prints out new updated mmr
@@ -282,13 +282,18 @@ function buildMMRUpdateString(team1Won, callback){
 		s += '\n\t' + T2[i].userName + ' (' + T2[i].mmr + ' mmr, ' + T2[i].prevMMR + ' ' + T2[i].latestUpdatePrefix + T2[i].latestUpdate + ')';
 	}
 	s += '*\n';
-	callback(0, s, -1, T1, T2);
+	callback(0, s, -1);
 }
 
-function callbackStageAndMessage(stage, message, messageTime, team1, team2){
+function callbackBalanceInfo(stage, message, messageTime, obj){
 	bot.setStage(stage);
 	bot.printMessage(message, messageTime);
-	bot.setTeams(team1, team2);
+	bot.setBalanceInfo(obj);
+}
+
+function callbackResult(stage, message, messageTime){
+	bot.setStage(stage);
+	bot.printMessage(message, messageTime);
 }
 
 function Player(username, discId){

@@ -1,6 +1,6 @@
 'use strict;'
 
-function eloupdate(t1mmr, t2mmr, winner){
+exports.eloupdate = function(t1mmr, t2mmr, winner){
 	const K = 32;
 	//transformed ratings for t1 and t2
 	var t1_trans = Math.pow(10, t1mmr/400);

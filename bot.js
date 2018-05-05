@@ -33,8 +33,7 @@ client.on('ready', () => {
 // Current: Stage = 0 -> nothing started yet, default. Stage = 1 -> rdy for: mapVeto/split/team1Won/team2Won/gameNotPlayed. 
 var stage = 0;
 var glblMessage;
-var T1;
-var T2;
+var balanceInfo;
 
 client.on('message', message => {
 	if(!message.author.bot){
@@ -79,15 +78,15 @@ client.on('message', message => {
 	else if(stage === 1){ // stage = 1 -> balance is made
 		// Add some confirmation step, also game was not player command
 		if(message.content === `${prefix}team1Won`){
-			balance.updateMMR(1, T1, T2); // Update mmr for both teams
+			balance.updateMMR(1, balanceInfo); // Update mmr for both teams
 			message.delete(15000);
 		}
 		else if(message.content === `${prefix}team2Won`){
-			balance.updateMMR(2, T1, T2); // Update mmr for both teams
+			balance.updateMMR(2, balanceInfo); // Update mmr for both teams
 			message.delete(15000);
 		}
-		else if(message.content === `${prefix}tie`){
-			balance.updateMMR(0, T1, T2); // Update mmr for both teams
+		else if(message.content === `${prefix}tie` || message.content === `${prefix}draw`){
+			balance.updateMMR(0, balanceInfo); // Update mmr for both teams
 			message.delete(15000);
 		}
 		else if(message.content === `${prefix}gameNotPlayed` || message.content === `${prefix}noGame` || message.content === `${prefix}cancel`){
@@ -181,7 +180,6 @@ exports.printMessage = function(message, time){
 	print(glblMessage, message, -1);
 }
 
-exports.setTeams = function(team1, team2){
-	T1 = team1;
-	T2 = team2;
+exports.setBalanceInfo = function(obj){
+	balanceInfo = obj;
 }
