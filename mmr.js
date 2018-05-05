@@ -32,8 +32,8 @@ function eloupdate(t1mmr, t2mmr, winner){
   var t2_new = t2mmr + K * (score2 - est2);
 
   return {
-    t1: t1_new,
-    t2: t2_new
+    t1: Math.round(t1_new),
+    t2: Math.round(t2_new)
   };
 }
 
