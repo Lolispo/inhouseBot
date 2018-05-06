@@ -8,9 +8,13 @@ var Users = {};
 	This file handles database communication using sequelize
 	The database is a mysql database, running at KTH servers
 
-	TODO: 
+	TODO 
+	Feature: 
 		Add method for returning top 3 MMR holders
 		Adjust getTable method to only get users with uid in uids (received error when attempted)
+
+	Bug
+		(Potential) Unsure if dbpw is remembered between usage from balance.js and mmr.js (only initialized in balance.js) 
 */
 
 exports.initDb = function(dbpw){
