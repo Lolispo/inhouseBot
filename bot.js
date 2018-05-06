@@ -35,9 +35,12 @@ var stage = 0;
 var glblMessage;
 var balanceInfo;
 
+//login
+client.login(token);
+
 client.on('message', message => {
 	if(message.author.bot){
-		message.delete(300000);
+		message.delete(60000); // 300000
 	}
 	console.log('MSG: ', message.content); // Doesn't print bot messages to console
 	if(message.content == 'hej'){
@@ -129,8 +132,6 @@ client.on('message', message => {
 //Create more events to do fancy stuff with discord API
 
 
-//login
-client.login(token);
 
 function findPlayersStart(message, channel){
 	console.log('VoiceChannel', channel.name, ' (id =',channel.id,') active users: (Total: ', channel.members.size ,')');
@@ -165,18 +166,16 @@ function print(messageVar, message, deleteTime){
 	if(deleteTime === -1){
 		messageVar.channel.send(message);
 	}else {
-		messageVar.channel.send(message) 
-		.then(msg => msg.delete(deleteTime)) // TODO: Check how to remove own message
-		.catch(console.error);;
+		messageVar.channel.send(message); // Auto removes every bot message after 300 sec 
 	}
 }
 
 // TODO: Add all available commands
 function buildHelpString(){
-	s = 'Available commands are: ';
-	s += '**' + prefix + 'b | '+ prefix + 'balance | '+ prefix + 'inhouseBalance** Starts an inhouse game with the teams ready in the lobby';
-	s += '**' + prefix + 'team1Won | ' + prefix + 'team2Won | '+ prefix + 'draw | ' + prefix + 'cancel** Different commands for ending a game'
-	s += '**' + prefix + 'help** Gives the available commands';
+	var s = '*Available commands are: *';
+	s += '**' + prefix + 'b | '+ prefix + 'balance | '+ prefix + 'inhouseBalance** Starts an inhouse game with the teams ready in the lobby\n';
+	s += '**' + prefix + 'team1Won | ' + prefix + 'team2Won | '+ prefix + 'draw | ' + prefix + 'cancel** Different commands for ending a game\n'
+	s += '**' + prefix + 'help** Gives the available commands\n';
 	return s;
 }
 
