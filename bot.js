@@ -15,15 +15,14 @@ const { prefix, token, dbpw } = require('./conf.json');
 
 /*
 	TODO: 
+		Handle all bot sent messages with .then on send instead of looking at a received message, handle the send promise instead
 		Better Printout / message to clients (Currently as message, but not nice looking) (Deluxe: maybe image if possible)
 		better names for commands
-		Choose winner command (Deluxe: Approved by chat emotes on message? 6 of the players playing )
-
+		
 	Deluxe: 
 		Move players into separate channels on team generation
-		Remove player written message after a couple of seconds (at least for testing purpose) to prevent chat over flooding
 		Mapveto command
-
+			Find how to generate images OR emotes?
 */
 
 // will only do stuff after it's ready
@@ -54,8 +53,6 @@ const removeBotMessageDefaultTime = 60000; // 300000
 //login
 client.login(token);
 
-var test = false;
-
 client.on('message', message => {
 	// CASE 1: Bot sent message
 	if(test){
@@ -73,19 +70,20 @@ client.on('message', message => {
 			if(startsWith(message, '**Team')){ // Team 1 / 2 won! 
 				message.delete(removeBotMessageDefaultTime * 2);  // Double time for removing result TODO: Decide if this is good
 				test = true;
-				console.log('DEBUG: @botMessage - Unknown Message Error will follow after this - unsure why'); // TODO: Find source of error
+				console.log('DEBUG: @botMessage - Unknown Message Error will follow after this - unsure why'); // TODO: Find source of error 
+				// Discussed here - https://stackoverflow.com/questions/44284666/discord-js-add-reaction-to-a-bot-message
 			}else if(startsWith(message, 'Game canceled')){
 				matchupMessage.delete(); // Delete message immediately on game cancel
 				message.delete(15000); 
 			}
 		}else if(startsWith(message, voteText)){
 			voteMessage = message;
-			message.react(emoji_agree);
+			message.react(emoji_agree); 
 			message.react(emoji_disagree);
 		}else{ // Default case for bot messages, remove after time
 			if(startsWith(message, 'Invalid command: ')){
 				message.delete(15000);
-				message.react(emoji_error); 
+				message.react(emoji_error);  
 			}else if(startsWith(message, 'Hej')){
 				// Don't remove Hej message
 			}else{
@@ -94,11 +92,6 @@ client.on('message', message => {
 		}
 	}else{ // CASE 2: Message sent from user
 		console.log('MSG (' + message.channel.guild.name + '.' + message.channel.name + ') ' + message.author.username + ':', message.content); 	
-		if(test){
-			console.log('HELLO');
-			console.log(message);
-		}
-		
 
 		if(message.content == 'hej'){
 			message.channel.send('Hej ' + message.author.username);
@@ -236,7 +229,7 @@ function findPlayersStart(message, channel){
 			}
 		});
 		balance.initializePlayers(players, dbpw); // Initialize balancing, Result is printed when done
-	} else if((numPlayers === 1 ||numPlayers === 2) && (message.author.username === 'Petter' || message.author.username === 'Obtained') ){
+	} else if((numPlayers === 1 || numPlayers === 2) && (message.author.username === 'Petter' || message.author.username === 'Obtained') ){
 		console.log('\t<-- Testing Environment: 10 player game, res in console -->');
 		var players = new ArrayList;
 		for(var i = 0; i < 10; i++){
