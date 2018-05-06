@@ -7,6 +7,7 @@ const client = new Discord.Client();
 
 const ArrayList = require('arraylist');
 const balance = require('./balance');
+const mmr_js = require('./mmr');
 
 //get config data
 const { prefix, token, dbpw } = require('./conf.json');
@@ -47,7 +48,8 @@ const removeBotMessageDefaultTime = 60000; // 300000
 client.login(token);
 
 client.on('message', message => {
-	if(message.author.bot){
+	// CASE 1: Bot sent message
+	if(message.author.bot){ 
 		// TODO: Check best way to consistently give custom time for removal of these bot messages.
 		if(matchupMessageBool){ // Don't remove message about matchup UNTIL results are in
 			matchupMessageBool = false;
@@ -71,20 +73,20 @@ client.on('message', message => {
 		console.log('MSG (' + message.channel.guild.name + '.' + message.channel.name + ') ' + message.author.username + ':', message.content); 	
 	}
 
+	// CASE 2: Message sent from user
+
 	if(message.content == 'hej'){
-		message.channel.send('lul')
+		message.channel.send('Hej ' + message.author.username);
 	}
-	else if(message.content === prefix+'ping'){
+	else if(message.content === prefix+'ping'){ // Good for testing prefix and connection to bot
 		console.log('PingAlert, user had !ping as command');
 		message.channel.send('Pong');
 		message.delete(removeBotMessageDefaultTime);
 	}
+	// Sends available commands privately to the user
 	else if(message.content === prefix+'help' || message.content === prefix+'h'){
-		message.channel.send(buildHelpString());
+		message.author.send(buildHelpString());
 		message.delete(10000);
-	}
-	else if(message.content === prefix+'clear'){
-		// TODO: Delete the inhouse-bot created messages
 	}
 	else if(message.content === `${prefix}b` || message.content === `${prefix}balance` || message.content === `${prefix}inhouseBalance`){
 		//console.log(message); // Can print for information about hierarchy in discord message
@@ -103,12 +105,17 @@ client.on('message', message => {
 			message.delete(10000);
 		}
 	}
-
+	
+	// TODO: Delete the inhouse-bot created messages (that are NOT active) NOTE: This shouldn't be required if system works DEPRECATED FUNCTION
+	else if(message.content === prefix+'clear'){
+	
+	}
 	// TODO Show top 3 MMR 
 	else if(message.content === `${prefix}leaderboard`){
 		message.delete(5000);
 	}
-	else if(message.content === `${prefix}stats`){ // TODO: Prints private mmr
+	// TODO: Prints private mmr
+	else if(message.content === `${prefix}stats`){ 
 		message.delete(5000);
 	}
 
@@ -132,7 +139,7 @@ client.on('message', message => {
 			print(message, voteText + ' (0/' + (balanceInfo.team1.size() + 1)+ ')');
 			voteMessageBool = true;
 		}
-		else if(message.content === `${prefix}gameNotPlayed` || message.content === `${prefix}noGame` || message.content === `${prefix}cancel` || message.content === `${prefix}c`){
+		else if(message.content === `${prefix}c` || message.content === `${prefix}cancel` || message.content === `${prefix}gameNotPlayed`){
 			// balance.resetVariables(); // Might be needed to avoid bugs?
 			stage = 0;
 			resultMessageBool = true;
@@ -145,7 +152,7 @@ client.on('message', message => {
 
 		}
 		// TODO: Take every user in 'Team 1' and 'Team 2' and move them to some default voice
-		else if(message.content === `${prefix}unite` || message.content === `${prefix}u`){ 
+		else if(message.content === `${prefix}u` || message.content === `${prefix}unite`){ 
 
 		}
 
@@ -177,19 +184,19 @@ client.on('messageReactionAdd', messageReaction => {
 		}
 		else if(messageReaction.message.content === `${prefix}team2Won`){
 			// Check if majority number contain enough players playing
-			if(messageReaction.emoji.equals('👍')){
+			if(messageReaction.emoji === '👍'){
 				var voteAmountString = handleRelevantEmoji(true, 2);
 				voteMessage.edit(voteText + voteAmountString);
-			}else if(messageReaction.emoji.equals('👎')){
+			}else if(messageReaction.emoji === '👎'){
 				handleRelevantEmoji(false, 2);
 			}
 		}
 		else if(messageReaction.message.content === `${prefix}tie` || message.content === `${prefix}draw`){
 			// Check if majority number contain enough players playing
-			if(messageReaction.emoji.equals('👍')){
+			if(messageReaction.emoji === '👍'){
 				var voteAmountString = handleRelevantEmoji(true, 0);
 				voteMessage.edit(voteText + voteAmountString); // Update chat message if change
-			}else if(messageReaction.emoji.equals('👎')){
+			}else if(messageReaction.emoji === '👎'){
 				handleRelevantEmoji(false, 0);
 			}
 		}
@@ -263,12 +270,22 @@ function print(messageVar, message){
 	messageVar.channel.send(message);
 }
 
-// TODO: Add all available commands
+// TODO: Keep updated with recent information
 function buildHelpString(){
-	var s = '*Available commands are:* \n';
-	s += '**' + prefix + 'b | '+ prefix + 'balance | '+ prefix + 'inhouseBalance** Starts an inhouse game with the teams ready in the lobby\n';
-	s += '**' + prefix + 'team1Won | ' + prefix + 'team2Won | '+ prefix + 'draw | ' + prefix + 'cancel** Different commands for ending a game\n'
-	s += '**' + prefix + 'help** Gives the available commands\n';
+	var s = '*Available commands for inhouse-bot:* (Commands marked with **TBA** are To be Added) \n';
+	s += '**' + prefix + 'b|balance|inhouseBalance** Starts an inhouse game with the players in the same voice chat as the message author. '
+		+ 'Requires 4, 6, 8 or 10 players in voice chat to work\n';
+	s += '**' + prefix + 'team1Won | ' + prefix + 'team2Won** Starts report of match result, requires majority of players to upvote from game for stats to be recorded. '
+		+ 'If majority of players downvote, this match result report dissapears, use **' + prefix + 'cancel** for canceling the match after this\n';
+	s += '**' + prefix + 'draw|tie** If a match end in a tie, use this as match result. Same rules for reporting as **' + prefix + 'team1Won | ' + prefix + 'team2Won**\n';
+	s += '**' + prefix + 'c|cancel** Cancels the game, to be used when game was decided to not be played\n'
+	s += '**' + prefix + 'h|help** Gives the available commands\n';
+	s += '**' + prefix + 'leaderboard** Returns Top 3 MMR holders **TBA**\n'
+	s += '**' + prefix + 'stats** Returns your own rating **TBA**\n'
+	s += '**' + prefix + 'split** Splits voice chat **TBA**\n'
+	s += '**' + prefix + 'u|unite** Unite voice chat after game **TBA**\n'
+	s += '**' + prefix + 'mapVeto** Start map veto **TBA**\n'
+	s += '**' + prefix + 'h|help**'
 	return s;
 }
 
