@@ -158,7 +158,7 @@ function findBestTeamComb(players, teamCombs){
 	}
 
 	// Retrieved most fair teamComb
-	return {team1 : t1, team2 : t2, difference : bestPossibleTeamComb, avgT1 : avgTeam1, avgT2 : avgTeam2, avgDiff : Math.abs(avgTeam1 - avgTeam2).toFixed(2)}; // Remove teamComb
+	return {team1 : t1, team2 : t2, difference : bestPossibleTeamComb, avgT1 : avgTeam1, avgT2 : avgTeam2, avgDiff : Math.abs(avgTeam1 - avgTeam2).toFixed(2)}; 
 }
 
 // Unique number combinations for combinations of 5.
@@ -263,7 +263,7 @@ function buildReturnString(obj, callback){ // TODO: Make print consistently nice
 		s += ',\t' + obj.team2[i].userName + ' (' + obj.team2[i].mmr + ')';
 	}
 	s += '*\n';
-	callback(1, s, 600000, obj); // Should send the message back to the bot
+	callback(1, s, obj); // Should send the message back to the bot
 }
 
 // After a finished game, prints out new updated mmr
@@ -282,18 +282,20 @@ function buildMMRUpdateString(team1Won, callback){
 		s += '\n\t' + T2[i].userName + ' (' + T2[i].mmr + ' mmr, ' + T2[i].prevMMR + ' ' + T2[i].latestUpdatePrefix + T2[i].latestUpdate + ')';
 	}
 	s += '*\n';
-	callback(0, s, -1);
+	callback(0, s);
 }
 
-function callbackBalanceInfo(stage, message, messageTime, obj){
+function callbackBalanceInfo(stage, message, obj){
 	bot.setStage(stage);
-	bot.printMessage(message, messageTime);
+	bot.printMessage(message);
 	bot.setBalanceInfo(obj);
+	bot.setMatchupMessage(true);
 }
 
-function callbackResult(stage, message, messageTime){
+function callbackResult(stage, message){
 	bot.setStage(stage);
-	bot.printMessage(message, messageTime);
+	bot.printMessage(message);
+	bot.setResultMessage(true);
 }
 
 function Player(username, discId){
