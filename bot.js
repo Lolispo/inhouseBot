@@ -51,7 +51,7 @@ client.on('message', message => {
 	// CASE 1: Bot sent message
 	if(message.author.bot){ 
 		// TODO Feat: Add functionality to remove player written message after ~removeBotMessageDefaultTime sec, prevent flooding
-		// TODO: Check best way to consistently give custom time for removal of these bot messages.
+		// TODO Refactor: best way to consistently give custom time for removal of these bot messages.
 		if(matchupMessageBool){ // Don't remove message about matchup UNTIL results are in
 			matchupMessageBool = false;
 		}else if(resultMessageBool){
@@ -70,6 +70,8 @@ client.on('message', message => {
 			if(message.content.lastIndexOf('Invalid command: ', 0) === 0){
 				message.delete(15000);
 				message.react('🤚'); // TODO: Red X might be better
+			}else if(message.content.lastIndexOf('Hej', 0) === 0){
+				// Don't remove Hej message
 			}else{
 				message.delete(removeBotMessageDefaultTime); 		
 			}
