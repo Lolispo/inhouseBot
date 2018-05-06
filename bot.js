@@ -55,20 +55,24 @@ client.on('message', message => {
 		if(matchupMessageBool){ // Don't remove message about matchup UNTIL results are in
 			matchupMessageBool = false;
 		}else if(resultMessageBool){
-			console.log('Check me: **Team ', (message.content.lastIndexOf('**Team', 0) === 0));
-			console.log('Check me: Game canceled', (message.content.lastIndexOf('Game canceled', 0) === 0));
 			resultMessageBool = false;
 			matchupMessage.delete(); // Remove matchup message when results are in
 			if(message.content.lastIndexOf('**Team', 0) === 0){
-				message.delete(removeBotMessageDefaultTime * 2);  // Double time for removing result 
+				message.delete(removeBotMessageDefaultTime * 2);  // Double time for removing result TODO: Decide if this is good
 			}else if(message.content.lastIndexOf('Game canceled', 0) === 0){
-				message.delete(); // Delete message immediately on game cancel
+				matchupMessage.delete(); // Delete message immediately on game cancel
+				message.delete(15000); 
 			}
 		}else if(voteMessageBool){
 			voteMessageBool = false;
 			voteMessage = message;
 		}else{ // Default case for bot messages, remove after time
-			message.delete(removeBotMessageDefaultTime); // 300000
+			if(message.content.lastIndexOf('Invalid command: ', 0) === 0){
+				message.delete(15000);
+				message.react('🤚'); // TODO: Red X might be better
+			}else{
+				message.delete(removeBotMessageDefaultTime); 		
+			}
 		}
 	}else{ // Doesn't print bot messages to console
 		console.log('MSG (' + message.channel.guild.name + '.' + message.channel.name + ') ' + message.author.username + ':', message.content); 	
@@ -102,7 +106,7 @@ client.on('message', message => {
 			}
 			message.delete(10000);
 		} else{
-			print(message, 'Invalid command: Inhouse already ongoing'); // TODO: When invalid commands are sent from the bot, add cross reaction to it
+			print(message, 'Invalid command: Inhouse already ongoing'); 
 			message.delete(10000);
 		}
 	}
@@ -136,11 +140,15 @@ client.on('message', message => {
 			voteMessageBool = true;
 		}
 		else if(message.content === `${prefix}c` || message.content === `${prefix}cancel` || message.content === `${prefix}gameNotPlayed`){
-			// balance.resetVariables(); // Might be needed to avoid bugs?
-			stage = 0;
-			resultMessageBool = true;
-			print(message, 'Game canceled');
-			message.delete(15000);
+			// TODO: Decide whether cancel might also require some confirmation? 
+			if(message.author.id === matchupMessage.author.id){
+				stage = 0;
+				resultMessageBool = true;
+				print(message, 'Game canceled');
+				message.delete(15000); // prefix+c
+			}else{
+				print(message, 'Invalid command: Only the person who started the game can cancel it (' + matchupMessage.author.username + ')');
+			}
 		}
 
 		// TODO: Split and unite voice channels, need to have special channels perhapz
