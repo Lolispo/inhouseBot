@@ -55,10 +55,6 @@ client.login(token);
 
 client.on('message', message => {
 	// CASE 1: Bot sent message
-	if(test){
-		console.log('HELLO');
-		console.log(message);
-	}
 	if(message.author.bot && message.author.username === bot_name){ 
 		// TODO Feat: Add functionality to remove player written message after ~removeBotMessageDefaultTime sec, prevent flooding
 		// TODO Refactor: best way to consistently give custom time for removal of these bot messages.
@@ -69,7 +65,6 @@ client.on('message', message => {
 			matchupMessage.delete(); // Remove matchup message when results are in
 			if(startsWith(message, '**Team')){ // Team 1 / 2 won! 
 				message.delete(removeBotMessageDefaultTime * 2);  // Double time for removing result TODO: Decide if this is good
-				test = true;
 				console.log('DEBUG: @botMessage - Unknown Message Error will follow after this - unsure why'); // TODO: Find source of error 
 				// Discussed here - https://stackoverflow.com/questions/44284666/discord-js-add-reaction-to-a-bot-message
 			}else if(startsWith(message, 'Game canceled')){
