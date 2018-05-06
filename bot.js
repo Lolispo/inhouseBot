@@ -49,11 +49,11 @@ client.on('message', message => {
 	else if(message.content === prefix+'ping'){
 		console.log('PingAlert, user had !ping as command');
 		message.channel.send('Pong');
-		message.delete(300000);
+		message.delete(10000);
 	}
 	else if(message.content === prefix+'help' || message.content === prefix+'h'){
 		message.channel.send(buildHelpString());
-		message.delete(300000);
+		message.delete(5000);
 	}
 	else if(message.content === prefix+'clear'){
 		// TODO: Delete the inhouse-bot created messages
@@ -172,7 +172,7 @@ function print(messageVar, message, deleteTime){
 
 // TODO: Add all available commands
 function buildHelpString(){
-	var s = '*Available commands are: *';
+	var s = '*Available commands are:* \n';
 	s += '**' + prefix + 'b | '+ prefix + 'balance | '+ prefix + 'inhouseBalance** Starts an inhouse game with the teams ready in the lobby\n';
 	s += '**' + prefix + 'team1Won | ' + prefix + 'team2Won | '+ prefix + 'draw | ' + prefix + 'cancel** Different commands for ending a game\n'
 	s += '**' + prefix + 'help** Gives the available commands\n';
