@@ -11,7 +11,7 @@ const db_sequelize = require('./db-sequelize');
 
 // Update mmr for all players and returns result to clients
 exports.updateMMR = function(winner, balanceInfo){ // winner = 0 -> draw, 1 -> team 1, 2 -> team 2
-	var mmrChange = eloUpdate(balanceInfo.avgT1, balanceInfo.avgT2, winner); // TODO: Do the math, based on how fair the game was
+	var mmrChange = eloUpdate(balanceInfo.avgT1, balanceInfo.avgT2, winner); 
 	updateTeamMMR(balanceInfo.team1, mmrChange.t1);
 	updateTeamMMR(balanceInfo.team2, mmrChange.t2);
 

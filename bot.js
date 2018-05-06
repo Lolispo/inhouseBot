@@ -31,9 +31,8 @@ client.on('ready', () => {
 	console.log('ready to rumble');
 });
 
-// TODO: Design differ maybe? make a start stage = 1, mapveto/split/start, and a end stage = 2 -> team1Won/Team2won/unite/gnp etc
-// Current: Stage = 0 -> nothing started yet, default. Stage = 1 -> rdy for: mapVeto/split/team1Won/team2Won/gameNotPlayed. 
-var stage = 0;
+// TODO: Reflect on stage. Alternative: neutral = 0, make a start stage = 1 -> mapveto/split/start, and a end stage = 2 -> team1Won/Team2won/unite/gnp etc
+var stage = 0; // Current: Stage = 0 -> nothing started yet, default. Stage = 1 -> rdy for: mapVeto/split/team1Won/team2Won/gameNotPlayed. 
 var balanceInfo;
 
 var matchupMessage;
@@ -51,6 +50,7 @@ client.login(token);
 client.on('message', message => {
 	// CASE 1: Bot sent message
 	if(message.author.bot){ 
+		// TODO Feat: Add functionality to remove player written message after ~removeBotMessageDefaultTime sec, prevent flooding
 		// TODO: Check best way to consistently give custom time for removal of these bot messages.
 		if(matchupMessageBool){ // Don't remove message about matchup UNTIL results are in
 			matchupMessageBool = false;
@@ -107,10 +107,6 @@ client.on('message', message => {
 		}
 	}
 	
-	// TODO: Delete the inhouse-bot created messages (that are NOT active) NOTE: This shouldn't be required if system works DEPRECATED FUNCTION
-	else if(message.content === prefix+'clear'){
-	
-	}
 	// TODO Show top 3 MMR 
 	else if(message.content === `${prefix}leaderboard`){
 		message.delete(5000);
@@ -121,7 +117,6 @@ client.on('message', message => {
 	}
 
 	else if(stage === 1){ // stage = 1 -> balance is made
-		// Add some confirmation step, also game was not player command TODO: Through emoji event
 		if(message.content === `${prefix}team1Won`){
 			message.react('👍');
 			message.react('👎');
@@ -162,14 +157,10 @@ client.on('message', message => {
 		}
 	}
 
-	// TODO Feat: Add functionality to remove player written message after ~5 sec, prevent flooding
-
-	/*
-	// TODO: Handle that command could not be read (ex. !memes) TODO: GIVE MESSAGE 'use !help' SOMETHING
-	else if(){ // <- logic check for string starting with `${prefix}`
-		console.log('Invalid command')
+	else if((message.content.lastIndexOf(prefix, 0) === 0)){ // Message start with prefix
+		print(message, 'Invalid command: List of available commands at **' + prefix + 'help**');
+		message.delete(3000);
 	}
-	*/
 });
 
 client.on('messageReactionAdd', messageReaction => {
@@ -205,7 +196,6 @@ client.on('messageReactionAdd', messageReaction => {
 });
 
 //Create more events to do fancy stuff with discord API
-
 
 function findPlayersStart(message, channel){
 	console.log('VoiceChannel', channel.name, ' (id =',channel.id,') active users: (Total: ', channel.members.size ,')');
