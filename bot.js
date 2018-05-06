@@ -264,6 +264,7 @@ function print(messageVar, message){
 // TODO: Keep updated with recent information
 function buildHelpString(){
 	var s = '*Available commands for inhouse-bot:* (Commands marked with **TBA** are To be Added) \n';
+	s += '**' + prefix + 'ping** *Pong*\n'
 	s += '**' + prefix + 'b | balance | inhouseBalance** Starts an inhouse game with the players in the same voice chat as the message author. '
 		+ 'Requires 4, 6, 8 or 10 players in voice chat to work\n';
 	s += '**' + prefix + 'team1Won | ' + prefix + 'team2Won** Starts report of match result, requires majority of players to upvote from game for stats to be recorded. '
