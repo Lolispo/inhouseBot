@@ -2,7 +2,7 @@
 /*
 	Class handles player objects which take care of player data
 
-	TODO: 
+	TODO Feature: 
 		Add dynamic storage of mmr for support of more games, potential of aim map skill 2v2
 */
 function Player(username, discId){

@@ -9,10 +9,6 @@ const bot = require('./bot');
 	Handles getting the most balanced team matchup for the given 10 players
 	Uses db_sequelize to receive the player information and add new players
 	Uses bot to return the teams to the discord clients
-
- 	TODO:
- 		Refactor ugly solutions
-
 */
 
 exports.initializePlayers = function(players, dbpw){
@@ -215,7 +211,6 @@ function addTeamMMR(team){ // Function to be used in summing over players
 // Build a string to return to print as message
 function buildReturnString(obj, callback){ // TODO: Make print consistently nice
 	//console.log('DEBUG: @buildReturnString');
-
 	var date = moment().format('LLL'); // Date format. TODO: Change from AM/PM to military time
 	var s = '';
 	s += '**New Game!** MMR Average difference: ' + obj.avgDiff + ' (Total: ' + obj.difference + 'p). ';
