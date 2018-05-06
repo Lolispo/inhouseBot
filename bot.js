@@ -42,7 +42,7 @@ client.on('message', message => {
 	if(message.author.bot){
 		message.delete(60000); // 300000
 	}
-	console.log('MSG: ', message.content); // Doesn't print bot messages to console
+	console.log('MSG:', message.author.username, ':', message.content); // Doesn't print bot messages to console
 	if(message.content == 'hej'){
 		message.channel.send('lul')
 	}
