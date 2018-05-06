@@ -27,14 +27,14 @@ exports.initDb = function(dbpw){
 	/* 		
 		db:
 			Table: 'users': 
-		uid int NOT NULL, PRIMARY KEY (uid)
+		uid VARCHAR(64) NOT NULL, PRIMARY KEY (uid)
 		userName VARCHAR(64), 
 		mmr int, 
 	*/
 
 	Users = sequelize.define('users', {
-		uid: {type: Sequelize.INTEGER, primaryKey: true},
-		userName: Sequelize.TEXT,
+		uid: {type: Sequelize.STRING, primaryKey: true},
+		userName: Sequelize.STRING,
 		mmr: Sequelize.INTEGER,
 	}, {
 		timestamps: false
@@ -63,6 +63,13 @@ exports.updateMMR = function(uid, newMmr){
 
 // Add a user to database
 exports.createUser = function(uid, userName, mmr){
+	console.log('DEBUG: @createUser', );
+	/*
+	sequelize.query('INSERT INTO users (uid, userName, mmr) VALUES ("' + uid + '","' + userName + '",' + mmr + ')')
+	.then(result => {
+		console.log(result)
+	});
+	*/
 	Users.create({ uid: uid, userName: userName, mmr: mmr})
 	.then(function(result){
 		console.log(result.get({plain:true}))

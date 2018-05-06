@@ -40,7 +40,7 @@ function balanceTeams(players, data){
 // Adds missing users to database 
 // Updates players mmr entry correctly
 function addMissingUsers(players, data){
-	//console.log('DEBUG: @addMissingUsers, Insert the mmr from data: ');
+	//console.log('DEBUG: @addMissingUsers, Insert the mmr from data: ', players);
 	for(var i = 0; i < players.size(); i++){
 		// Check database for this data
 		var existingMMR = -1;

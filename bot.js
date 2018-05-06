@@ -42,6 +42,10 @@ var voteMessage;
 var voteMessageBool;
 const voteText = '**Majority of players that played the game need to confirm this result**';
 
+var emoji_agree = '👌'; // 👍
+var emoji_disagree = '👎'; //
+var emoji_error = '🤚'; // TODO: Red X might be better
+
 const removeBotMessageDefaultTime = 60000; // 300000
 
 //login
@@ -69,7 +73,7 @@ client.on('message', message => {
 		}else{ // Default case for bot messages, remove after time
 			if(message.content.lastIndexOf('Invalid command: ', 0) === 0){
 				message.delete(15000);
-				message.react('🤚'); // TODO: Red X might be better
+				message.react(emoji_error); 
 			}else if(message.content.lastIndexOf('Hej', 0) === 0){
 				// Don't remove Hej message
 			}else{
@@ -124,20 +128,21 @@ client.on('message', message => {
 
 	else if(stage === 1){ // stage = 1 -> balance is made
 		if(message.content === `${prefix}team1Won`){
-			message.react('👍');
-			message.react('👎');
+			console.log('DEBUG: @team1Won')
+			message.react(emoji_agree);
+			message.react(emoji_disagree);
 			print(message, voteText + ' (0/' + (balanceInfo.team1.size() + 1)+ ')');
 			voteMessageBool = true;
 		}
 		else if(message.content === `${prefix}team2Won`){
-			message.react('👍');
-			message.react('👎');
+			message.react(emoji_agree);
+			message.react(emoji_disagree);
 			print(message, voteText + ' (0/' + (balanceInfo.team1.size() + 1)+ ')');
 			voteMessageBool = true;
 		}
 		else if(message.content === `${prefix}tie` || message.content === `${prefix}draw`){
-			message.react('👍');
-			message.react('👎');
+			message.react(emoji_agree);
+			message.react(emoji_disagree);
 			print(message, voteText + ' (0/' + (balanceInfo.team1.size() + 1)+ ')');
 			voteMessageBool = true;
 		}
@@ -174,32 +179,34 @@ client.on('message', message => {
 });
 
 client.on('messageReactionAdd', messageReaction => {
+	//console.log('DEBUG: @messageReactionAdd', stage, messageReaction.message.content, messageReaction.emoji);
 	if(stage === 1){
 		if(messageReaction.message.content === `${prefix}team1Won`){
 			// Check if majority number contain enough players playing
-			if(messageReaction.emoji === '👍'){
-				var voteAmountString = handleRelevantEmoji(true, 1);
+			if(messageReaction.emoji.toString() === emoji_agree){
+				var voteAmountString = handleRelevantEmoji(true, 1, messageReaction);
+				console.log('DEBUG: @messageReactionAdd: Edit Message time');
 				voteMessage.edit(voteText + voteAmountString);
-			}else if(messageReaction.emoji === '👎'){
-				handleRelevantEmoji(false, 1);
+			}else if(messageReaction.emoji.toString() === emoji_disagree){
+				handleRelevantEmoji(false, 1, messageReaction);
 			}
 		}
 		else if(messageReaction.message.content === `${prefix}team2Won`){
 			// Check if majority number contain enough players playing
-			if(messageReaction.emoji === '👍'){
-				var voteAmountString = handleRelevantEmoji(true, 2);
+			if(messageReaction.emoji.toString() === emoji_agree){
+				var voteAmountString = handleRelevantEmoji(true, 2, messageReaction);
 				voteMessage.edit(voteText + voteAmountString);
-			}else if(messageReaction.emoji === '👎'){
-				handleRelevantEmoji(false, 2);
+			}else if(messageReaction.emoji.toString() === emoji_disagree){
+				handleRelevantEmoji(false, 2, messageReaction);
 			}
 		}
 		else if(messageReaction.message.content === `${prefix}tie` || message.content === `${prefix}draw`){
 			// Check if majority number contain enough players playing
-			if(messageReaction.emoji === '👍'){
-				var voteAmountString = handleRelevantEmoji(true, 0);
+			if(messageReaction.emoji.toString() === emoji_agree){
+				var voteAmountString = handleRelevantEmoji(true, 0, messageReaction);
 				voteMessage.edit(voteText + voteAmountString); // Update chat message if change
-			}else if(messageReaction.emoji === '👎'){
-				handleRelevantEmoji(false, 0);
+			}else if(messageReaction.emoji.toString() === emoji_disagree){
+				handleRelevantEmoji(false, 0, messageReaction);
 			}
 		}
 	}
@@ -216,7 +223,7 @@ function findPlayersStart(message, channel){
 		channel.members.forEach(function(member){
 			if(!member.bot){ // Only real users
 				console.log('\t' + member.user.username + '(' + member.user.id + ')'); // Printar alla activa users i denna voice chatt
-				var tempPlayer = player_js.createPlayer(member.user.userName, member.user.id);
+				var tempPlayer = player_js.createPlayer(member.user.username, member.user.id);
 				players.add(tempPlayer);
 			}
 		});
@@ -239,7 +246,7 @@ function handleRelevantEmoji(emojiConfirm, winner, messageReaction){
 	var amountRelevant = countAmountUsersPlaying(balanceInfo.team1, messageReaction.users) + countAmountUsersPlaying(balanceInfo.team2, messageReaction.users);
 	var totalNeeded = (balanceInfo.team1.size() + 1);
 	//console.log('DEBUG: @messageReactionAdd, count =', amountRelevant, ', Majority number is =', totalNeeded);
-	voteAmountString = ' (' + amountRelevant + '/' + totalNeeded + ')';
+	var voteAmountString = ' (' + amountRelevant + '/' + totalNeeded + ')';
 	if(amountRelevant >= totalNeeded){
 		if(emojiConfirm){
 			console.log('Thumbsup CONFIRMED' + voteAmountString);
