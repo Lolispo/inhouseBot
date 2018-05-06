@@ -1,24 +1,18 @@
-'use strict;'
+'use strict';
 
 const ArrayList = require('arraylist');
 const moment = require('moment');
 const db_sequelize = require('./db-sequelize');
 const bot = require('./bot');
-const mmr_js = require('./mmr');
 
-var t1 = [];
-var t2 = [];
 /*
- 	TODO Big:
- 		Database for saving data connected to user
- 			Can use sequelize as in lab, store ID | MMR
- 		Refactor ugly solutions
-		Implement MMR Update (Req mmr save for full implementation)
-			ELO math theory could be looked at
-		Consistent between Mmr and MMR
+	Handles getting the most balanced team matchup for the given 10 players
+	Uses db_sequelize to receive the player information and add new players
+	Uses bot to return the teams to the discord clients
 
-		Player
-			Add dynamic storage of mmr for support of more games, potential of aim map skill 2v2
+ 	TODO:
+ 		Refactor ugly solutions
+
 */
 
 exports.initializePlayers = function(players, dbpw){
@@ -35,21 +29,13 @@ exports.initializePlayers = function(players, dbpw){
 
 // @param players should contain ArrayList of initialized Players of people playing
 function balanceTeams(players, data){
-	// console.log('DEBUG: @balanceTeams');
 	// Generate team combs, all possibilities of the 10 players
 
 	addMissingUsers(players, data); // players are updated from within method
-	/*
-	console.log('DEBUG: @balanceTeams, updated players with mmr:');
-	for(var i = 0; i < players.size(); i++){
-		console.log(players[i].uid + ', ' + players[i].userName + ', ' + players[i].mmr);
-	}
-	*/
+
 	var teamCombs = generateTeamCombs(players);
 	
 	var result = findBestTeamComb(players, teamCombs);
-	
-	//console.log('DEBUG: @balanceTeams, TEAMS T1 AND T2: ', t1, t2);
 
 	// Return string to message to clients
 	buildReturnString(result, callbackBalanceInfo); // callbackBalanceInfo = method 
@@ -139,6 +125,8 @@ function generateTeamCombs(players){
 function findBestTeamComb(players, teamCombs){
 	// Compare elo matchup between teamCombinations, lowest difference wins
 	var bestPossibleTeamComb = Number.MAX_VALUE;
+	var t1 = [];
+	var t2 = [];
 	var avgTeam1 = -1;
 	var avgTeam2 = -1;
 	var index = -1;
@@ -224,26 +212,6 @@ function addTeamMMR(team){ // Function to be used in summing over players
 	return sum;
 }
 
-exports.updateMMR = function(winner, balanceInfo){ // winner = 0 -> draw, 1 -> team 1, 2 -> team 2
-	T1 = balanceInfo.team1;
-	T2 = balanceInfo.team2; 
-	var mmrChange = mmr_js.eloupdate(balanceInfo.avgT1, balanceInfo.avgT2, winner); // TODO: Do the math, based on how fair the game was
-	updateTeamMMR(balanceInfo.team1, mmrChange.t1);
-	updateTeamMMR(balanceInfo.team2, mmrChange.t2);
-
-	buildMMRUpdateString(winner, callbackResult);
-}
-
-function updateTeamMMR(team, change){
-	for(var i = 0; i < team.size(); i++){
-		var newMMR = team[i].mmr + change;
-		team[i].setMMRChange(change);
-		team[i].setMMR(newMMR);
-		team[i].setPlusMinus((change > 0 ? '+' : ''));
-		db_sequelize.updateMMR(team[i].uid, newMMR);
-	}
-}
-
 // Build a string to return to print as message
 function buildReturnString(obj, callback){ // TODO: Make print consistently nice
 	//console.log('DEBUG: @buildReturnString');
@@ -266,25 +234,6 @@ function buildReturnString(obj, callback){ // TODO: Make print consistently nice
 	callback(1, s, obj); // Should send the message back to the bot
 }
 
-// After a finished game, prints out new updated mmr
-function buildMMRUpdateString(team1Won, callback){
-	// TODO: Which is better? if 1100 -> 1150: (1100 +50) or (1150 +50)
-	var date = moment().format('LLL'); // Date format. TODO: Change from AM/PM to military time
-	var s = '';
-	s += '**Team ' + (team1Won ? '1' : '2') + ' won!** Updated mmr is: \n';
-	s += '**Team 1**: \n\t*' + T1[0].userName + ' (' + T1[0].mmr + ' mmr, ' + T1[0].prevMMR + ' ' + T1[0].latestUpdatePrefix + T1[0].latestUpdate + ')';
-	for(var i = 1; i < T1.size(); i++){
-		s += '\n\t' + T1[i].userName + ' (' + T1[i].mmr + ' mmr, ' + T1[i].prevMMR + ' ' + T1[i].latestUpdatePrefix + T1[i].latestUpdate + ')';
-	}
-	s += '*\n';
-	s += '**Team 2**: \n\t*' + T2[0].userName + ' (' + T2[0].mmr + ' mmr, ' + T2[0].prevMMR + ' ' + T2[0].latestUpdatePrefix + T2[0].latestUpdate + ')';
-	for(var i = 1; i < T2.size(); i++){
-		s += '\n\t' + T2[i].userName + ' (' + T2[i].mmr + ' mmr, ' + T2[i].prevMMR + ' ' + T2[i].latestUpdatePrefix + T2[i].latestUpdate + ')';
-	}
-	s += '*\n';
-	callback(0, s);
-}
-
 function callbackBalanceInfo(stage, message, obj){
 	bot.setStage(stage);
 	bot.printMessage(message);
@@ -292,37 +241,5 @@ function callbackBalanceInfo(stage, message, obj){
 	bot.setMatchupMessage(true);
 }
 
-function callbackResult(stage, message){
-	bot.setStage(stage);
-	bot.printMessage(message);
-	bot.setResultMessage(true);
-}
-
-function Player(username, discId){
-	this.userName = username;
-	this.uid = discId;
-	this.defaultMMR = 2500; 
-	this.mmr = this.defaultMMR; // MMR is updated when all players are fetched
-	this.prevMMR = this.defaultMMR;
-	this.latestUpdate = 0;
-	this.latestUpdatePrefix = '';
-
-	this.setMMR = function(value){
-		this.prevMMR = this.mmr; // Keeps track of last recorded mmr
-		this.mmr = value;
-	}
-
-	this.setMMRChange = function(value){
-		this.latestUpdate = value;
-	}
-
-	this.setPlusMinus = function(value){
-		this.latestUpdatePrefix = value;
-	}
-}
-
-exports.createPlayer = function(username, discId){
-	return new Player(username, discId);
-}
 
 

@@ -1,6 +1,25 @@
 'use strict;'
 
-exports.eloupdate = function(t1mmr, t2mmr, winner){
+const bot = require('./bot');
+const db_sequelize = require('./db-sequelize');
+
+/*
+	Handles MMR calculations and updates
+	Uses db_sequelize to update mmr for all the players
+	Uses bot to return the updated mmr to the disc clients
+*/
+
+// Update mmr for all players and returns result to clients
+exports.updateMMR = function(winner, balanceInfo){ // winner = 0 -> draw, 1 -> team 1, 2 -> team 2
+	var mmrChange = eloUpdate(balanceInfo.avgT1, balanceInfo.avgT2, winner); // TODO: Do the math, based on how fair the game was
+	updateTeamMMR(balanceInfo.team1, mmrChange.t1);
+	updateTeamMMR(balanceInfo.team2, mmrChange.t2);
+
+	buildMMRUpdateString(winner, callbackResult, balanceInfo.team1, balanceInfo.team2);
+}
+
+// Calculates the mmr change for two teams with given average team mmr and winner
+function eloUpdate(t1mmr, t2mmr, winner){
 	const K = 50;
 	//transformed ratings for t1 and t2
 	var t1_trans = Math.pow(10, t1mmr/400);
@@ -39,31 +58,40 @@ exports.eloupdate = function(t1mmr, t2mmr, winner){
 	};
 }
 
-function tester(){
-	var t1 = 2000;
-	var t2 = 2400;
-	var t1wins = 0;
-	var draws = 0;
-	var games = 10;
-
-	for(var i = 0; i < games; i++){
-	var winner = Math.floor((Math.random()*3));
-	if(winner === 0){
-		draws++;
-	}else if(winner === 1){
-		t1wins++;
+// Update team mmr for the given team locally and in database
+function updateTeamMMR(team, change){
+	for(var i = 0; i < team.size(); i++){
+		var newMMR = team[i].mmr + change;
+		team[i].setMMRChange(change);
+		team[i].setMMR(newMMR);
+		team[i].setPlusMinus((change > 0 ? '+' : ''));
+		db_sequelize.updateMMR(team[i].uid, newMMR);
 	}
-	var result = eloupdate(t1, t2, winner);
-	var t1old = t1;
-	var t2old = t2;
-	t1 += result.t1;
-	t2 += result.t2;
-	console.log("Winner match", i, ": ", winner, "\n(t1old, t2old)=", t1old, ",", t2old,
-	"\n(new)=",t1,",",t2, " diff(t1/t2)", result.t1, ",", result.t2,
-	"\n###########");
-	}
-	console.log(
-	"t1wins=", t1wins,
-	", t2wins=", (games-t1wins),
-	", draws=", draws);
 }
+
+// After a finished game, prints out new updated mmr
+// TODO: Decide the best design for mmr syntax, currently (1150, 1100 +50)
+function buildMMRUpdateString(team1Won, callback, T1, T2){
+	var s = '';
+	s += '**Team ' + (team1Won ? '1' : '2') + ' won!** Updated mmr is: \n';
+	s += '**Team 1**: \n\t*' + T1[0].userName + ' (' + T1[0].mmr + ' mmr, ' + T1[0].prevMMR + ' ' + T1[0].latestUpdatePrefix + T1[0].latestUpdate + ')';
+	for(var i = 1; i < T1.size(); i++){
+		s += '\n\t' + T1[i].userName + ' (' + T1[i].mmr + ' mmr, ' + T1[i].prevMMR + ' ' + T1[i].latestUpdatePrefix + T1[i].latestUpdate + ')';
+	}
+	s += '*\n';
+	s += '**Team 2**: \n\t*' + T2[0].userName + ' (' + T2[0].mmr + ' mmr, ' + T2[0].prevMMR + ' ' + T2[0].latestUpdatePrefix + T2[0].latestUpdate + ')';
+	for(var i = 1; i < T2.size(); i++){
+		s += '\n\t' + T2[i].userName + ' (' + T2[i].mmr + ' mmr, ' + T2[i].prevMMR + ' ' + T2[i].latestUpdatePrefix + T2[i].latestUpdate + ')';
+	}
+	s += '*\n';
+	callback(0, s);
+}
+
+function callbackResult(stage, message){
+	bot.setStage(stage);
+	bot.printMessage(message);
+	bot.setResultMessage(true);
+}
+
+
+

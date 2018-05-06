@@ -4,6 +4,15 @@ var Sequelize = require('sequelize');
 var sequelize = {};
 var Users = {};
 
+/*
+	This file handles database communication using sequelize
+	The database is a mysql database, running at KTH servers
+
+	TODO: 
+		Add method for returning top 3 MMR holders
+		Adjust getTable method to only get users with uid in uids (received error when attempted)
+*/
+
 exports.initDb = function(dbpw){
 	sequelize = new Sequelize('pettea', 'pettea_admin', dbpw, {
 		host: 'mysql-vt2016.csc.kth.se',
@@ -11,10 +20,12 @@ exports.initDb = function(dbpw){
 		operatorsAliases: false
 	});
 
-	/* Table: 'users': 
-	uid int NOT NULL, PRIMARY KEY (uid)
-	userName VARCHAR(64), 
-	mmr int, 
+	/* 		
+		db:
+			Table: 'users': 
+		uid int NOT NULL, PRIMARY KEY (uid)
+		userName VARCHAR(64), 
+		mmr int, 
 	*/
 
 	Users = sequelize.define('users', {
@@ -26,25 +37,12 @@ exports.initDb = function(dbpw){
 	}); 
 }
 
-/* Returns table of users */
+// Returns table of users
 exports.getTable = function(uids, callback){
-	Users.findAll({
-	})
+	Users.findAll({})
 	.then(function(result) {
 		callback(result);
 	})
-	/*
-	Users
-	.findAll({
-	where: {
-		uid: uids 	/* Should be where uid is in uids *//*
-	}, 
-	order: [['userName', 'ASC']]
-	})
-	.then(function(result) {
-		return result;
-	})
-	*/
 }; 
 
 // TODO Feature: Record amount of games played
@@ -59,6 +57,7 @@ exports.updateMMR = function(uid, newMmr){
 	});
 }
 
+// Add a user to database
 exports.createUser = function(uid, userName, mmr){
 	Users.create({ uid: uid, userName: userName, mmr: mmr})
 	.then(function(result){

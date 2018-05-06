@@ -8,6 +8,7 @@ const client = new Discord.Client();
 const ArrayList = require('arraylist');
 const balance = require('./balance');
 const mmr_js = require('./mmr');
+const player_js = require('./player')
 
 //get config data
 const { prefix, token, dbpw } = require('./conf.json');
@@ -215,7 +216,7 @@ function findPlayersStart(message, channel){
 		channel.members.forEach(function(member){
 			if(!member.bot){ // Only real users
 				console.log('\t' + member.user.username + '(' + member.user.id + ')'); // Printar alla activa users i denna voice chatt
-				var tempPlayer = balance.createPlayer(member.user.userName, member.user.id);
+				var tempPlayer = player_js.createPlayer(member.user.userName, member.user.id);
 				players.add(tempPlayer);
 			}
 		});
@@ -224,7 +225,7 @@ function findPlayersStart(message, channel){
 		console.log('\t<-- Testing Environment: 10 player game, res in console -->');
 		var players = new ArrayList;
 		for(var i = 0; i < 10; i++){
-			var tempPlayer = balance.createPlayer('Player ' + i, i);
+			var tempPlayer = player_js.createPlayer('Player ' + i, i);
 			//console.log('DEBUG: @findPlayersStart, tempPlayer =', tempPlayer);
 			players.add(tempPlayer);
 		}
@@ -242,7 +243,7 @@ function handleRelevantEmoji(emojiConfirm, winner, messageReaction){
 	if(amountRelevant >= totalNeeded){
 		if(emojiConfirm){
 			console.log('Thumbsup CONFIRMED' + voteAmountString);
-			balance.updateMMR(winner, balanceInfo); // Update mmr for both teams
+			mmr_js.updateMMR(winner, balanceInfo); // Update mmr for both teams
 			messageReaction.message.delete(2000);
 		}else{
 			console.log('Thumbsdown CONFIRMED' + voteAmountString);
@@ -273,19 +274,19 @@ function print(messageVar, message){
 // TODO: Keep updated with recent information
 function buildHelpString(){
 	var s = '*Available commands for inhouse-bot:* (Commands marked with **TBA** are To be Added) \n';
-	s += '**' + prefix + 'b|balance|inhouseBalance** Starts an inhouse game with the players in the same voice chat as the message author. '
+	s += '**' + prefix + 'b | balance | inhouseBalance** Starts an inhouse game with the players in the same voice chat as the message author. '
 		+ 'Requires 4, 6, 8 or 10 players in voice chat to work\n';
 	s += '**' + prefix + 'team1Won | ' + prefix + 'team2Won** Starts report of match result, requires majority of players to upvote from game for stats to be recorded. '
 		+ 'If majority of players downvote, this match result report dissapears, use **' + prefix + 'cancel** for canceling the match after this\n';
-	s += '**' + prefix + 'draw|tie** If a match end in a tie, use this as match result. Same rules for reporting as **' + prefix + 'team1Won | ' + prefix + 'team2Won**\n';
-	s += '**' + prefix + 'c|cancel** Cancels the game, to be used when game was decided to not be played\n'
-	s += '**' + prefix + 'h|help** Gives the available commands\n';
+	s += '**' + prefix + 'draw | tie** If a match end in a tie, use this as match result. Same rules for reporting as **' + prefix + 'team1Won | ' + prefix + 'team2Won**\n';
+	s += '**' + prefix + 'c | cancel** Cancels the game, to be used when game was decided to not be played\n'
+	s += '**' + prefix + 'h | help** Gives the available commands\n';
 	s += '**' + prefix + 'leaderboard** Returns Top 3 MMR holders **TBA**\n'
 	s += '**' + prefix + 'stats** Returns your own rating **TBA**\n'
 	s += '**' + prefix + 'split** Splits voice chat **TBA**\n'
-	s += '**' + prefix + 'u|unite** Unite voice chat after game **TBA**\n'
+	s += '**' + prefix + 'u | unite** Unite voice chat after game **TBA**\n'
 	s += '**' + prefix + 'mapVeto** Start map veto **TBA**\n'
-	s += '**' + prefix + 'h|help**'
+	s += '**' + prefix + 'h | help**'
 	return s;
 }
 
