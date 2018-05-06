@@ -39,21 +39,30 @@ var matchupMessage;
 var matchupMessageBool;
 var resultMessageBool;
 var voteMessage;
-var voteMessageBool;
-const voteText = '**Majority of players that played the game need to confirm this result**';
+var teamWonMessage;
+var teamWon;
 
-var emoji_agree = '👌'; // 👍
-var emoji_disagree = '👎'; //
-var emoji_error = '🤚'; // TODO: Red X might be better
+const emoji_agree = '👌'; // 👍
+const emoji_disagree = '👎'; 
+const emoji_error = '🤚'; // TODO: Red X might be better
+
+const bot_name = 'inhouse-bot';
+const voteText = '**Majority of players that played the game need to confirm this result (Press ' + emoji_agree + ' or ' + emoji_disagree + ')**';
 
 const removeBotMessageDefaultTime = 60000; // 300000
 
 //login
 client.login(token);
 
+var test = false;
+
 client.on('message', message => {
 	// CASE 1: Bot sent message
-	if(message.author.bot){ 
+	if(test){
+		console.log('HELLO');
+		console.log(message);
+	}
+	if(message.author.bot && message.author.username === bot_name){ 
 		// TODO Feat: Add functionality to remove player written message after ~removeBotMessageDefaultTime sec, prevent flooding
 		// TODO Refactor: best way to consistently give custom time for removal of these bot messages.
 		if(matchupMessageBool){ // Don't remove message about matchup UNTIL results are in
@@ -61,158 +70,157 @@ client.on('message', message => {
 		}else if(resultMessageBool){
 			resultMessageBool = false;
 			matchupMessage.delete(); // Remove matchup message when results are in
-			if(message.content.lastIndexOf('**Team', 0) === 0){
+			if(startsWith(message, '**Team')){ // Team 1 / 2 won! 
 				message.delete(removeBotMessageDefaultTime * 2);  // Double time for removing result TODO: Decide if this is good
-			}else if(message.content.lastIndexOf('Game canceled', 0) === 0){
+				test = true;
+				console.log('DEBUG: @botMessage - Unknown Message Error will follow after this - unsure why'); // TODO: Find source of error
+			}else if(startsWith(message, 'Game canceled')){
 				matchupMessage.delete(); // Delete message immediately on game cancel
 				message.delete(15000); 
 			}
-		}else if(voteMessageBool){
-			voteMessageBool = false;
+		}else if(startsWith(message, voteText)){
 			voteMessage = message;
+			message.react(emoji_agree);
+			message.react(emoji_disagree);
 		}else{ // Default case for bot messages, remove after time
-			if(message.content.lastIndexOf('Invalid command: ', 0) === 0){
+			if(startsWith(message, 'Invalid command: ')){
 				message.delete(15000);
 				message.react(emoji_error); 
-			}else if(message.content.lastIndexOf('Hej', 0) === 0){
+			}else if(startsWith(message, 'Hej')){
 				// Don't remove Hej message
 			}else{
 				message.delete(removeBotMessageDefaultTime); 		
 			}
 		}
-	}else{ // Doesn't print bot messages to console
+	}else{ // CASE 2: Message sent from user
 		console.log('MSG (' + message.channel.guild.name + '.' + message.channel.name + ') ' + message.author.username + ':', message.content); 	
-	}
+		if(test){
+			console.log('HELLO');
+			console.log(message);
+		}
+		
 
-	// CASE 2: Message sent from user
-
-	if(message.content == 'hej'){
-		message.channel.send('Hej ' + message.author.username);
-	}
-	else if(message.content === prefix+'ping'){ // Good for testing prefix and connection to bot
-		console.log('PingAlert, user had !ping as command');
-		message.channel.send('Pong');
-		message.delete(removeBotMessageDefaultTime);
-	}
-	// Sends available commands privately to the user
-	else if(message.content === prefix+'help' || message.content === prefix+'h'){
-		message.author.send(buildHelpString());
-		message.delete(10000);
-	}
-	else if(message.content === `${prefix}b` || message.content === `${prefix}balance` || message.content === `${prefix}inhouseBalance`){
-		//console.log(message); // Can print for information about hierarchy in discord message
-		if(stage === 0){
-			matchupMessage = message;
-			var voiceChannel = message.guild.member(message.author).voiceChannel;
-				
-			if(voiceChannel !== null && typeof voiceChannel != 'undefined'){ // Makes sure user is in a voice channel
-				findPlayersStart(message, voiceChannel);
-			} else {
-				message.channel.send('Author of message must be in voiceChannel'); 
-			}
-			message.delete(10000);
-		} else{
-			print(message, 'Invalid command: Inhouse already ongoing'); 
+		if(message.content == 'hej'){
+			message.channel.send('Hej ' + message.author.username);
+		}
+		else if(message.content === prefix+'ping'){ // Good for testing prefix and connection to bot
+			console.log('PingAlert, user had !ping as command');
+			message.channel.send('Pong');
+			message.delete(removeBotMessageDefaultTime);
+		}
+		// Sends available commands privately to the user
+		else if(message.content === prefix+'help' || message.content === prefix+'h'){
+			message.author.send(buildHelpString());
 			message.delete(10000);
 		}
-	}
-	
-	// TODO Show top 3 MMR 
-	else if(message.content === `${prefix}leaderboard`){
-		message.delete(5000);
-	}
-	// TODO: Prints private mmr
-	else if(message.content === `${prefix}stats`){ 
-		message.delete(5000);
-	}
+		else if(message.content === `${prefix}b` || message.content === `${prefix}balance` || message.content === `${prefix}inhouseBalance`){
+			//console.log(message); // Can print for information about hierarchy in discord message
+			if(stage === 0){
+				matchupMessage = message;
+				var voiceChannel = message.guild.member(message.author).voiceChannel;
+					
+				if(voiceChannel !== null && typeof voiceChannel != 'undefined'){ // Makes sure user is in a voice channel
+					findPlayersStart(message, voiceChannel);
+				} else {
+					message.channel.send('Author of message must be in voiceChannel'); 
+				}
+				message.delete(10000);
+			} else{
+				print(message, 'Invalid command: Inhouse already ongoing'); 
+				message.delete(10000);
+			}
+		}
+		
+		// TODO Show top 3 MMR 
+		else if(message.content === `${prefix}leaderboard`){
+			message.delete(5000);
+		}
+		// TODO: Prints private mmr
+		else if(message.content === `${prefix}stats`){ 
+			message.delete(5000);
+		}
 
-	else if(stage === 1){ // stage = 1 -> balance is made
-		if(message.content === `${prefix}team1Won`){
-			console.log('DEBUG: @team1Won')
-			message.react(emoji_agree);
-			message.react(emoji_disagree);
-			print(message, voteText + ' (0/' + (balanceInfo.team1.size() + 1)+ ')');
-			voteMessageBool = true;
-		}
-		else if(message.content === `${prefix}team2Won`){
-			message.react(emoji_agree);
-			message.react(emoji_disagree);
-			print(message, voteText + ' (0/' + (balanceInfo.team1.size() + 1)+ ')');
-			voteMessageBool = true;
-		}
-		else if(message.content === `${prefix}tie` || message.content === `${prefix}draw`){
-			message.react(emoji_agree);
-			message.react(emoji_disagree);
-			print(message, voteText + ' (0/' + (balanceInfo.team1.size() + 1)+ ')');
-			voteMessageBool = true;
-		}
-		else if(message.content === `${prefix}c` || message.content === `${prefix}cancel` || message.content === `${prefix}gameNotPlayed`){
-			// TODO: Decide whether cancel might also require some confirmation? 
-			if(message.author.id === matchupMessage.author.id){
-				stage = 0;
-				resultMessageBool = true;
-				print(message, 'Game canceled');
-				message.delete(15000); // prefix+c
-			}else{
-				print(message, 'Invalid command: Only the person who started the game can cancel it (' + matchupMessage.author.username + ')');
+		else if(stage === 1){ // stage = 1 -> balance is made
+			if(message.content === `${prefix}team1Won`){
+				teamWonMessage = message;
+				teamWon = 1;
+				print(message, voteText + ' (0/' + (balanceInfo.team1.size() + 1)+ ')');
+			}
+			else if(message.content === `${prefix}team2Won`){
+				teamWonMessage = message;
+				teamWon = 2;
+				print(message, voteText + ' (0/' + (balanceInfo.team1.size() + 1)+ ')');
+			}
+			else if(message.content === `${prefix}tie` || message.content === `${prefix}draw`){
+				teamWonMessage = message;
+				teamWon = 0;
+				print(message, voteText + ' (0/' + (balanceInfo.team1.size() + 1)+ ')');
+			}
+			else if(message.content === `${prefix}c` || message.content === `${prefix}cancel` || message.content === `${prefix}gameNotPlayed`){
+				// TODO: Decide whether cancel might also require some confirmation? 
+				if(message.author.id === matchupMessage.author.id){
+					stage = 0;
+					resultMessageBool = true;
+					print(message, 'Game canceled');
+					message.delete(15000); // prefix+c
+				}else{
+					print(message, 'Invalid command: Only the person who started the game can cancel it (' + matchupMessage.author.username + ')');
+				}
+			}
+
+			// TODO: Split and unite voice channels, need to have special channels perhapz
+			else if(message.content === `${prefix}split`){
+
+			}
+			// TODO: Take every user in 'Team 1' and 'Team 2' and move them to some default voice
+			else if(message.content === `${prefix}u` || message.content === `${prefix}unite`){ 
+
+			}
+
+			else if(message.content === `${prefix}mapVeto`){
+
 			}
 		}
 
-		// TODO: Split and unite voice channels, need to have special channels perhapz
-		else if(message.content === `${prefix}split`){
-
+		else if((message.content.lastIndexOf(prefix, 0) === 0)){ // Message start with prefix
+			print(message, 'Invalid command: List of available commands at **' + prefix + 'help**');
+			message.delete(3000);
 		}
-		// TODO: Take every user in 'Team 1' and 'Team 2' and move them to some default voice
-		else if(message.content === `${prefix}u` || message.content === `${prefix}unite`){ 
-
-		}
-
-		else if(message.content === `${prefix}mapVeto`){
-
-		}
-	}
-
-	else if((message.content.lastIndexOf(prefix, 0) === 0)){ // Message start with prefix
-		print(message, 'Invalid command: List of available commands at **' + prefix + 'help**');
-		message.delete(3000);
-	}
+	}	
 });
 
 client.on('messageReactionAdd', messageReaction => {
 	//console.log('DEBUG: @messageReactionAdd', stage, messageReaction.message.content, messageReaction.emoji);
 	if(stage === 1){
-		if(messageReaction.message.content === `${prefix}team1Won`){
+		if(messageReaction.message.content === voteMessage.content){
 			// Check if majority number contain enough players playing
 			if(messageReaction.emoji.toString() === emoji_agree){
-				var voteAmountString = handleRelevantEmoji(true, 1, messageReaction);
-				console.log('DEBUG: @messageReactionAdd: Edit Message time');
-				voteMessage.edit(voteText + voteAmountString);
+				var amountRelevant = countAmountUsersPlaying(balanceInfo.team1, messageReaction.users) + countAmountUsersPlaying(balanceInfo.team2, messageReaction.users);
+				var totalNeeded = (balanceInfo.team1.size() + 1);
+				//console.log('DEBUG: @messageReactionAdd, count =', amountRelevant, ', Majority number is =', totalNeeded);
+				var voteAmountString = ' (' + amountRelevant + '/' + totalNeeded + ')';
+				var newVoteMessage = (voteText + voteAmountString);
+				voteMessage.content = newVoteMessage;
+				voteMessage.edit(newVoteMessage)
+				.then(msg => {
+					handleRelevantEmoji(true, teamWon, messageReaction, amountRelevant, totalNeeded);	
+				});
 			}else if(messageReaction.emoji.toString() === emoji_disagree){
 				handleRelevantEmoji(false, 1, messageReaction);
 			}
 		}
-		else if(messageReaction.message.content === `${prefix}team2Won`){
-			// Check if majority number contain enough players playing
-			if(messageReaction.emoji.toString() === emoji_agree){
-				var voteAmountString = handleRelevantEmoji(true, 2, messageReaction);
-				voteMessage.edit(voteText + voteAmountString);
-			}else if(messageReaction.emoji.toString() === emoji_disagree){
-				handleRelevantEmoji(false, 2, messageReaction);
-			}
-		}
-		else if(messageReaction.message.content === `${prefix}tie` || message.content === `${prefix}draw`){
-			// Check if majority number contain enough players playing
-			if(messageReaction.emoji.toString() === emoji_agree){
-				var voteAmountString = handleRelevantEmoji(true, 0, messageReaction);
-				voteMessage.edit(voteText + voteAmountString); // Update chat message if change
-			}else if(messageReaction.emoji.toString() === emoji_disagree){
-				handleRelevantEmoji(false, 0, messageReaction);
-			}
+		else{
+			console.log('DEBUG: @messageReactionAdd', messageReaction.message.content, voteMessage.content);
 		}
 	}
 });
 
 //Create more events to do fancy stuff with discord API
+
+// Returns boolean of if message starts with string
+function startsWith(message, string){
+	return (message.content.lastIndexOf(string, 0) === 0)
+}
 
 function findPlayersStart(message, channel){
 	console.log('VoiceChannel', channel.name, ' (id =',channel.id,') active users: (Total: ', channel.members.size ,')');
@@ -242,22 +250,19 @@ function findPlayersStart(message, channel){
 	}
 }
 
-function handleRelevantEmoji(emojiConfirm, winner, messageReaction){
-	var amountRelevant = countAmountUsersPlaying(balanceInfo.team1, messageReaction.users) + countAmountUsersPlaying(balanceInfo.team2, messageReaction.users);
-	var totalNeeded = (balanceInfo.team1.size() + 1);
-	//console.log('DEBUG: @messageReactionAdd, count =', amountRelevant, ', Majority number is =', totalNeeded);
-	var voteAmountString = ' (' + amountRelevant + '/' + totalNeeded + ')';
+function handleRelevantEmoji(emojiConfirm, winner, messageReaction, amountRelevant, totalNeeded){
 	if(amountRelevant >= totalNeeded){
 		if(emojiConfirm){
-			console.log('Thumbsup CONFIRMED' + voteAmountString);
+			console.log(emoji_agree + ' CONFIRMED! ' + ' (' + amountRelevant + '/' + totalNeeded + ') Removing voteText msg and team#Won msg');
 			mmr_js.updateMMR(winner, balanceInfo); // Update mmr for both teams
-			messageReaction.message.delete(2000);
+			messageReaction.message.delete(3000);
+			teamWonMessage.delete(3000);
 		}else{
-			console.log('Thumbsdown CONFIRMED' + voteAmountString);
-			messageReaction.message.delete(2000);
+			console.log(emoji_disagree + ' CONFIRMED! ' + ' (' + amountRelevant + '/' + totalNeeded + ') Removing voteText msg and team#Won msg');
+			messageReaction.message.delete(3000);
+			teamWonMessage.delete(3000);
 		}
 	}
-	return voteAmountString;
 }
 
 function countAmountUsersPlaying(team, peopleWhoReacted){ // Count amount of people who reacted are part of this team
@@ -280,7 +285,7 @@ function print(messageVar, message){
 
 // TODO: Keep updated with recent information
 function buildHelpString(){
-	var s = '*Available commands for inhouse-bot:* (Commands marked with **TBA** are To be Added) \n';
+	var s = '*Available commands for ' + bot_name + ':* (Commands marked with **TBA** are To be Added) \n';
 	s += '**' + prefix + 'ping** *Pong*\n'
 	s += '**' + prefix + 'b | balance | inhouseBalance** Starts an inhouse game with the players in the same voice chat as the message author. '
 		+ 'Requires 4, 6, 8 or 10 players in voice chat to work\n';
@@ -298,6 +303,7 @@ function buildHelpString(){
 	return s;
 }
 
+// TODO: Maybe add setResult/MatchupMessage functionality into this, depending on stage
 exports.setStage = function(value){
 	stage = value;
 }

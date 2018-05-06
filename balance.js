@@ -210,7 +210,7 @@ function addTeamMMR(team){ // Function to be used in summing over players
 
 // Build a string to return to print as message
 function buildReturnString(obj, callback){ // TODO: Make print consistently nice
-	//console.log('DEBUG: @buildReturnString');
+	console.log('DEBUG: @buildReturnString');
 	var date = moment().format('LLL'); // Date format. TODO: Change from AM/PM to military time
 	var s = '';
 	s += '**New Game!** MMR Average difference: ' + obj.avgDiff + ' (Total: ' + obj.difference + 'p). ';
