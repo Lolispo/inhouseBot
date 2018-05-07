@@ -1,11 +1,7 @@
 # inhouseBot
 A discord bot made in NodeJS that handles a inhouse system with rating for each individual user. 
 
-#### Supports sizes of 2v2, 3v3, 4v4 and 5v5
-
-Make your own inhouse league!
-
-#### Available commands
+## Available commands
 
 Prefix and bot-name can be modified to own liking
 
@@ -34,3 +30,9 @@ Prefix and bot-name can be modified to own liking
 **-mapVeto** Start map veto **TBA**
 
 **-h | help** Shows available commands
+
+## Balance
+
+### Supports sizes of 2v2, 3v3, 4v4 and 5v5
+
+Make your own inhouse league!
