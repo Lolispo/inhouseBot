@@ -55,7 +55,7 @@ client.login(token);
 
 client.on('message', message => {
 	// CASE 1: Bot sent message
-	if(message.author.bot && message.author.username === bot_name){ 
+	if(message.author.bot && message.author.username === bot_name){ // TODO: Handle if someone sends the bot a private message (Currently crashes)
 		// TODO Feat: Add functionality to remove player written message after ~removeBotMessageDefaultTime sec, prevent flooding
 		// TODO Refactor: best way to consistently give custom time for removal of these bot messages.
 		if(matchupMessageBool){ // Don't remove message about matchup UNTIL results are in
@@ -86,94 +86,104 @@ client.on('message', message => {
 			}
 		}
 	}else{ // CASE 2: Message sent from user
-		console.log('MSG (' + message.channel.guild.name + '.' + message.channel.name + ') ' + message.author.username + ':', message.content); 	
+		if(typeof message.channel.guild != 'undefined'){
+			console.log('MSG (' + message.channel.guild.name + '.' + message.channel.name + ') ' + message.author.username + ':', message.content); 	
 
-		if(message.content == 'hej'){
-			message.channel.send('Hej ' + message.author.username);
-		}
-		else if(message.content === prefix+'ping'){ // Good for testing prefix and connection to bot
-			console.log('PingAlert, user had !ping as command');
-			message.channel.send('Pong');
-			message.delete(removeBotMessageDefaultTime);
-		}
-		// Sends available commands privately to the user
-		else if(message.content === prefix+'help' || message.content === prefix+'h'){
-			message.author.send(buildHelpString());
-			message.delete(10000);
-		}
-		else if(message.content === `${prefix}b` || message.content === `${prefix}balance` || message.content === `${prefix}inhouseBalance`){
-			//console.log(message); // Can print for information about hierarchy in discord message
-			if(stage === 0){
-				matchupMessage = message;
-				var voiceChannel = message.guild.member(message.author).voiceChannel;
-					
-				if(voiceChannel !== null && typeof voiceChannel != 'undefined'){ // Makes sure user is in a voice channel
-					findPlayersStart(message, voiceChannel);
-				} else {
-					message.channel.send('Author of message must be in voiceChannel'); 
-				}
-				message.delete(10000);
-			} else{
-				print(message, 'Invalid command: Inhouse already ongoing'); 
+			if(message.content == 'hej'){
+				message.channel.send('Hej ' + message.author.username);
+			}
+			else if(message.content === prefix+'ping'){ // Good for testing prefix and connection to bot
+				console.log('PingAlert, user had !ping as command');
+				message.channel.send('Pong');
+				message.delete(removeBotMessageDefaultTime);
+			}
+			// Sends available commands privately to the user
+			else if(message.content === prefix+'help' || message.content === prefix+'h'){
+				message.author.send(buildHelpString());
 				message.delete(10000);
 			}
-		}
-		
-		// TODO Show top 3 MMR 
-		else if(message.content === `${prefix}leaderboard`){
-			message.delete(5000);
-		}
-		// TODO: Prints private mmr
-		else if(message.content === `${prefix}stats`){ 
-			// message.author.send(); // Private message
-			message.delete(5000);
-		}
+			else if(message.content === `${prefix}b` || message.content === `${prefix}balance` || message.content === `${prefix}inhouseBalance`){
+				//console.log(message); // Can print for information about hierarchy in discord message
+				if(stage === 0){
+					matchupMessage = message;
+					var voiceChannel = message.guild.member(message.author).voiceChannel;
+						
+					if(voiceChannel !== null && typeof voiceChannel != 'undefined'){ // Makes sure user is in a voice channel
+						findPlayersStart(message, voiceChannel);
+					} else {
+						message.channel.send('Author of message must be in voiceChannel'); 
+					}
+					message.delete(10000);
+				} else{
+					print(message, 'Invalid command: Inhouse already ongoing'); 
+					message.delete(10000);
+				}
+			}
+			
+			// TODO Show top 3 MMR 
+			else if(message.content === `${prefix}leaderboard`){
+				message.delete(5000);
+			}
+			// TODO: Prints private mmr
+			else if(message.content === `${prefix}stats`){ 
+				// message.author.send(); // Private message
+				message.delete(5000);
+			}
 
-		else if(stage === 1){ // stage = 1 -> balance is made
-			if(message.content === `${prefix}team1Won`){
-				teamWonMessage = message;
-				teamWon = 1;
-				print(message, voteText + ' (0/' + (balanceInfo.team1.size() + 1)+ ')');
-			}
-			else if(message.content === `${prefix}team2Won`){
-				teamWonMessage = message;
-				teamWon = 2;
-				print(message, voteText + ' (0/' + (balanceInfo.team1.size() + 1)+ ')');
-			}
-			else if(message.content === `${prefix}tie` || message.content === `${prefix}draw`){
-				teamWonMessage = message;
-				teamWon = 0;
-				print(message, voteText + ' (0/' + (balanceInfo.team1.size() + 1)+ ')');
-			}
-			else if(message.content === `${prefix}c` || message.content === `${prefix}cancel` || message.content === `${prefix}gameNotPlayed`){
-				// TODO: Decide whether cancel might also require some confirmation? 
-				if(message.author.id === matchupMessage.author.id){
-					stage = 0;
-					resultMessageBool = true;
-					print(message, 'Game canceled');
-					message.delete(15000); // prefix+c
-				}else{
-					print(message, 'Invalid command: Only the person who started the game can cancel it (' + matchupMessage.author.username + ')');
+			else if(stage === 1){ // stage = 1 -> balance is made
+				if(message.content === `${prefix}team1Won`){
+					teamWonMessage = message;
+					teamWon = 1;
+					print(message, voteText + ' (0/' + (balanceInfo.team1.size() + 1)+ ')');
+				}
+				else if(message.content === `${prefix}team2Won`){
+					teamWonMessage = message;
+					teamWon = 2;
+					print(message, voteText + ' (0/' + (balanceInfo.team1.size() + 1)+ ')');
+				}
+				else if(message.content === `${prefix}tie` || message.content === `${prefix}draw`){
+					teamWonMessage = message;
+					teamWon = 0;
+					print(message, voteText + ' (0/' + (balanceInfo.team1.size() + 1)+ ')');
+				}
+				else if(message.content === `${prefix}c` || message.content === `${prefix}cancel` || message.content === `${prefix}gameNotPlayed`){
+					// TODO: Decide whether cancel might also require some confirmation? 
+					if(message.author.id === matchupMessage.author.id){
+						stage = 0;
+						resultMessageBool = true;
+						print(message, 'Game canceled');
+						message.delete(15000); // prefix+c
+					}else{
+						print(message, 'Invalid command: Only the person who started the game can cancel it (' + matchupMessage.author.username + ')');
+					}
+				}
+
+				// TODO: Split and unite voice channels, need to have special channels perhapz
+				else if(message.content === `${prefix}split`){
+
+				}
+				// TODO: Take every user in 'Team 1' and 'Team 2' and move them to some default voice
+				else if(message.content === `${prefix}u` || message.content === `${prefix}unite`){ 
+
+				}
+
+				// TODO: Unites all channels, INDEPENDENT of game ongoing
+				else if(message.content === `${prefix}ua` || message.content === `${prefix}uniteAll`){ 
+
+				}
+
+				else if(message.content === `${prefix}mapVeto`){
+
 				}
 			}
 
-			// TODO: Split and unite voice channels, need to have special channels perhapz
-			else if(message.content === `${prefix}split`){
-
+			else if((message.content.lastIndexOf(prefix, 0) === 0)){ // Message start with prefix
+				print(message, 'Invalid command: List of available commands at **' + prefix + 'help**');
+				message.delete(3000);
 			}
-			// TODO: Take every user in 'Team 1' and 'Team 2' and move them to some default voice
-			else if(message.content === `${prefix}u` || message.content === `${prefix}unite`){ 
-
-			}
-
-			else if(message.content === `${prefix}mapVeto`){
-
-			}
-		}
-
-		else if((message.content.lastIndexOf(prefix, 0) === 0)){ // Message start with prefix
-			print(message, 'Invalid command: List of available commands at **' + prefix + 'help**');
-			message.delete(3000);
+		} else{
+			console.log('DM msg = ' + message.author.username + ': ' + message.content);
+			message.author.send('Send commands in a server - not to me!');
 		}
 	}	
 });
@@ -198,7 +208,7 @@ client.on('messageReactionAdd', messageReaction => {
 				handleRelevantEmoji(false, 1, messageReaction);
 			}
 		}
-		else{
+		else{ // Print adds?
 			console.log('DEBUG: @messageReactionAdd', messageReaction.message.content, voteMessage.content);
 		}
 	}
@@ -282,13 +292,12 @@ function buildHelpString(){
 		+ 'If majority of players downvote, this match result report dissapears, use **' + prefix + 'cancel** for canceling the match after this\n';
 	s += '**' + prefix + 'draw | tie** If a match end in a tie, use this as match result. Same rules for reporting as **' + prefix + 'team1Won | ' + prefix + 'team2Won**\n';
 	s += '**' + prefix + 'c | cancel** Cancels the game, to be used when game was decided to not be played\n';
-	s += '**' + prefix + 'h | help** Gives the available commands\n';
+	s += '**' + prefix + 'h | help** Shows the available commands\n';
 	s += '**' + prefix + 'leaderboard** Returns Top 3 MMR holders **TBA**\n';
 	s += '**' + prefix + 'stats** Returns your own rating **TBA**\n';
 	s += '**' + prefix + 'split** Splits voice chat **TBA**\n';
 	s += '**' + prefix + 'u | unite** Unite voice chat after game **TBA**\n';
 	s += '**' + prefix + 'mapVeto** Start map veto **TBA**\n';
-	s += '**' + prefix + 'h | help** Shows available commands';
 	return s;
 }
 
