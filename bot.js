@@ -43,7 +43,7 @@ var teamWon;
 
 const emoji_agree = '👌'; // 👍
 const emoji_disagree = '👎'; 
-const emoji_error = '🤚'; // TODO: Red X might be better
+const emoji_error = '❌'; //'🤚'; // TODO: Red X might be better
 
 const bot_name = 'inhouse-bot';
 const voteText = '**Majority of players that played the game need to confirm this result (Press ' + emoji_agree + ' or ' + emoji_disagree + ')**';
@@ -275,20 +275,20 @@ function print(messageVar, message){
 // TODO: Keep updated with recent information
 function buildHelpString(){
 	var s = '*Available commands for ' + bot_name + ':* (Commands marked with **TBA** are To be Added) \n';
-	s += '**' + prefix + 'ping** *Pong*\n'
+	s += '**' + prefix + 'ping** *Pong*\n';
 	s += '**' + prefix + 'b | balance | inhouseBalance** Starts an inhouse game with the players in the same voice chat as the message author. '
 		+ 'Requires 4, 6, 8 or 10 players in voice chat to work\n';
 	s += '**' + prefix + 'team1Won | ' + prefix + 'team2Won** Starts report of match result, requires majority of players to upvote from game for stats to be recorded. '
 		+ 'If majority of players downvote, this match result report dissapears, use **' + prefix + 'cancel** for canceling the match after this\n';
 	s += '**' + prefix + 'draw | tie** If a match end in a tie, use this as match result. Same rules for reporting as **' + prefix + 'team1Won | ' + prefix + 'team2Won**\n';
-	s += '**' + prefix + 'c | cancel** Cancels the game, to be used when game was decided to not be played\n'
+	s += '**' + prefix + 'c | cancel** Cancels the game, to be used when game was decided to not be played\n';
 	s += '**' + prefix + 'h | help** Gives the available commands\n';
-	s += '**' + prefix + 'leaderboard** Returns Top 3 MMR holders **TBA**\n'
-	s += '**' + prefix + 'stats** Returns your own rating **TBA**\n'
-	s += '**' + prefix + 'split** Splits voice chat **TBA**\n'
-	s += '**' + prefix + 'u | unite** Unite voice chat after game **TBA**\n'
-	s += '**' + prefix + 'mapVeto** Start map veto **TBA**\n'
-	s += '**' + prefix + 'h | help**'
+	s += '**' + prefix + 'leaderboard** Returns Top 3 MMR holders **TBA**\n';
+	s += '**' + prefix + 'stats** Returns your own rating **TBA**\n';
+	s += '**' + prefix + 'split** Splits voice chat **TBA**\n';
+	s += '**' + prefix + 'u | unite** Unite voice chat after game **TBA**\n';
+	s += '**' + prefix + 'mapVeto** Start map veto **TBA**\n';
+	s += '**' + prefix + 'h | help** Shows available commands';
 	return s;
 }
 
