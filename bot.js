@@ -125,6 +125,7 @@ client.on('message', message => {
 		}
 		// TODO: Prints private mmr
 		else if(message.content === `${prefix}stats`){ 
+			// message.author.send(); // Private message
 			message.delete(5000);
 		}
 
