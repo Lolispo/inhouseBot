@@ -16,7 +16,7 @@ const { prefix, token, dbpw } = require('./conf.json');
 /*
 	TODO:
 		Features:
-
+			Save every field as a Collection{GuildSnowflake -> field variable} to make sure bot works on many servers at once
 		Refactor:
 			Fix async/await works
 				Recheck every instace returning promises to use async/await instead https://javascript.info/async-await
@@ -48,14 +48,17 @@ var balanceInfo; // Object: {team1, team2, difference, avgT1, avgT2, avgDiff} In
 
 var activeMembers;
 
-var activeMembers;
-
 var matchupMessage;
 var matchupMessageBool;
 var resultMessageBool;
 var voteMessage;
 var teamWonMessage;
 var teamWon;
+
+var captain1;
+var captain2;
+var mapMessages;
+var mapVetoTurn;
 
 const emoji_agree = '👌'; // 👍, Om custom Emojis: Borde vara seemsgood emoji
 const emoji_disagree = '👎'; 
@@ -89,12 +92,52 @@ client.on('messageReactionAdd', (messageReaction, user) => {
 	if(!user.bot){ // Bot adding reacts doesn't require our care
 		if(stage === 1){
 			// Reacted on voteMessage
+			//console.log('DEBUG: @messageReactionAdd by', user.username, 'on', messageReaction.message.author.username + ': ' + messageReaction.message.content, messageReaction.count);
 			if(!isUndefined(voteMessage) && messageReaction.message.id === voteMessage.id){ // Check if emojiReaction is on voteMessage, voteMessage != undefined
 				voteMessageReaction(messageReaction);
+			} else if(!isUndefined(mapMessages)){
+				for(var i = 0; i < mapMessages.length; i++){
+					if(messageReaction.message.id === mapMessages[i].id){ // Find if reacted on this map
+						if(messageReaction.emoji.toString() === emoji_error){
+							if(user.id === captain1.uid && mapVetoTurn === 0){ // Check to see if author is a captain and his turn
+								var tempMessage = mapMessages[i];
+								mapMessages.splice(i, 1); // splice(index, howMany)
+								tempMessage.delete(3000);
+								changeTurn();
+								if(mapMessages.length === 1){ // We are done and have only one map left
+									var chosenMap = mapMessage[0];
+									mapMessage[0].delete();
+									if(!isUndefined(mapMessages)){
+										throw 'Error should be gone here: Make sure it is otherwise';
+									}
+									print(messageReaction.message, '**Chosen map is ' + chosenMap + '**'); // TODO: Save this message as well
+								}
+							} else if(user.id === captain2.uid && mapVetoTurn === 1){
+								var tempMessage = mapMessages[i];
+								mapMessages.splice(i, 1); // splice(index, howMany)
+								tempMessage.delete(3000);
+								changeTurn();
+								if(mapMessages.length === 1){ // We are done and have only one map left
+									var chosenMap = mapMessage[0];
+									mapMessage[0].delete();
+									if(!isUndefined(mapMessages)){
+										throw 'Error should be gone here: Make sure it is otherwise';
+									}
+									print(messageReaction.message, '**Chosen map is ' + chosenMap + '**'); // TODO: Save this message as well
+								}
+							} else { // Don't allow messageReaction of emoji_error otherwise
+								messageReaction.remove(user);
+							}
+						} else if(messageReaction.emoji.toString() === emoji_agree){ // If not captains, can only react with emoji_agree or emoji_disagree
+
+						} else if(messageReaction.emoji.toString() === emoji_disagree){ // If not captains, can only react with emoji_agree or emoji_disagree
+
+						}
+
+					}
+				}
 			}
-			else{ // React on something else
-				console.log('DEBUG: @messageReactionAdd by', user.username, 'on', messageReaction.message.author.username + ': ' + messageReaction.message.content, messageReaction.count);
-			}
+			// React on something else
 		}
 	}
 });
@@ -104,12 +147,11 @@ client.on('messageReactionRemove', (messageReaction, user) => {
 	if(!user.bot){
 		if(stage === 1){
 			// React removed on voteMessage
+			//console.log('DEBUG: @messageReactionRemove by', user.username, 'on', messageReaction.message.author.username + ': ' + messageReaction.message.content, messageReaction.count);
 			if(!isUndefined(voteMessage) && messageReaction.message.id === voteMessage.id){ // Check if emojiReaction is on voteMessage
 				voteMessageTextUpdate(messageReaction);
 			}
-			else{ // React removed on something else
-				console.log('DEBUG: @messageReactionRemove by', user.username, 'on', messageReaction.message.author.username + ': ' + messageReaction.message.content, messageReaction.count);
-			}
+			// React removed on something else
 		}
 	}
 });
@@ -221,22 +263,15 @@ function handleMessage(message) { // TODO: Decide if async needed
 				// 			else: Create 'Team1' and 'Team2' voice channel for server in its own voicechannel-category called Inhouse
 			}
 		}
-<<<<<<< HEAD
 		// TODO: Take every user in 'Team1' and 'Team2' and move them to the same voice chat
 		// Optional additional argument to choose name of voiceChannel to uniteIn, otherwise same as balance was called from
 		else if(message.content === `${prefix}u` || message.content === `${prefix}unite`){ 
 
 		}
 
-		// TODO: Decide design
+		// mapVeto made between one captain from each team
 		else if(message.content === `${prefix}mapVeto`){
-			// Get captain from both teams
-			var captain1 = getHighestMMR(balanceInfo.team1);
-			var captain2 = getHighestMMR(balanceInfo.team2);
-			// Get maps
-			// TODO: Database on Map texts, map emojis( and presets of maps, 5v5, 2v2 etc)
-			// Temp solution: 
-			// mapMessages(message);
+			mapVetoStart(message);
 		}
 		// TODO: mapVeto using majority vote instead of captains
 		else if(message.content === `${prefix}mapVetoMajority`){
@@ -248,23 +283,73 @@ function handleMessage(message) { // TODO: Decide if async needed
 		message.delete(3000);
 	}
 }
-/*
-function mapMessages(message){ // TODO: async
-	var messages = [];
-	messages.push(await(print(message, ':Dust2: Dust2')));
-	messages.push(await(print(message, ':Inferno: Inferno')));
-	messages.push(await(print(message, ':Mirage: Mirage')));
 
-	for(var i = 0; i < messages.length; i++){
-		messages[i].react(emoji_error);
-	}
+async function mapVetoStart(message){
+	// Get captain from both teams
+	captain1 = getHighestMMR(balanceInfo.team1);
+	captain2 = getHighestMMR(balanceInfo.team2);
+	// Get maps
+	// TODO: Database on Map texts, map emojis( and presets of maps, 5v5, 2v2 etc)
+	// Temp solution: 
+	mapMessages = await getMapMessages(message);
 
-	// TODO: Check to see what happens
+	// Choose who starts (random)
+	mapVetoTurn = Math.floor((Math.random() * 2));
+	var startingCaptainUsername = (mapVetoTurn === 0 ? captain1.username : captain2.username); 
+	// Print out instructions
+
+	// TODO: Make sure strings -> not undefined
+	// TODO: Store long message as some field to create it more easily. First => better name and field
+	var first = await ('**The captains ' + captain1.username + ' and ' + captain2.username + ' can now vote on which maps to play. Keep banning maps by pressing ' 
+		+ emoji_error + ' on your turn until there is only one map left. ');
+	var second = await (startingCaptainUsername + 's turn**');
+	await print(message, first + second); // TODO: Save this message, to edit it
 }
-*/
+
+async function getMapMessages(message){
+	var messages = [];
+	var x1 = await print(message, ':Dust2: Dust2');
+	mapMessageReact(x1);
+	messages.push(x1);
+	var x2 = await print(message, ':Inferno: Inferno');
+	mapMessageReact(x2);
+	messages.push(x2);
+	var x3 = await print(message, ':Mirage: Mirage');
+	mapMessageReact(x3);
+	messages.push(x3);	
+	var x4 = await print(message, ':Nuke: Nuke');
+	mapMessageReact(x4);
+	messages.push(x4);	
+	var x5 = await print(message, ':Cache: Cache');
+	mapMessageReact(x5);
+	messages.push(x5);	
+	var x6 = await print(message, ':Overpass: Overpass');
+	mapMessageReact(x6);
+	messages.push(x6);	
+	var x7 = await print(message, ':Train: Train');
+	mapMessageReact(x7);
+	messages.push(x7);
+	return messages;
+}
+
+async function mapMessageReact(message){
+	await message.react(emoji_error);
+	await message.react(emoji_agree);
+	await message.react(emoji_disagree);
+}
+
+// Change turn between captains TODO: Do even shorter
+function changeTurn(){
+	if(mapVetoTurn === 0)
+		mapVetoTurn = 1;
+	else if(mapVetoTurn === 1){
+		mapVetoTurn = 0;
+	}
+}
+
 
 // Temp function, all of these actions should be handled by await:s
-function botMessage(message){ // TODO: async 
+async function botMessage(message){
 	// TODO Feat: Add functionality to remove player written message after ~removeBotMessageDefaultTime sec, prevent flooding
 	// TODO Refactor: best way to consistently give custom time for removal of these bot messages.
 	if(matchupMessageBool){ // Don't remove message about matchup UNTIL results are in
@@ -282,7 +367,7 @@ function botMessage(message){ // TODO: async
 		}
 	}else if(startsWith(message, voteText)){
 		voteMessage = message;
-		message.react(emoji_agree); // TODO: await Guarantee that they always come in correct order (After user testing, this was deemed necessary)
+		await message.react(emoji_agree);
 		message.react(emoji_disagree);
 	}else{ // Default case for bot messages, remove after time
 		if(startsWith(message, 'Invalid command: ')){
@@ -299,14 +384,14 @@ function botMessage(message){ // TODO: async
 // Updates voteMessage on like / unlike the agree emoji
 // Is async to await the voteMessage.edit promise
 // TODO: Check if works still after refactor
-function voteMessageTextUpdate(messageReaction){ // TODO: Async
+async function voteMessageTextUpdate(messageReaction){
 	var amountRelevant = countAmountUsersPlaying(balanceInfo.team1, messageReaction.users) + countAmountUsersPlaying(balanceInfo.team2, messageReaction.users);
 	var totalNeeded = (balanceInfo.team1.size() + 1);
 	//console.log('DEBUG: @messageReactionAdd, count =', amountRelevant, ', Majority number is =', totalNeeded);
 	var voteAmountString = ' (' + amountRelevant + '/' + totalNeeded + ')';
 	var newVoteMessage = (voteText + voteAmountString);
 	voteMessage.content = newVoteMessage; // Not needed if await on edit? TODO: Check
-	voteMessage.edit(newVoteMessage) // TODO: await
+	await voteMessage.edit(newVoteMessage);
 	return {amountRelevant: amountRelevant, totalNeeded: totalNeeded}
 }
 
@@ -485,7 +570,7 @@ function buildHelpString(){
 // Returns promise for use in async functions
 function print(messageVar, message){
 	console.log(message);
-	messageVar.channel.send(message); // TODO: async, return this row since it is a promise 
+	return messageVar.channel.send(message);
 }
 
 // TODO: Maybe add setResult/MatchupMessage functionality into this, depending on stage
