@@ -2,6 +2,7 @@
 
 /*
 	TODO: Fix unit tests for every method and use node specific methods to do this
+		Maybe add discord bots to a certain server for test purposes, since they can act better as real users, following all logic etc
 */
 function eloUpdate_test(){ 
 	var t1 = 2000;
