@@ -14,12 +14,12 @@ const player_js = require('./player')
 const { prefix, token, dbpw } = require('./conf.json');
 
 /*
-	TODO: 
+	TODO:
 		Handle all bot sent messages with .then on send instead of looking at a received message, handle the send promise instead
 		Better Printout / message to clients (Currently as message, but not nice looking) (Deluxe: maybe image if possible)
 		better names for commands
-		
-	Deluxe: 
+
+	Deluxe:
 		Move players into separate channels on team generation
 		Mapveto command
 			Find how to generate images OR emotes?
@@ -31,8 +31,10 @@ client.on('ready', () => {
 });
 
 // TODO: Reflect on stage. Alternative: neutral = 0, make a start stage = 1 -> mapveto/split/start, and a end stage = 2 -> team1Won/Team2won/unite/gnp etc
-var stage = 0; // Current: Stage = 0 -> nothing started yet, default. Stage = 1 -> rdy for: mapVeto/split/team1Won/team2Won/gameNotPlayed. 
+var stage = 0; // Current: Stage = 0 -> nothing started yet, default. Stage = 1 -> rdy for: mapVeto/split/team1Won/team2Won/gameNotPlayed.
 var balanceInfo;
+
+var activeMembers;
 
 var matchupMessage;
 var matchupMessageBool;
@@ -42,7 +44,7 @@ var teamWonMessage;
 var teamWon;
 
 const emoji_agree = '👌'; // 👍
-const emoji_disagree = '👎'; 
+const emoji_disagree = '👎';
 const emoji_error = '❌'; //'🤚'; // TODO: Red X might be better
 
 const bot_name = 'inhouse-bot';
@@ -63,31 +65,31 @@ client.on('message', message => {
 		}else if(resultMessageBool){
 			resultMessageBool = false;
 			matchupMessage.delete(); // Remove matchup message when results are in
-			if(startsWith(message, '**Team')){ // Team 1 / 2 won! 
+			if(startsWith(message, '**Team')){ // Team 1 / 2 won!
 				message.delete(removeBotMessageDefaultTime * 2);  // Double time for removing result TODO: Decide if this is good
-				console.log('DEBUG: @botMessage - Unknown Message Error will follow after this - unsure why'); // TODO: Find source of error 
+				console.log('DEBUG: @botMessage - Unknown Message Error will follow after this - unsure why'); // TODO: Find source of error
 				// Discussed here - https://stackoverflow.com/questions/44284666/discord-js-add-reaction-to-a-bot-message
 			}else if(startsWith(message, 'Game canceled')){
 				matchupMessage.delete(); // Delete message immediately on game cancel
-				message.delete(15000); 
+				message.delete(15000);
 			}
 		}else if(startsWith(message, voteText)){
 			voteMessage = message;
-			message.react(emoji_agree); 
+			message.react(emoji_agree);
 			message.react(emoji_disagree);
 		}else{ // Default case for bot messages, remove after time
 			if(startsWith(message, 'Invalid command: ')){
 				message.delete(15000);
-				message.react(emoji_error);  
+				message.react(emoji_error);
 			}else if(startsWith(message, 'Hej')){
 				// Don't remove Hej message
 			}else{
-				message.delete(removeBotMessageDefaultTime); 		
+				message.delete(removeBotMessageDefaultTime);
 			}
 		}
 	}else{ // CASE 2: Message sent from user
 		if(typeof message.channel.guild != 'undefined'){
-			console.log('MSG (' + message.channel.guild.name + '.' + message.channel.name + ') ' + message.author.username + ':', message.content); 	
+			console.log('MSG (' + message.channel.guild.name + '.' + message.channel.name + ') ' + message.author.username + ':', message.content);
 
 			if(message.content == 'hej'){
 				message.channel.send('Hej ' + message.author.username);
@@ -107,25 +109,25 @@ client.on('message', message => {
 				if(stage === 0){
 					matchupMessage = message;
 					var voiceChannel = message.guild.member(message.author).voiceChannel;
-						
+
 					if(voiceChannel !== null && typeof voiceChannel != 'undefined'){ // Makes sure user is in a voice channel
 						findPlayersStart(message, voiceChannel);
 					} else {
-						message.channel.send('Author of message must be in voiceChannel'); 
+						message.channel.send('Author of message must be in voiceChannel');
 					}
 					message.delete(10000);
 				} else{
-					print(message, 'Invalid command: Inhouse already ongoing'); 
+					print(message, 'Invalid command: Inhouse already ongoing');
 					message.delete(10000);
 				}
 			}
-			
-			// TODO Show top 3 MMR 
+
+			// TODO Show top 3 MMR
 			else if(message.content === `${prefix}leaderboard`){
 				message.delete(5000);
 			}
 			// TODO: Prints private mmr
-			else if(message.content === `${prefix}stats`){ 
+			else if(message.content === `${prefix}stats`){
 				// message.author.send(); // Private message
 				message.delete(5000);
 			}
@@ -147,7 +149,7 @@ client.on('message', message => {
 					print(message, voteText + ' (0/' + (balanceInfo.team1.size() + 1)+ ')');
 				}
 				else if(message.content === `${prefix}c` || message.content === `${prefix}cancel` || message.content === `${prefix}gameNotPlayed`){
-					// TODO: Decide whether cancel might also require some confirmation? 
+					// TODO: Decide whether cancel might also require some confirmation?
 					if(message.author.id === matchupMessage.author.id){
 						stage = 0;
 						resultMessageBool = true;
@@ -160,15 +162,36 @@ client.on('message', message => {
 
 				// TODO: Split and unite voice channels, need to have special channels perhapz
 				else if(message.content === `${prefix}split`){
+					var guildChannels = Array.from(message.guild.channels);
+
+					/**TEST CODE FOR KTH SERVER ONLY**/
+					if(message.guild.name === 'KTH') {
+						KTHChannelSwapTest(message, guildChannels);
+					}
+
+					//Get team players as GuildMember objects
+					var t1players = teamToGuildMember(balanceInfo.team1);
+					var t2players = teamToGuildMember(balanceInfo.team2);
+
+					//Find channels to swap to -> Change conditions for other desired channels or to randomly take 2
+					//Currently hardcoded 'Team1' and 'Team2'
+					var channel1 = guildChannels.find(channel => channel[1].name === 'Team1');
+					var channel2 = guildChannels.find(channel => channel[1].name === 'Team2');
+					if(typeof channel1 !== 'undefined' && channel2 !== 'undefined') {
+						setTeamVoice(t1players, channel1[1].id);
+						setTeamVoice(t2players, channel2[1].id);
+					} else {
+						print(message, "Channels: Team1 & Team2 does not exist");
+					}
 
 				}
 				// TODO: Take every user in 'Team 1' and 'Team 2' and move them to some default voice
-				else if(message.content === `${prefix}u` || message.content === `${prefix}unite`){ 
+				else if(message.content === `${prefix}u` || message.content === `${prefix}unite`){
 
 				}
 
 				// TODO: Unites all channels, INDEPENDENT of game ongoing
-				else if(message.content === `${prefix}ua` || message.content === `${prefix}uniteAll`){ 
+				else if(message.content === `${prefix}ua` || message.content === `${prefix}uniteAll`){
 
 				}
 
@@ -185,7 +208,7 @@ client.on('message', message => {
 			console.log('DM msg = ' + message.author.username + ': ' + message.content);
 			message.author.send('Send commands in a server - not to me!');
 		}
-	}	
+	}
 });
 
 client.on('messageReactionAdd', messageReaction => {
@@ -202,7 +225,7 @@ client.on('messageReactionAdd', messageReaction => {
 				voteMessage.content = newVoteMessage;
 				voteMessage.edit(newVoteMessage)
 				.then(msg => {
-					handleRelevantEmoji(true, teamWon, messageReaction, amountRelevant, totalNeeded);	
+					handleRelevantEmoji(true, teamWon, messageReaction, amountRelevant, totalNeeded);
 				});
 			}else if(messageReaction.emoji.toString() === emoji_disagree){
 				handleRelevantEmoji(false, 1, messageReaction);
@@ -227,7 +250,9 @@ function findPlayersStart(message, channel){
 	if(numPlayers == 10 || numPlayers == 8 || numPlayers == 6 || numPlayers == 4){
 		// initalize 10 Player objects with playerInformation
 		var players = new ArrayList;
-		channel.members.forEach(function(member){
+		activeMembers = Array.from(channel.members.values());
+		console.log("Channel", channel.members);
+		activeMembers.forEach(function(member){
 			if(!member.bot){ // Only real users
 				console.log('\t' + member.user.username + '(' + member.user.id + ')'); // Printar alla activa users i denna voice chatt
 				var tempPlayer = player_js.createPlayer(member.user.username, member.user.id);
@@ -239,14 +264,41 @@ function findPlayersStart(message, channel){
 		console.log('\t<-- Testing Environment: 10 player game, res in console -->');
 		var players = new ArrayList;
 		for(var i = 0; i < 10; i++){
-			var tempPlayer = player_js.createPlayer('Player ' + i, i);
+			var tempPlayer = player_js.createPlayer('Player ' + i, i.toString());
 			//console.log('DEBUG: @findPlayersStart, tempPlayer =', tempPlayer);
 			players.add(tempPlayer);
 		}
 		balance.initializePlayers(players, dbpw); // Initialize balancing, return result
 	} else{
-		console.log('Currently only support games for 4, 6, 8 and 10 players'); 
+		console.log('Currently only support games for 4, 6, 8 and 10 players');
 	}
+}
+
+//Takes an Array of Players and returns an Array of GuildMembers with same ids
+function teamToGuildMember(team) {
+	var teamMembers = new Array;
+	team.forEach(function(player){
+		if(typeof activeMembers !== 'undefined'){
+			activeMembers.forEach(function(guildMember){
+				if(player.uid === guildMember.id){
+					teamMembers.push(guildMember);
+				}
+			});
+			/* ALTERNATIVE TO THE OTHER with find
+			teamMembers.push(activeMembers.find(function(guildMember){
+				return guildMember.id === player.uid
+			}));
+			*/
+		}
+	});
+	return teamMembers;
+}
+
+//Set VoiceChannel for an array of GuildMembers
+function setTeamVoice(team, channel){
+	team.forEach(function(player){
+		player.setVoiceChannel(channel);
+	})
 }
 
 function handleRelevantEmoji(emojiConfirm, winner, messageReaction, amountRelevant, totalNeeded){
@@ -275,6 +327,23 @@ function countAmountUsersPlaying(team, peopleWhoReacted){ // Count amount of peo
 		}
 	});
 	return counter;
+}
+
+//Small Troll Test
+function KTHChannelSwapTest(message, guildChannels){
+	var myVoiceChannel = message.guild.member(message.author).voiceChannel;
+	var testChannel = guildChannels.find(channel => channel[1].name === 'General')
+	var testChannel2 = guildChannels.find(channel => channel[1].name === 'UberVoice')
+	//console.log("testChannel: ", testChannel);
+	if(myVoiceChannel.name === 'General'){
+			message.guild.member(message.author).setVoiceChannel(testChannel2[1].id);
+			print(message, 'Moved '+message.author.username+'from channel: '+
+				message.guild.member(message.author).voiceChannel.name+' to: '+testChannel2[1].name);
+	}else if(myVoiceChannel.name === 'UberVoice'){
+		message.guild.member(message.author).setVoiceChannel(testChannel[1].id);
+		print(message, 'Moved '+message.author.username+' from channel: '+
+			message.guild.member(message.author).voiceChannel.name+' to: '+testChannel[1].name);
+	}
 }
 
 function print(messageVar, message){
