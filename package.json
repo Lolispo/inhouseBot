@@ -4,7 +4,7 @@
   "description": "inhouse matchmaking",
   "main": "bot.js",
   "scripts": {
-    "test": "test"
+    "test": "check-node-version --node \">= 8\""
   },
   "repository": {
     "type": "git",
@@ -18,6 +18,7 @@
   "homepage": "https://github.com/worlund/inhouseBot#readme",
   "dependencies": {
     "arraylist": "^0.1.0",
+    "check-node-version": "^3.2.0",
     "discord.js": "^11.3.2",
     "moment": "^2.22.1",
     "mysql2": "^1.5.3",
