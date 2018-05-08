@@ -8,7 +8,8 @@ const client = new Discord.Client();
 const ArrayList = require('arraylist');
 const balance = require('./balance');
 const mmr_js = require('./mmr');
-const player_js = require('./player')
+const player_js = require('./player');
+// const map_js = require('./map'); // TODO: Move map logic to other file
 
 //get config data
 const { prefix, token, dbpw } = require('./conf.json');
@@ -16,10 +17,12 @@ const { prefix, token, dbpw } = require('./conf.json');
 /*
 	TODO:
 		Features:
+			Start MMR chosen as either 2400, 2500 or 2600 depending on own skill, for better distribution in first games, better matchup
 			Save every field as a Collection{GuildSnowflake -> field variable} to make sure bot works on many servers at once
 		Refactor:
 			Fix async/await works
 				Recheck every instace returning promises to use async/await instead https://javascript.info/async-await
+					Double check places returning promises, to see if they are .then correctly
 				Handle all bot sent messages with .then on send instead of looking at a received message, handle the send promise instead
 					Regroup it and use async/await instead
 		Bug / Crash:
@@ -32,6 +35,10 @@ const { prefix, token, dbpw } = require('./conf.json');
 			Better names for commands
 		Deluxe Features (Ideas):
 			Gör så att botten kan göra custom emojis, och adda de till servern för usage (ex. mapVeto emotes och seemsgood)
+			(Connected to StartMMR) 
+				Add a second hidden rating for each user, so even though they all start at same mmr, 
+					this rating is used to even out the teams when unsure (ONLY BEGINNING)
+			Restart in 30 sec when connection terminated due to no internet connection, currently: Unhandled "error" event. Client.emit (events.js:186:19)
 */
 
 // will only do stuff after it's ready
@@ -44,25 +51,25 @@ var stage = 0; // Current: Stage = 0 -> nothing started yet, default. Stage = 1 
 
 // TODO: 	Should have a balanceInfo instance available for every server. Collection{GuildSnowflake -> balanceInfo} or something
 // 			Should also change in setBalanceInfo to send guild snowflake
-var balanceInfo; // Object: {team1, team2, difference, avgT1, avgT2, avgDiff} Initialized on transition between stage 0 and 1. 
+var balanceInfo; 		// Object: {team1, team2, difference, avgT1, avgT2, avgDiff} Initialized on transition between stage 0 and 1. 
 
-var activeMembers;
+var activeMembers; 		// Active members playing (team1 players + team2 players)
 
-var matchupMessage;
-var matchupMessageBool;
-var resultMessageBool;
-var voteMessage;
-var teamWonMessage;
-var teamWon;
+var matchupMessage; 	// Discord message for showing matchup, members in both teams and mmr difference
+var voteMessage;		// When voting on who won, this holds the voteText discord message
+var teamWonMessage;		// The typed teamWon message, used to vote on agreeing as well as remove on finished vote
+var teamWon;			// Keeps track on which team won
+var mapStatusMessage;	// Message that keep track of which maps are banned and whose turn is it
 
-var captain1;
-var captain2;
-var mapMessages;
-var mapVetoTurn;
+var captain1;			// Captain for team 1
+var captain2;			// Captain for team 2
+var mapMessages;		// Keeps track of the discord messages for the different maps 
+var mapVetoTurn;		// Turn variable, whose turn it is
+var bannedMaps = [];	// String array holding who banned which map, is used in mapStatusMessage
 
-const emoji_agree = '👌'; // 👍, Om custom Emojis: Borde vara seemsgood emoji
-const emoji_disagree = '👎'; 
-const emoji_error = '❌'; //'🤚'; // TODO: Red X might be better
+const emoji_agree = '👌'; 		// Agree emoji. Alt: 👍, Om custom Emojis: Borde vara seemsgood emoji
+const emoji_disagree = '👎';	// Disagree emoji. 
+const emoji_error = '❌'; 		// Error / Ban emoji. Alt: '🤚';
 
 const bot_name = 'inhouse-bot';
 const voteText = '**Majority of players that played the game need to confirm this result (Press ' + emoji_agree + ' or ' + emoji_disagree + ')**';
@@ -74,17 +81,14 @@ client.login(token);
 
 // Listener on message
 client.on('message', message => {
-	// CASE 1: Bot sent message
-	if(message.author.bot && message.author.username === bot_name){
-		botMessage(message); // Temp function, should use async/await instead
-	}else{ // CASE 2: Message sent from user
+	if(!message.author.bot && message.author.username !== bot_name){ // Message sent from user TODO: check correct logic
 		if(!isUndefined(message.channel.guild)){
 			handleMessage(message);
 		}else{ // Someone tried to DM the bot
 			console.log('DM msg = ' + message.author.username + ': ' + message.content);
 			message.author.send('Send commands in a server - not to me!');
 		}
-	}
+	} // Should handle every message except bot messages
 });
 
 // Listener on reactions added to messages
@@ -101,39 +105,62 @@ client.on('messageReactionAdd', (messageReaction, user) => {
 						if(messageReaction.emoji.toString() === emoji_error){
 							if(user.id === captain1.uid && mapVetoTurn === 0){ // Check to see if author is a captain and his turn
 								var tempMessage = mapMessages[i];
+								bannedMaps.push(user.username + ' banned ' + tempMessage); // Maybe should add bold on second to last one
 								mapMessages.splice(i, 1); // splice(index, howMany)
-								tempMessage.delete(3000);
+								tempMessage.delete(400);
 								changeTurn();
 								if(mapMessages.length === 1){ // We are done and have only one map left
-									var chosenMap = mapMessage[0];
-									mapMessage[0].delete();
+									var chosenMap = mapMessages[0];
+									mapMessages = undefined; // TODO: More beutiful line for resetting mapMessages
 									if(!isUndefined(mapMessages)){
-										throw 'Error should be gone here: Make sure it is otherwise';
+										throw 'Error should be gone here: Make sure it is otherwise', mapMessages;
 									}
-									print(messageReaction.message, '**Chosen map is ' + chosenMap + '**'); // TODO: Save this message as well
+									chosenMap.delete();
+									bannedMaps.push('\nChosen map is ' + chosenMap);
+									mapStatusMessage.edit(getMapString(true));
 								}
 							} else if(user.id === captain2.uid && mapVetoTurn === 1){
 								var tempMessage = mapMessages[i];
+								bannedMaps.push(user.username + ' banned ' + tempMessage);
 								mapMessages.splice(i, 1); // splice(index, howMany)
-								tempMessage.delete(3000);
+								tempMessage.delete(400);
 								changeTurn();
 								if(mapMessages.length === 1){ // We are done and have only one map left
-									var chosenMap = mapMessage[0];
-									mapMessage[0].delete();
+									var chosenMap = mapMessages[0];
+									mapMessages = undefined;
 									if(!isUndefined(mapMessages)){
-										throw 'Error should be gone here: Make sure it is otherwise';
+										throw 'Error: mapMessages should be gone here: Make sure it is otherwise';
 									}
-									print(messageReaction.message, '**Chosen map is ' + chosenMap + '**'); // TODO: Save this message as well
+									chosenMap.delete();
+									bannedMaps.push('Chosen map is ' + chosenMap);
+									mapStatusMessage.edit(getMapString(true));
 								}
 							} else { // Don't allow messageReaction of emoji_error otherwise
+								console.log('DEBUG: Not allowerd user pressed ' + emoji_error);
 								messageReaction.remove(user);
 							}
 						} else if(messageReaction.emoji.toString() === emoji_agree){ // If not captains, can only react with emoji_agree or emoji_disagree
-
+							var allowed = false;
+							activeMembers.forEach(function(guildMember){
+								if(user.uid === guildMember.id){
+									allowed = true;
+								}
+							});
+							if(!allowed){
+								messageReaction.remove(user);
+							}
 						} else if(messageReaction.emoji.toString() === emoji_disagree){ // If not captains, can only react with emoji_agree or emoji_disagree
-
+							var allowed = false;
+							activeMembers.forEach(function(guildMember){
+								if(user.uid === guildMember.id){
+									allowed = true;
+								}
+							});
+							if(!allowed){
+								messageReaction.remove(user);
+							}
 						}
-
+						break; // Don't continue in the loop for this event
 					}
 				}
 			}
@@ -148,7 +175,7 @@ client.on('messageReactionRemove', (messageReaction, user) => {
 		if(stage === 1){
 			// React removed on voteMessage
 			//console.log('DEBUG: @messageReactionRemove by', user.username, 'on', messageReaction.message.author.username + ': ' + messageReaction.message.content, messageReaction.count);
-			if(!isUndefined(voteMessage) && messageReaction.message.id === voteMessage.id){ // Check if emojiReaction is on voteMessage
+			if(!isUndefined(voteMessage) && messageReaction.message.id === voteMessage.id && messageReaction.emoji.toString() === emoji_agree){ // Check if emojiReaction is on voteMessage
 				voteMessageTextUpdate(messageReaction);
 			}
 			// React removed on something else
@@ -163,7 +190,7 @@ function handleMessage(message) { // TODO: Decide if async needed
 	console.log('MSG (' + message.channel.guild.name + '.' + message.channel.name + ') ' + message.author.username + ':', message.content); 
 	// All stages commands, Commands that should always work, from every stage
 	if(message.content == 'hej'){
-		print(message, 'Hej ' + message.author.username);
+		print(message, 'Hej ' + message.author.username, noop); // Not removing hej messages
 	}
 	else if(message.content === prefix+'ping'){ // Good for testing prefix and connection to bot
 		console.log('PingAlert, user had !ping as command');
@@ -176,7 +203,6 @@ function handleMessage(message) { // TODO: Decide if async needed
 		message.delete(10000);
 	}
 	else if(message.content === `${prefix}b` || message.content === `${prefix}balance` || message.content === `${prefix}inhouseBalance`){
-		//console.log(message); // Can print for information about hierarchy in discord message
 		if(stage === 0){
 			matchupMessage = message;
 			var voiceChannel = message.guild.member(message.author).voiceChannel;
@@ -184,11 +210,11 @@ function handleMessage(message) { // TODO: Decide if async needed
 			if(voiceChannel !== null && !isUndefined(voiceChannel)){ // Makes sure user is in a voice channel
 				findPlayersStart(message, voiceChannel);
 			} else {
-				print(message, 'Author of message must be in voiceChannel'); 
+				print(message, 'Invalid command: Author of message must be in voiceChannel', callbackInvalidCommand); 
 			}
 			message.delete(10000);
 		} else{
-			print(message, 'Invalid command: Inhouse already ongoing'); 
+			print(message, 'Invalid command: Inhouse already ongoing', callbackInvalidCommand); 
 			message.delete(10000);
 		}
 	}
@@ -212,27 +238,26 @@ function handleMessage(message) { // TODO: Decide if async needed
 		if(message.content === `${prefix}team1Won`){
 			teamWonMessage = message;
 			teamWon = 1;
-			print(message, voteText + ' (0/' + (balanceInfo.team1.size() + 1)+ ')');
+			print(message, voteText + ' (0/' + (balanceInfo.team1.size() + 1)+ ')', callbackVoteText);
 		}
 		else if(message.content === `${prefix}team2Won`){
 			teamWonMessage = message;
 			teamWon = 2;
-			print(message, voteText + ' (0/' + (balanceInfo.team1.size() + 1)+ ')');
+			print(message, voteText + ' (0/' + (balanceInfo.team1.size() + 1)+ ')', callbackVoteText);
 		}
 		else if(message.content === `${prefix}tie` || message.content === `${prefix}draw`){
 			teamWonMessage = message;
 			teamWon = 0;
-			print(message, voteText + ' (0/' + (balanceInfo.team1.size() + 1)+ ')');
+			print(message, voteText + ' (0/' + (balanceInfo.team1.size() + 1)+ ')', callbackVoteText);
 		}
 		else if(message.content === `${prefix}c` || message.content === `${prefix}cancel` || message.content === `${prefix}gameNotPlayed`){
 			// TODO: Decide whether cancel might also require some confirmation? 
 			if(message.author.id === matchupMessage.author.id){
-				stage = 0;
-				resultMessageBool = true;
-				print(message, 'Game canceled');
+				setStage(0);
+				print(message, 'Game canceled', callbackGameCanceled);
 				message.delete(15000); // prefix+c
 			}else{
-				print(message, 'Invalid command: Only the person who started the game can cancel it (' + matchupMessage.author.username + ')');
+				print(message, 'Invalid command: Only the person who started the game can cancel it (' + matchupMessage.author.username + ')', callbackInvalidCommand);
 			}
 		}
 
@@ -279,144 +304,73 @@ function handleMessage(message) { // TODO: Decide if async needed
 		}
 	}
 	else if(startsWith(message,prefix)){ // Message start with prefix
-		print(message, 'Invalid command: List of available commands at **' + prefix + 'help**');
+		print(message, 'Invalid command: List of available commands at **' + prefix + 'help**', callbackInvalidCommand);
 		message.delete(3000);
 	}
 }
 
 async function mapVetoStart(message){
 	// Get captain from both teams
-	captain1 = getHighestMMR(balanceInfo.team1);
+	captain1 = getHighestMMR(balanceInfo.team1); // TODO: Check if problem with not being async, moved from function
 	captain2 = getHighestMMR(balanceInfo.team2);
-	// Get maps
-	// TODO: Database on Map texts, map emojis( and presets of maps, 5v5, 2v2 etc)
-	// Temp solution: 
-	mapMessages = await getMapMessages(message);
-
 	// Choose who starts (random)
 	mapVetoTurn = Math.floor((Math.random() * 2));
-	var startingCaptainUsername = (mapVetoTurn === 0 ? captain1.username : captain2.username); 
-	// Print out instructions
-
-	// TODO: Make sure strings -> not undefined
-	// TODO: Store long message as some field to create it more easily. First => better name and field
-	var first = await ('**The captains ' + captain1.username + ' and ' + captain2.username + ' can now vote on which maps to play. Keep banning maps by pressing ' 
-		+ emoji_error + ' on your turn until there is only one map left. ');
-	var second = await (startingCaptainUsername + 's turn**');
-	await print(message, first + second); // TODO: Save this message, to edit it
+	mapMessages = []; 
+	var startingCaptainUsername = (mapVetoTurn === 0 ? captain1.userName : captain2.userName); 
+	await print(message, getMapString(false, startingCaptainUsername), callbackMapHandle); 
+	// Get maps. Temp solution:
+	// TODO: Database on Map texts, map emojis( and presets of maps, 5v5, 2v2 etc)
+	await getMapMessages(message);
 }
 
-async function getMapMessages(message){
-	var messages = [];
-	var x1 = await print(message, ':Dust2: Dust2');
-	mapMessageReact(x1);
-	messages.push(x1);
-	var x2 = await print(message, ':Inferno: Inferno');
-	mapMessageReact(x2);
-	messages.push(x2);
-	var x3 = await print(message, ':Mirage: Mirage');
-	mapMessageReact(x3);
-	messages.push(x3);	
-	var x4 = await print(message, ':Nuke: Nuke');
-	mapMessageReact(x4);
-	messages.push(x4);	
-	var x5 = await print(message, ':Cache: Cache');
-	mapMessageReact(x5);
-	messages.push(x5);	
-	var x6 = await print(message, ':Overpass: Overpass');
-	mapMessageReact(x6);
-	messages.push(x6);	
-	var x7 = await print(message, ':Train: Train');
-	mapMessageReact(x7);
-	messages.push(x7);
-	return messages;
+// Returns promise messages for maps
+function getMapMessages(message){
+	initMap('Dust2', message, callbackMapMessage);
+	initMap('Inferno', message, callbackMapMessage);
+	initMap('Mirage', message, callbackMapMessage);
+	initMap('Nuke', message, callbackMapMessage);
+	initMap('Cache', message, callbackMapMessage);
+	initMap('Overpass', message, callbackMapMessage);
+	initMap('Train', message, callbackMapMessage);
+	//initMap('Train', message)		.then(res => {	messages.push(res);	})
+	//messages.push(initMap('Train', message));
+}
+
+async function initMap(mapName, message, callback){
+	print(message, ':' + mapName + ': ' + mapName, callback); // Move to function so they can start parallell
+}
+
+function callbackMapMessage(mapObj){
+	mapMessageReact(mapObj);
+	mapMessages.push(mapObj);
 }
 
 async function mapMessageReact(message){
 	await message.react(emoji_error);
 	await message.react(emoji_agree);
-	await message.react(emoji_disagree);
+	message.react(emoji_disagree);
 }
 
-// Change turn between captains TODO: Do even shorter
-function changeTurn(){
-	if(mapVetoTurn === 0)
-		mapVetoTurn = 1;
-	else if(mapVetoTurn === 1){
-		mapVetoTurn = 0;
-	}
-}
-
-
-// Temp function, all of these actions should be handled by await:s
-async function botMessage(message){
-	// TODO Feat: Add functionality to remove player written message after ~removeBotMessageDefaultTime sec, prevent flooding
-	// TODO Refactor: best way to consistently give custom time for removal of these bot messages.
-	if(matchupMessageBool){ // Don't remove message about matchup UNTIL results are in
-		matchupMessageBool = false;
-	}else if(resultMessageBool){
-		resultMessageBool = false;
-		matchupMessage.delete(); // Remove matchup message when results are in
-		if(startsWith(message, '**Team')){ // Team 1 / 2 won! 
-			message.delete(removeBotMessageDefaultTime * 2); // Double time for removing result TODO: Decide if this is good
-			console.log('DEBUG: @botMessage - Unknown Message Error will follow after this - unsure why'); // TODO: Find source of error 
-			// Discussed here - https://stackoverflow.com/questions/44284666/discord-js-add-reaction-to-a-bot-message
-		}else if(startsWith(message, 'Game canceled')){
-			matchupMessage.delete(); // Delete message immediately on game cancel
-			message.delete(15000); 
-		}
-	}else if(startsWith(message, voteText)){
-		voteMessage = message;
-		await message.react(emoji_agree);
-		message.react(emoji_disagree);
-	}else{ // Default case for bot messages, remove after time
-		if(startsWith(message, 'Invalid command: ')){
-			message.delete(15000);
-			message.react(emoji_error);
-		}else if(startsWith(message, 'Hej')){
-			// Don't remove Hej message
+function getMapString(finished, startingCaptainUsername){ // Allows to be called without third parameter if finished = false
+	// Print out instructions
+	// TODO: Store long message as some field to create it more easily. First => better name and field
+	//console.log('DEBUG: @getMapString', finished, bannedMaps[bannedMaps.length-1]);
+	var s = 'The captains **' + captain1.userName + '** and **' + captain2.userName + '** can now vote on which maps to play. \n';
+	s += 'Keep banning maps by pressing ' + emoji_error + ' on your turn until there is only one map left. \n\n';
+	for(var i = 0; i < bannedMaps.length; i++){
+		if(i === bannedMaps.length - 1){
+			s += '**' + bannedMaps[i] + '**\n'; // Latest one in bold
 		}else{
-			message.delete(removeBotMessageDefaultTime); 		
+			s += '*' + bannedMaps[i] + '*\n';			
 		}
 	}
-}
-
-// Updates voteMessage on like / unlike the agree emoji
-// Is async to await the voteMessage.edit promise
-// TODO: Check if works still after refactor
-async function voteMessageTextUpdate(messageReaction){
-	var amountRelevant = countAmountUsersPlaying(balanceInfo.team1, messageReaction.users) + countAmountUsersPlaying(balanceInfo.team2, messageReaction.users);
-	var totalNeeded = (balanceInfo.team1.size() + 1);
-	//console.log('DEBUG: @messageReactionAdd, count =', amountRelevant, ', Majority number is =', totalNeeded);
-	var voteAmountString = ' (' + amountRelevant + '/' + totalNeeded + ')';
-	var newVoteMessage = (voteText + voteAmountString);
-	voteMessage.content = newVoteMessage; // Not needed if await on edit? TODO: Check
-	await voteMessage.edit(newVoteMessage);
-	return {amountRelevant: amountRelevant, totalNeeded: totalNeeded}
-}
-
-// Handling of voteMessageReactions
-function voteMessageReaction(messageReaction){
-	// Check if majority number contain enough players playing
-	if(messageReaction.emoji.toString() === emoji_agree){
-		var voteMessageReaction = voteMessageTextUpdate(messageReaction);
-		handleRelevantEmoji(true, teamWon, messageReaction, voteMessageReaction.amountRelevant, voteMessageReaction.totalNeeded);	
-	}else if(messageReaction.emoji.toString() === emoji_disagree){
-		var amountRelevant = countAmountUsersPlaying(balanceInfo.team1, messageReaction.users) + countAmountUsersPlaying(balanceInfo.team2, messageReaction.users);
-		var totalNeeded = (balanceInfo.team1.size() + 1);
-		handleRelevantEmoji(false, teamWon, messageReaction, amountRelevant, totalNeeded);
+	if(!finished){
+		if(isUndefined(startingCaptainUsername)){
+			throw 'Error: @getMapString. startingCaptainUsername should never be null';
+		}
+		s += '\n**' + startingCaptainUsername + 's turn**';	
 	}
-}
-
-// Returns boolean of if message starts with string
-function startsWith(message, string){
-	return (message.content.lastIndexOf(string, 0) === 0)
-}
-
-// Returns boolean over if type of obj is undefined
-// Could add function isNotUndefined for readability, replace !isUndefined with isNotUndefined
-function isUndefined(obj){
-	return (typeof obj === 'undefined');
+	return s;
 }
 
 // Returns highest mmr player object from team
@@ -432,6 +386,28 @@ function getHighestMMR(team){
 	return team[index];
 }
 
+// Change turn between captains TODO: Do even shorter
+function changeTurn(){
+	if(mapVetoTurn === 0)
+		mapVetoTurn = 1;
+	else if(mapVetoTurn === 1){
+		mapVetoTurn = 0;
+	}
+	var startingCaptainUsername = (mapVetoTurn === 0 ? captain1.userName : captain2.userName); 
+	mapStatusMessage.edit(getMapString(false, startingCaptainUsername))
+}
+
+// Returns boolean of if message starts with string
+function startsWith(message, string){
+	return (message.content.lastIndexOf(string, 0) === 0)
+}
+
+// Returns boolean over if type of obj is undefined
+// Could add function isNotUndefined for readability, replace !isUndefined with isNotUndefined
+function isUndefined(obj){
+	return (typeof obj === 'undefined');
+}
+
 function findPlayersStart(message, channel){
 	console.log('VoiceChannel', channel.name, ' (id =',channel.id,') active users: (Total: ', channel.members.size ,')');
 	var numPlayers = channel.members.size
@@ -439,7 +415,7 @@ function findPlayersStart(message, channel){
 		// initalize 10 Player objects with playerInformation
 		var players = new ArrayList;
 		activeMembers = Array.from(channel.members.values());
-		console.log('Channel', channel.members);
+		//console.log('DEBUG: Channel', channel.members);
 		activeMembers.forEach(function(member){
 			if(!member.bot){ // Only real users
 				console.log('\t' + member.user.username + '(' + member.user.id + ')'); // Printar alla activa users i denna voice chatt
@@ -496,11 +472,42 @@ function setTeamVoice(team, channel){
 	})
 }
 
+// Updates voteMessage on like / unlike the agree emoji
+// Is async to await the voteMessage.edit promise
+// TODO: Check if works still after refactor. RETURNS A PROMISE
+async function voteMessageTextUpdate(messageReaction){
+	var amountRel = await countAmountUsersPlaying(balanceInfo.team1, messageReaction.users) + countAmountUsersPlaying(balanceInfo.team2, messageReaction.users);
+	var totalNeed = await (balanceInfo.team1.size() + 1);
+	//console.log('DEBUG: @messageReactionAdd, count =', amountRelevant, ', Majority number is =', totalNeeded);
+	var voteAmountString = ' (' + amountRel + '/' + totalNeed + ')';
+	var newVoteMessage = (voteText + voteAmountString);
+	voteMessage.content = newVoteMessage; // Not needed if await on edit? TODO: Check
+	await voteMessage.edit(newVoteMessage);
+	return {amountRelevant: amountRel, totalNeeded: totalNeed}
+}
+
+// Handling of voteMessageReactions
+function voteMessageReaction(messageReaction){
+	// Check if majority number contain enough players playing
+	if(messageReaction.emoji.toString() === emoji_agree){
+		voteMessageTextUpdate(messageReaction)
+		.then(result => {
+			handleRelevantEmoji(true, teamWon, messageReaction, result.amountRelevant, result.totalNeeded);	
+		});
+	}else if(messageReaction.emoji.toString() === emoji_disagree){
+		var amountRelevant = countAmountUsersPlaying(balanceInfo.team1, messageReaction.users) + countAmountUsersPlaying(balanceInfo.team2, messageReaction.users);
+		var totalNeeded = (balanceInfo.team1.size() + 1);
+		handleRelevantEmoji(false, teamWon, messageReaction, amountRelevant, totalNeeded);
+	}
+}
+
+// Handle relevant emoji todo: write me
 function handleRelevantEmoji(emojiConfirm, winner, messageReaction, amountRelevant, totalNeeded){
+	//console.log('DEBUG: @handleRelevantEmoji', amountRelevant, totalNeeded, emojiConfirm);
 	if(amountRelevant >= totalNeeded){
 		if(emojiConfirm){
 			console.log(emoji_agree + ' CONFIRMED! ' + ' (' + amountRelevant + '/' + totalNeeded + ') Removing voteText msg and team#Won msg');
-			mmr_js.updateMMR(winner, balanceInfo); // Update mmr for both teams
+			mmr_js.updateMMR(winner, balanceInfo, callbackGameFinished); // Update mmr for both teams
 			messageReaction.message.delete(3000);
 			teamWonMessage.delete(3000);
 		}else{
@@ -542,11 +549,6 @@ function KTHChannelSwapTest(message, guildChannels){
 	}
 }
 
-function print(messageVar, message){
-	console.log(message);
-	messageVar.channel.send(message);
-}
-
 // TODO: Keep updated with recent information
 function buildHelpString(){
 	var s = '*Available commands for ' + bot_name + ':* (Commands marked with **TBA** are To be Added) \n';
@@ -568,28 +570,74 @@ function buildHelpString(){
 
 // Used to print message in channel, use for every use of channel.send for consistency
 // Returns promise for use in async functions
-function print(messageVar, message){
+function print(messageVar, message, callback = callbackPrintDefault){
 	console.log(message);
-	return messageVar.channel.send(message);
+	messageVar.channel.send(message)
+	.then(result => {
+		callback(result);
+		// TODO: Remove on exit
+	});
 }
+
+// Here follows callbackFunctions for handling bot sent messages
+
+
+function callbackPrintDefault(message){
+	message.delete(removeBotMessageDefaultTime);
+}
+
+function callbackInvalidCommand(message){
+	message.delete(15000);
+	message.react(emoji_error);
+}
+
+async function callbackVoteText(message){
+	voteMessage = message;
+	await message.react(emoji_agree);
+	message.react(emoji_disagree);
+}
+
+function callbackGameCanceled(message){
+	matchupMessage.delete(); // Delete message immediately on game cancel TODO: Fix Promise rejection
+	message.delete(15000);
+}
+
+function callbackGameFinished(message){ // Might throw the warning, Unhandled Promise Rejection, unknown message
+	if(!isUndefined(matchupMessage)){
+		matchupMessage.delete();	
+	}
+	if(!isUndefined(mapStatusMessage)){
+		mapStatusMessage.delete();	
+	}
+	message.delete(removeBotMessageDefaultTime * 2);
+}
+
+function callbackMapHandle(message){
+	mapStatusMessage = message;
+}
+
+function noop(message){ // callback used for noop
+	// Doesn't delete the message
+}
+
+// TODO: Move all reset logic here to get stage 0
+function setStage(value){
+	stage = value;
+	if(value === 0){
+		bannedMaps = [];
+	}
+}
+
 
 // TODO: Maybe add setResult/MatchupMessage functionality into this, depending on stage
 exports.setStage = function(value){
-	stage = value;
+	setStage(value);
 }
 
-exports.printMessage = function(message){
-	print(matchupMessage, message);
+exports.printMessage = function(message, callback = noop){ // DEFAULT: NOT removing message
+	print(matchupMessage, message, callback);
 }
 
 exports.setBalanceInfo = function(obj){
 	balanceInfo = obj;
-}
-
-exports.setResultMessage = function(value){
-	resultMessageBool = value;
-}
-
-exports.setMatchupMessage = function(value){
-	matchupMessageBool = value;
 }

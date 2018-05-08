@@ -10,12 +10,12 @@ const db_sequelize = require('./db-sequelize');
 */
 
 // Update mmr for all players and returns result to clients
-exports.updateMMR = function(winner, balanceInfo){ // winner = 0 -> draw, 1 -> team 1, 2 -> team 2
+exports.updateMMR = function(winner, balanceInfo, callbackUpdate){ // winner = 0 -> draw, 1 -> team 1, 2 -> team 2
 	var mmrChange = eloUpdate(balanceInfo.avgT1, balanceInfo.avgT2, winner); 
 	updateTeamMMR(balanceInfo.team1, mmrChange.t1);
 	updateTeamMMR(balanceInfo.team2, mmrChange.t2);
 
-	buildMMRUpdateString(winner, callbackResult, balanceInfo.team1, balanceInfo.team2);
+	buildMMRUpdateString(winner, callbackResult, balanceInfo.team1, balanceInfo.team2, callbackUpdate);
 }
 
 // Calculates the mmr change for two teams with given average team mmr and winner
@@ -71,7 +71,7 @@ function updateTeamMMR(team, change){
 
 // After a finished game, prints out new updated mmr
 // TODO: Decide the best design for mmr syntax, currently (1150, 1100 +50)
-function buildMMRUpdateString(team1Won, callback, T1, T2){
+function buildMMRUpdateString(team1Won, callback, T1, T2, callbackUpdate){
 	var s = '';
 	s += '**Team ' + (team1Won ? '1' : '2') + ' won!** Updated mmr is: \n';
 	s += '**Team 1**: \n\t*' + T1[0].userName + ' (' + T1[0].mmr + ' mmr, ' + T1[0].prevMMR + ' ' + T1[0].latestUpdatePrefix + T1[0].latestUpdate + ')';
@@ -84,13 +84,12 @@ function buildMMRUpdateString(team1Won, callback, T1, T2){
 		s += '\n\t' + T2[i].userName + ' (' + T2[i].mmr + ' mmr, ' + T2[i].prevMMR + ' ' + T2[i].latestUpdatePrefix + T2[i].latestUpdate + ')';
 	}
 	s += '*\n';
-	callback(0, s);
+	callback(0, s, callbackUpdate);
 }
 
-function callbackResult(stage, message){
+function callbackResult(stage, message, callback){
 	bot.setStage(stage);
-	bot.printMessage(message);
-	bot.setResultMessage(true);
+	bot.printMessage(message, callback);
 }
 
 

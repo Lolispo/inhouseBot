@@ -233,7 +233,6 @@ function callbackBalanceInfo(stage, message, obj){
 	bot.setStage(stage);
 	bot.printMessage(message);
 	bot.setBalanceInfo(obj);
-	bot.setMatchupMessage(true);
 }
 
 
