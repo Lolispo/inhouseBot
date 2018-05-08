@@ -48,6 +48,8 @@ var balanceInfo; // Object: {team1, team2, difference, avgT1, avgT2, avgDiff} In
 
 var activeMembers;
 
+var activeMembers;
+
 var matchupMessage;
 var matchupMessageBool;
 var resultMessageBool;
@@ -219,6 +221,7 @@ function handleMessage(message) { // TODO: Decide if async needed
 				// 			else: Create 'Team1' and 'Team2' voice channel for server in its own voicechannel-category called Inhouse
 			}
 		}
+<<<<<<< HEAD
 		// TODO: Take every user in 'Team1' and 'Team2' and move them to the same voice chat
 		// Optional additional argument to choose name of voiceChannel to uniteIn, otherwise same as balance was called from
 		else if(message.content === `${prefix}u` || message.content === `${prefix}unite`){ 
@@ -382,23 +385,23 @@ function testBalanceGeneric(){
 // Takes an Array of Players and returns an Array of GuildMembers with same ids
 function teamToGuildMember(team) {
 	var teamMembers = new Array;
-	if(!isUndefined(activeMembers)){
-
+	if(isUndefined(activeMembers)){
+		// If activeMembers is not defined, initialize it here TODO
+		throw 'Error: activeMembers not initialized in @teamToGuildMember'; // Since it is assumed to always be initialized, throw error otherwise
 	}
 	team.forEach(function(player){
-		if(!isUndefined(activeMembers)){
-			activeMembers.forEach(function(guildMember){
-				if(player.uid === guildMember.id){
-					teamMembers.push(guildMember);
-				}
-			});
-			/* ALTERNATIVE TO THE OTHER with find
-			teamMembers.push(activeMembers.find(function(guildMember){
-				return guildMember.id === player.uid
-			}));
-			*/
-		}
+		activeMembers.forEach(function(guildMember){
+			if(player.uid === guildMember.id){
+				teamMembers.push(guildMember);
+			}
+		});
+		/* ALTERNATIVE TO THE OTHER with find
+		teamMembers.push(activeMembers.find(function(guildMember){
+			return guildMember.id === player.uid
+		}));
+		*/
 	});
+	return teamMembers;
 }
 
 // Set VoiceChannel for an array of GuildMembers
@@ -444,9 +447,9 @@ function KTHChannelSwapTest(message, guildChannels){
 	var testChannel2 = guildChannels.find(channel => channel[1].name === 'UberVoice')
 	//console.log('testChannel: ', testChannel);
 	if(myVoiceChannel.name === 'General'){
-			message.guild.member(message.author).setVoiceChannel(testChannel2[1].id);
-			print(message, 'Moved '+message.author.username+' from channel: '+
-				message.guild.member(message.author).voiceChannel.name+' to: '+testChannel2[1].name);
+		message.guild.member(message.author).setVoiceChannel(testChannel2[1].id);
+		print(message, 'Moved '+message.author.username+' from channel: '+
+			message.guild.member(message.author).voiceChannel.name+' to: '+testChannel2[1].name);
 	}else if(myVoiceChannel.name === 'UberVoice'){
 		message.guild.member(message.author).setVoiceChannel(testChannel[1].id);
 		print(message, 'Moved '+message.author.username+' from channel: '+
@@ -482,10 +485,8 @@ function buildHelpString(){
 // Returns promise for use in async functions
 function print(messageVar, message){
 	console.log(message);
-	return messageVar.channel.send(message);
+	messageVar.channel.send(message); // TODO: async, return this row since it is a promise 
 }
-
-
 
 // TODO: Maybe add setResult/MatchupMessage functionality into this, depending on stage
 exports.setStage = function(value){
