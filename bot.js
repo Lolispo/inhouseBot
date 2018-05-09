@@ -60,6 +60,7 @@ var voteMessage;		// When voting on who won, this holds the voteText discord mes
 var teamWonMessage;		// The typed teamWon message, used to vote on agreeing as well as remove on finished vote
 var teamWon;			// Keeps track on which team won
 var mapStatusMessage;	// Message that keep track of which maps are banned and whose turn is it
+var splitChannel;		// Channel we split in latest
 
 var captain1;			// Captain for team 1
 var captain2;			// Captain for team 2
@@ -102,6 +103,7 @@ client.on('messageReactionAdd', (messageReaction, user) => {
 			} else if(!isUndefined(mapMessages)){
 				for(var i = 0; i < mapMessages.length; i++){
 					if(messageReaction.message.id === mapMessages[i].id){ // Find if reacted on this map
+						// TODO: Move logic to other method
 						if(messageReaction.emoji.toString() === emoji_error){
 							if(user.id === captain1.uid && mapVetoTurn === 0){ // Check to see if author is a captain and his turn
 								var tempMessage = mapMessages[i];
@@ -140,7 +142,7 @@ client.on('messageReactionAdd', (messageReaction, user) => {
 								messageReaction.remove(user);
 							}
 						} else if(messageReaction.emoji.toString() === emoji_agree){ // If not captains, can only react with emoji_agree or emoji_disagree
-							var allowed = false;
+							var allowed = false; // TODO: Redo with some contains method
 							activeMembers.forEach(function(guildMember){
 								if(user.uid === guildMember.id){
 									allowed = true;
@@ -231,6 +233,21 @@ function handleMessage(message) { // TODO: Decide if async needed
 	// TODO: Unites all channels, INDEPENDENT of game ongoing
 	// Optional additional argument to choose name of voiceChannel to uniteIn, otherwise same as balance was called from
 	else if(message.content === `${prefix}ua` || message.content === `${prefix}uniteAll`){ 
+		var channel = getVoiceChannel(message);
+		// Find all users active in a voiceChannel
+		activeUsers = [];
+		var guildChannels = Array.from(message.guild.channels); // TODO: Filter text channels
+		if(guildChannels.type === 'voice'){
+			guildChannels.members.forEach(function(member){
+				activeUsers.push(ḿember);
+			});
+		}
+		activeUsers.forEach(function(member){
+			// As long as they are still in some voice chat
+			if(!isUndefined(member.voiceChannel)){
+				member.setVoiceChannel(channel);
+			}
+		});
 
 	}
 	// STAGE 1 COMMANDS: (After balance is made)
@@ -265,6 +282,7 @@ function handleMessage(message) { // TODO: Decide if async needed
 		// TODO: Logic for if these aren't available
 		else if(message.content === `${prefix}split`){
 			var guildChannels = Array.from(message.guild.channels);
+			splitChannel = message.guild.member(message.author).voiceChannel;
 
 			/**TEST CODE FOR KTH SERVER ONLY**/
 			if(message.guild.name === 'KTH') {
@@ -286,17 +304,25 @@ function handleMessage(message) { // TODO: Decide if async needed
 				print(message, 'Channels: Team1 & Team2 does not exist');
 				// TODO: Choose two random voice channels available as long as total EMPTY voiceChannels > 2
 				// 			else: Create 'Team1' and 'Team2' voice channel for server in its own voicechannel-category called Inhouse
+				// 		guild.createChannel
 			}
 		}
 		// TODO: Take every user in 'Team1' and 'Team2' and move them to the same voice chat
 		// Optional additional argument to choose name of voiceChannel to uniteIn, otherwise same as balance was called from
-		else if(message.content === `${prefix}u` || message.content === `${prefix}unite`){ 
-
+		else if(startsWith(message.content, `${prefix}u`) || startsWith(message.content, `${prefix}unite`)){ 
+			var channel = getVoiceChannel(message);
+			activeMembers.forEach(function(member){
+				// As long as they are still in some voice chat
+				if(!isUndefined(member.voiceChannel)){
+					member.setVoiceChannel(channel);
+				}
+			});
 		}
 
 		// mapVeto made between one captain from each team
 		else if(message.content === `${prefix}mapVeto`){
 			mapVetoStart(message);
+			message.delete(15000); // Remove mapVeto text
 		}
 		// TODO: mapVeto using majority vote instead of captains
 		else if(message.content === `${prefix}mapVetoMajority`){
@@ -307,6 +333,30 @@ function handleMessage(message) { // TODO: Decide if async needed
 		print(message, 'Invalid command: List of available commands at **' + prefix + 'help**', callbackInvalidCommand);
 		message.delete(3000);
 	}
+}
+
+// Return voice channel for uniting
+function getVoiceChannel(message){
+	// Get correct channel
+	// If param is given use that
+	var res = message.content.split(' ');
+	if(res.length == 2 && res[0] === `${prefix}u`){
+		var channelName = res[1];
+		var guildChannels = Array.from(message.guild.channels); // TODO: Filter text channels
+		if(guildChannels.some(channel => channel[1].name === channelName)){ // If exists TODO not perfect match
+			return guildChannels.find(channel => channel[1].name === channelName);
+		}
+	}
+	// else use same as we split in
+	if(!isUndefined(channel1) && !isUndefiend(splitChannel)){
+		return splitChannel;
+	}
+	// If this is not defined, take own own or random one
+	var channel1 = message.guild.member(message.author).voiceChannel;
+	if(!isUndefined(channel1)){ // TODO: Decide if it should work if not in voice
+		channel1 = guildChannels.random(1); // TODO Check if works, requires filtering on text channels		
+	}
+	return channel1;
 }
 
 async function mapVetoStart(message){
