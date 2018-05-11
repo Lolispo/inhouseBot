@@ -143,7 +143,9 @@ client.on('messageReactionAdd', (messageReaction, user) => {
 							}
 						} else if(messageReaction.emoji.toString() === emoji_agree){ // If not captains, can only react with emoji_agree or emoji_disagree
 							var allowed = false; // TODO: Redo with some contains method
+							// TODO: Check why it doesn't work
 							activeMembers.forEach(function(guildMember){
+								console.log('DEBUG: @addReaction emojiAgree', user.uid, guildMember.id);
 								if(user.uid === guildMember.id){
 									allowed = true;
 								}
@@ -232,23 +234,26 @@ function handleMessage(message) { // TODO: Decide if async needed
 	}
 	// TODO: Unites all channels, INDEPENDENT of game ongoing
 	// Optional additional argument to choose name of voiceChannel to uniteIn, otherwise same as balance was called from
-	else if(message.content === `${prefix}ua` || message.content === `${prefix}uniteAll`){ 
+	else if(startsWith(message, prefix + 'ua') || startsWith(message, prefix + 'uniteAll') ){ // TODO: Not from break room, idle chat
 		var channel = getVoiceChannel(message);
+		//console.log('DEBUG ua', channel);
 		// Find all users active in a voiceChannel
-		activeUsers = [];
-		var guildChannels = Array.from(message.guild.channels); // TODO: Filter text channels
-		if(guildChannels.type === 'voice'){
-			guildChannels.members.forEach(function(member){
-				activeUsers.push(ḿember);
-			});
-		}
+		var activeUsers = [];
+		var guildChannels = message.guild.channels.find(channel => channel.type === 'voice')
+		//console.log('DEBUG uniteAll', guildChannels, guildChannels.guild.members);
+		guildChannels.guild.members.forEach(function(member){
+			activeUsers.push(member);
+			//console.log(member);
+		});
+
 		activeUsers.forEach(function(member){
 			// As long as they are still in some voice chat
 			if(!isUndefined(member.voiceChannel)){
 				member.setVoiceChannel(channel);
+				//console.log('DEBUG uniteAll', member);
 			}
 		});
-
+		message.delete(15000);
 	}
 	// STAGE 1 COMMANDS: (After balance is made)
 	else if(stage === 1){
@@ -309,14 +314,16 @@ function handleMessage(message) { // TODO: Decide if async needed
 		}
 		// TODO: Take every user in 'Team1' and 'Team2' and move them to the same voice chat
 		// Optional additional argument to choose name of voiceChannel to uniteIn, otherwise same as balance was called from
-		else if(startsWith(message.content, `${prefix}u`) || startsWith(message.content, `${prefix}unite`)){ 
+		else if(startsWith(message, prefix + 'u') || startsWith(message, prefix + 'unite')){ 
 			var channel = getVoiceChannel(message);
+			console.log('DEBUG unite', channel.name);
 			activeMembers.forEach(function(member){
 				// As long as they are still in some voice chat
 				if(!isUndefined(member.voiceChannel)){
 					member.setVoiceChannel(channel);
 				}
 			});
+			message.delete(15000);
 		}
 
 		// mapVeto made between one captain from each team
@@ -340,12 +347,14 @@ function getVoiceChannel(message){
 	// Get correct channel
 	// If param is given use that
 	var res = message.content.split(' ');
+
 	if(res.length == 2 && res[0] === `${prefix}u`){
 		var channelName = res[1];
-		var guildChannels = Array.from(message.guild.channels); // TODO: Filter text channels
-		if(guildChannels.some(channel => channel[1].name === channelName)){ // If exists TODO not perfect match
-			return guildChannels.find(channel => channel[1].name === channelName);
-		}
+		message.guild.channels.forEach(function(channel) {
+			if(channel.type === 'voice' && channel.name === channelName){
+				return channel;
+			}
+		});
 	}
 	// else use same as we split in
 	if(!isUndefined(channel1) && !isUndefiend(splitChannel)){
@@ -353,8 +362,22 @@ function getVoiceChannel(message){
 	}
 	// If this is not defined, take own own or random one
 	var channel1 = message.guild.member(message.author).voiceChannel;
+	//console.log('DEBUG: getVoiceChannel', channel1);
 	if(!isUndefined(channel1)){ // TODO: Decide if it should work if not in voice
-		channel1 = guildChannels.random(1); // TODO Check if works, requires filtering on text channels		
+		var voiceChannels = [];
+		message.guild.channels.forEach(function(channel) {
+			if(channel.type === 'voice'){
+				voiceChannels.push(channel);
+			}
+		});
+
+//		var guildChannels = message.guild.channels.find(channel => channel.type === 'voice'); // TODO: Filter text channels
+		//channel1 = guildChannels.random(1); // TODO Check if works, requires filtering on text channels	
+
+
+		//console.log('DEBUG: getVoiceChannel', guildChannels);
+		channel1 = voiceChannels[1]; // Choose best channel that is not sleeping
+
 	}
 	return channel1;
 }
@@ -375,19 +398,26 @@ async function mapVetoStart(message){
 
 // Returns promise messages for maps
 function getMapMessages(message){
-	initMap('Dust2', message, callbackMapMessage);
-	initMap('Inferno', message, callbackMapMessage);
-	initMap('Mirage', message, callbackMapMessage);
-	initMap('Nuke', message, callbackMapMessage);
-	initMap('Cache', message, callbackMapMessage);
-	initMap('Overpass', message, callbackMapMessage);
-	initMap('Train', message, callbackMapMessage);
+	const map_dust2 = client.emojis.find("name", "Dust2");
+	const map_mirage = client.emojis.find("name", "Mirage");
+	const map_train = client.emojis.find("name", "Train");
+	const map_cache = client.emojis.find("name", "Cache");
+	const map_overpass = client.emojis.find("name", "Overpass");
+	const map_inferno = client.emojis.find("name", "Inferno");
+	const map_nuke = client.emojis.find("name", "Nuke");
+	initMap('Dust2', map_dust2, message, callbackMapMessage);
+	initMap('Inferno', map_inferno, message, callbackMapMessage);
+	initMap('Mirage', map_mirage, message, callbackMapMessage);
+	initMap('Nuke', map_nuke, message, callbackMapMessage);
+	initMap('Cache', map_cache, message, callbackMapMessage);
+	initMap('Overpass', map_overpass, message, callbackMapMessage);
+	initMap('Train', map_train, message, callbackMapMessage);
 	//initMap('Train', message)		.then(res => {	messages.push(res);	})
 	//messages.push(initMap('Train', message));
 }
 
-async function initMap(mapName, message, callback){
-	print(message, ':' + mapName + ': ' + mapName, callback); // Move to function so they can start parallell
+async function initMap(mapName, mapEmoji, message, callback){
+	print(message, mapEmoji.toString() + mapName + mapEmoji.toString(), callback); // Move to function so they can start parallell
 }
 
 function callbackMapMessage(mapObj){
@@ -477,7 +507,7 @@ function findPlayersStart(message, channel){
 	} else if((numPlayers === 1 || numPlayers === 2) && (message.author.username === 'Petter' || message.author.username === 'Obtained') ){
 		testBalanceGeneric();
 	} else{
-		console.log('Currently only support games for 4, 6, 8 and 10 players');
+		print(message, 'Currently only support even games of 4, 6, 8 and 10 players', callbackInvalidCommand);
 	}
 }
 
@@ -630,7 +660,27 @@ function print(messageVar, message, callback = callbackPrintDefault){
 }
 
 // Here follows callbackFunctions for handling bot sent messages
-
+// Might throw the warning, Unhandled Promise Rejection, unknown message
+function onExit(){
+	console.log('DEBUG @onExit - Attempting to delete a bunch of messages')
+	if(!isUndefined(matchupMessage)){
+		matchupMessage.delete(); // Delete message immediately on game cancel TODO: Fix Promise rejection
+	}
+	if(!isUndefined(mapMessages)){
+		for(var i = 0; i < mapMessages.length; i++){
+			mapMessages[i].delete(); 			
+		}
+	}
+	if(!isUndefined(mapStatusMessage)){
+		mapStatusMessage.delete(); 
+	}
+	if(!isUndefined(voteMessage)){
+		voteMessage.delete(); 
+	}
+	if(!isUndefined(teamWonMessage)){
+		teamWonMessage.delete();
+	}
+}
 
 function callbackPrintDefault(message){
 	message.delete(removeBotMessageDefaultTime);
@@ -648,18 +698,13 @@ async function callbackVoteText(message){
 }
 
 function callbackGameCanceled(message){
-	matchupMessage.delete(); // Delete message immediately on game cancel TODO: Fix Promise rejection
 	message.delete(15000);
+	onExit();
 }
 
-function callbackGameFinished(message){ // Might throw the warning, Unhandled Promise Rejection, unknown message
-	if(!isUndefined(matchupMessage)){
-		matchupMessage.delete();	
-	}
-	if(!isUndefined(mapStatusMessage)){
-		mapStatusMessage.delete();	
-	}
+function callbackGameFinished(message){ 
 	message.delete(removeBotMessageDefaultTime * 2);
+	onExit();
 }
 
 function callbackMapHandle(message){
