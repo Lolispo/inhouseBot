@@ -20,6 +20,7 @@ const { prefix, token, dbpw } = require('./conf.json');
 			Start MMR chosen as either 2400, 2500 or 2600 depending on own skill, for better distribution in first games, better matchup
 			Save every field as a Collection{GuildSnowflake -> field variable} to make sure bot works on many servers at once
 		Refactor:
+			Move mapVeto to new file
 			Fix async/await works
 				Recheck every instace returning promises to use async/await instead https://javascript.info/async-await
 					Double check places returning promises, to see if they are .then correctly
