@@ -9,7 +9,9 @@ const ArrayList = require('arraylist');
 const balance = require('./balance');
 const mmr_js = require('./mmr');
 const player_js = require('./player');
-// const map_js = require('./map'); // TODO: Move map logic to other file
+const map_js = require('./mapVeto'); // TODO: Move map logic to other file
+const voiceMove_js = require('./voiceMove'); // TODO: Move split/unite voice chat logic here
+const f = require('./f')
 
 //get config data
 const { prefix, token, dbpw } = require('./conf.json');
@@ -47,6 +49,9 @@ client.on('ready', () => {
 	console.log('ready to rumble');
 });
 
+// Login
+client.login(token);
+
 // TODO: Reflect on stage. Alternative: neutral = 0, make a start stage = 1 -> mapveto/split/start, and a end stage = 2 -> team1Won/Team2won/unite/gnp etc
 var stage = 0; // Current: Stage = 0 -> nothing started yet, default. Stage = 1 -> rdy for: mapVeto/split/team1Won/team2Won/gameNotPlayed.
 
@@ -63,11 +68,7 @@ var teamWon;			// Keeps track on which team won
 var mapStatusMessage;	// Message that keep track of which maps are banned and whose turn is it
 var splitChannel;		// Channel we split in latest
 
-var captain1;			// Captain for team 1
-var captain2;			// Captain for team 2
-var mapMessages;		// Keeps track of the discord messages for the different maps 
-var mapVetoTurn;		// Turn variable, whose turn it is
-var bannedMaps = [];	// String array holding who banned which map, is used in mapStatusMessage
+var mapMessages = [];	// Keeps track of the discord messages for the different maps 
 
 const emoji_agree = '👌'; 		// Agree emoji. Alt: 👍, Om custom Emojis: Borde vara seemsgood emoji
 const emoji_disagree = '👎';	// Disagree emoji. 
@@ -78,13 +79,12 @@ const voteText = '**Majority of players that played the game need to confirm thi
 
 const removeBotMessageDefaultTime = 60000; // 300000
 
-// Login
-client.login(token);
+
 
 // Listener on message
 client.on('message', message => {
 	if(!message.author.bot && message.author.username !== bot_name){ // Message sent from user TODO: check correct logic
-		if(!isUndefined(message.channel.guild)){
+		if(!f.isUndefined(message.channel.guild)){
 			handleMessage(message);
 		}else{ // Someone tried to DM the bot
 			console.log('DM msg = ' + message.author.username + ': ' + message.content);
@@ -99,73 +99,19 @@ client.on('messageReactionAdd', (messageReaction, user) => {
 		if(stage === 1){
 			// Reacted on voteMessage
 			//console.log('DEBUG: @messageReactionAdd by', user.username, 'on', messageReaction.message.author.username + ': ' + messageReaction.message.content, messageReaction.count);
-			if(!isUndefined(voteMessage) && messageReaction.message.id === voteMessage.id){ // Check if emojiReaction is on voteMessage, voteMessage != undefined
+			if(!f.isUndefined(voteMessage) && messageReaction.message.id === voteMessage.id){ // Check if emojiReaction is on voteMessage, voteMessage != undefined
 				voteMessageReaction(messageReaction);
-			} else if(!isUndefined(mapMessages)){
+			} else if(!f.isUndefined(mapMessages)){
 				for(var i = 0; i < mapMessages.length; i++){
 					if(messageReaction.message.id === mapMessages[i].id){ // Find if reacted on this map
-						// TODO: Move logic to other method
 						if(messageReaction.emoji.toString() === emoji_error){
-							if(user.id === captain1.uid && mapVetoTurn === 0){ // Check to see if author is a captain and his turn
-								var tempMessage = mapMessages[i];
-								bannedMaps.push(user.username + ' banned ' + tempMessage); // Maybe should add bold on second to last one
-								mapMessages.splice(i, 1); // splice(index, howMany)
-								tempMessage.delete(400);
-								changeTurn();
-								if(mapMessages.length === 1){ // We are done and have only one map left
-									var chosenMap = mapMessages[0];
-									mapMessages = undefined; // TODO: More beutiful line for resetting mapMessages
-									if(!isUndefined(mapMessages)){
-										throw 'Error should be gone here: Make sure it is otherwise', mapMessages;
-									}
-									chosenMap.delete();
-									bannedMaps.push('\nChosen map is ' + chosenMap);
-									mapStatusMessage.edit(getMapString(true));
-								}
-							} else if(user.id === captain2.uid && mapVetoTurn === 1){
-								var tempMessage = mapMessages[i];
-								bannedMaps.push(user.username + ' banned ' + tempMessage);
-								mapMessages.splice(i, 1); // splice(index, howMany)
-								tempMessage.delete(400);
-								changeTurn();
-								if(mapMessages.length === 1){ // We are done and have only one map left
-									var chosenMap = mapMessages[0];
-									mapMessages = undefined;
-									if(!isUndefined(mapMessages)){
-										throw 'Error: mapMessages should be gone here: Make sure it is otherwise';
-									}
-									chosenMap.delete();
-									bannedMaps.push('Chosen map is ' + chosenMap);
-									mapStatusMessage.edit(getMapString(true));
-								}
-							} else { // Don't allow messageReaction of emoji_error otherwise
-								console.log('DEBUG: Not allowerd user pressed ' + emoji_error);
-								messageReaction.remove(user);
-							}
+							map_js.captainVote(messageReaction, user, i, mapStatusMessage);
 						} else if(messageReaction.emoji.toString() === emoji_agree){ // If not captains, can only react with emoji_agree or emoji_disagree
-							var allowed = false; // TODO: Redo with some contains method
-							// TODO: Check why it doesn't work
-							activeMembers.forEach(function(guildMember){
-								console.log('DEBUG: @addReaction emojiAgree', user.uid, guildMember.id);
-								if(user.uid === guildMember.id){
-									allowed = true;
-								}
-							});
-							if(!allowed){
-								messageReaction.remove(user);
-							}
+							map_js.otherMapVote(messageReaction, user, activeMembers);
 						} else if(messageReaction.emoji.toString() === emoji_disagree){ // If not captains, can only react with emoji_agree or emoji_disagree
-							var allowed = false;
-							activeMembers.forEach(function(guildMember){
-								if(user.uid === guildMember.id){
-									allowed = true;
-								}
-							});
-							if(!allowed){
-								messageReaction.remove(user);
-							}
+							map_js.otherMapVote(messageReaction, user, activeMembers);
 						}
-						break; // Don't continue in the loop for this event
+						break; // Don't continue in the loop for this event, only one map can be reacted to in one event
 					}
 				}
 			}
@@ -180,7 +126,7 @@ client.on('messageReactionRemove', (messageReaction, user) => {
 		if(stage === 1){
 			// React removed on voteMessage
 			//console.log('DEBUG: @messageReactionRemove by', user.username, 'on', messageReaction.message.author.username + ': ' + messageReaction.message.content, messageReaction.count);
-			if(!isUndefined(voteMessage) && messageReaction.message.id === voteMessage.id && messageReaction.emoji.toString() === emoji_agree){ // Check if emojiReaction is on voteMessage
+			if(!f.isUndefined(voteMessage) && messageReaction.message.id === voteMessage.id && messageReaction.emoji.toString() === emoji_agree){ // Check if emojiReaction is on voteMessage
 				voteMessageTextUpdate(messageReaction);
 			}
 			// React removed on something else
@@ -195,11 +141,11 @@ function handleMessage(message) { // TODO: Decide if async needed
 	console.log('MSG (' + message.channel.guild.name + '.' + message.channel.name + ') ' + message.author.username + ':', message.content); 
 	// All stages commands, Commands that should always work, from every stage
 	if(message.content == 'hej'){
-		print(message, 'Hej ' + message.author.username, noop); // Not removing hej messages
+		f.print(message, 'Hej ' + message.author.username, noop); // Not removing hej messages
 	}
 	else if(message.content === prefix+'ping'){ // Good for testing prefix and connection to bot
 		console.log('PingAlert, user had !ping as command');
-		print(message, 'Pong');
+		f.print(message, 'Pong');
 		message.delete(removeBotMessageDefaultTime);
 	}
 	// Sends available commands privately to the user
@@ -212,14 +158,14 @@ function handleMessage(message) { // TODO: Decide if async needed
 			matchupMessage = message;
 			var voiceChannel = message.guild.member(message.author).voiceChannel;
 				
-			if(voiceChannel !== null && !isUndefined(voiceChannel)){ // Makes sure user is in a voice channel
+			if(voiceChannel !== null && !f.isUndefined(voiceChannel)){ // Makes sure user is in a voice channel
 				findPlayersStart(message, voiceChannel);
 			} else {
-				print(message, 'Invalid command: Author of message must be in voiceChannel', callbackInvalidCommand); 
+				f.print(message, 'Invalid command: Author of message must be in voiceChannel', callbackInvalidCommand); 
 			}
 			message.delete(10000);
 		} else{
-			print(message, 'Invalid command: Inhouse already ongoing', callbackInvalidCommand); 
+			f.print(message, 'Invalid command: Inhouse already ongoing', callbackInvalidCommand); 
 			message.delete(10000);
 		}
 	}
@@ -236,24 +182,7 @@ function handleMessage(message) { // TODO: Decide if async needed
 	// TODO: Unites all channels, INDEPENDENT of game ongoing
 	// Optional additional argument to choose name of voiceChannel to uniteIn, otherwise same as balance was called from
 	else if(startsWith(message, prefix + 'ua') || startsWith(message, prefix + 'uniteAll') ){ // TODO: Not from break room, idle chat
-		var channel = getVoiceChannel(message);
-		//console.log('DEBUG ua', channel);
-		// Find all users active in a voiceChannel
-		var activeUsers = [];
-		var guildChannels = message.guild.channels.find(channel => channel.type === 'voice')
-		//console.log('DEBUG uniteAll', guildChannels, guildChannels.guild.members);
-		guildChannels.guild.members.forEach(function(member){
-			activeUsers.push(member);
-			//console.log(member);
-		});
-
-		activeUsers.forEach(function(member){
-			// As long as they are still in some voice chat
-			if(!isUndefined(member.voiceChannel)){
-				member.setVoiceChannel(channel);
-				//console.log('DEBUG uniteAll', member);
-			}
-		});
+		voiceMove_js.uniteAll(message);
 		message.delete(15000);
 	}
 	// STAGE 1 COMMANDS: (After balance is made)
@@ -261,75 +190,48 @@ function handleMessage(message) { // TODO: Decide if async needed
 		if(message.content === `${prefix}team1Won`){
 			teamWonMessage = message;
 			teamWon = 1;
-			print(message, voteText + ' (0/' + (balanceInfo.team1.size() + 1)+ ')', callbackVoteText);
+			f.print(message, voteText + ' (0/' + (balanceInfo.team1.size() + 1)+ ')', callbackVoteText);
 		}
 		else if(message.content === `${prefix}team2Won`){
 			teamWonMessage = message;
 			teamWon = 2;
-			print(message, voteText + ' (0/' + (balanceInfo.team1.size() + 1)+ ')', callbackVoteText);
+			f.print(message, voteText + ' (0/' + (balanceInfo.team1.size() + 1)+ ')', callbackVoteText);
 		}
 		else if(message.content === `${prefix}tie` || message.content === `${prefix}draw`){
 			teamWonMessage = message;
 			teamWon = 0;
-			print(message, voteText + ' (0/' + (balanceInfo.team1.size() + 1)+ ')', callbackVoteText);
+			f.print(message, voteText + ' (0/' + (balanceInfo.team1.size() + 1)+ ')', callbackVoteText);
 		}
 		else if(message.content === `${prefix}c` || message.content === `${prefix}cancel` || message.content === `${prefix}gameNotPlayed`){
 			// TODO: Decide whether cancel might also require some confirmation? 
 			if(message.author.id === matchupMessage.author.id){
 				setStage(0);
-				print(message, 'Game canceled', callbackGameCanceled);
+				f.print(message, 'Game canceled', callbackGameCanceled);
 				message.delete(15000); // prefix+c
 			}else{
-				print(message, 'Invalid command: Only the person who started the game can cancel it (' + matchupMessage.author.username + ')', callbackInvalidCommand);
+				f.print(message, 'Invalid command: Only the person who started the game can cancel it (' + matchupMessage.author.username + ')', callbackInvalidCommand);
 			}
 		}
 
 		// Splits the players playing into the Voice Channels 'Team1' and 'Team2'
 		// TODO: Logic for if these aren't available
 		else if(message.content === `${prefix}split`){
-			var guildChannels = Array.from(message.guild.channels);
-			splitChannel = message.guild.member(message.author).voiceChannel;
-
-			/**TEST CODE FOR KTH SERVER ONLY**/
-			if(message.guild.name === 'KTH') {
-				KTHChannelSwapTest(message, guildChannels);
-			}
-
-			// Get team players as GuildMember objects
-			var t1players = teamToGuildMember(balanceInfo.team1);
-			var t2players = teamToGuildMember(balanceInfo.team2);
-
-			// Find channels to swap to -> Change conditions for other desired channels or to randomly take 2
-			// Currently hardcoded 'Team1' and 'Team2'
-			var channel1 = guildChannels.find(channel => channel[1].name === 'Team1');
-			var channel2 = guildChannels.find(channel => channel[1].name === 'Team2');
-			if(!isUndefined(channel1) && !isUndefined(channel2)) {
-				setTeamVoice(t1players, channel1[1].id);
-				setTeamVoice(t2players, channel2[1].id);
-			} else {
-				print(message, 'Channels: Team1 & Team2 does not exist');
-				// TODO: Choose two random voice channels available as long as total EMPTY voiceChannels > 2
-				// 			else: Create 'Team1' and 'Team2' voice channel for server in its own voicechannel-category called Inhouse
-				// 		guild.createChannel
-			}
+			voiceMove_js.split(message, balanceInfo, activeMembers);
+			message.delete(15000);
 		}
 		// TODO: Take every user in 'Team1' and 'Team2' and move them to the same voice chat
 		// Optional additional argument to choose name of voiceChannel to uniteIn, otherwise same as balance was called from
 		else if(startsWith(message, prefix + 'u') || startsWith(message, prefix + 'unite')){ 
-			var channel = getVoiceChannel(message);
-			console.log('DEBUG unite', channel.name);
-			activeMembers.forEach(function(member){
-				// As long as they are still in some voice chat
-				if(!isUndefined(member.voiceChannel)){
-					member.setVoiceChannel(channel);
-				}
-			});
+			voiceMove_js.unite(message, activeMembers);
 			message.delete(15000);
 		}
 
 		// mapVeto made between one captain from each team
 		else if(message.content === `${prefix}mapVeto`){
-			mapVetoStart(message);
+			map_js.mapVetoStart(message, balanceInfo, client.emojis)
+			.then(result => {
+				mapMessages = result;
+			});
 			message.delete(15000); // Remove mapVeto text
 		}
 		// TODO: mapVeto using majority vote instead of captains
@@ -338,144 +240,9 @@ function handleMessage(message) { // TODO: Decide if async needed
 		}
 	}
 	else if(startsWith(message,prefix)){ // Message start with prefix
-		print(message, 'Invalid command: List of available commands at **' + prefix + 'help**', callbackInvalidCommand);
+		f.print(message, 'Invalid command: List of available commands at **' + prefix + 'help**', callbackInvalidCommand);
 		message.delete(3000);
 	}
-}
-
-// Return voice channel for uniting
-function getVoiceChannel(message){
-	// Get correct channel
-	// If param is given use that
-	var res = message.content.split(' ');
-
-	if(res.length == 2 && res[0] === `${prefix}u`){
-		var channelName = res[1];
-		message.guild.channels.forEach(function(channel) {
-			if(channel.type === 'voice' && channel.name === channelName){
-				return channel;
-			}
-		});
-	}
-	// else use same as we split in
-	if(!isUndefined(channel1) && !isUndefiend(splitChannel)){
-		return splitChannel;
-	}
-	// If this is not defined, take own own or random one
-	var channel1 = message.guild.member(message.author).voiceChannel;
-	//console.log('DEBUG: getVoiceChannel', channel1);
-	if(!isUndefined(channel1)){ // TODO: Decide if it should work if not in voice
-		var voiceChannels = [];
-		message.guild.channels.forEach(function(channel) {
-			if(channel.type === 'voice'){
-				voiceChannels.push(channel);
-			}
-		});
-
-//		var guildChannels = message.guild.channels.find(channel => channel.type === 'voice'); // TODO: Filter text channels
-		//channel1 = guildChannels.random(1); // TODO Check if works, requires filtering on text channels	
-
-
-		//console.log('DEBUG: getVoiceChannel', guildChannels);
-		channel1 = voiceChannels[1]; // Choose best channel that is not sleeping
-
-	}
-	return channel1;
-}
-
-async function mapVetoStart(message){
-	// Get captain from both teams
-	captain1 = getHighestMMR(balanceInfo.team1); // TODO: Check if problem with not being async, moved from function
-	captain2 = getHighestMMR(balanceInfo.team2);
-	// Choose who starts (random)
-	mapVetoTurn = Math.floor((Math.random() * 2));
-	mapMessages = []; 
-	var startingCaptainUsername = (mapVetoTurn === 0 ? captain1.userName : captain2.userName); 
-	await print(message, getMapString(false, startingCaptainUsername), callbackMapHandle); 
-	// Get maps. Temp solution:
-	// TODO: Database on Map texts, map emojis( and presets of maps, 5v5, 2v2 etc)
-	await getMapMessages(message);
-}
-
-// Returns promise messages for maps
-function getMapMessages(message){
-	const map_dust2 = client.emojis.find("name", "Dust2");
-	const map_mirage = client.emojis.find("name", "Mirage");
-	const map_train = client.emojis.find("name", "Train");
-	const map_cache = client.emojis.find("name", "Cache");
-	const map_overpass = client.emojis.find("name", "Overpass");
-	const map_inferno = client.emojis.find("name", "Inferno");
-	const map_nuke = client.emojis.find("name", "Nuke");
-	initMap('Dust2', map_dust2, message, callbackMapMessage);
-	initMap('Inferno', map_inferno, message, callbackMapMessage);
-	initMap('Mirage', map_mirage, message, callbackMapMessage);
-	initMap('Nuke', map_nuke, message, callbackMapMessage);
-	initMap('Cache', map_cache, message, callbackMapMessage);
-	initMap('Overpass', map_overpass, message, callbackMapMessage);
-	initMap('Train', map_train, message, callbackMapMessage);
-	//initMap('Train', message)		.then(res => {	messages.push(res);	})
-	//messages.push(initMap('Train', message));
-}
-
-async function initMap(mapName, mapEmoji, message, callback){
-	print(message, mapEmoji.toString() + mapName + mapEmoji.toString(), callback); // Move to function so they can start parallell
-}
-
-function callbackMapMessage(mapObj){
-	mapMessageReact(mapObj);
-	mapMessages.push(mapObj);
-}
-
-async function mapMessageReact(message){
-	await message.react(emoji_error);
-	await message.react(emoji_agree);
-	message.react(emoji_disagree);
-}
-
-function getMapString(finished, startingCaptainUsername){ // Allows to be called without third parameter if finished = false
-	// Print out instructions
-	// TODO: Store long message as some field to create it more easily. First => better name and field
-	//console.log('DEBUG: @getMapString', finished, bannedMaps[bannedMaps.length-1]);
-	var s = 'The captains **' + captain1.userName + '** and **' + captain2.userName + '** can now vote on which maps to play. \n';
-	s += 'Keep banning maps by pressing ' + emoji_error + ' on your turn until there is only one map left. \n\n';
-	for(var i = 0; i < bannedMaps.length; i++){
-		if(i === bannedMaps.length - 1){
-			s += '**' + bannedMaps[i] + '**\n'; // Latest one in bold
-		}else{
-			s += '*' + bannedMaps[i] + '*\n';			
-		}
-	}
-	if(!finished){
-		if(isUndefined(startingCaptainUsername)){
-			throw 'Error: @getMapString. startingCaptainUsername should never be null';
-		}
-		s += '\n**' + startingCaptainUsername + 's turn**';	
-	}
-	return s;
-}
-
-// Returns highest mmr player object from team
-function getHighestMMR(team){
-	var highestMMR = -1;
-	var index = -1;
-	for(var i = 0; i < team.size(); i++){
-		if(team[i].mmr > highestMMR){
-			highestMMR = team[i].mmr;
-			index = i;
-		}
-	}
-	return team[index];
-}
-
-// Change turn between captains TODO: Do even shorter
-function changeTurn(){
-	if(mapVetoTurn === 0)
-		mapVetoTurn = 1;
-	else if(mapVetoTurn === 1){
-		mapVetoTurn = 0;
-	}
-	var startingCaptainUsername = (mapVetoTurn === 0 ? captain1.userName : captain2.userName); 
-	mapStatusMessage.edit(getMapString(false, startingCaptainUsername))
 }
 
 // Returns boolean of if message starts with string
@@ -483,12 +250,9 @@ function startsWith(message, string){
 	return (message.content.lastIndexOf(string, 0) === 0)
 }
 
-// Returns boolean over if type of obj is undefined
-// Could add function isNotUndefined for readability, replace !isUndefined with isNotUndefined
-function isUndefined(obj){
-	return (typeof obj === 'undefined');
-}
+// Here follows starting balanced game methods
 
+// Starting balancing of a game for given voice channel
 function findPlayersStart(message, channel){
 	console.log('VoiceChannel', channel.name, ' (id =',channel.id,') active users: (Total: ', channel.members.size ,')');
 	var numPlayers = channel.members.size
@@ -508,7 +272,7 @@ function findPlayersStart(message, channel){
 	} else if((numPlayers === 1 || numPlayers === 2) && (message.author.username === 'Petter' || message.author.username === 'Obtained') ){
 		testBalanceGeneric();
 	} else{
-		print(message, 'Currently only support even games of 4, 6, 8 and 10 players', callbackInvalidCommand);
+		f.print(message, 'Currently only support even games of 4, 6, 8 and 10 players', callbackInvalidCommand);
 	}
 }
 
@@ -524,33 +288,19 @@ function testBalanceGeneric(){
 	balance.initializePlayers(players, dbpw); // Initialize balancing and prints result. Sets stage = 1 when done
 }
 
-// Takes an Array of Players and returns an Array of GuildMembers with same ids
-function teamToGuildMember(team) {
-	var teamMembers = new Array;
-	if(isUndefined(activeMembers)){
-		// If activeMembers is not defined, initialize it here TODO
-		throw 'Error: activeMembers not initialized in @teamToGuildMember'; // Since it is assumed to always be initialized, throw error otherwise
-	}
-	team.forEach(function(player){
-		activeMembers.forEach(function(guildMember){
-			if(player.uid === guildMember.id){
-				teamMembers.push(guildMember);
-			}
+// Handling of voteMessageReactions
+function voteMessageReaction(messageReaction){
+	// Check if majority number contain enough players playing
+	if(messageReaction.emoji.toString() === emoji_agree){
+		voteMessageTextUpdate(messageReaction)
+		.then(result => {
+			handleRelevantEmoji(true, teamWon, messageReaction, result.amountRelevant, result.totalNeeded);	
 		});
-		/* ALTERNATIVE TO THE OTHER with find
-		teamMembers.push(activeMembers.find(function(guildMember){
-			return guildMember.id === player.uid
-		}));
-		*/
-	});
-	return teamMembers;
-}
-
-// Set VoiceChannel for an array of GuildMembers
-function setTeamVoice(team, channel){
-	team.forEach(function(player){
-		player.setVoiceChannel(channel);
-	})
+	}else if(messageReaction.emoji.toString() === emoji_disagree){
+		var amountRelevant = countAmountUsersPlaying(balanceInfo.team1, messageReaction.users) + countAmountUsersPlaying(balanceInfo.team2, messageReaction.users);
+		var totalNeeded = (balanceInfo.team1.size() + 1);
+		handleRelevantEmoji(false, teamWon, messageReaction, amountRelevant, totalNeeded);
+	}
 }
 
 // Updates voteMessage on like / unlike the agree emoji
@@ -565,21 +315,6 @@ async function voteMessageTextUpdate(messageReaction){
 	voteMessage.content = newVoteMessage; // Not needed if await on edit? TODO: Check
 	await voteMessage.edit(newVoteMessage);
 	return {amountRelevant: amountRel, totalNeeded: totalNeed}
-}
-
-// Handling of voteMessageReactions
-function voteMessageReaction(messageReaction){
-	// Check if majority number contain enough players playing
-	if(messageReaction.emoji.toString() === emoji_agree){
-		voteMessageTextUpdate(messageReaction)
-		.then(result => {
-			handleRelevantEmoji(true, teamWon, messageReaction, result.amountRelevant, result.totalNeeded);	
-		});
-	}else if(messageReaction.emoji.toString() === emoji_disagree){
-		var amountRelevant = countAmountUsersPlaying(balanceInfo.team1, messageReaction.users) + countAmountUsersPlaying(balanceInfo.team2, messageReaction.users);
-		var totalNeeded = (balanceInfo.team1.size() + 1);
-		handleRelevantEmoji(false, teamWon, messageReaction, amountRelevant, totalNeeded);
-	}
 }
 
 // Handle relevant emoji todo: write me
@@ -612,24 +347,6 @@ function countAmountUsersPlaying(team, peopleWhoReacted){ // Count amount of peo
 	return counter;
 }
 
-// Test for movement functionality in KTH channel
-// TODO: If it works, we can move it. Guarantee that it works as expected
-function KTHChannelSwapTest(message, guildChannels){
-	var myVoiceChannel = message.guild.member(message.author).voiceChannel;
-	var testChannel = guildChannels.find(channel => channel[1].name === 'General')
-	var testChannel2 = guildChannels.find(channel => channel[1].name === 'UberVoice')
-	//console.log('testChannel: ', testChannel);
-	if(myVoiceChannel.name === 'General'){
-		message.guild.member(message.author).setVoiceChannel(testChannel2[1].id);
-		print(message, 'Moved '+message.author.username+' from channel: '+
-			message.guild.member(message.author).voiceChannel.name+' to: '+testChannel2[1].name);
-	}else if(myVoiceChannel.name === 'UberVoice'){
-		message.guild.member(message.author).setVoiceChannel(testChannel[1].id);
-		print(message, 'Moved '+message.author.username+' from channel: '+
-			message.guild.member(message.author).voiceChannel.name+' to: '+testChannel[1].name);
-	}
-}
-
 // TODO: Keep updated with recent information
 function buildHelpString(){
 	var s = '*Available commands for ' + bot_name + ':* (Commands marked with **TBA** are To be Added) \n';
@@ -649,42 +366,27 @@ function buildHelpString(){
 	return s;
 }
 
-// Used to print message in channel, use for every use of channel.send for consistency
-// Returns promise for use in async functions
-function print(messageVar, message, callback = callbackPrintDefault){
-	console.log(message);
-	messageVar.channel.send(message)
-	.then(result => {
-		callback(result);
-		// TODO: Remove on exit
-	});
-}
-
 // Here follows callbackFunctions for handling bot sent messages
 // Might throw the warning, Unhandled Promise Rejection, unknown message
 function onExit(){
 	console.log('DEBUG @onExit - Attempting to delete a bunch of messages')
-	if(!isUndefined(matchupMessage)){
+	if(!f.isUndefined(matchupMessage)){
 		matchupMessage.delete(); // Delete message immediately on game cancel TODO: Fix Promise rejection
 	}
-	if(!isUndefined(mapMessages)){
+	if(!f.isUndefined(mapMessages)){
 		for(var i = 0; i < mapMessages.length; i++){
 			mapMessages[i].delete(); 			
 		}
 	}
-	if(!isUndefined(mapStatusMessage)){
+	if(!f.isUndefined(mapStatusMessage)){
 		mapStatusMessage.delete(); 
 	}
-	if(!isUndefined(voteMessage)){
+	if(!f.isUndefined(voteMessage)){
 		voteMessage.delete(); 
 	}
-	if(!isUndefined(teamWonMessage)){
+	if(!f.isUndefined(teamWonMessage)){
 		teamWonMessage.delete();
 	}
-}
-
-function callbackPrintDefault(message){
-	message.delete(removeBotMessageDefaultTime);
 }
 
 function callbackInvalidCommand(message){
@@ -708,10 +410,6 @@ function callbackGameFinished(message){
 	onExit();
 }
 
-function callbackMapHandle(message){
-	mapStatusMessage = message;
-}
-
 function noop(message){ // callback used for noop
 	// Doesn't delete the message
 }
@@ -720,7 +418,7 @@ function noop(message){ // callback used for noop
 function setStage(value){
 	stage = value;
 	if(value === 0){
-		bannedMaps = [];
+		map_js.bannedMaps = [];
 	}
 }
 
@@ -731,7 +429,7 @@ exports.setStage = function(value){
 }
 
 exports.printMessage = function(message, callback = noop){ // DEFAULT: NOT removing message
-	print(matchupMessage, message, callback);
+	f.print(matchupMessage, message, callback);
 }
 
 exports.setBalanceInfo = function(obj){

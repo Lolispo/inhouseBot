@@ -32,3 +32,16 @@ function Player(username, discId){
 exports.createPlayer = function(username, discId){
 	return new Player(username, discId);
 }
+
+// Returns highest mmr player object from team
+exports.getHighestMMR = function(team){
+	var highestMMR = -1;
+	var index = -1;
+	for(var i = 0; i < team.size(); i++){
+		if(team[i].mmr > highestMMR){
+			highestMMR = team[i].mmr;
+			index = i;
+		}
+	}
+	return team[index];
+}
