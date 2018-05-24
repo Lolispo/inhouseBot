@@ -20,7 +20,6 @@ const { prefix, token, dbpw } = require('./conf.json');
 /*
 	TODO:
 		Features:
-			Add parsing of input to make everything lower case
 			Start MMR chosen as either 2400, 2500 or 2600 depending on own skill, for better distribution in first games, better matchup
 			Save every field as a Collection{GuildSnowflake -> field variable} to make sure bot works on many servers at once
 			Find a fix for printing result alignment - redo system for printouts?
@@ -89,6 +88,7 @@ const removeBotMessageDefaultTime = 60000; // 300000
 client.on('message', message => {
 	if(!message.author.bot && message.author.username !== bot_name){ // Message sent from user
 		if(!f.isUndefined(message.channel.guild)){
+			message.content = message.content.toLowerCase();
 			handleMessage(message);
 		}else{ // Someone tried to DM the bot
 			console.log('DM msg = ' + message.author.username + ': ' + message.content);
@@ -100,7 +100,7 @@ client.on('message', message => {
 				message.author.send(buildHelpString())
 				.then(result => {
 					result.delete(removeBotMessageDefaultTime * 2);
-			}); ;
+				}); ;
 			}
 		}
 	} // Should handle every message except bot messages
@@ -166,7 +166,7 @@ function handleMessage(message) {
 		message.author.send(buildHelpString());
 		message.delete(10000);
 	}
-	else if(message.content === `${prefix}b` || message.content === `${prefix}balance` || message.content === `${prefix}inhouseBalance`){
+	else if(message.content === `${prefix}b` || message.content === `${prefix}balance` || message.content === `${prefix}inhousebalance`){
 		if(stage === 0){
 			matchupMessage = message; // Used globally in print method
 			var voiceChannel = message.guild.member(message.author).voiceChannel;
@@ -184,7 +184,7 @@ function handleMessage(message) {
 	}
 
 	// Show top 5 MMR 
-	else if(message.content === `${prefix}leaderboard` || message.content === `${prefix}leaderBoard`){
+	else if(message.content === `${prefix}leaderboard`){
 		db_sequelize.getHighScore(function(data){
 			var s = '**Leaderboard Top 5:**\n';
 			data.forEach(function(oneData){ 
@@ -217,18 +217,18 @@ function handleMessage(message) {
 	}
 	// TODO: Unites all channels, INDEPENDENT of game ongoing
 	// Optional additional argument to choose name of voiceChannel to uniteIn, otherwise same as balance was called from
-	else if(startsWith(message, prefix + 'ua') || startsWith(message, prefix + 'uniteAll') ){ // TODO: Not from break room, idle chat
+	else if(startsWith(message, prefix + 'ua') || startsWith(message, prefix + 'uniteall') ){ // TODO: Not from break room, idle chat
 		voiceMove_js.uniteAll(message);
 		message.delete(15000);
 	}
 	// STAGE 1 COMMANDS: (After balance is made)
 	else if(stage === 1){
-		if(message.content === `${prefix}team1Won`){
+		if(message.content === `${prefix}team1won`){
 			teamWonMessage = message;
 			teamWon = 1;
 			f.print(message, voteText + ' (0/' + (balanceInfo.team1.size() + 1)+ ')', callbackVoteText);
 		}
-		else if(message.content === `${prefix}team2Won`){
+		else if(message.content === `${prefix}team2won`){
 			teamWonMessage = message;
 			teamWon = 2;
 			f.print(message, voteText + ' (0/' + (balanceInfo.team1.size() + 1)+ ')', callbackVoteText);
@@ -238,7 +238,7 @@ function handleMessage(message) {
 			teamWon = 0;
 			f.print(message, voteText + ' (0/' + (balanceInfo.team1.size() + 1)+ ')', callbackVoteText);
 		}
-		else if(message.content === `${prefix}c` || message.content === `${prefix}cancel` || message.content === `${prefix}gameNotPlayed`){
+		else if(message.content === `${prefix}c` || message.content === `${prefix}cancel` || message.content === `${prefix}gamenotplayed`){
 			// Only creator of game can cancel it
 			if(message.author.id === matchupMessage.author.id){
 				setStage(0);
@@ -263,7 +263,7 @@ function handleMessage(message) {
 		}
 
 		// mapVeto made between one captain from each team
-		else if(message.content === `${prefix}mapVeto`){
+		else if(message.content === `${prefix}mapveto`){
 			map_js.mapVetoStart(message, balanceInfo, client.emojis)
 			.then(result => {
 				mapMessages = result;
