@@ -21,7 +21,7 @@ var print = function(messageVar, message, callback = callbackPrintDefault){
 }
 
 function callbackPrintDefault(message){
-	message.delete(bot.removeBotMessageDefaultTime);
+	message.delete(bot.getRemoveTime());
 }
 
 // Takes an Array of Players and returns an Array of GuildMembers with same ids
@@ -41,9 +41,50 @@ function callbackPrintDefault(message){
 	return teamMembers;
 }
 
+// Idea put on hold - hard to detect character width
+// gets longestName length
+var getLongestNameLength = function(activePlayers){
+	var longestName = -1;
+	activePlayers.forEach(function(oneData){
+		if(oneData.userName.length > longestName){
+			longestName = oneData.userName.length;
+		}
+	});
+	return longestName;
+}
+
+/*
+	Returns string of tabs to align to given biggest name
+	Example:
+	Petter - 6
+	Bambi på hal is - 15
+	diff = 9
+	s = ' \t\t\t'
+	s2 = '\t'
+*/
+var getTabsForName = function(nameLength, longestName){
+	console.log('DEBUG: @getTabsForName', longestName, nameLength);
+	var discTabSize = 4;
+	var diff = longestName - nameLength;
+	var s = '';
+	/*
+	for(var i = 0; i < diff; i++){
+		s += ' ';
+	}*/
+	for(var i = 0; i < (diff % discTabSize); i++){
+		s += '  ';
+	}
+	for(var i = 0; i < diff; i += discTabSize){
+		s += '\t';
+	}
+	return s;
+}
+
 // TODO: Redo all public functions like this?
 module.exports = {
 	isUndefined : isUndefined,
 	print : print,
-	teamToGuildMember : teamToGuildMember
+	teamToGuildMember : teamToGuildMember,
+	getLongestNameLength : getLongestNameLength,
+	getTabsForName : getTabsForName
 }

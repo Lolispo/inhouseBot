@@ -27,23 +27,52 @@ exports.initDb = function(dbpw){
 	/* 		
 		db:
 			Table: 'users': 
-		uid VARCHAR(64) NOT NULL, PRIMARY KEY (uid)
-		userName VARCHAR(64), 
-		mmr int, 
+			uid VARCHAR(64) NOT NULL, PRIMARY KEY (uid)
+			userName VARCHAR(64), 
+			mmr int, 
+			gamesPlayed int
 	*/
 
 	Users = sequelize.define('users', {
 		uid: {type: Sequelize.STRING, primaryKey: true},
 		userName: Sequelize.STRING,
 		mmr: Sequelize.INTEGER,
+		gamesPlayed: Sequelize.INTEGER
 	}, {
 		timestamps: false
 	}); 
 }
 
 // Returns table of users
-exports.getTable = function(uids, callback){
+exports.getTable = function(callback){
 	Users.findAll({})
+	.then(function(result) {
+		callback(result);
+	})
+}; 
+
+// Gets Top 5 users ordered by mmr
+exports.getHighScore = function(callback){
+	Users.findAll({
+		limit: 5,
+		order: [
+			['mmr', 'DESC'],
+			['gamesPlayed', 'DESC'],
+			['userName', 'ASC']
+		]
+	})
+	.then(function(result) {
+		callback(result);
+	})
+}; 
+
+// Gets personal stats for user
+exports.getPersonalStats = function(uid, callback){
+	Users.findAll({
+		where: {
+			uid: uid
+		}
+	})
 	.then(function(result) {
 		callback(result);
 	})
@@ -54,7 +83,8 @@ exports.updateMMR = function(uid, newMmr){
 	Users.findById(uid).then(function(user) {
 		user
 		.update({
-			mmr: newMmr
+			mmr: newMmr,
+			gamesPlayed: sequelize.literal('gamesPlayed +1')
 	    }).then(function(){
 			//console.log('User (id =', uid + ') new mmr set to ' + newMmr)
 		})

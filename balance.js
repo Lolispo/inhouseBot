@@ -14,11 +14,13 @@ const bot = require('./bot');
 exports.initializePlayers = function(players, dbpw){
 	// Init mmr for players
 	db_sequelize.initDb(dbpw);
+	/*
+	// Currently fetches entire database, instead of specific users
 	var uids = [];
 	for(var i = 0; i < players.size(); i++){
 		uids.push(players[i].uid);
-	}
-	var usersTable = db_sequelize.getTable(players, function(data){
+	}*/
+	db_sequelize.getTable(function(data){
 		balanceTeams(players, data);				
 	});
 }
@@ -225,15 +227,18 @@ function buildReturnString(obj, callback){ // TODO: Make print consistently nice
 	for(var i = 1; i < obj.team2.length; i++){
 		s += ',\t' + obj.team2[i].userName + ' (' + obj.team2[i].mmr + ')';
 	}
-	s += '*\n';
+	s += '*\n\n';
+	s += '*Connect:* \n**connect 217.78.24.14:27302; password null**'; // Lukas' server on datHost, requires either Lukas or Petter ingame to use
 	callback(1, s, obj); // Should send the message back to the bot
 }
 
 function callbackBalanceInfo(stage, message, obj){
 	bot.setStage(stage);
-	bot.printMessage(message);
+	bot.printMessage(message, callbackSetMatchupGameMessage);
 	bot.setBalanceInfo(obj);
 }
 
-
+function callbackSetMatchupGameMessage(message){
+	matchupServerMsg = message;
+}
 

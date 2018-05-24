@@ -9,9 +9,10 @@ const ArrayList = require('arraylist');
 const balance = require('./balance');
 const mmr_js = require('./mmr');
 const player_js = require('./player');
-const map_js = require('./mapVeto'); // TODO: Move map logic to other file
-const voiceMove_js = require('./voiceMove'); // TODO: Move split/unite voice chat logic here
-const f = require('./f')
+const map_js = require('./mapVeto');
+const voiceMove_js = require('./voiceMove'); 
+const f = require('./f');
+const db_sequelize = require('./db-sequelize');
 
 //get config data
 const { prefix, token, dbpw } = require('./conf.json');
@@ -21,8 +22,9 @@ const { prefix, token, dbpw } = require('./conf.json');
 		Features:
 			Start MMR chosen as either 2400, 2500 or 2600 depending on own skill, for better distribution in first games, better matchup
 			Save every field as a Collection{GuildSnowflake -> field variable} to make sure bot works on many servers at once
+			Find a fix for printing result alignment - redo system for printouts?
+				Didn't work, since char diff length: Handle name lengths for prints in f.js so names are aligned in tabs after longest names
 		Refactor:
-			Move mapVeto to new file
 			Fix async/await works
 				Recheck every instace returning promises to use async/await instead https://javascript.info/async-await
 					Double check places returning promises, to see if they are .then correctly
@@ -30,6 +32,7 @@ const { prefix, token, dbpw } = require('./conf.json');
 					Regroup it and use async/await instead
 		Bug / Crash:
 			If internet dies, gets unhandled "error" event, Client.emit, on the default case in the onMessage event
+				Restart in 30 sec when connection terminated due to no internet connection, currently: Unhandled "error" event. Client.emit (events.js:186:19)
 		Tests:
 			Add test method so system can be live without updating data base on every match (-balance test or something)
 			(QoL) On exit, remove messages that are waiting for be removed (For better testing)
@@ -41,19 +44,20 @@ const { prefix, token, dbpw } = require('./conf.json');
 			(Connected to StartMMR) 
 				Add a second hidden rating for each user, so even though they all start at same mmr, 
 					this rating is used to even out the teams when unsure (ONLY BEGINNING)
-			Restart in 30 sec when connection terminated due to no internet connection, currently: Unhandled "error" event. Client.emit (events.js:186:19)
+			mapVeto using majority vote instead of captains
 */
 
 // will only do stuff after it's ready
 client.on('ready', () => {
 	console.log('ready to rumble');
+	db_sequelize.initDb(dbpw); // Initialize db-sequelize database on startup of bot
 });
 
 // Login
 client.login(token);
 
-// TODO: Reflect on stage. Alternative: neutral = 0, make a start stage = 1 -> mapveto/split/start, and a end stage = 2 -> team1Won/Team2won/unite/gnp etc
-var stage = 0; // Current: Stage = 0 -> nothing started yet, default. Stage = 1 -> rdy for: mapVeto/split/team1Won/team2Won/gameNotPlayed.
+// Current: Stage = 0 -> nothing started yet, default. Stage = 1 -> rdy for: mapVeto/split/team1Won/team2Won/gameNotPlayed.
+var stage = 0; 
 
 // TODO: 	Should have a balanceInfo instance available for every server. Collection{GuildSnowflake -> balanceInfo} or something
 // 			Should also change in setBalanceInfo to send guild snowflake
@@ -61,7 +65,8 @@ var balanceInfo; 		// Object: {team1, team2, difference, avgT1, avgT2, avgDiff} 
 
 var activeMembers; 		// Active members playing (team1 players + team2 players)
 
-var matchupMessage; 	// Discord message for showing matchup, members in both teams and mmr difference
+var matchupMessage; 	// -b, users made command
+var matchupServerMsg; // Discord message for showing matchup, members in both teams and mmr difference
 var voteMessage;		// When voting on who won, this holds the voteText discord message
 var teamWonMessage;		// The typed teamWon message, used to vote on agreeing as well as remove on finished vote
 var teamWon;			// Keeps track on which team won
@@ -80,15 +85,18 @@ const voteText = '**Majority of players that played the game need to confirm thi
 const removeBotMessageDefaultTime = 60000; // 300000
 
 
-
 // Listener on message
 client.on('message', message => {
-	if(!message.author.bot && message.author.username !== bot_name){ // Message sent from user TODO: check correct logic
+	if(!message.author.bot && message.author.username !== bot_name){ // Message sent from user
 		if(!f.isUndefined(message.channel.guild)){
 			handleMessage(message);
 		}else{ // Someone tried to DM the bot
 			console.log('DM msg = ' + message.author.username + ': ' + message.content);
 			message.author.send('Send commands in a server - not to me!');
+			if(message.content === prefix+'help' || message.content === prefix+'h'){ // Special case for allowing help messages to show up in DM
+				message.author.send(buildHelpString());
+				message.delete(10000);
+			}
 		}
 	} // Should handle every message except bot messages
 });
@@ -137,7 +145,7 @@ client.on('messageReactionRemove', (messageReaction, user) => {
 // Create more events to do fancy stuff with discord API
 
 // Main message handling function 
-function handleMessage(message) { // TODO: Decide if async needed
+function handleMessage(message) { 
 	console.log('MSG (' + message.channel.guild.name + '.' + message.channel.name + ') ' + message.author.username + ':', message.content); 
 	// All stages commands, Commands that should always work, from every stage
 	if(message.content == 'hej'){
@@ -155,7 +163,7 @@ function handleMessage(message) { // TODO: Decide if async needed
 	}
 	else if(message.content === `${prefix}b` || message.content === `${prefix}balance` || message.content === `${prefix}inhouseBalance`){
 		if(stage === 0){
-			matchupMessage = message;
+			matchupMessage = message; // Used globally in print method
 			var voiceChannel = message.guild.member(message.author).voiceChannel;
 				
 			if(voiceChannel !== null && !f.isUndefined(voiceChannel)){ // Makes sure user is in a voice channel
@@ -163,21 +171,44 @@ function handleMessage(message) { // TODO: Decide if async needed
 			} else {
 				f.print(message, 'Invalid command: Author of message must be in voiceChannel', callbackInvalidCommand); 
 			}
-			message.delete(10000);
+			message.delete(10000); // Is matchupMessage separated from this? Not removed by reference delete TODO: Check
 		} else{
 			f.print(message, 'Invalid command: Inhouse already ongoing', callbackInvalidCommand); 
 			message.delete(10000);
 		}
 	}
 
-	// TODO Show top 3 MMR 
-	else if(message.content === `${prefix}leaderboard`){
-		message.delete(5000);
+	// Show top 5 MMR 
+	else if(message.content === `${prefix}leaderboard` || message.content === `${prefix}leaderBoard`){
+		db_sequelize.getHighScore(function(data){
+			var s = '**Leaderboard Top 5:**\n';
+			data.forEach(function(oneData){ 
+				s += oneData.userName + ': \t**' + oneData.mmr + ' mmr** \t(Games Played: ' + oneData.gamesPlayed + ')\n';
+			});
+			f.print(message, s);
+		});
+		message.delete(15000);
 	}
-	// TODO: Prints private mmr
+	// Sends private information about your statistics
 	else if(message.content === `${prefix}stats`){ 
-		// message.author.send(); // Private message
-		message.delete(5000);
+		db_sequelize.getPersonalStats(message.author.id, function(data){
+			var s = '**Your stats:**\n';
+			data.forEach(function(oneData){ 
+				s += oneData.userName + ': \t**' + oneData.mmr + ' mmr** \t(Games Played: ' + oneData.gamesPlayed + ')\n';
+			});
+			message.author.send(s)  // Private message
+			.then(result => {
+				result.delete(removeBotMessageDefaultTime * 2);
+			}); 
+		});
+		message.delete(15000);
+	}
+	// Used for tests
+	else if(message.content === `${prefix}test`){
+		if(message.author.username === 'Petter'){
+			// Do tests: 
+		}
+		message.delete(1000);
 	}
 	// TODO: Unites all channels, INDEPENDENT of game ongoing
 	// Optional additional argument to choose name of voiceChannel to uniteIn, otherwise same as balance was called from
@@ -203,7 +234,7 @@ function handleMessage(message) { // TODO: Decide if async needed
 			f.print(message, voteText + ' (0/' + (balanceInfo.team1.size() + 1)+ ')', callbackVoteText);
 		}
 		else if(message.content === `${prefix}c` || message.content === `${prefix}cancel` || message.content === `${prefix}gameNotPlayed`){
-			// TODO: Decide whether cancel might also require some confirmation? 
+			// Only creator of game can cancel it
 			if(message.author.id === matchupMessage.author.id){
 				setStage(0);
 				f.print(message, 'Game canceled', callbackGameCanceled);
@@ -219,7 +250,7 @@ function handleMessage(message) { // TODO: Decide if async needed
 			voiceMove_js.split(message, balanceInfo, activeMembers);
 			message.delete(15000);
 		}
-		// TODO: Take every user in 'Team1' and 'Team2' and move them to the same voice chat
+		// Take every user in 'Team1' and 'Team2' and move them to the same voice chat
 		// Optional additional argument to choose name of voiceChannel to uniteIn, otherwise same as balance was called from
 		else if(startsWith(message, prefix + 'u') || startsWith(message, prefix + 'unite')){ 
 			voiceMove_js.unite(message, activeMembers);
@@ -233,10 +264,6 @@ function handleMessage(message) { // TODO: Decide if async needed
 				mapMessages = result;
 			});
 			message.delete(15000); // Remove mapVeto text
-		}
-		// TODO: mapVeto using majority vote instead of captains
-		else if(message.content === `${prefix}mapVetoMajority`){
-
 		}
 	}
 	else if(startsWith(message,prefix)){ // Message start with prefix
@@ -305,7 +332,7 @@ function voteMessageReaction(messageReaction){
 
 // Updates voteMessage on like / unlike the agree emoji
 // Is async to await the voteMessage.edit promise
-// TODO: Check if works still after refactor. RETURNS A PROMISE
+// TODO: Check if works still after refactor. RETURNS A PROMISE. Voting still works it seems
 async function voteMessageTextUpdate(messageReaction){
 	var amountRel = await countAmountUsersPlaying(balanceInfo.team1, messageReaction.users) + countAmountUsersPlaying(balanceInfo.team2, messageReaction.users);
 	var totalNeed = await (balanceInfo.team1.size() + 1);
@@ -334,7 +361,8 @@ function handleRelevantEmoji(emojiConfirm, winner, messageReaction, amountReleva
 	}
 }
 
-function countAmountUsersPlaying(team, peopleWhoReacted){ // Count amount of people who reacted are part of this team
+// Count amount of people who reacted that are part of this team
+function countAmountUsersPlaying(team, peopleWhoReacted){ 
 	var counter = 0;
 	//console.log('DEBUG: @countAmountUsersPlaying', team, peopleWhoReacted);
 	peopleWhoReacted.forEach(function(user){
@@ -349,7 +377,7 @@ function countAmountUsersPlaying(team, peopleWhoReacted){ // Count amount of peo
 
 // TODO: Keep updated with recent information
 function buildHelpString(){
-	var s = '*Available commands for ' + bot_name + ':* (Commands marked with **TBA** are To be Added) \n';
+	var s = '*Available commands for ' + bot_name + ':* \n';
 	s += '**' + prefix + 'ping** *Pong*\n';
 	s += '**' + prefix + 'b | balance | inhouseBalance** Starts an inhouse game with the players in the same voice chat as the message author. '
 		+ 'Requires 4, 6, 8 or 10 players in voice chat to work\n';
@@ -358,39 +386,55 @@ function buildHelpString(){
 	s += '**' + prefix + 'draw | tie** If a match end in a tie, use this as match result. Same rules for reporting as **' + prefix + 'team1Won | ' + prefix + 'team2Won**\n';
 	s += '**' + prefix + 'c | cancel** Cancels the game, to be used when game was decided to not be played\n';
 	s += '**' + prefix + 'h | help** Shows the available commands\n';
-	s += '**' + prefix + 'leaderboard** Returns Top 3 MMR holders **TBA**\n';
-	s += '**' + prefix + 'stats** Returns your own rating **TBA**\n';
-	s += '**' + prefix + 'split** Splits voice chat **TBA**\n';
-	s += '**' + prefix + 'u | unite** Unite voice chat after game **TBA**\n';
-	s += '**' + prefix + 'mapVeto** Start map veto **TBA**\n';
+	s += '**' + prefix + 'leaderboard** Returns Top 3 MMR holders\n';
+	s += '**' + prefix + 'stats** Returns your own rating\n';
+	s += '**' + prefix + 'split** Splits voice chat\n';
+	s += '**' + prefix + 'u | unite** Unite voice chat after game\n';
+	s += '**' + prefix + 'mapVeto** Start map veto\n';
 	return s;
 }
 
 // Here follows callbackFunctions for handling bot sent messages
 // Might throw the warning, Unhandled Promise Rejection, unknown message
 function onExit(){
-	console.log('DEBUG @onExit - Attempting to delete a bunch of messages')
-	if(!f.isUndefined(matchupMessage)){
-		matchupMessage.delete(); // Delete message immediately on game cancel TODO: Fix Promise rejection
-	}
-	if(!f.isUndefined(mapMessages)){
+	console.log('DEBUG @onExit Entry- Attempting to delete a bunch of messages')
+	if(!f.isUndefined(mapMessages)){ // TODO: Probably requires to check to see if content === '' since it seems you can delete message in chat and variable stays
+		console.log('DEBUG @onExit 1');
 		for(var i = 0; i < mapMessages.length; i++){
-			mapMessages[i].delete(); 			
+			mapMessages[i].delete()
+			.catch(err => console.log(err)); 			
 		}
 	}
 	if(!f.isUndefined(mapStatusMessage)){
-		mapStatusMessage.delete(); 
+		console.log('DEBUG @onExit 2');
+		mapStatusMessage.delete()
+		.catch(err => console.log(err)); 
 	}
 	if(!f.isUndefined(voteMessage)){
-		voteMessage.delete(); 
+		console.log('DEBUG @onExit 3');
+		voteMessage.delete()
+		.catch(err => console.log(err));
 	}
 	if(!f.isUndefined(teamWonMessage)){
-		teamWonMessage.delete();
+		console.log('DEBUG @onExit 4');
+		teamWonMessage.delete()
+		.catch(err => console.log(err));
+	}
+	if(!f.isUndefined(matchupServerMsg)){
+		console.log('DEBUG @onExit 5');
+		matchupServerMsg.delete()
+		.catch(err => console.log(err)); 
+	}
+	if(!f.isUndefined(matchupMessage)){
+		console.log('DEBUG @onExit 6 - should be last');
+		matchupMessage.delete()
+		.catch(err => console.log(err)); // Delete message immediately on game cancel TODO: Fix Promise rejection
 	}
 }
 
 function callbackInvalidCommand(message){
-	message.delete(15000);
+	message.delete(15000)
+	.catch(err => console.log(err));
 	message.react(emoji_error);
 }
 
@@ -401,12 +445,15 @@ async function callbackVoteText(message){
 }
 
 function callbackGameCanceled(message){
-	message.delete(15000);
+	message.delete(15000)
+	.catch(err => console.log(err));
 	onExit();
 }
 
 function callbackGameFinished(message){ 
-	message.delete(removeBotMessageDefaultTime * 2);
+	console.log('DEBUG @callbackGameFinished - Calls on exit after delete on this message');
+	message.delete(removeBotMessageDefaultTime * 2)
+	.catch(err => console.log(err));
 	onExit();
 }
 
@@ -434,4 +481,8 @@ exports.printMessage = function(message, callback = noop){ // DEFAULT: NOT remov
 
 exports.setBalanceInfo = function(obj){
 	balanceInfo = obj;
+}
+
+exports.getRemoveTime = function(){
+	return removeBotMessageDefaultTime;
 }
