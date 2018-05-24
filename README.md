@@ -19,7 +19,7 @@ Prefix and bot-name can be modified to own liking
 
 **-h | help** Gives the available commands
 
-**-leaderboard** Returns Top 3 MMR holders
+**-leaderboard** Returns Top 5 MMR holders
 
 **-stats** Returns your own rating
 
