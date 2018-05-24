@@ -92,10 +92,15 @@ client.on('message', message => {
 			handleMessage(message);
 		}else{ // Someone tried to DM the bot
 			console.log('DM msg = ' + message.author.username + ': ' + message.content);
-			message.author.send('Send commands in a server - not to me!');
+			message.author.send('Send commands in a server - not to me!')
+			.then(result => {
+				result.delete(removeBotMessageDefaultTime * 2);
+			}); ;
 			if(message.content === prefix+'help' || message.content === prefix+'h'){ // Special case for allowing help messages to show up in DM
-				message.author.send(buildHelpString());
-				message.delete(10000);
+				message.author.send(buildHelpString())
+				.then(result => {
+					result.delete(removeBotMessageDefaultTime * 2);
+			}); ;
 			}
 		}
 	} // Should handle every message except bot messages
@@ -386,7 +391,7 @@ function buildHelpString(){
 	s += '**' + prefix + 'draw | tie** If a match end in a tie, use this as match result. Same rules for reporting as **' + prefix + 'team1Won | ' + prefix + 'team2Won**\n';
 	s += '**' + prefix + 'c | cancel** Cancels the game, to be used when game was decided to not be played\n';
 	s += '**' + prefix + 'h | help** Shows the available commands\n';
-	s += '**' + prefix + 'leaderboard** Returns Top 3 MMR holders\n';
+	s += '**' + prefix + 'leaderboard** Returns Top 5 MMR holders\n';
 	s += '**' + prefix + 'stats** Returns your own rating\n';
 	s += '**' + prefix + 'split** Splits voice chat\n';
 	s += '**' + prefix + 'u | unite** Unite voice chat after game\n';
