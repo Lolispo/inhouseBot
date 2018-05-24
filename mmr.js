@@ -65,7 +65,7 @@ function updateTeamMMR(team, change){
 		team[i].setMMRChange(change);
 		team[i].setMMR(newMMR);
 		team[i].setPlusMinus((change > 0 ? '+' : ''));
-		db_sequelize.updateMMR(team[i].uid, newMMR);
+		db_sequelize.updateMMR(team[i].uid, newMMR); // TODO: Check, error might be from here, since result is not awaited. Redo with method for await?
 	}
 }
 

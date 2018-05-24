@@ -9,19 +9,16 @@ const bot = require('./bot');
 	Handles getting the most balanced team matchup for the given 10 players
 	Uses db_sequelize to receive the player information and add new players
 	Uses bot to return the teams to the discord clients
+
+	TODO: Check if this would work if restrictions for team sizes are removed, generateTeamCombs changes required
 */
 
 exports.initializePlayers = function(players, dbpw){
 	// Init mmr for players
 	db_sequelize.initDb(dbpw);
-	/*
 	// Currently fetches entire database, instead of specific users
-	var uids = [];
-	for(var i = 0; i < players.size(); i++){
-		uids.push(players[i].uid);
-	}*/
 	db_sequelize.getTable(function(data){
-		balanceTeams(players, data);				
+		balanceTeams(players, data);			
 	});
 }
 
@@ -74,13 +71,13 @@ function generateTeamCombs(players){
 			for(var k = j+1; k < len; k++){
 				for(var l = k+1; l < len; l++){
 					for(var m = l+1; m < len; m++){
-						if(len === 10){ // Hitta ett sätt att undvika combinations som t.ex. 0,1,2,3,4 vs 5,6,7,8,9 och 5,6,7,8,9 vs 0,1,2,3,4 (Halverar svar om fix)
+						if(len === 10){ 
 							var uniqueSum = uniVal(i) + uniVal(j) + uniVal(k) + uniVal(l) + uniVal(m); 
 							if(!uniqueCombs.has(uniqueSum)){	
 								var teamComb = [i,j,k,l,m]
 								teamCombs.push(teamComb); // Add new combination to teamCombs // [i,j,k,l,m]
 								uniqueCombs.add(uniqueSum);
-								uniqueCombs.add(reverseUniqueSum([i,j,k,l,m], len));
+								uniqueCombs.add(reverseUniqueSum([i,j,k,l,m], len)); 
 							} 	
 						}					
 					}
@@ -120,6 +117,31 @@ function generateTeamCombs(players){
 	return teamCombs;
 }
 
+// Unique number combinations for combinations of 5.
+// Should give (check): 0: 0, 1: 10, 2: 200, 3: 3000, 4: 40000, 5: 5, 6: 60, 7: 700, 8: 8000; 9: 90000
+function uniVal(x){
+	return (x * Math.pow(10, (x % 5)));
+}
+
+// Fixar så [0,1,2,3,4] combos = [5,6,7,8,9] combos, no duplicates for them
+function reverseUniqueSum(list, len){
+	//console.log('DEBUG: @reverseUniqueSum', list, len);
+	var sum = 0;
+	for(var i = 0; i < len; i++){
+		var exists = false;
+		for(var j = 0; j < list.length; j++){
+			if(list[j] === i){
+				exists = true;
+				break;
+			}
+		}
+		if(!exists){
+			sum += uniVal(i);
+		}
+	}
+	return sum;
+}
+
 function findBestTeamComb(players, teamCombs){
 	// Compare elo matchup between teamCombinations, lowest difference wins
 	var bestPossibleTeamComb = Number.MAX_VALUE;
@@ -145,30 +167,6 @@ function findBestTeamComb(players, teamCombs){
 
 	// Retrieved most fair teamComb
 	return {team1 : t1, team2 : t2, difference : bestPossibleTeamComb, avgT1 : avgTeam1, avgT2 : avgTeam2, avgDiff : Math.abs(avgTeam1 - avgTeam2).toFixed(2)}; 
-}
-
-// Unique number combinations for combinations of 5.
-// Should give (check): 0: 0, 1: 10, 2: 200, 3: 3000, 4: 40000, 5: 5, 6: 60, 7: 700, 8: 8000; 9: 90000
-function uniVal(x){
-	return (x * Math.pow(10, (x % 5)));
-}
-
-function reverseUniqueSum(list, len){
-	//console.log('DEBUG: @reverseUniqueSum', list, len);
-	var sum = 0;
-	for(var i = 0; i < len; i++){
-		var exists = false;
-		for(var j = 0; j < list.length; j++){
-			if(list[j] === i){
-				exists = true;
-				break;
-			}
-		}
-		if(!exists){
-			sum += uniVal(i);
-		}
-	}
-	return sum;
 }
 
 // Get the two teams of players from the teamComb

@@ -94,13 +94,7 @@ exports.updateMMR = function(uid, newMmr){
 // Add a user to database
 exports.createUser = function(uid, userName, mmr){
 	console.log('DEBUG: @createUser', );
-	/*
-	sequelize.query('INSERT INTO users (uid, userName, mmr) VALUES ("' + uid + '","' + userName + '",' + mmr + ')')
-	.then(result => {
-		console.log(result)
-	});
-	*/
-	Users.create({ uid: uid, userName: userName, mmr: mmr})
+	Users.create({ uid: uid, userName: userName, mmr: mmr, gamesPlayed: 0})
 	.then(function(result){
 		console.log(result.get({plain:true}))
 	});
