@@ -20,6 +20,7 @@ const { prefix, token, dbpw } = require('./conf.json');
 /*
 	TODO:
 		Features:
+			Add parsing of input to make everything lower case
 			Start MMR chosen as either 2400, 2500 or 2600 depending on own skill, for better distribution in first games, better matchup
 			Save every field as a Collection{GuildSnowflake -> field variable} to make sure bot works on many servers at once
 			Find a fix for printing result alignment - redo system for printouts?
@@ -71,7 +72,6 @@ var voteMessage;		// When voting on who won, this holds the voteText discord mes
 var teamWonMessage;		// The typed teamWon message, used to vote on agreeing as well as remove on finished vote
 var teamWon;			// Keeps track on which team won
 var mapStatusMessage;	// Message that keep track of which maps are banned and whose turn is it
-var splitChannel;		// Channel we split in latest
 
 var mapMessages = [];	// Keeps track of the discord messages for the different maps 
 

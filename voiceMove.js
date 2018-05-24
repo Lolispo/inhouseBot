@@ -1,6 +1,8 @@
 
 const f = require('./f')
 
+var splitChannel;		// Channel we split in latest
+
 exports.unite = function(message, activeMembers){
 	var channel = getVoiceChannel(message);
 	console.log('DEBUG unite', channel.name);
@@ -18,21 +20,12 @@ exports.unite = function(message, activeMembers){
 
 exports.uniteAll = function(message){
 	var channel = getVoiceChannel(message);
-	//console.log('DEBUG ua', channel);
-	// Find all users active in a voiceChannel
-	var activeUsers = [];
-	var guildChannels = message.guild.channels.find(tempChannel => tempChannel.type === 'voice')
-	//console.log('DEBUG uniteAll', guildChannels, guildChannels.guild.members);
-	guildChannels.guild.members.forEach(function(member){
-		activeUsers.push(member);
-		//console.log(member);
-	});
-
-	activeUsers.forEach(function(member){
+	// TODO: Find all users active in a voiceChannel, currently iterates over all members of guild
+	//console.log('DEBUG uniteAll', channel);
+	message.guild.members.forEach(function(member){
 		// As long as they are still in some voice chat
-		if(!f.isUndefined(member.voiceChannel)){
+		if(!f.isUndefined(member.voiceChannel) && member.voiceChannelID !== message.guild.afkChannelID){ // As long as user is in a voiceChannel (Should be)
 			member.setVoiceChannel(channel);
-			//console.log('DEBUG uniteAll', member);
 		}
 	});
 }
@@ -75,42 +68,37 @@ function setTeamVoice(team, channel){
 // Return voice channel for uniting
 function getVoiceChannel(message){
 	// Get correct channel
-	// If param is given use that
 	var res = message.content.split(' ');
+	var channel1 = undefined;
 
-	if(res.length == 2 && res[0] === `${prefix}u`){
+	if(res.length == 2){ // TODO: Doesn't support channel names with name with spaces, fix
 		var channelName = res[1];
-		message.guild.channels.forEach(function(channel) {
+		message.guild.channels.forEach(function(channel) { // TODO: Redo since forEach doesn't break on return
+			console.log(channel.name, channel.type, channelName, channel.type === 'voice' && channel.name === channelName);
 			if(channel.type === 'voice' && channel.name === channelName){
-				return channel;
+				channel1 = channel;
 			}
 		});
 	}
-	// else use same as we split in
-	if(!f.isUndefined(channel1) && !f.isUndefiend(splitChannel)){
+	if(!f.isUndefined(channel1)){ // If param is given use that
+		return channel1;
+	}else if(f.isUndefined(channel1) && !f.isUndefined(splitChannel)){ // Otherwise use same voiceChannel as we split in
 		return splitChannel;
 	}
-	// If this is not defined, take own own or random one
-	var channel1 = message.guild.member(message.author).voiceChannel;
-	console.log('DEBUG @getVoiceChannel: Own Channel:', channel1.name);
+	// If this is not defined, take own own voiceChannel or an available one
+	channel1 = message.guild.member(message.author).voiceChannel;
+	
 	//console.log('DEBUG: getVoiceChannel', channel1);
-	if(f.isUndefined(channel1)){ // TODO: Decide if it should work if not in voice
-		var voiceChannels = [];
-		message.guild.channels.forEach(function(channel) {
-			if(channel.type === 'voice'){
-				voiceChannels.push(channel);
+	if(f.isUndefined(channel1) || channel1.id === message.guild.afkChannelID){ // TODO: Decide if it should work if not in voice
+		message.guild.channels.forEach(function(channel) { // TODO: Find way to break foreach / Change this to for loop instead (wont break)
+			if(channel.type === 'voice' && channel.id !== message.guild.afkChannelID){
+				channel1 = channel;
 			}
 		});
-
-		// var guildChannels = message.guild.channels.find(channel => channel.type === 'voice'); // TODO: Filter text channels
-		// channel1 = guildChannels.random(1); // TODO Check if works, requires filtering on text channels	
-
-
-		//console.log('DEBUG: getVoiceChannel', guildChannels);
-		channel1 = voiceChannels[1]; // Choose best channel that is not sleeping
-
+	}else{
+		console.log('DEBUG @getVoiceChannel: Own Channel:', channel1.name);	
 	}
-	console.log('DEBUG @getVoiceChannel: Channel chosen for unite (not param or splitChannel):', channel1.name); // TODO: Check channel1.name or something
+	//console.log('DEBUG @getVoiceChannel: Channel chosen for unite (not param or splitChannel):', channel1.name); // TODO: Check channel1.name or something
 	return channel1;
 }
 
