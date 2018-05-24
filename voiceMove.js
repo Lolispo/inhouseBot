@@ -102,8 +102,7 @@ function getVoiceChannel(message){
 	return channel1;
 }
 
-// Test for movement functionality in KTH channel
-// TODO: If it works, we can move it. Guarantee that it works as expected
+// Test for movement functionality in KTH channel OLD
 function KTHChannelSwapTest(message, guildChannels){
 	var myVoiceChannel = message.guild.member(message.author).voiceChannel;
 	var testChannel = guildChannels.find(channel => channel[1].name === 'General')

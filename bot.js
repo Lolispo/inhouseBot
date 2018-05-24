@@ -28,8 +28,6 @@ const { prefix, token, dbpw } = require('./conf.json');
 			Fix async/await works
 				Recheck every instace returning promises to use async/await instead https://javascript.info/async-await
 					Double check places returning promises, to see if they are .then correctly
-				Handle all bot sent messages with .then on send instead of looking at a received message, handle the send promise instead
-					Regroup it and use async/await instead
 		Bug / Crash:
 			If internet dies, gets unhandled "error" event, Client.emit, on the default case in the onMessage event
 				Restart in 30 sec when connection terminated due to no internet connection, currently: Unhandled "error" event. Client.emit (events.js:186:19)
@@ -215,7 +213,7 @@ function handleMessage(message) {
 		}
 		message.delete(1000);
 	}
-	// TODO: Unites all channels, INDEPENDENT of game ongoing
+	// Unites all channels, INDEPENDENT of game ongoing
 	// Optional additional argument to choose name of voiceChannel to uniteIn, otherwise same as balance was called from
 	else if(startsWith(message, prefix + 'ua') || startsWith(message, prefix + 'uniteall') ){ // TODO: Not from break room, idle chat
 		voiceMove_js.uniteAll(message);

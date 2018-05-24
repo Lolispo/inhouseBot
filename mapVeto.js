@@ -54,7 +54,7 @@ var captainVote = function(messageReaction, user, i, mapStatusMessage){
 var otherMapVote = function(messageReaction, user, activeMembers){
 	console.log('DEBUG: not captain vote', user.username);
 	var allowed = false; // TODO: Redo with some contains method
-	// TODO: Check why it doesn't work
+	// TODO: Check why it doesn't work. It works?
 	if(f.isUndefined(activeMembers)){
 		console.log('Error: activeMembers not initialized in @otherMapVote (Test case = ok)'); // Since it is assumed to always be initialized, throw error otherwise
 	}else{
@@ -147,13 +147,9 @@ var getMapString = function(finished, startingCaptainUsername){ // Allows to be 
 	return s;
 }
 
-// Change turn between captains TODO: Do even shorter
+// Change turn between captains
 var changeTurn = function(){
-	if(mapVetoTurn === 0)
-		mapVetoTurn = 1;
-	else if(mapVetoTurn === 1){
-		mapVetoTurn = 0;
-	}
+	mapVetoTurn = 1 - mapVetoTurn; // Flips between 1 and 0
 	var startingCaptainUsername = (mapVetoTurn === 0 ? captain1.userName : captain2.userName); 
 	mapStatusMessage.edit(getMapString(false, startingCaptainUsername))
 }

@@ -17,6 +17,7 @@ var Users = {};
 		(Potential) Unsure if dbpw is remembered between usage from balance.js and mmr.js (only initialized in balance.js) 
 */
 
+// Initializes sequelize variables for further usage
 exports.initDb = function(dbpw){
 	sequelize = new Sequelize('pettea', 'pettea_admin', dbpw, {
 		host: 'mysql-vt2016.csc.kth.se',
@@ -25,7 +26,7 @@ exports.initDb = function(dbpw){
 	});
 
 	/* 		
-		db:
+		db: The databse in sql code (For reference)
 			Table: 'users': 
 			uid VARCHAR(64) NOT NULL, PRIMARY KEY (uid)
 			userName VARCHAR(64), 
@@ -78,7 +79,7 @@ exports.getPersonalStats = function(uid, callback){
 	})
 }; 
 
-// TODO Feature: Record amount of games played
+// Used to update a player in database, increasing matches and changing mmr
 exports.updateMMR = function(uid, newMmr){
 	Users.findById(uid).then(function(user) {
 		user

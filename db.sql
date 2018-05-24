@@ -3,7 +3,7 @@ use pettea;
 /* mysql --host=mysql-vt2016.csc.kth.se */
 
 /* TODO:
-	Add every game played to a table
+	Add every game played to a table ALT get eBot working on server
 */
 
 
@@ -15,8 +15,11 @@ create table users(
 	PRIMARY KEY (uid)
 );
 
+/*
 create table matches(
 	mid int NOT NULL AUTO_INCREMENT,
-	/* Save all players playing and winning team */
+	*//*Save all players playing and winning team*//* 
 	PRIMARY KEY(mid)
 );
+
+*/
