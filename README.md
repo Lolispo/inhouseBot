@@ -5,7 +5,7 @@ A discord bot made in NodeJS that handles a inhouse system with rating for each 
 
 Prefix and bot-name can be modified to own liking
 
-*Available commands for inhouse-bot:* (Commands marked with **TBA** are To be Added)
+*Available commands for inhouse-bot:* 
 
 **-ping** *Pong*
 
@@ -19,15 +19,15 @@ Prefix and bot-name can be modified to own liking
 
 **-h | help** Gives the available commands
 
-**-leaderboard** Returns Top 3 MMR holders **TBA**
+**-leaderboard** Returns Top 3 MMR holders
 
-**-stats** Returns your own rating **TBA**
+**-stats** Returns your own rating
 
-**-split** Splits voice chat **TBA**
+**-split** Splits voice chat
 
-**-u | unite** Unite voice chat after game **TBA**
+**-u | unite** Unite voice chat after game
 
-**-mapVeto** Start map veto **TBA**
+**-mapVeto** Start map veto
 
 **-h | help** Shows available commands
 
