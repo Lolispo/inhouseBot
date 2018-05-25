@@ -162,6 +162,16 @@ function handleMessage(message) {
 		f.print(message, 'Pong');
 		message.delete(removeBotMessageDefaultTime);
 	}
+	else if(startsWith(message, prefix + 'roll')){ // Roll command for luls
+		var messages = message.content.split(' ');
+		if(messages.length === 2){
+			roll(message, 0, messages[1])
+		}else if(messages.length === 3){
+			roll(message, parseInt(messages[1]), parseInt(messages[2]))
+		}else {
+			roll(message, 0, 100);
+		}
+	}
 	// Sends available commands privately to the user
 	else if(message.content === prefix+'help' || message.content === prefix+'h'){
 		message.author.send(buildHelpString());
@@ -287,6 +297,21 @@ function handleMessage(message) {
 // Returns boolean of if message starts with string
 function startsWith(message, string){
 	return (message.content.lastIndexOf(string, 0) === 0)
+}
+
+// Roll functionality
+function roll(message, start, end){
+	var roll = Math.floor((Math.random() * (end-start))) + start;
+	if(end === roll && (end-start) > 50){ // Only saves message if diff at least 50
+		f.print(message, '**' + message.author.username + ' rolled a ' + roll + ' (' + start + ' - ' + end + ')**', noop);
+	}else{
+		if(roll > (start + (end-start)/ 2)){ // Majority roll gets bold
+			f.print(message, message.author.username + ' rolled a **' + roll + '** (' + start + ' - ' + end + ')');
+		} else{
+			f.print(message, message.author.username + ' rolled a ' + roll + ' (' + start + ' - ' + end + ')');
+		}
+	}
+	message.delete(10000);
 }
 
 // Here follows starting balanced game methods
