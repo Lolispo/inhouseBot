@@ -164,9 +164,9 @@ function handleMessage(message) {
 	}
 	else if(startsWith(message, prefix + 'roll')){ // Roll command for luls
 		var messages = message.content.split(' ');
-		if(messages.length === 2){
+		if(messages.length === 2 && !isNaN(parseInt(messages[1]))){ // Valid input
 			roll(message, 0, messages[1])
-		}else if(messages.length === 3){
+		}else if(messages.length === 3 && !isNaN(parseInt(messages[1])) && !isNaN(parseInt(messages[2]))){ // Valid input
 			roll(message, parseInt(messages[1]), parseInt(messages[2]))
 		}else {
 			roll(message, 0, 100);
