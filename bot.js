@@ -196,12 +196,18 @@ function handleMessage(message) {
 		message.delete(15000);
 	}
 	// Sends private information about your statistics
-	else if(message.content === `${prefix}stats`){ 
+	else if(message.content === `${prefix}stats`){
 		db_sequelize.getPersonalStats(message.author.id, function(data){
-			var s = '**Your stats:**\n';
-			data.forEach(function(oneData){ 
-				s += oneData.userName + ': \t**' + oneData.mmr + ' mmr** \t(Games Played: ' + oneData.gamesPlayed + ')\n';
-			});
+			var s = '';
+			if(data.length === 0){
+				s += "**User doesn't have any games played**";
+			}
+			else {
+				s += '**Your stats:**\n';
+				data.forEach(function(oneData){
+					s += oneData.userName + ': \t**' + oneData.mmr + ' mmr** \t(Games Played: ' + oneData.gamesPlayed + ')\n';
+				});
+			}
 			message.author.send(s)  // Private message
 			.then(result => {
 				result.delete(removeBotMessageDefaultTime * 2);
