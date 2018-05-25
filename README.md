@@ -17,7 +17,7 @@ Prefix and bot-name can be modified to own liking
 
 **-c | cancel** Cancels the game, to be used when game was decided to not be played
 
-**-h | help** Gives the available commands
+**-h | help** Shows the available commands
 
 **-leaderboard** Returns Top 5 MMR holders
 
@@ -29,7 +29,7 @@ Prefix and bot-name can be modified to own liking
 
 **-mapVeto** Start map veto
 
-**-h | help** Shows available commands
+**-roll** Rolls a number (0 - 100)
 
 ## Balance
 
