@@ -428,6 +428,7 @@ function buildHelpString(){
 	s += '**' + prefix + 'split** Splits voice chat\n';
 	s += '**' + prefix + 'u | unite** Unite voice chat after game\n';
 	s += '**' + prefix + 'mapVeto** Start map veto\n';
+	s += '**' + prefix + 'roll** Rolls a number (0 - 100)\n'
 	return s;
 }
 
