@@ -1,5 +1,5 @@
 'use strict';
-// Author: Petter Andersson
+// Author: Petter Andersson and Robert Wörlund
 
 // Handles changing voice channel logic for users: unite and split methods
 

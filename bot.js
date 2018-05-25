@@ -67,7 +67,7 @@ var balanceInfo; 		// Object: {team1, team2, difference, avgT1, avgT2, avgDiff} 
 var activeMembers; 		// Active members playing (team1 players + team2 players)
 
 var matchupMessage; 	// -b, users made command
-var matchupServerMsg; // Discord message for showing matchup, members in both teams and mmr difference
+var matchupServerMsg; 	// Discord message for showing matchup, members in both teams and mmr difference
 var voteMessage;		// When voting on who won, this holds the voteText discord message
 var teamWonMessage;		// The typed teamWon message, used to vote on agreeing as well as remove on finished vote
 var teamWon;			// Keeps track on which team won
@@ -89,7 +89,7 @@ const removeBotMessageDefaultTime = 60000; // 300000
 client.on('message', message => {
 	if(!message.author.bot && message.author.username !== bot_name){ // Message sent from user
 		if(!f.isUndefined(message.channel.guild)){
-			message.content = message.content.toLowerCase();
+			message.content = message.content.toLowerCase(); // Allows command to not care about case
 			handleMessage(message);
 		}else{ // Someone tried to DM the bot
 			console.log('DM msg = ' + message.author.username + ': ' + message.content);
@@ -431,7 +431,7 @@ function onExit(){
 		matchupServerMsg.delete()
 		.catch(err => console.log(err)); 
 	}
-	if(!f.isUndefined(matchupMessage)){
+	if(!(f.isUndefined(matchupMessage) || f.isUndefined(matchupMessage.content))){ // Its not undefined on msg or content TODO Check second arg to === '' myb
 		console.log('DEBUG @onExit 6 - should be last');
 		matchupMessage.delete()
 		.catch(err => console.log(err)); // Delete message immediately on game cancel TODO: Fix Promise rejection

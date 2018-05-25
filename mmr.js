@@ -1,5 +1,5 @@
 'use strict';
-// Author: Petter Andersson
+// Author: Petter Andersson and Robert Wörlund
 
 const bot = require('./bot');
 const db_sequelize = require('./db-sequelize');
