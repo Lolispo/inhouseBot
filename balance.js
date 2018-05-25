@@ -1,4 +1,5 @@
 'use strict';
+// Author: Petter Andersson
 
 const ArrayList = require('arraylist');
 const moment = require('moment');

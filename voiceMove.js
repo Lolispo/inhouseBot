@@ -1,3 +1,7 @@
+'use strict';
+// Author: Petter Andersson
+
+// Handles changing voice channel logic for users: unite and split methods
 
 const f = require('./f')
 

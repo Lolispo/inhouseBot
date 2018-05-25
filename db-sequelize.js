@@ -1,4 +1,5 @@
 'use strict';
+// Author: Petter Andersson
 
 var Sequelize = require('sequelize');
 var sequelize = {};

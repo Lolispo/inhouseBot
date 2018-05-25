@@ -1,3 +1,8 @@
+'use strict';
+// Author: Petter Andersson
+
+// Handles map veto system, to choose maps between teams
+
 const bot = require('./bot');
 const player_js = require('./player');
 const f = require('./f');

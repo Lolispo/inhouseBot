@@ -1,6 +1,9 @@
 use pettea;
 
-/* Clear database entries */
+/*
+	Author: Petter Andersson
+	Clear database entries 
+*/
 
 /* DELETE FROM users; */
 

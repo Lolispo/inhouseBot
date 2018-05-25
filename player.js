@@ -1,4 +1,5 @@
 'use strict';
+// Author: Petter Andersson
 /*
 	Class handles player objects which take care of player data
 

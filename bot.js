@@ -1,4 +1,7 @@
 'use strict';
+// Author: Petter Andersson
+
+// Main File for discord bot: Handles event for messages
 
 const Discord = require('discord.js');
 
@@ -378,7 +381,7 @@ function countAmountUsersPlaying(team, peopleWhoReacted){
 	return counter;
 }
 
-// TODO: Keep updated with recent information
+// TODO Perm: Keep updated with recent information
 function buildHelpString(){
 	var s = '*Available commands for ' + bot_name + ':* \n';
 	s += '**' + prefix + 'ping** *Pong*\n';

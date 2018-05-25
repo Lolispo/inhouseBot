@@ -1,6 +1,7 @@
+'use strict';
+// Author: Petter Andersson
 
 // Should handle general help functions
-
 const bot = require('./bot')
 
 // Returns boolean over if type of obj is undefined

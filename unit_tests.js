@@ -1,4 +1,5 @@
 'use strict';
+// Author: Petter Andersson
 
 /*
 	TODO: Fix unit tests for every method and use node specific methods to do this
