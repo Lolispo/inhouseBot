@@ -25,7 +25,11 @@ const { prefix, token, dbpw } = require('./conf.json');
 		Features:
 			Challenge / Duel: Challenge someone to 1v1
 				Challenge specific person or "Queue" so anyone can accept
+				If challenged: message that user where user can react to response in dm. Update in channel that match is on
+				Default cs1v1, otherwise dota1v1
 			Store MMR for more games
+				Default cs, otherwise dota
+				Decide where you specify which mmr (either at balance or at win)
 			Start MMR chosen as either 2400, 2500 or 2600 depending on own skill, for better distribution in first games, better matchup
 			Save every field as a Collection{GuildSnowflake -> field variable} to make sure bot works on many servers at once
 			Find a fix for printing result alignment - redo system for printouts?
