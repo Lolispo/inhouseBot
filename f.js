@@ -18,7 +18,7 @@ var print = function(messageVar, message, callback = callbackPrintDefault){
 	.then(result => {
 		callback(result);
 		// TODO: Remove on exit
-	});
+	}).catch(err => console.log('@print for ' + message + ' :\n' + err));;
 }
 
 function callbackPrintDefault(message){

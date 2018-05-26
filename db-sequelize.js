@@ -33,6 +33,15 @@ exports.initDb = function(dbpw){
 			userName VARCHAR(64), 
 			mmr int, 
 			gamesPlayed int
+
+		users(
+			uid VARCHAR(64) NOT NULL, PRIMARY KEY (uid)
+			userName VARCHAR(64), 
+			cs int,
+			cs1v1 int,
+			dota int,
+			dota1v1 int,
+			gamesPlayed int,
 	*/
 
 	Users = sequelize.define('users', {
@@ -43,6 +52,20 @@ exports.initDb = function(dbpw){
 	}, {
 		timestamps: false
 	}); 
+
+	/*
+	Users = sequelize.define('users', {
+		uid: {type: Sequelize.STRING, primaryKey: true},
+		userName: Sequelize.STRING,
+		cs: Sequelize.INTEGER,
+		cs1v1: Sequelize.INTEGER,
+		dota: Sequelize.INTEGER,
+		dota1v1: Sequelize.INTEGER,
+		gamesPlayed: Sequelize.INTEGER
+	}, {
+		timestamps: false
+	}); 
+	*/
 }
 
 // Returns table of users
@@ -54,6 +77,7 @@ exports.getTable = function(callback){
 }; 
 
 // Gets Top 5 users ordered by mmr
+// TODO on more mmr: update mmr to a default value or input (callback, mmr = 'cs') example
 exports.getHighScore = function(callback){
 	Users.findAll({
 		limit: 5,
@@ -81,6 +105,7 @@ exports.getPersonalStats = function(uid, callback){
 }; 
 
 // Used to update a player in database, increasing matches and changing mmr
+// TODO on more mmr: Requires which to update: mmr -> cs, cs1v1, dota, dota1v1 (, mmrType = mmr) ?
 exports.updateMMR = function(uid, newMmr){
 	Users.findById(uid).then(function(user) {
 		user
@@ -94,6 +119,7 @@ exports.updateMMR = function(uid, newMmr){
 }
 
 // Add a user to database
+// TODO on more mmr: cs: mmr, cs1v1: mmr, dota: mmr, dota1v1: mmr
 exports.createUser = function(uid, userName, mmr){
 	console.log('DEBUG: @createUser', );
 	Users.create({ uid: uid, userName: userName, mmr: mmr, gamesPlayed: 0})

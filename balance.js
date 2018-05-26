@@ -214,7 +214,7 @@ function buildReturnString(obj, callback){ // TODO: Make print consistently nice
 	console.log('DEBUG: @buildReturnString');
 	var date = moment().format('LLL'); // Date format. TODO: Change from AM/PM to military time
 	var s = '';
-	s += '**New Game!** MMR Average difference: ' + obj.avgDiff.toFixed(2) + ' (Total: ' + obj.difference + 'p). '; // TODO Check
+	s += '**New Game!** MMR Average difference: ' + obj.avgDiff + ' (Total: ' + obj.difference + 'p). '; // TODO Check toFixed somehow
 	s += String(date);
 	s += '\n';
 	s += '**Team 1** \t(Avg: ' + obj.avgT1 + ' mmr): \n*' + obj.team1[0].userName + ' (' + obj.team1[0].mmr + ')';
@@ -238,6 +238,6 @@ function callbackBalanceInfo(stage, message, obj){
 }
 
 function callbackSetMatchupGameMessage(message){
-	matchupServerMsg = message;
+	bot.setMatchupMsg(message);
 }
 

@@ -16,7 +16,7 @@ const emoji_agree = '👌'; 		// Agree emoji. Alt: 👍, Om custom Emojis: Borde
 const emoji_disagree = '👎';	// Disagree emoji. 
 const emoji_error = '❌'; 		// Error / Ban emoji. Alt: '🤚';
 
-var captainVote = function(messageReaction, user, i, mapStatusMessage){
+var captainVote = function(messageReaction, user, i){
 	console.log('DEBUG: CaptainVote', user.username, 'i = ', i, 'turn = ', mapVetoTurn);
 	if(user.id === captain1.uid && mapVetoTurn === 0){ // Check to see if author is a captain and his turn
 		var tempMessage = mapMessages[i];
@@ -32,7 +32,7 @@ var captainVote = function(messageReaction, user, i, mapStatusMessage){
 			}
 			chosenMap.delete();
 			bannedMaps.push('\nChosen map is ' + chosenMap);
-			mapStatusMessage.edit(getMapString(true));
+			bot.getMapStatusMessage().edit(getMapString(true)); // TODO Check
 		}
 	} else if(user.id === captain2.uid && mapVetoTurn === 1){
 		var tempMessage = mapMessages[i];
@@ -48,7 +48,7 @@ var captainVote = function(messageReaction, user, i, mapStatusMessage){
 			}
 			chosenMap.delete();
 			bannedMaps.push('Chosen map is ' + chosenMap);
-			mapStatusMessage.edit(getMapString(true));
+			bot.getMapStatusMessage().edit(getMapString(true));
 		}
 	} else { // Don't allow messageReaction of emoji_error otherwise
 		console.log('DEBUG: Not allowerd user pressed ' + emoji_error);
@@ -59,13 +59,13 @@ var captainVote = function(messageReaction, user, i, mapStatusMessage){
 var otherMapVote = function(messageReaction, user, activeMembers){
 	console.log('DEBUG: not captain vote', user.username);
 	var allowed = false; // TODO: Redo with some contains method
-	// TODO: Check why it doesn't work. It works?
+	// TODO: Check why it doesn't work. CHECK ME
 	if(f.isUndefined(activeMembers)){
 		console.log('Error: activeMembers not initialized in @otherMapVote (Test case = ok)'); // Since it is assumed to always be initialized, throw error otherwise
 	}else{
 		activeMembers.forEach(function(guildMember){
-			console.log('DEBUG: @addReaction emojiAgree', user.uid, guildMember.id);
-			if(user.uid === guildMember.id){
+			console.log('DEBUG: @addReaction emojiAgree', user.id, guildMember.id);
+			if(user.id === guildMember.id){
 				allowed = true;
 			}
 		});
@@ -92,11 +92,21 @@ async function mapVetoStart(message, balanceInfo, clientEmojis){
 
 
 function callbackMapHandle(message){
-	mapStatusMessage = message;
+	bot.setMapStatusMessage(message);
 }
 
+
 // Returns promise messages for maps
-function getMapMessages(message, clientEmojis){
+async function getMapMessages(message, clientEmojis){ // TODO Check Should run asynchrounsly, try setTimeout , 0 otherwise
+	initMap('Dust2', clientEmojis, message, callbackMapMessage);
+	initMap('Inferno', clientEmojis, message, callbackMapMessage);
+	initMap('Mirage', clientEmojis, message, callbackMapMessage);
+	initMap('Nuke', clientEmojis, message, callbackMapMessage);
+	initMap('Cache', clientEmojis, message, callbackMapMessage);
+	initMap('Overpass', clientEmojis, message, callbackMapMessage);
+	initMap('Train', clientEmojis, message, callbackMapMessage);
+}	
+/*
 	const map_dust2 = clientEmojis.find("name", "Dust2");
 	const map_mirage = clientEmojis.find("name", "Mirage");
 	const map_train = clientEmojis.find("name", "Train");
@@ -104,19 +114,22 @@ function getMapMessages(message, clientEmojis){
 	const map_overpass = clientEmojis.find("name", "Overpass");
 	const map_inferno = clientEmojis.find("name", "Inferno");
 	const map_nuke = clientEmojis.find("name", "Nuke");
-	initMap('Dust2', map_dust2, message, callbackMapMessage);
-	initMap('Inferno', map_inferno, message, callbackMapMessage);
-	initMap('Mirage', map_mirage, message, callbackMapMessage);
-	initMap('Nuke', map_nuke, message, callbackMapMessage);
-	initMap('Cache', map_cache, message, callbackMapMessage);
-	initMap('Overpass', map_overpass, message, callbackMapMessage);
-	initMap('Train', map_train, message, callbackMapMessage);
-	//initMap('Train', message)		.then(res => {	messages.push(res);	})
-	//messages.push(initMap('Train', message));
-}
+	setTimeout(initMap('Dust2', map_dust2, message, callbackMapMessage), 0); // TODO: Check if faster
+	setTimeout(initMap('Inferno', map_inferno, message, callbackMapMessage), 0);
+	setTimeout(initMap('Mirage', map_mirage, message, callbackMapMessage), 0);
+	setTimeout(initMap('Nuke', map_nuke, message, callbackMapMessage), 0);
+	setTimeout(initMap('Cache', map_cache, message, callbackMapMessage), 0);
+	setTimeout(initMap('Overpass', map_overpass, message, callbackMapMessage), 0);
+	setTimeout(initMap('Train', map_train, message, callbackMapMessage), 0);
+*/
+// setTimeout(initMap('Train', map_train, message, callbackMapMessage), 0);
+// f.print(message, mapEmoji.toString() + mapName + mapEmoji.toString(), callback); <- clientEmojis -> mapEmoji
 
-async function initMap(mapName, mapEmoji, message, callback){
-	f.print(message, mapEmoji.toString() + mapName + mapEmoji.toString(), callback); // Move to function so they can start parallell
+var longLine = '\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\n';
+
+function initMap(mapName, clientEmojis, message, callback){
+	const mapEmoji = clientEmojis.find('name', mapName);
+	f.print(message, longLine + mapEmoji.toString() + mapName + mapEmoji.toString(), callback); // Move to function so they can start parallell
 }
 
 function callbackMapMessage(mapObj){
@@ -134,7 +147,7 @@ var getMapString = function(finished, startingCaptainUsername){ // Allows to be 
 	// Print out instructions
 	// TODO: Store long message as some field to create it more easily. First => better name and field
 	//console.log('DEBUG: @getMapString', finished, bannedMaps[bannedMaps.length-1]);
-	var s = 'The captains **' + captain1.userName + '** and **' + captain2.userName + '** can now vote on which maps to play. \n';
+	var s = '**Map Veto**\nThe captains **' + captain1.userName + '** and **' + captain2.userName + '** can now vote on which maps to play. \n';
 	s += 'Keep banning maps by pressing ' + bot.emoji_error + ' on your turn until there is only one map left. \n\n';
 	for(var i = 0; i < bannedMaps.length; i++){
 		if(i === bannedMaps.length - 1){
@@ -156,7 +169,7 @@ var getMapString = function(finished, startingCaptainUsername){ // Allows to be 
 var changeTurn = function(){
 	mapVetoTurn = 1 - mapVetoTurn; // Flips between 1 and 0
 	var startingCaptainUsername = (mapVetoTurn === 0 ? captain1.userName : captain2.userName); 
-	mapStatusMessage.edit(getMapString(false, startingCaptainUsername))
+	bot.getMapStatusMessage().edit(getMapString(false, startingCaptainUsername))
 }
 
 module.exports.mapVetoStart = mapVetoStart;

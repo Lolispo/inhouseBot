@@ -23,6 +23,9 @@ const { prefix, token, dbpw } = require('./conf.json');
 /*
 	TODO:
 		Features:
+			Challenge / Duel: Challenge someone to 1v1
+				Challenge specific person or "Queue" so anyone can accept
+			Store MMR for more games
 			Start MMR chosen as either 2400, 2500 or 2600 depending on own skill, for better distribution in first games, better matchup
 			Save every field as a Collection{GuildSnowflake -> field variable} to make sure bot works on many servers at once
 			Find a fix for printing result alignment - redo system for printouts?
@@ -119,7 +122,7 @@ client.on('messageReactionAdd', (messageReaction, user) => {
 				for(var i = 0; i < mapMessages.length; i++){
 					if(messageReaction.message.id === mapMessages[i].id){ // Find if reacted on this map
 						if(messageReaction.emoji.toString() === emoji_error){
-							map_js.captainVote(messageReaction, user, i, mapStatusMessage);
+							map_js.captainVote(messageReaction, user, i);
 						} else if(messageReaction.emoji.toString() === emoji_agree){ // If not captains, can only react with emoji_agree or emoji_disagree
 							map_js.otherMapVote(messageReaction, user, activeMembers);
 						} else if(messageReaction.emoji.toString() === emoji_disagree){ // If not captains, can only react with emoji_agree or emoji_disagree
@@ -187,7 +190,8 @@ function handleMessage(message) {
 			} else {
 				f.print(message, 'Invalid command: Author of message must be in voiceChannel', callbackInvalidCommand); 
 			}
-			message.delete(10000); // Is matchupMessage separated from this? Not removed by reference delete TODO: Check
+			message.delete(5000)
+			.catch(err => console.log('@matchupMessage ' + err));;; 
 		} else{
 			f.print(message, 'Invalid command: Inhouse already ongoing', callbackInvalidCommand); 
 			message.delete(10000);
@@ -461,12 +465,7 @@ function onExit(){
 	if(!f.isUndefined(matchupServerMsg)){
 		console.log('DEBUG @onExit 5');
 		matchupServerMsg.delete()
-		.catch(err => console.log(err)); 
-	}
-	if(!(f.isUndefined(matchupMessage) || f.isUndefined(matchupMessage.content))){ // Its not undefined on msg or content TODO Check second arg to === '' myb
-		console.log('DEBUG @onExit 6 - should be last');
-		matchupMessage.delete()
-		.catch(err => console.log(err)); // Delete message immediately on game cancel TODO: Fix Promise rejection
+		.catch(err => console.log('5' + err)); 
 	}
 }
 
@@ -519,6 +518,18 @@ exports.printMessage = function(message, callback = noop){ // DEFAULT: NOT remov
 
 exports.setBalanceInfo = function(obj){
 	balanceInfo = obj;
+}
+
+exports.setMatchupMsg = function(matchupMsg){
+	matchupServerMsg = matchupMsg;
+}
+
+exports.getMapStatusMessage = function(){
+	return mapStatusMessage;
+}
+
+exports.setMapStatusMessage = function(variable){
+	mapStatusMessage = variable;
 }
 
 exports.getRemoveTime = function(){
