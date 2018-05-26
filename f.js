@@ -13,7 +13,7 @@ var isUndefined = function(obj){
 // Used to print message in channel, use for every use of channel.send for consistency
 // Returns promise for use in async functions
 var print = function(messageVar, message, callback = callbackPrintDefault){
-	console.log(message);
+	console.log('> ' + message);
 	messageVar.channel.send(message)
 	.then(result => {
 		callback(result);
@@ -27,14 +27,17 @@ var deleteDiscMessage = function(messageVar, time = bot.getRemoveTime(), message
 	// Alt. (Somehow) Compare freshest time, delete other timeout
 	console.log('DEBUG @delete1 for ' + messageName + ', addDelete(' + time + ') = ' + (!listToDeleteFrom.has(messageName) && !isUndefined(messageVar) && messageVar.content !== ''), listToDeleteFrom.has(messageName));
 	if(!listToDeleteFrom.has(messageName) && !isUndefined(messageVar) && messageVar.content !== ''){
+		if(messageName === 'matchupMessage'){
+			console.log('DEBUG deleteDiscMessage', messageVar.content);
+		}
 		listToDeleteFrom.add(messageName);
 	}
 	setTimeout(function(){
 		console.log('DEBUG @delete2 for ' + messageName + ':', listToDeleteFrom.has(messageName), time);
 		if(listToDeleteFrom.has(messageName)){ // Makes sure it isn't already deleted
-			listToDeleteFrom.delete(messageName);
+			listToDeleteFrom.delete(messageName); // TODO: Adjust this, should remove but make sure it continues to work. Remove since there seem to be no way of knowing if message is deleted
 			messageVar.delete()
-			.catch(err => console.log('@delete for ' + messageName + ' (' + time + ' ):\n' + err));
+			.catch(err => console.log('@delete for ' + messageName + ' (' + time + '): \n' + err));
 		}
 	}, time);
 }

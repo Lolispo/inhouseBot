@@ -23,7 +23,7 @@ const { prefix, token, dbpw } = require('./conf.json');
 /*
 	TODO:
 		Features:
-			Redo delete through own method, so a new delete can be called to always delete after lowest time
+			Find how to know if a message has been deleted or not
 			Challenge / Duel: Challenge someone to 1v1
 				Challenge specific person or "Queue" so anyone can accept
 				If challenged: message that user where user can react to response in dm. Update in channel that match is on
@@ -31,8 +31,8 @@ const { prefix, token, dbpw } = require('./conf.json');
 			Store MMR for more games
 				Default cs, otherwise dota
 				Decide where you specify which mmr (either at balance or at win)
-			Start MMR chosen as either 2400, 2500 or 2600 depending on own skill, for better distribution in first games, better matchup
 			Save every field as a Collection{GuildSnowflake -> field variable} to make sure bot works on many servers at once
+			Start MMR chosen as either 2400, 2500 or 2600 depending on own skill, for better distribution in first games, better matchup
 			Find a fix for printing result alignment - redo system for printouts?
 				Didn't work, since char diff length: Handle name lengths for prints in f.js so names are aligned in tabs after longest names
 		Refactor:
@@ -160,7 +160,7 @@ client.on('messageReactionRemove', (messageReaction, user) => {
 
 // Main message handling function 
 function handleMessage(message) { 
-	console.log('MSG (' + message.channel.guild.name + '.' + message.channel.name + ') ' + message.author.username + ':', message.content); 
+	console.log('< MSG (' + message.channel.guild.name + '.' + message.channel.name + ') ' + message.author.username + ':', message.content); 
 	// All stages commands, Commands that should always work, from every stage
 	if(message.content == 'hej'){
 		f.print(message, 'Hej ' + message.author.username, noop); // Not removing hej messages
@@ -298,7 +298,7 @@ function handleMessage(message) {
 	}
 	else if(startsWith(message,prefix)){ // Message start with prefix
 		f.print(message, 'Invalid command: List of available commands at **' + prefix + 'help**', callbackInvalidCommand);
-		f.deleteDiscMessage(message, 3000, 'invalidCommand');
+		f.deleteDiscMessage(message, 3000, 'invalidCommand'); // Overlaps delete call from callbackInvalidCommand above^
 	}
 }
 
@@ -444,31 +444,25 @@ function buildHelpString(){
 // Here follows callbackFunctions for handling bot sent messages
 // Might throw the warning, Unhandled Promise Rejection, unknown message
 function onExit(){
-	console.log('DEBUG @onExit Entry- Attempting to delete a bunch of messages')
 	if(!f.isUndefined(mapMessages)){ // TODO: Probably requires to check to see if content === '' since it seems you can delete message in chat and variable stays
-		console.log('DEBUG @onExit 1');
 		for(var i = 0; i < mapMessages.length; i++){
 			f.deleteDiscMessage(mapMessages[i], 0, 'mapMessage['+i+']');		
 		}
 	}
 	if(!f.isUndefined(mapStatusMessage)){
-		console.log('DEBUG @onExit 2'); //, content = "' + mapStatusMessage.content  + '"');
 		f.deleteDiscMessage(mapStatusMessage, 0, 'mapStatusMessage');	
 	}
 	if(!f.isUndefined(voteMessage)){
-		console.log('DEBUG @onExit 3'); //, content = "' + voteMessage.content  + '"');
 		f.deleteDiscMessage(voteMessage, 0, 'voteMessage');
 	}
 	if(!f.isUndefined(teamWonMessage)){
-		console.log('DEBUG @onExit 4'); //, content = "' + teamWonMessage.content  + '"');
 		f.deleteDiscMessage(teamWonMessage, 0, 'teamWonMessage');
 	}
 	if(!f.isUndefined(matchupServerMsg)){
-		console.log('DEBUG @onExit 5'); //, content = "' + matchupServerMsg.content + '"');
 		f.deleteDiscMessage(matchupServerMsg, 0, 'matchupServerMsg');
 	}
 	if(!f.isUndefined(matchupMessage)){
-		console.log('DEBUG @onExit 6'); //, content = "' + matchupMessage.content  + '"');
+		console.log('DEBUG matchupMessage onExit', matchupMessage.content);
 		f.deleteDiscMessage(matchupMessage, 0, 'matchupMessage');
 	}
 }

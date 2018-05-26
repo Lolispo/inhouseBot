@@ -1,5 +1,8 @@
-# inhouseBot
-A discord bot made in NodeJS that handles a inhouse system with rating for each individual user. 
+# inhouseBot - Make your own inhouse league!
+
+#### A discord bot made in NodeJS that handles a inhouse system with rating for each individual user. 
+
+#### Supports sizes of 2v2, 3v3, 4v4 and 5v5
 
 ## Available commands
 
@@ -31,8 +34,13 @@ Prefix and bot-name can be modified to own liking
 
 **-roll** Rolls a number (0 - 100)
 
-## Balance
+**-duel | -challenge** Challenge another user for a duel **TBA**
 
-### Supports sizes of 2v2, 3v3, 4v4 and 5v5
+## Ideas for future?
 
-Make your own inhouse league!
+Make a pull request for a new issue in the repository.
+
+Current TODO:s for the projects are listed in the files, main TODO section is in bot.js
+
+
+
