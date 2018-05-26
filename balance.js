@@ -227,7 +227,7 @@ function buildReturnString(obj, callback){ // TODO: Make print consistently nice
 		s += ',\t' + obj.team2[i].userName + ' (' + obj.team2[i].mmr + ')';
 	}
 	s += '*\n\n';
-	s += '*Connect:* \n**connect 217.78.24.14:27302; password null**'; // Lukas' server on datHost, requires either Lukas or Petter ingame to use
+	s += '*Connect:* \n**connect 217.78.24.14:27302; password null**'; // Lukas' server on datHost, requires Petter/Lukas/Martin ingame to use
 	callback(1, s, obj); // Should send the message back to the bot
 }
 

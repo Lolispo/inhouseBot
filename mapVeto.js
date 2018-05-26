@@ -51,7 +51,7 @@ var captainVote = function(messageReaction, user, i){
 			bot.getMapStatusMessage().edit(getMapString(true));
 		}
 	} else { // Don't allow messageReaction of emoji_error otherwise
-		console.log('DEBUG: Not allowerd user pressed ' + emoji_error);
+		console.log('DEBUG: Not allowed user pressed ' + emoji_error);
 		messageReaction.remove(user);
 	}
 }
@@ -59,12 +59,11 @@ var captainVote = function(messageReaction, user, i){
 var otherMapVote = function(messageReaction, user, activeMembers){
 	console.log('DEBUG: not captain vote', user.username);
 	var allowed = false; // TODO: Redo with some contains method
-	// TODO: Check why it doesn't work. CHECK ME
 	if(f.isUndefined(activeMembers)){
 		console.log('Error: activeMembers not initialized in @otherMapVote (Test case = ok)'); // Since it is assumed to always be initialized, throw error otherwise
 	}else{
 		activeMembers.forEach(function(guildMember){
-			console.log('DEBUG: @addReaction emojiAgree', user.id, guildMember.id);
+			console.log('DEBUG: Added reaction of', messageReaction.emoji, 'from', user.username, 'on msg :', messageReaction.message.id);
 			if(user.id === guildMember.id){
 				allowed = true;
 			}

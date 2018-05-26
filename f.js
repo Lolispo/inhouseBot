@@ -18,11 +18,36 @@ var print = function(messageVar, message, callback = callbackPrintDefault){
 	.then(result => {
 		callback(result);
 		// TODO: Remove on exit
-	}).catch(err => console.log('@print for ' + message + ' :\n' + err));;
+	}).catch(err => console.log('@print for ' + message + ' :\n' + err));
+}
+
+var listToDeleteFrom = new Set();
+
+var deleteDiscMessage = function(messageVar, time = bot.getRemoveTime(), messageName = 'defaultName'){
+	// Alt. (Somehow) Compare freshest time, delete other timeout
+	console.log('DEBUG @delete1 for ' + messageName + ', addDelete(' + time + ') = ' + (!listToDeleteFrom.has(messageName) && !isUndefined(messageVar) && messageVar.content !== ''), listToDeleteFrom.has(messageName));
+	if(!listToDeleteFrom.has(messageName) && !isUndefined(messageVar) && messageVar.content !== ''){
+		listToDeleteFrom.add(messageName);
+	}
+	setTimeout(function(){
+		console.log('DEBUG @delete2 for ' + messageName + ':', listToDeleteFrom.has(messageName), time);
+		if(listToDeleteFrom.has(messageName)){ // Makes sure it isn't already deleted
+			listToDeleteFrom.delete(messageName);
+			messageVar.delete()
+			.catch(err => console.log('@delete for ' + messageName + ' (' + time + ' ):\n' + err));
+		}
+	}, time);
+}
+
+var onExitDelete = function(){
+	listToDeleteFrom.forEach(function(data){
+		data.delete()
+		.catch(err => console.log('@onExitDelete' + err));
+	});
 }
 
 function callbackPrintDefault(message){
-	message.delete(bot.getRemoveTime());
+	deleteDiscMessage(message);
 }
 
 // Takes an Array of Players and returns an Array of GuildMembers with same ids
@@ -85,6 +110,8 @@ var getTabsForName = function(nameLength, longestName){
 module.exports = {
 	isUndefined : isUndefined,
 	print : print,
+	deleteDiscMessage : deleteDiscMessage,
+	onExitDelete : onExitDelete,
 	teamToGuildMember : teamToGuildMember,
 	getLongestNameLength : getLongestNameLength,
 	getTabsForName : getTabsForName

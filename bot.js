@@ -23,6 +23,7 @@ const { prefix, token, dbpw } = require('./conf.json');
 /*
 	TODO:
 		Features:
+			Redo delete through own method, so a new delete can be called to always delete after lowest time
 			Challenge / Duel: Challenge someone to 1v1
 				Challenge specific person or "Queue" so anyone can accept
 				If challenged: message that user where user can react to response in dm. Update in channel that match is on
@@ -102,12 +103,12 @@ client.on('message', message => {
 			console.log('DM msg = ' + message.author.username + ': ' + message.content);
 			message.author.send('Send commands in a server - not to me!')
 			.then(result => {
-				result.delete(removeBotMessageDefaultTime * 2);
+				f.deleteDiscMessage(result, removeBotMessageDefaultTime * 2);
 			}); ;
 			if(message.content === prefix+'help' || message.content === prefix+'h'){ // Special case for allowing help messages to show up in DM
 				message.author.send(buildHelpString())
 				.then(result => {
-					result.delete(removeBotMessageDefaultTime * 2);
+					f.deleteDiscMessage(result, removeBotMessageDefaultTime * 2);
 				}); ;
 			}
 		}
@@ -167,7 +168,7 @@ function handleMessage(message) {
 	else if(message.content === prefix+'ping'){ // Good for testing prefix and connection to bot
 		console.log('PingAlert, user had !ping as command');
 		f.print(message, 'Pong');
-		message.delete(removeBotMessageDefaultTime);
+		f.deleteDiscMessage(message, removeBotMessageDefaultTime, 'ping');
 	}
 	else if(startsWith(message, prefix + 'roll')){ // Roll command for luls
 		var messages = message.content.split(' ');
@@ -182,7 +183,7 @@ function handleMessage(message) {
 	// Sends available commands privately to the user
 	else if(message.content === prefix+'help' || message.content === prefix+'h'){
 		message.author.send(buildHelpString());
-		message.delete(10000);
+		f.deleteDiscMessage(message, 10000, 'help');
 	}
 	else if(message.content === `${prefix}b` || message.content === `${prefix}balance` || message.content === `${prefix}inhousebalance`){
 		if(stage === 0){
@@ -194,11 +195,10 @@ function handleMessage(message) {
 			} else {
 				f.print(message, 'Invalid command: Author of message must be in voiceChannel', callbackInvalidCommand); 
 			}
-			message.delete(5000)
-			.catch(err => console.log('@matchupMessage ' + err));;; 
+			f.deleteDiscMessage(message, 10000, 'matchupMessage');
 		} else{
 			f.print(message, 'Invalid command: Inhouse already ongoing', callbackInvalidCommand); 
-			message.delete(10000);
+			f.deleteDiscMessage(message, 10000, 'matchupMessage');
 		}
 	}
 
@@ -211,7 +211,7 @@ function handleMessage(message) {
 			});
 			f.print(message, s);
 		});
-		message.delete(15000);
+		f.deleteDiscMessage(message, 15000, 'leaderboard');
 	}
 	// Sends private information about your statistics
 	else if(message.content === `${prefix}stats`){
@@ -228,23 +228,23 @@ function handleMessage(message) {
 			}
 			message.author.send(s)  // Private message
 			.then(result => {
-				result.delete(removeBotMessageDefaultTime * 2);
+				f.deleteDiscMessage(result, removeBotMessageDefaultTime * 2);
 			}); 
 		});
-		message.delete(15000);
+		f.deleteDiscMessage(message, 15000, 'stats');
 	}
 	// Used for tests
 	else if(message.content === `${prefix}test`){
 		if(message.author.username === 'Petter'){
 			// Do tests: 
 		}
-		message.delete(1000);
+		f.deleteDiscMessage(message, 1, 'test');
 	}
 	// Unites all channels, INDEPENDENT of game ongoing
 	// Optional additional argument to choose name of voiceChannel to uniteIn, otherwise same as balance was called from
 	else if(startsWith(message, prefix + 'ua') || startsWith(message, prefix + 'uniteall') ){ // TODO: Not from break room, idle chat
 		voiceMove_js.uniteAll(message);
-		message.delete(15000);
+		f.deleteDiscMessage(message, 15000, 'ua');
 	}
 	// STAGE 1 COMMANDS: (After balance is made)
 	else if(stage === 1){
@@ -268,7 +268,7 @@ function handleMessage(message) {
 			if(message.author.id === matchupMessage.author.id){
 				setStage(0);
 				f.print(message, 'Game canceled', callbackGameCanceled);
-				message.delete(15000); // prefix+c
+				f.deleteDiscMessage(message, 15000, 'c'); // prefix+c
 			}else{
 				f.print(message, 'Invalid command: Only the person who started the game can cancel it (' + matchupMessage.author.username + ')', callbackInvalidCommand);
 			}
@@ -278,13 +278,13 @@ function handleMessage(message) {
 		// TODO: Logic for if these aren't available
 		else if(message.content === `${prefix}split`){
 			voiceMove_js.split(message, balanceInfo, activeMembers);
-			message.delete(15000);
+			f.deleteDiscMessage(message, 15000, 'split');
 		}
 		// Take every user in 'Team1' and 'Team2' and move them to the same voice chat
 		// Optional additional argument to choose name of voiceChannel to uniteIn, otherwise same as balance was called from
 		else if(startsWith(message, prefix + 'u') || startsWith(message, prefix + 'unite')){ 
 			voiceMove_js.unite(message, activeMembers);
-			message.delete(15000);
+			f.deleteDiscMessage(message, 15000, 'u');
 		}
 
 		// mapVeto made between one captain from each team
@@ -293,12 +293,12 @@ function handleMessage(message) {
 			.then(result => {
 				mapMessages = result;
 			});
-			message.delete(15000); // Remove mapVeto text
+			f.deleteDiscMessage(message, 15000, 'mapveto'); // Remove mapVeto text
 		}
 	}
 	else if(startsWith(message,prefix)){ // Message start with prefix
 		f.print(message, 'Invalid command: List of available commands at **' + prefix + 'help**', callbackInvalidCommand);
-		message.delete(3000);
+		f.deleteDiscMessage(message, 3000, 'invalidCommand');
 	}
 }
 
@@ -319,7 +319,7 @@ function roll(message, start, end){
 			f.print(message, message.author.username + ' rolled a ' + roll + ' (' + start + ' - ' + end + ')');
 		}
 	}
-	message.delete(10000);
+	f.deleteDiscMessage(message, 10000, 'roll');
 }
 
 // Here follows starting balanced game methods
@@ -396,12 +396,13 @@ function handleRelevantEmoji(emojiConfirm, winner, messageReaction, amountReleva
 		if(emojiConfirm){
 			console.log(emoji_agree + ' CONFIRMED! ' + ' (' + amountRelevant + '/' + totalNeeded + ') Removing voteText msg and team#Won msg');
 			mmr_js.updateMMR(winner, balanceInfo, callbackGameFinished); // Update mmr for both teams
-			messageReaction.message.delete(3000);
-			teamWonMessage.delete(3000);
+			console.log('DEBUG CHECK ME: ', messageReaction.message.content, voteMessage.content); // TODO Check: are these the same
+			f.deleteDiscMessage(messageReaction.message, 3000, 'voteMessage');
+			f.deleteDiscMessage(teamWonMessage, 3000, 'teamWonMessage');
 		}else{
 			console.log(emoji_disagree + ' CONFIRMED! ' + ' (' + amountRelevant + '/' + totalNeeded + ') Removing voteText msg and team#Won msg');
-			messageReaction.message.delete(3000);
-			teamWonMessage.delete(3000);
+			f.deleteDiscMessage(messageReaction.message, 3000, 'voteMessage');
+			f.deleteDiscMessage(teamWonMessage, 3000, 'teamWonMessage');
 		}
 	}
 }
@@ -447,35 +448,33 @@ function onExit(){
 	if(!f.isUndefined(mapMessages)){ // TODO: Probably requires to check to see if content === '' since it seems you can delete message in chat and variable stays
 		console.log('DEBUG @onExit 1');
 		for(var i = 0; i < mapMessages.length; i++){
-			mapMessages[i].delete()
-			.catch(err => console.log(err)); 			
+			f.deleteDiscMessage(mapMessages[i], 0, 'mapMessage['+i+']');		
 		}
 	}
 	if(!f.isUndefined(mapStatusMessage)){
-		console.log('DEBUG @onExit 2');
-		mapStatusMessage.delete()
-		.catch(err => console.log(err)); 
+		console.log('DEBUG @onExit 2'); //, content = "' + mapStatusMessage.content  + '"');
+		f.deleteDiscMessage(mapStatusMessage, 0, 'mapStatusMessage');	
 	}
 	if(!f.isUndefined(voteMessage)){
-		console.log('DEBUG @onExit 3');
-		voteMessage.delete()
-		.catch(err => console.log(err));
+		console.log('DEBUG @onExit 3'); //, content = "' + voteMessage.content  + '"');
+		f.deleteDiscMessage(voteMessage, 0, 'voteMessage');
 	}
 	if(!f.isUndefined(teamWonMessage)){
-		console.log('DEBUG @onExit 4');
-		teamWonMessage.delete()
-		.catch(err => console.log(err));
+		console.log('DEBUG @onExit 4'); //, content = "' + teamWonMessage.content  + '"');
+		f.deleteDiscMessage(teamWonMessage, 0, 'teamWonMessage');
 	}
 	if(!f.isUndefined(matchupServerMsg)){
-		console.log('DEBUG @onExit 5');
-		matchupServerMsg.delete()
-		.catch(err => console.log('5' + err)); 
+		console.log('DEBUG @onExit 5'); //, content = "' + matchupServerMsg.content + '"');
+		f.deleteDiscMessage(matchupServerMsg, 0, 'matchupServerMsg');
+	}
+	if(!f.isUndefined(matchupMessage)){
+		console.log('DEBUG @onExit 6'); //, content = "' + matchupMessage.content  + '"');
+		f.deleteDiscMessage(matchupMessage, 0, 'matchupMessage');
 	}
 }
 
 function callbackInvalidCommand(message){
-	message.delete(15000)
-	.catch(err => console.log(err));
+	f.deleteDiscMessage(message, 15000, 'invalidCommand');
 	message.react(emoji_error);
 }
 
@@ -486,15 +485,13 @@ async function callbackVoteText(message){
 }
 
 function callbackGameCanceled(message){
-	message.delete(15000)
-	.catch(err => console.log(err));
+	f.deleteDiscMessage(message, 15000, 'gameCanceled');
 	onExit();
 }
 
 function callbackGameFinished(message){ 
 	console.log('DEBUG @callbackGameFinished - Calls on exit after delete on this message');
-	message.delete(removeBotMessageDefaultTime * 2)
-	.catch(err => console.log(err));
+	f.deleteDiscMessage(message, removeBotMessageDefaultTime * 2, 'gameFinished');
 	onExit();
 }
 
