@@ -23,7 +23,7 @@ const { prefix, token, dbpw } = require('./conf.json');
 /*
 	TODO:
 		Features:
-			Find how to know if a message has been deleted or not
+			Support unite to channels with names over one word
 			Challenge / Duel: Challenge someone to 1v1
 				Challenge specific person or "Queue" so anyone can accept
 				If challenged: message that user where user can react to response in dm. Update in channel that match is on
@@ -54,6 +54,10 @@ const { prefix, token, dbpw } = require('./conf.json');
 				Add a second hidden rating for each user, so even though they all start at same mmr, 
 					this rating is used to even out the teams when unsure (ONLY BEGINNING)
 			mapVeto using majority vote instead of captains
+
+			Twitter
+			Hänga gubbe - dota chat style (first who types is winner)
+			Family Feud
 */
 
 // will only do stuff after it's ready
@@ -195,7 +199,9 @@ function handleMessage(message) {
 			} else {
 				f.print(message, 'Invalid command: Author of message must be in voiceChannel', callbackInvalidCommand); 
 			}
-			f.deleteDiscMessage(message, 10000, 'matchupMessage');
+			f.deleteDiscMessage(message, 10000, 'matchupMessage', function(msg){
+				msg.content = '-b <removed>';
+			});
 		} else{
 			f.print(message, 'Invalid command: Inhouse already ongoing', callbackInvalidCommand); 
 			f.deleteDiscMessage(message, 10000, 'matchupMessage');
@@ -234,9 +240,10 @@ function handleMessage(message) {
 		f.deleteDiscMessage(message, 15000, 'stats');
 	}
 	// Used for tests
-	else if(message.content === `${prefix}test`){
+	else if(message.content === `${prefix}exit`){
 		if(message.author.username === 'Petter'){
-			// Do tests: 
+			// Do tests:
+			cleanupExit();
 		}
 		f.deleteDiscMessage(message, 1, 'test');
 	}
@@ -305,6 +312,14 @@ function handleMessage(message) {
 // Returns boolean of if message starts with string
 function startsWith(message, string){
 	return (message.content.lastIndexOf(string, 0) === 0)
+}
+
+async function cleanupExit(){
+	await setStage(0); 
+	await f.onExitDelete();
+	await onExit();
+	//console.log('EXITING PROCESS');
+	//await process.exit();
 }
 
 // Roll functionality
@@ -462,7 +477,7 @@ function onExit(){
 		f.deleteDiscMessage(matchupServerMsg, 0, 'matchupServerMsg');
 	}
 	if(!f.isUndefined(matchupMessage)){
-		console.log('DEBUG matchupMessage onExit', matchupMessage.content);
+		//console.log('DEBUG matchupMessage onExit', matchupMessage.content);
 		f.deleteDiscMessage(matchupMessage, 0, 'matchupMessage');
 	}
 }

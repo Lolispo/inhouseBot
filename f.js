@@ -4,6 +4,15 @@
 // Should handle general help functions
 const bot = require('./bot')
 
+/*
+var nodeCleanup = require('node-cleanup');
+// TODO Cleanup on exit, can't control SIGINT (ctrl+c) Correctly, requires synchronous code
+nodeCleanup(function (exitCode, signal) {
+    // release resources here before node exits
+    onExitDelete();
+});
+*/
+
 // Returns boolean over if type of obj is undefined
 // Could add function isNotUndefined for readability, replace !isUndefined with isNotUndefined
 var isUndefined = function(obj){
@@ -21,32 +30,38 @@ var print = function(messageVar, message, callback = callbackPrintDefault){
 	}).catch(err => console.log('@print for ' + message + ' :\n' + err));
 }
 
-var listToDeleteFrom = new Set();
+var listToDeleteFrom = new Map();
 
-var deleteDiscMessage = function(messageVar, time = bot.getRemoveTime(), messageName = 'defaultName'){
+var deleteDiscMessage = function(messageVar, time = bot.getRemoveTime(), messageName = 'defaultName', callback = function(msg) {}){
 	// Alt. (Somehow) Compare freshest time, delete other timeout
 	console.log('DEBUG @delete1 for ' + messageName + ', addDelete(' + time + ') = ' + (!listToDeleteFrom.has(messageName) && !isUndefined(messageVar) && messageVar.content !== ''), listToDeleteFrom.has(messageName));
 	if(!listToDeleteFrom.has(messageName) && !isUndefined(messageVar) && messageVar.content !== ''){
-		if(messageName === 'matchupMessage'){
-			console.log('DEBUG deleteDiscMessage', messageVar.content);
+		if(!messageVar.content.includes('<removed>')){
+			listToDeleteFrom.set(messageName, messageVar);	
 		}
-		listToDeleteFrom.add(messageName);
 	}
 	setTimeout(function(){
 		console.log('DEBUG @delete2 for ' + messageName + ':', listToDeleteFrom.has(messageName), time);
 		if(listToDeleteFrom.has(messageName)){ // Makes sure it isn't already deleted
 			listToDeleteFrom.delete(messageName); // TODO: Adjust this, should remove but make sure it continues to work. Remove since there seem to be no way of knowing if message is deleted
 			messageVar.delete()
-			.catch(err => console.log('@delete for ' + messageName + ' (' + time + '): \n' + err));
+			.then(res => {
+				callback(res); // Use optional callback (Default noop)
+			}).catch(err => console.log('@delete for ' + messageName + ' (' + time + '): \n' + err));
 		}
 	}, time);
 }
 
+// Used on exit, should delete all messages that are awaiting deletion instantly
 var onExitDelete = function(){
-	listToDeleteFrom.forEach(function(data){
-		data.delete()
+	console.log('onExitDelete');
+	var mapIter = listToDeleteFrom.values();
+	for(var i = 0; i < listToDeleteFrom.size; i++){
+		var ele = mapIter.next().value;
+		//console.log(ele.content);
+		ele.delete()	
 		.catch(err => console.log('@onExitDelete' + err));
-	});
+	}
 }
 
 function callbackPrintDefault(message){

@@ -19,8 +19,9 @@ const emoji_error = '❌'; 		// Error / Ban emoji. Alt: '🤚';
 var captainVote = function(messageReaction, user, i){
 	console.log('DEBUG: CaptainVote', user.username, 'i = ', i, 'turn = ', mapVetoTurn);
 	if(user.id === captain1.uid && mapVetoTurn === 0){ // Check to see if author is a captain and his turn
-		var tempMessage = mapMessages[i];
-		bannedMaps.push(user.username + ' banned ' + tempMessage); // Maybe should add bold on second to last one
+		var tempMessage = mapMessages[i]; 
+		var presentableName = String(tempMessage).split('\n')[1];
+		bannedMaps.push(user.username + ' banned ' + presentableName); // Maybe should add bold on second to last one
 		mapMessages.splice(i, 1); // splice(index, howMany)
 		tempMessage.delete(400);
 		changeTurn();
@@ -31,12 +32,13 @@ var captainVote = function(messageReaction, user, i){
 				throw 'Error should be gone here: Make sure it is otherwise', mapMessages;
 			}
 			chosenMap.delete();
-			bannedMaps.push('\nChosen map is ' + chosenMap);
+			bannedMaps.push('\nChosen map is ' + String(chosenMap).split('\n')[1]);
 			bot.getMapStatusMessage().edit(getMapString(true)); // TODO Check
 		}
 	} else if(user.id === captain2.uid && mapVetoTurn === 1){
 		var tempMessage = mapMessages[i];
-		bannedMaps.push(user.username + ' banned ' + tempMessage);
+		var presentableName = String(tempMessage).split('\n')[1];
+		bannedMaps.push(user.username + ' banned ' + presentableName); // Maybe should add bold on second to last one
 		mapMessages.splice(i, 1); // splice(index, howMany)
 		tempMessage.delete(400);
 		changeTurn();
@@ -47,7 +49,7 @@ var captainVote = function(messageReaction, user, i){
 				throw 'Error: mapMessages should be gone here: Make sure it is otherwise';
 			}
 			chosenMap.delete();
-			bannedMaps.push('Chosen map is ' + chosenMap);
+			bannedMaps.push('Chosen map is ' + String(chosenMap).split('\n')[1]);
 			bot.getMapStatusMessage().edit(getMapString(true));
 		}
 	} else { // Don't allow messageReaction of emoji_error otherwise
@@ -63,7 +65,7 @@ var otherMapVote = function(messageReaction, user, activeMembers){
 		console.log('Error: activeMembers not initialized in @otherMapVote (Test case = ok)'); // Since it is assumed to always be initialized, throw error otherwise
 	}else{
 		activeMembers.forEach(function(guildMember){
-			console.log('DEBUG: Added reaction of', messageReaction.emoji, 'from', user.username, 'on msg :', messageReaction.message.id);
+			console.log('DEBUG: Added reaction of', messageReaction.emoji.id, 'from', user.username, 'on msg :', messageReaction.message.id);
 			if(user.id === guildMember.id){
 				allowed = true;
 			}
