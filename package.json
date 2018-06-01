@@ -24,6 +24,7 @@
     "mysql2": "^1.5.3",
     "node-cleanup": "^2.1.2",
     "npm": "^6.1.0",
+    "request": "^2.87.0",
     "sequelize": "^4.37.6"
   }
 }
