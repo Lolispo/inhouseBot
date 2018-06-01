@@ -4,11 +4,11 @@
 // Main File for discord bot: Handles event for messages
 
 const Discord = require('discord.js');
+const ArrayList = require('arraylist');
 
 // Get Instance of discord client
 const client = new Discord.Client();
 
-const ArrayList = require('arraylist');
 const balance = require('./balance');
 const mmr_js = require('./mmr');
 const player_js = require('./player');
@@ -16,7 +16,7 @@ const map_js = require('./mapVeto');
 const voiceMove_js = require('./voiceMove'); 
 const f = require('./f');
 const db_sequelize = require('./db-sequelize');
-
+const trivia = require('./trivia')
 //get config data
 const { prefix, token, dbpw } = require('./conf.json');
 
@@ -108,12 +108,12 @@ client.on('message', message => {
 			message.author.send('Send commands in a server - not to me!')
 			.then(result => {
 				f.deleteDiscMessage(result, removeBotMessageDefaultTime * 2);
-			}); ;
+			});
 			if(message.content === prefix+'help' || message.content === prefix+'h'){ // Special case for allowing help messages to show up in DM
 				message.author.send(buildHelpString())
 				.then(result => {
 					f.deleteDiscMessage(result, removeBotMessageDefaultTime * 2);
-				}); ;
+				});
 			}
 		}
 	} // Should handle every message except bot messages

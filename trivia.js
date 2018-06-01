@@ -2,23 +2,78 @@
 // Author: Petter Andersson
 
 var request = require('request');
-
+var token = '';
+const f = require('./f');
 // TODO: Add more options for different questions, generic might be better, more categories
 // TODO: Token for different questions? https://opentdb.com/api_config.php
-function getDataQuestions(amount){
-	request('https://opentdb.com/api.php?amount=' + amount + '&category=15&difficulty=medium&type=multiple', function (error, response, body) {
+
+// https://opentdb.com/api.php?amount=10&category=9
+// https://opentdb.com/api.php?amount=10&difficulty=easy
+function getDataQuestions(amount = 10, category = 1, difficulty = 0){
+	var categories = '&category=';
+	if(category === 0){
+		categories = '';
+	} else if(category === 1){ // Games
+		categories += '15'; 
+	} else if(category === 2){ // Generic Knowledge
+		categories += '9';
+	} // TODO Add custom choice of category
+	var difficulties = '&difficulty=';
+	if(difficulty === 0){
+		difficulties = '';
+	} else if(difficulty === 1){ // Easy
+		difficulties += 'easy';
+	} else if(difficulty === 2){ // Medium
+		difficulties += 'medium';
+	} else if(difficulty === 3){ // Hard
+		difficulties += 'hard';
+	}
+	if(token === ''){
+		console.log('new token');
+		getToken(amount, categories, difficulties);
+	} else {
+		urlGenerate(amount, categories, difficulties, token);	
+	}
+}
+
+function urlGenerate(a, c, d, t){
+	var url = 'https://opentdb.com/api.php?amount=' + a + c + d +'&type=multiple'
+	if(!f.isUndefined(t)){
+		url += '&token='+t; 
+	} else{
+		console.log('UNDEFINED TOKEN, continues without token');
+	}
+	console.log(url);
+	request(url, function (error, response, body) {
 		if(error !== null){
 			console.log('error:', error);
 		}else{
-			//console.log('response:', response);
-			//console.log('body:', questions);
-			return handleQuestions(JSON.parse(body).results);
+			body = JSON.parse(body);
+			if(body.response_code === 3 || body.response_code === 4){ // Token not found
+				getToken(a, c, d);
+			} else if(body.response_code === 0){
+				//console.log('response:', response);
+				//console.log('body:', body);
+				console.log('Valid Token: Success!');
+				return handleQuestions(body.results);				
+			} else { // 1 and 2, NO results, (too many questions) and invalid parameters
+				console.log('DEBUG:', body.response_code); // Might be due to too many questions
+			}
 		}
 	});	
 }
 
-function handleQuestions(){
-	var questions = ;		
+// Get token
+function getToken(a, c, d){
+	request('https://opentdb.com/api_token.php?command=request', function (error, response, body) {
+		console.log('body:', body);
+		body = JSON.parse(body);
+		console.log('@getToken', body.token);
+		urlGenerate(a, c, d, body.token);
+	});
+}
+
+function handleQuestions(questions){		
 	questions.forEach(function(thisQuestion){
 		
 		var q = thisQuestion.question;
@@ -112,4 +167,4 @@ function getCensored(ans){
 	return {censored : s, charCounter : charCounter};
 }
 
-getDataQuestions(10); // Test code
+getDataQuestions(1); // Test code
