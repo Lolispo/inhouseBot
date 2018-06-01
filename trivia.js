@@ -8,7 +8,7 @@ function getDataQuestions(){
 		}else{
 			//console.log('response:', response);
 			var questions = JSON.parse(body).results;		
-			console.log('body:', questions);
+			//console.log('body:', questions);
 			questions.forEach(function(thisQuestion){
 				
 				var q = thisQuestion.question;
@@ -16,19 +16,23 @@ function getDataQuestions(){
 				console.log(q);
 				console.log(ans);
 				
-				var cen_obj = getCensored();
+				var cen_obj = getCensored(ans);
 				var censored_ans = cen_obj.censored;
 				var charCounter = cen_obj.charCounter;
 				console.log(censored_ans);
 				questions.censored_ans = censored_ans;
 				questions.lessCensored = [];
+				var censored_word = censored_ans;
 				var revealedChars = 0;
-				for(var i = 0; i < 5; i++){ // Level of censorship, should break when word is shown
-					var censored_obj = getLessCensored(ans, censored_ans, charCounter, i, revealedChars);
-					var censored_word = censored_obj.newCensored;
+				for(var i = 0; i < ans.length;){ // Level of censorship, should break when word is shown
+					var censored_obj = getLessCensored(ans, censored_word, charCounter, i);
+					censored_word = censored_obj.newCensored;
 					revealedChars = censored_obj.revealedChars;
+					i += revealedChars;
 					questions.lessCensored[i] = censored_word; // Store in obj
+					console.log(censored_word);
 					if(censored_word === ans){
+						console.log('We done!', revealedChars, revealedChars === ans.length);
 						break;
 					}
 				}
@@ -40,9 +44,20 @@ function getDataQuestions(){
 }
 
 // Different degree of censorship, lower num = more censor
-function getLessCensored(ans, cens, charCounter, num, rev){
-	var length = cens.length;
-	return {newCensored : censored, revealedChars : rev}
+// Generate numbers from 0 to charCounter, put in array
+// Shuffle, for every num, reveal that index in array instead of num . array[num] instead of num
+function getLessCensored(ans, cens, charCounter, num){
+	var rev = 0;
+	for(var i = num; i < cens.length; i++){
+		if(cens.charAt(i) !== '*'){
+			rev++;
+		} else {
+			var newCens = cens.substr(0, i) + ans.charAt(i) + cens.substr(i + 1);
+			rev++;
+			break;
+		}
+	}
+	return {newCensored : newCens, revealedChars : rev}
 }
 
 function getCensored(ans){
