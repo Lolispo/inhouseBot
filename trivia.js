@@ -12,19 +12,27 @@ var pointMap = {};
 var questionsArray = [];
 var questionIndex;
 var messageVar = {}; // Initialize somewhere on a message in chat
+var censoredMessage;
+var shuffledMessage;
+var allMessages = [];
+
+const channelName = 'trivia-channel';
 const waitTimeForSteps = 10;
 const lengthForShuffle = 8;
 const maxPossiblePoints = 5;
 
 // Checks logic for message, matches with current answer
-function isCorrect(message){
+exports.isCorrect = function(message){
 	if(message.content.toLowerCase() === ans.toLowerCase()){
 		done = true;
 		var pointsToIncrease = pointMap.get(message.author.id);
 		var player = player_js.getPlayer(activePlayers, message.author.id);
+		var newMmr = pointsToIncrease; // TODO: Temp, implement when player.js is updated and DB is updated
 		// var newMmr = player.trivia + pointsToIncrease;
 		// db_sequelize.updateMmr(message.author.id, newMmr, trivia);
-		f.print(message, message.author.username + ' answered correctly! Answer was: ' + ans);
+		finishedQuestionDelete();
+		// Decide if messages should be removed differently
+		f.print(message, message.author.username + ' answered correctly! Answer was: ' + ans + '. Trivia Rating: ' + newMmr + ' (+' + pointsToIncrease + ')'); 
 		pointMap.forEach(function(value, key) {
 			pointMap.set(key, maxPossiblePoints);
 		});
@@ -38,12 +46,19 @@ function isCorrect(message){
 }
 
 // Starts game, requires messageVar (from correct textchannel) and questions
-function startGame(message, questions, players){
+exports.startGame = function(message, questions, players){
 	activePlayers = players;
 	pointMap = new Map();
 	for(var i = 0; i < activePlayers.size(); i++){
 		pointMap.set(activePlayers[i].uid, maxPossiblePoints);
 	}
+	// Find text channel: Send start message
+	var channel = message.guild.channels.find('name', channelName);
+	channel.send('Starting game of trivia!')
+	.then(result => {
+		messageVar = result;		// Initialize messageVar to be in correct chhanel, used for print
+		deleteDiscMessage(result);	// Delete start message after default time
+	}).catch(err => console.log('@startGame: ' + err));
 	questionsArray = questions;
 	questionIndex = 0
 	startQuestion();
@@ -67,7 +82,9 @@ function startQuestion(){
 		if(ans.length >= lengthForShuffle){
 			setTimeout(function(){
 				if(!done){
-					f.print(message, q.shuffledAns);
+					f.print(message, q.shuffledAns, function(msg){
+						shuffledMessage = msg;
+					});
 					nextLessCensored(q.lessCensored, 0, message);		
 				}	
 			}, waitTimeForSteps);
@@ -77,23 +94,25 @@ function startQuestion(){
 	}
 }
 
-
 // Print next clue after next interval
 function nextLessCensored(array, index, message){
 	setTimeout(function(){
 		if(!done){
-			f.print(message, array[index]);
-			nextLessCensored(array, index+1, message);		
+			if(index === 0){
+				f.print(message, array[index], function(msg){
+					censoredMessage = msg;
+					nextLessCensored(array, index + 1, msg);		
+				});
+			} else{
+				censoredMessage.edit(array[index]);
+			}
 		}
 	}, waitTimeForSteps);
 }
 
 // TODO: Add more options for different questions, generic might be better, more categories
-// TODO: Token for different questions? https://opentdb.com/api_config.php
-
-// https://opentdb.com/api.php?amount=10&category=9
-// https://opentdb.com/api.php?amount=10&difficulty=easy
-function getDataQuestions(amount = 10, category = 1, difficulty = 0){
+// https://opentdb.com/api_config.php
+exports.getDataQuestions = function(amount = 10, category = 1, difficulty = 0){
 	var categories = '&category=';
 	if(category === 0){
 		categories = '';
@@ -250,4 +269,15 @@ function getCensored(ans){
 	return {censored : s, charCounter : charCounter};
 }
 
-//getDataQuestions(1); // Test code
+function finishedQuestionDelete(){
+	if(!f.isUndefined(shuffledMessage)){
+		f.deleteDiscMessage(shuffledMessage, 0, 'shuffledMessage');	
+	}
+	if(!f.isUndefined(censoredMessage)){
+		f.deleteDiscMessage(censoredMessage, 0, 'censoredMessage');	
+	}
+}
+
+exports.getChannelName = function(){
+	return channelName;
+}

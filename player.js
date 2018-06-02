@@ -66,7 +66,7 @@ exports.getSortedRating = function(players, game){
 	var s = '';
 	if(game === 'trivia'){
 		for(var i = 0; i < players.size(); i++){
-			var s += players[i].username + ': Trivia Rating: ' + players[i].game + '\n'; // trivia
+			s += players[i].username + ': Trivia Rating: ' + players[i].game + '\n'; // trivia
 		}
 	}
 	return s;

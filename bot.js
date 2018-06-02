@@ -16,7 +16,7 @@ const map_js = require('./mapVeto');
 const voiceMove_js = require('./voiceMove'); 
 const f = require('./f');
 const db_sequelize = require('./db-sequelize');
-const trivia = require('./trivia ')
+const trivia = require('./trivia')
 //get config data
 const { prefix, token, dbpw } = require('./conf.json');
 
@@ -59,8 +59,8 @@ const { prefix, token, dbpw } = require('./conf.json');
 				GDPR laws
 
 			Twitter deathmatch
-			Family Feud Trivia
-*/
+			Family Feud
+	*/
 
 // will only do stuff after it's ready
 client.on('ready', () => {
@@ -104,7 +104,7 @@ client.on('message', message => {
 	if(!message.author.bot && message.author.username !== bot_name){ // Message sent from user
 		if(!f.isUndefined(message.channel.guild)){
 			message.content = message.content.toLowerCase(); // Allows command to not care about case
-			if(message.channel.guild.name === 'trivia-channel'){
+			if(message.channel.guild.name === trivia.getChannelName()){ // TODO: Should you check here if user is an active user? Restrict or allow everyone to play
 				// Trivia channel - make a trivia channel chat
 				trivia.isCorrect(message);
 				// f.deleteDiscMessage(message, removeBotMessageDefaultTime, 'trivia-channel message'); // Add this if messages should be removed from trivia chat
@@ -226,7 +226,8 @@ function handleMessage(message) {
 		// TODO Add option to do different modes here
 		var questions = trivia.getDataQuestions(10, 2, 1);
 		// Start game in text channel with these questions
-		// TODO: Send a start message in that channel
+		var players = ;
+		startGame(message, questions, players);
 		f.deleteDiscMessage(message, 15000, 'trivia');
 	}
 
