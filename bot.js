@@ -48,6 +48,7 @@ const { prefix, token, dbpw } = require('./conf.json');
 			(QoL) On exit, remove messages that are waiting for be removed (For better testing)
 		Reflect:
 			Better Printout / message to clients (Currently as message, but not nice looking)
+				`` Code blocks could be used for same size on chars, but cant have bold text then (Used on player names?)
 			Better names for commands
 		Deluxe Features (Ideas):
 			Gör så att botten kan göra custom emojis, och adda de till servern för usage (ex. mapVeto emotes och seemsgood)
