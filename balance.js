@@ -12,6 +12,7 @@ const bot = require('./bot');
 	Uses bot to return the teams to the discord clients
 
 	TODO: Check if this would work if restrictions for team sizes are removed, generateTeamCombs changes required
+	TODO: Reevalute why arraylist was chosen instead of normal javascript arrays
 */
 
 exports.initializePlayers = function(players, dbpw){

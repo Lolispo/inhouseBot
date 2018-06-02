@@ -4,107 +4,129 @@ var request = require('request');
 
 const f = require('./f');
 const player_js = require('./player');
+const bot = require('./bot')
+var gameOnGoing = false;
 var token = '';
-var done = false;
 var ans = '';
 var activePlayers = [];
-var pointMap = {};
 var questionsArray = [];
 var questionIndex;
-var messageVar = {}; // Initialize somewhere on a message in chat
+var pointMap;
+var done;		// Array over if questions are done or not
+var messageVar; // Initialize somewhere on a message in chat
+var questionMessage;
 var censoredMessage;
 var shuffledMessage;
 var allMessages = [];
 
 const channelName = 'trivia-channel';
-const waitTimeForSteps = 10;
+const waitTimeForSteps = 8000;
 const lengthForShuffle = 8;
 const maxPossiblePoints = 5;
 
 // Checks logic for message, matches with current answer
 exports.isCorrect = function(message){
 	if(message.content.toLowerCase() === ans.toLowerCase()){
-		done = true;
 		var pointsToIncrease = pointMap.get(message.author.id);
 		var player = player_js.getPlayer(activePlayers, message.author.id);
 		var newMmr = pointsToIncrease; // TODO: Temp, implement when player.js is updated and DB is updated
 		// var newMmr = player.trivia + pointsToIncrease;
 		// db_sequelize.updateMmr(message.author.id, newMmr, trivia);
-		finishedQuestionDelete();
+
 		// Decide if messages should be removed differently
 		f.print(message, message.author.username + ' answered correctly! Answer was: ' + ans + '. Trivia Rating: ' + newMmr + ' (+' + pointsToIncrease + ')'); 
-		pointMap.forEach(function(value, key) {
-			pointMap.set(key, maxPossiblePoints);
-		});
-		questionIndex++;
+
+		finishedQuestion();
 		startQuestion();
 	} else{
 		// Decrease personal possible points for player, down to 1 point
 		var currentPoints = pointMap.get(message.author.id);
 		pointMap.set(message.author.id, ((currentPoints - 1) < 1 ? 1 : (currentPoints - 1))); 
 	}
+	// TODO: Add message to allMessages and remove these messages maybe? Remove them if question is removed
+	allMessages.push(message);
 }
 
 // Starts game, requires messageVar (from correct textchannel) and questions
 exports.startGame = function(message, questions, players){
+	gameOnGoing = true;
 	activePlayers = players;
 	pointMap = new Map();
 	for(var i = 0; i < activePlayers.size(); i++){
 		pointMap.set(activePlayers[i].uid, maxPossiblePoints);
 	}
+	done = [];
+	for(var i = 0; i < questions.length; i++){
+		done.push(false);
+	}
+	console.log('Done =', done);
+	questionsArray = questions;
+	questionIndex = 0;
 	// Find text channel: Send start message
 	var channel = message.guild.channels.find('name', channelName);
 	channel.send('Starting game of trivia!')
 	.then(result => {
 		messageVar = result;		// Initialize messageVar to be in correct chhanel, used for print
-		deleteDiscMessage(result);	// Delete start message after default time
+		f.deleteDiscMessage(result);	// Delete start message after default time
+		console.log('DEBUG: Starting question');
+		startQuestion();
 	}).catch(err => console.log('@startGame: ' + err));
-	questionsArray = questions;
-	questionIndex = 0
-	startQuestion();
 }
 
 // Start a new question, when previous is finished
 function startQuestion(){
-	if(questionIndex > questionsArray.size()){
-		f.print(messageVar, 'Game Ended. Results: \n' + player_js.getSortedRating(activePlayers, 'trivia'))
+	var index = questionIndex;
+	console.log('Starting new Question[' + index + '], done = ' + done[index]); // Done[index] is undefined here TODO: Fix
+	if(index === questionsArray.length){
+		f.print(messageVar, 'Game Ended. Results: \n' + player_js.getSortedRating(activePlayers, 'trivia'));
+		gameOnGoing = false;
 	} else{
-		var q = questionsArray[questionIndex]; // TODO See if / how it should work
+		var q = questionsArray[index]; // TODO See if / how it should work
 		/*
 		console.log('Question: ' + thisQuestion.question);
 		console.log('Ans:', thisQuestion.correct_answer);
 		console.log('Shuffled ans:', thisQuestion.shuffledAns);
 		console.log('Finished Censored:' + '\n', thisQuestion.lessCensored);
 		*/
-		done = false;
-		f.print(message, q.question)
-		ans = thisQuestion.correct_answer;
+		done[index] = false;
+		f.print(messageVar, q.question, function(msg){
+			questionMessage = msg;
+		}); // TODO: Add callback, save question and remove in finishQuestion()
+		ans = q.correct_answer;
 		if(ans.length >= lengthForShuffle){
 			setTimeout(function(){
-				if(!done){
-					f.print(message, q.shuffledAns, function(msg){
+				if(!done[index]){
+					f.print(messageVar, '`' + q.shuffledAns + '`', function(msg){
 						shuffledMessage = msg;
 					});
-					nextLessCensored(q.lessCensored, 0, message);		
+					nextLessCensored(q.lessCensored, 0, messageVar, index);		
 				}	
 			}, waitTimeForSteps);
 		} else {
-			nextLessCensored(q.lessCensored, 0, message);
+			nextLessCensored(q.lessCensored, 0, messageVar, index);
 		}
 	}
 }
 
 // Print next clue after next interval
-function nextLessCensored(array, index, message){
+function nextLessCensored(array, index, message, qIndex){
 	setTimeout(function(){
-		if(!done){
+		if(!done[qIndex]){
 			if(index === 0){
-				f.print(message, array[index], function(msg){
+				f.print(message, '`' + array[index] + '`', function(msg){
 					censoredMessage = msg;
-					nextLessCensored(array, index + 1, msg);		
+					nextLessCensored(array, index + 1, msg, qIndex);		
 				});
+			} else if(index === array.length){ // Out of hints, Fail -> next question
+				f.print(message, 'Noone answered in time! Answer was: ' + ans); 
+				finishedQuestion();
+				startQuestion();
 			} else{
-				censoredMessage.edit(array[index]);
+				console.log('@nextLessCensored Editing');
+				censoredMessage.edit('`' + array[index] + '`')
+				.then(msg => {
+					nextLessCensored(array, index + 1, msg, qIndex);
+				});
 			}
 		}
 	}, waitTimeForSteps);
@@ -112,7 +134,9 @@ function nextLessCensored(array, index, message){
 
 // TODO: Add more options for different questions, generic might be better, more categories
 // https://opentdb.com/api_config.php
-exports.getDataQuestions = function(amount = 10, category = 1, difficulty = 0){
+exports.getDataQuestions = function(message, amount = 10, category = 1, difficulty = 0){
+	console.log('@getDataQuestions');
+	messageVar = message;
 	var categories = '&category=';
 	if(category === 0){
 		categories = '';
@@ -139,6 +163,7 @@ exports.getDataQuestions = function(amount = 10, category = 1, difficulty = 0){
 }
 
 function urlGenerate(a, c, d, t){
+	console.log('@urlGenerate');
 	var url = 'https://opentdb.com/api.php?amount=' + a + c + d +'&type=multiple'
 	if(!f.isUndefined(t)){
 		url += '&token='+t; 
@@ -150,14 +175,16 @@ function urlGenerate(a, c, d, t){
 		if(error !== null){
 			console.log('error:', error);
 		}else{
-			body = JSON.parse(body);
+			body = parseData(body);
 			if(body.response_code === 3 || body.response_code === 4){ // Token not found
 				getToken(a, c, d);
 			} else if(body.response_code === 0){
 				//console.log('response:', response);
 				//console.log('body:', body);
 				console.log('Valid Token: Success!');
-				return handleQuestions(body.results);				
+				handleQuestions(body.results, function(questions, message){
+					bot.triviaStart(questions, message);
+				});				
 			} else { // 1 and 2, NO results, (too many questions) and invalid parameters
 				console.log('DEBUG:', body.response_code); // Might be due to too many questions
 			}
@@ -167,15 +194,27 @@ function urlGenerate(a, c, d, t){
 
 // Get token
 function getToken(a, c, d){
+	console.log('@urlGenerate');
 	request('https://opentdb.com/api_token.php?command=request', function (error, response, body) {
 		//console.log('body:', body);
-		body = JSON.parse(body);
+		body = parseData(body);
 		console.log('@getToken', body.token);
 		urlGenerate(a, c, d, body.token);
 	});
 }
 
-function handleQuestions(questions){		
+// TODO FIX THIS STUPID SHIT
+function parseData(body){
+	body = body.replace(/&#034;/g,'"');
+	body = body.replace(/&quot;/g,'"');
+	body = body.replace(/&#039;/g,"'");
+	body = body.replace(/&shy;/g,'-\n'); // Test this, Question looked really weird with this
+	body = body.replace(/&amp;/g, '&');
+	var parsed = JSON.parse(body);
+	return parsed;
+}
+
+function handleQuestions(questions, callback){		
 	questions.forEach(function(thisQuestion){
 		
 		var q = thisQuestion.question;
@@ -229,7 +268,7 @@ function handleQuestions(questions){
 		console.log('Shuffled ans:', thisQuestion.shuffledAns);
 		console.log('Finished Censored:' + '\n', thisQuestion.lessCensored);
 	});
-	return questions;
+	callback(questions, messageVar);
 }
 
 // Shuffle array
@@ -269,15 +308,34 @@ function getCensored(ans){
 	return {censored : s, charCounter : charCounter};
 }
 
-function finishedQuestionDelete(){
+// Used inbetween question to reset pointMap, increase question index and show to timeouts that we are done
+function finishedQuestion(){
+	done[questionIndex] = true;
 	if(!f.isUndefined(shuffledMessage)){
 		f.deleteDiscMessage(shuffledMessage, 0, 'shuffledMessage');	
 	}
 	if(!f.isUndefined(censoredMessage)){
 		f.deleteDiscMessage(censoredMessage, 0, 'censoredMessage');	
 	}
+	if(!f.isUndefined(questionMessage)){
+		f.deleteDiscMessage(questionMessage, 0, 'questionMessage');	
+	}
+	if(!f.isUndefined(allMessages)){
+		for(var i = 0; i < allMessages.length; i++){
+			f.deleteDiscMessage(allMessages[i], 0, 'allMessages['+i+']');		
+		}
+	}
+	allMessages = [];
+	pointMap.forEach(function(value, key) {
+		pointMap.set(key, maxPossiblePoints);
+	});
+	questionIndex++;
 }
 
 exports.getChannelName = function(){
 	return channelName;
+}
+
+exports.getGameOnGoing = function(){
+	return gameOnGoing;
 }

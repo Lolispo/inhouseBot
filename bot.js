@@ -88,6 +88,7 @@ var teamWon;			// Keeps track on which team won
 var mapStatusMessage;	// Message that keep track of which maps are banned and whose turn is it
 
 var mapMessages = [];	// Keeps track of the discord messages for the different maps 
+var savedTriviaQuestions = [];
 
 const emoji_agree = '👌'; 		// Agree emoji. Alt: 👍, Om custom Emojis: Borde vara seemsgood emoji
 const emoji_disagree = '👎';	// Disagree emoji. 
@@ -95,7 +96,7 @@ const emoji_error = '❌'; 		// Error / Ban emoji. Alt: '🤚';
 
 const bot_name = 'inhouse-bot';
 const voteText = '**Majority of players that played the game need to confirm this result (Press ' + emoji_agree + ' or ' + emoji_disagree + ')**';
-
+const adminUids = ['96293765001519104', '107882667894124544']; // Admin ids, get access to specific admin rights
 const removeBotMessageDefaultTime = 60000; // 300000
 
 
@@ -104,7 +105,7 @@ client.on('message', message => {
 	if(!message.author.bot && message.author.username !== bot_name){ // Message sent from user
 		if(!f.isUndefined(message.channel.guild)){
 			message.content = message.content.toLowerCase(); // Allows command to not care about case
-			if(message.channel.guild.name === trivia.getChannelName()){ // TODO: Should you check here if user is an active user? Restrict or allow everyone to play
+			if(message.channel.name === trivia.getChannelName() && trivia.getGameOnGoing()){ // TODO: Should you check here if user is an active user? Restrict or allow everyone to play
 				// Trivia channel - make a trivia channel chat
 				trivia.isCorrect(message);
 				// f.deleteDiscMessage(message, removeBotMessageDefaultTime, 'trivia-channel message'); // Add this if messages should be removed from trivia chat
@@ -203,7 +204,15 @@ function handleMessage(message) {
 			var voiceChannel = message.guild.member(message.author).voiceChannel;
 				
 			if(voiceChannel !== null && !f.isUndefined(voiceChannel)){ // Makes sure user is in a voice channel
-				findPlayersStart(message, voiceChannel);
+				var players = findPlayersStart(message, voiceChannel); // initalize players objects with playerInformation
+				var numPlayers = players.size();
+				if(numPlayers == 10 || numPlayers == 8 || numPlayers == 6 || numPlayers == 4){ // TODO: Change matchup criterias
+					balance.initializePlayers(players, dbpw); // Initialize balancing, Result is printed and stage = 1 when done
+				} else if((numPlayers === 1 || numPlayers === 2) && (adminUids.includes(message.author.id)) ){
+					testBalanceGeneric(); // TODO: Adjust test to be more relevant, remove numPlayers === 2
+				} else{ // TODO: Adjust this error message on allowed sizes, when duel is added
+					f.print(message, 'Currently only support even games of 4, 6, 8 and 10 players', callbackInvalidCommand);
+				}
 			} else {
 				f.print(message, 'Invalid command: Author of message must be in voiceChannel', callbackInvalidCommand); 
 			}
@@ -223,11 +232,28 @@ function handleMessage(message) {
 			(amount, 2, 3)  Generic knowledge questions, hard difficulty
 	*/
 	else if(startsWith(message, prefix + 'trivia')){
-		// TODO Add option to do different modes here
-		var questions = trivia.getDataQuestions(10, 2, 1);
-		// Start game in text channel with these questions
-		var players = ;
-		startGame(message, questions, players);
+		var mode = message.content.split(' '); 
+		if(mode.length >= 2){
+			// Grabs second argument if available
+			switch(mode[1]){
+				case 'game':
+				case 'games':
+				case '1':
+					trivia.getDataQuestions(message, 10, 1);
+					break;
+				case 'all':
+				case '0':
+					trivia.getDataQuestions(message, 10, 0, 1);
+					break;
+				case '2':
+				case 'generic':
+					trivia.getDataQuestions(message, 10, 2, 1); 
+				default:
+					trivia.getDataQuestions(message, 10, 0);
+			}
+		} else{ // No mode chosen, use default
+			trivia.getDataQuestions(message, 10, 2, 1);
+		}
 		f.deleteDiscMessage(message, 15000, 'trivia');
 	}
 
@@ -264,7 +290,7 @@ function handleMessage(message) {
 	}
 	// Used for tests
 	else if(message.content === `${prefix}exit`){
-		if(message.author.username === 'Petter'){
+		if(adminUids.includes(message.author.id)){
 			// Do tests:
 			cleanupExit();
 		}
@@ -345,6 +371,18 @@ async function cleanupExit(){
 	//await process.exit();
 }
 
+exports.triviaStart = function(questions, message){
+	// Start game in text channel with these questions
+	savedTriviaQuestions = questions;
+	var voiceChannel = message.guild.member(message.author).voiceChannel;
+	if(voiceChannel !== null && !f.isUndefined(voiceChannel)){ // Makes sure user is in a voice channel
+		var players = findPlayersStart(message, voiceChannel);
+		trivia.startGame(message, questions, players);
+	} else{
+		f.print(message, 'Invalid command: Author of message must be in voiceChannel', callbackInvalidCommand); 
+	}
+}
+
 // Roll functionality
 function roll(message, start, end){
 	var roll = Math.floor((Math.random() * (end-start))) + start;
@@ -365,25 +403,17 @@ function roll(message, start, end){
 // Starting balancing of a game for given voice channel
 function findPlayersStart(message, channel){
 	console.log('VoiceChannel', channel.name, ' (id =',channel.id,') active users: (Total: ', channel.members.size ,')');
-	var numPlayers = channel.members.size
-	if(numPlayers == 10 || numPlayers == 8 || numPlayers == 6 || numPlayers == 4){
-		// initalize 10 Player objects with playerInformation
-		var players = new ArrayList;
-		activeMembers = Array.from(channel.members.values());
-		//console.log('DEBUG: Channel', channel.members);
-		activeMembers.forEach(function(member){
-			if(!member.bot){ // Only real users
-				console.log('\t' + member.user.username + '(' + member.user.id + ')'); // Printar alla activa users i denna voice chatt
-				var tempPlayer = player_js.createPlayer(member.user.username, member.user.id);
-				players.add(tempPlayer);
-			}
-		});
-		balance.initializePlayers(players, dbpw); // Initialize balancing, Result is printed and stage = 1 when done
-	} else if((numPlayers === 1 || numPlayers === 2) && (message.author.username === 'Petter' || message.author.username === 'Obtained') ){
-		testBalanceGeneric();
-	} else{
-		f.print(message, 'Currently only support even games of 4, 6, 8 and 10 players', callbackInvalidCommand);
-	}
+	var players = new ArrayList;
+	activeMembers = Array.from(channel.members.values());
+	//console.log('DEBUG: Channel', channel.members);
+	activeMembers.forEach(function(member){
+		if(!member.bot){ // Only real users
+			console.log('\t' + member.user.username + '(' + member.user.id + ')'); // Printar alla activa users i denna voice chatt
+			var tempPlayer = player_js.createPlayer(member.user.username, member.user.id);
+			players.add(tempPlayer);
+		}
+	});
+	return players;
 }
 
 // A Test for balancing and getting to stage 1 without players available
