@@ -16,20 +16,27 @@ CREATE TABLE users(
 );
 
 /*
-CREATE TABLE matches(
-	mid int NOT NULL AUTO_INCREMENT,
-	*//*Save all players playing and winning team*//* 
-	PRIMARY KEY(mid)
-);
 
+NEW
+CREATE TABLE users(
+	uid VARCHAR(64) NOT NULL,
+	userName VARCHAR(64), 
+	cs int,
+	cs1v1 int,
+	dota int,
+	dota1v1 int,
+	gamesPlayed int,
+	PRIMARY KEY (uid)
+);
 */
 
 ALTER TABLE users ADD cs int;
 ALTER TABLE users ADD cs1v1 int;
 ALTER TABLE users ADD dota int;
 ALTER TABLE users ADD dota1v1 int;
+ALTER TABLE users ADD trivia int;
 
-UPDATE users SET cs = mmr, cs1v1 = 2500, dota = 2500, dota1v1 = 2500;
+UPDATE users SET cs = mmr, cs1v1 = 2500, dota = 2500, dota1v1 = 2500, trivia = 0;
 
 ALTER TABLE users DROP mmr;
 
@@ -46,6 +53,14 @@ CREATE TABLE mmrs(
 	dota int,
 	dota1v1 int,
 	PRIMARY KEY (uid)
+);
+
+*/
+/*
+CREATE TABLE matches(
+	mid int NOT NULL AUTO_INCREMENT,
+	*//*Save all players playing and winning team*//* 
+	PRIMARY KEY(mid)
 );
 
 */

@@ -1,9 +1,93 @@
 'use strict';
 // Author: Petter Andersson
-
 var request = require('request');
-var token = '';
+
 const f = require('./f');
+const player_js = require('./player');
+var token = '';
+var done = false;
+var ans = '';
+var activePlayers = [];
+var pointMap = {};
+var questionsArray = [];
+var questionIndex;
+var messageVar = {}; // Initialize somewhere on a message in chat
+const waitTimeForSteps = 10;
+const lengthForShuffle = 8;
+const maxPossiblePoints = 5;
+
+// Checks logic for message, matches with current answer
+function isCorrect(message){
+	if(message.content.toLowerCase() === ans.toLowerCase()){
+		done = true;
+		var pointsToIncrease = pointMap.get(message.author.id);
+		var player = player_js.getPlayer(activePlayers, message.author.id);
+		// var newMmr = player.trivia + pointsToIncrease;
+		// db_sequelize.updateMmr(message.author.id, newMmr, trivia);
+		f.print(message, message.author.username + ' answered correctly! Answer was: ' + ans);
+		pointMap.forEach(function(value, key) {
+			pointMap.set(key, maxPossiblePoints);
+		});
+		questionIndex++;
+		startQuestion();
+	} else{
+		// Decrease personal possible points for player, down to 1 point
+		var currentPoints = pointMap.get(message.author.id);
+		pointMap.set(message.author.id, ((currentPoints - 1) < 1 ? 1 : (currentPoints - 1))); 
+	}
+}
+
+// Starts game, requires messageVar (from correct textchannel) and questions
+function startGame(message, questions, players){
+	activePlayers = players;
+	pointMap = new Map();
+	for(var i = 0; i < activePlayers.size(); i++){
+		pointMap.set(activePlayers[i].uid, maxPossiblePoints);
+	}
+	questionsArray = questions;
+	questionIndex = 0
+	startQuestion();
+}
+
+// Start a new question, when previous is finished
+function startQuestion(){
+	if(questionIndex > questionsArray.size()){
+		f.print(messageVar, 'Game Ended. Results: \n' + player_js.getSortedRating(activePlayers, 'trivia'))
+	} else{
+		var q = questionsArray[questionIndex]; // TODO See if / how it should work
+		/*
+		console.log('Question: ' + thisQuestion.question);
+		console.log('Ans:', thisQuestion.correct_answer);
+		console.log('Shuffled ans:', thisQuestion.shuffledAns);
+		console.log('Finished Censored:' + '\n', thisQuestion.lessCensored);
+		*/
+		done = false;
+		f.print(message, q.question)
+		ans = thisQuestion.correct_answer;
+		if(ans.length >= lengthForShuffle){
+			setTimeout(function(){
+				if(!done){
+					f.print(message, q.shuffledAns);
+					nextLessCensored(q.lessCensored, 0, message);		
+				}	
+			}, waitTimeForSteps);
+		} else {
+			nextLessCensored(q.lessCensored, 0, message);
+		}
+	}
+}
+
+
+// Print next clue after next interval
+function nextLessCensored(array, index, message){
+	setTimeout(function(){
+		if(!done){
+			f.print(message, array[index]);
+			nextLessCensored(array, index+1, message);		
+		}
+	}, waitTimeForSteps);
+}
+
 // TODO: Add more options for different questions, generic might be better, more categories
 // TODO: Token for different questions? https://opentdb.com/api_config.php
 
@@ -29,7 +113,6 @@ function getDataQuestions(amount = 10, category = 1, difficulty = 0){
 		difficulties += 'hard';
 	}
 	if(token === ''){
-		console.log('new token');
 		getToken(amount, categories, difficulties);
 	} else {
 		urlGenerate(amount, categories, difficulties, token);	
@@ -66,7 +149,7 @@ function urlGenerate(a, c, d, t){
 // Get token
 function getToken(a, c, d){
 	request('https://opentdb.com/api_token.php?command=request', function (error, response, body) {
-		console.log('body:', body);
+		//console.log('body:', body);
 		body = JSON.parse(body);
 		console.log('@getToken', body.token);
 		urlGenerate(a, c, d, body.token);
@@ -167,4 +250,4 @@ function getCensored(ans){
 	return {censored : s, charCounter : charCounter};
 }
 
-getDataQuestions(1); // Test code
+//getDataQuestions(1); // Test code

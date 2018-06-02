@@ -16,7 +16,7 @@ const map_js = require('./mapVeto');
 const voiceMove_js = require('./voiceMove'); 
 const f = require('./f');
 const db_sequelize = require('./db-sequelize');
-const trivia = require('./trivia')
+const trivia = require('./trivia ')
 //get config data
 const { prefix, token, dbpw } = require('./conf.json');
 
@@ -32,6 +32,7 @@ const { prefix, token, dbpw } = require('./conf.json');
 				Default cs, otherwise dota
 				Decide where you specify which mmr (either at balance or at win)
 			Save every field as a Collection{GuildSnowflake -> field variable} to make sure bot works on many servers at once
+				Change bot to be instances instead of file methods, reach everythging from guildSnowflake thahn
 			Start MMR chosen as either 2400, 2500 or 2600 depending on own skill, for better distribution in first games, better matchup
 			Find a fix for printing result alignment - redo system for printouts?
 				Didn't work, since char diff length: Handle name lengths for prints in f.js so names are aligned in tabs after longest names
@@ -46,7 +47,7 @@ const { prefix, token, dbpw } = require('./conf.json');
 			Add test method so system can be live without updating data base on every match (-balance test or something)
 			(QoL) On exit, remove messages that are waiting for be removed (For better testing)
 		Reflect:
-			Better Printout / message to clients (Currently as message, but not nice looking) (Deluxe: maybe image if possible)
+			Better Printout / message to clients (Currently as message, but not nice looking)
 			Better names for commands
 		Deluxe Features (Ideas):
 			Gör så att botten kan göra custom emojis, och adda de till servern för usage (ex. mapVeto emotes och seemsgood)
@@ -54,10 +55,11 @@ const { prefix, token, dbpw } = require('./conf.json');
 				Add a second hidden rating for each user, so even though they all start at same mmr, 
 					this rating is used to even out the teams when unsure (ONLY BEGINNING)
 			mapVeto using majority vote instead of captains
+			Add feature for user to remove themself from databse (should not be used as a reset) = ban from system
+				GDPR laws
 
-			Twitter
-			Hänga gubbe - dota chat style (first who types is winner)
-			Family Feud
+			Twitter deathmatch
+			Family Feud Trivia
 */
 
 // will only do stuff after it's ready
@@ -102,7 +104,13 @@ client.on('message', message => {
 	if(!message.author.bot && message.author.username !== bot_name){ // Message sent from user
 		if(!f.isUndefined(message.channel.guild)){
 			message.content = message.content.toLowerCase(); // Allows command to not care about case
-			handleMessage(message);
+			if(message.channel.guild.name === 'trivia-channel'){
+				// Trivia channel - make a trivia channel chat
+				trivia.isCorrect(message);
+				// f.deleteDiscMessage(message, removeBotMessageDefaultTime, 'trivia-channel message'); // Add this if messages should be removed from trivia chat
+			} else {
+				handleMessage(message);			
+			}
 		}else{ // Someone tried to DM the bot
 			console.log('DM msg = ' + message.author.username + ': ' + message.content);
 			message.author.send('Send commands in a server - not to me!')
@@ -206,6 +214,20 @@ function handleMessage(message) {
 			f.print(message, 'Invalid command: Inhouse already ongoing', callbackInvalidCommand); 
 			f.deleteDiscMessage(message, 10000, 'matchupMessage');
 		}
+	}
+	/*
+		Starts a trivia game for the people in voice channel
+		getDataQuestions options: 
+			(amount, 0, 1)	All categories, easy difficulty
+			(amount, 1) 	Games, all difficulties
+			(amount, 2, 3)  Generic knowledge questions, hard difficulty
+	*/
+	else if(startsWith(message, prefix + 'trivia')){
+		// TODO Add option to do different modes here
+		var questions = trivia.getDataQuestions(10, 2, 1);
+		// Start game in text channel with these questions
+		// TODO: Send a start message in that channel
+		f.deleteDiscMessage(message, 15000, 'trivia');
 	}
 
 	// Show top 5 MMR 
