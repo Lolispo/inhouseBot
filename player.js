@@ -14,23 +14,27 @@ function Player(username, discId){
 	this.uid = discId;
 	this.defaultMMR = startMMR; 
 	// TODO Store array of mmr instead, fetchable by game or something
-	/*
+	
 	this.mmrs = new Map();
-	this.mmrStruct = function(startMmr){
-		this.mmr = startMmr;
-		this.prevMMR = startMmr; 		// MMR at previous instance
-		this.latestUpdate = 0;			// How much mmr was changed
-		this.latestUpdatePrefix = ''; 	// A '+' or ''?
+
+	// Initializes mmr values to defaults
+	this.initializeMMR = function(){
+		for(var i = 0; i < gameModes.length; i++){
+			var struct = new mmrStruct(startMMR);
+			//console.log('DEBUG init struct: ', gameModes[i], struct);
+			this.mmrs.set(gameModes[i], struct);
+		}
+		this.mmrs.set('trivia', new mmrStruct(0));		
 	}
-	for(var i = 0; i < gameModes.length; i++){
-		this.mmrs.set(gameModes[i], mmrStruct(startMMR));
-	}
-	this.mmrs.set('trivia', mmrStruct(0));
 
 	this.setMMR = function(game, value){
 		var struct = this.mmrs.get(game);
 		struct.prevMMR = struct.mmr; // Keeps track of last recorded mmr
 		struct.mmr = value;
+	}
+
+	this.getMMR = function(game){
+		return this.mmrs.get(game).mmr;
 	}
 
 	this.setMMRChange = function(game, value){
@@ -42,7 +46,8 @@ function Player(username, discId){
 		var struct = this.mmrs.get(game);
 		struct.latestUpdatePrefix = value;
 	}
-	*/
+	this.initializeMMR();
+	/*
 	this.mmr = this.defaultMMR; 	// MMR is updated when all players are fetched
 	this.prevMMR = this.defaultMMR; // MMR at previous instance
 	this.latestUpdate = 0;			// How much mmr was changed
@@ -60,6 +65,14 @@ function Player(username, discId){
 	this.setPlusMinus = function(value){
 		this.latestUpdatePrefix = value;
 	}
+	*/
+}
+
+function mmrStruct(startMmr){
+	this.mmr = startMmr;
+	this.prevMMR = startMmr; 		// MMR at previous instance
+	this.latestUpdate = 0;			// How much mmr was changed
+	this.latestUpdatePrefix = ''; 	// A '+' or ''?
 }
 
 // Used to initiate players, returns a player 'object'

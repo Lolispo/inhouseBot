@@ -6,6 +6,8 @@ const moment = require('moment');
 const db_sequelize = require('./db-sequelize');
 const bot = require('./bot');
 
+var game;
+
 /*
 	Handles getting the most balanced team matchup for the given 10 players
 	Uses db_sequelize to receive the player information and add new players
@@ -16,14 +18,14 @@ const bot = require('./bot');
 */
 
 // @param players should contain ArrayList of initialized Players of people playing
-exports.balanceTeams = function(players, data){
+exports.balanceTeams = function(players, data, gameVar){
 	// Generate team combs, all possibilities of the 10 players
 	var teamCombs = generateTeamCombs(players);
-	
-	var result = findBestTeamComb(players, teamCombs);
+	game = gameVar;	
+	var result = findBestTeamComb(players, teamCombs, game);
 
 	// Return string to message to clients
-	buildReturnString(result, callbackBalanceInfo); // callbackBalanceInfo = method 
+	buildReturnString(result, callbackBalanceInfo, game); // callbackBalanceInfo = method 
 }
 
 
@@ -136,7 +138,7 @@ function findBestTeamComb(players, teamCombs){
 	}
 
 	// Retrieved most fair teamComb
-	return {team1 : t1, team2 : t2, difference : bestPossibleTeamComb, avgT1 : avgTeam1, avgT2 : avgTeam2, avgDiff : Math.abs(avgTeam1 - avgTeam2).toFixed(2)}; 
+	return {team1 : t1, team2 : t2, difference : bestPossibleTeamComb, avgT1 : avgTeam1, avgT2 : avgTeam2, avgDiff : Math.abs(avgTeam1 - avgTeam2).toFixed(2), game: game}; 
 }
 
 // Get the two teams of players from the teamComb
@@ -172,7 +174,7 @@ function mmrCompare(t1, t2){
 function addTeamMMR(team){ // Function to be used in summing over players
 	var sum = 0;
 	for(var i = 0; i < team.length; i++){
-		sum += team[i].mmr;
+		sum += team[i].getMMR(game);
 	}
 	//console.log('DEBUG: @addTeamMMR, team = ', team, 'TeamMMR:', sum);
 	return sum;
@@ -180,20 +182,20 @@ function addTeamMMR(team){ // Function to be used in summing over players
 
 // Build a string to return to print as message
 function buildReturnString(obj, callback){ // TODO: Make print consistently nice
-	//console.log('DEBUG: @buildReturnString');
+	//console.log('DEBUG: @buildReturnString', obj);
 	var date = moment().format('LLL'); // Date format. TODO: Change from AM/PM to military time
 	var s = '';
-	s += '**New Game!** MMR Average difference: ' + parseFloat(obj.avgDiff).toFixed(2) + ' (Total: ' + obj.difference + 'p). '; // TODO Check toFixed somehow
+	s += '**New Game!** Playing **' + game + '**. MMR Average difference: ' + parseFloat(obj.avgDiff).toFixed(2) + ' (Total: ' + obj.difference + 'p). '; // TODO Check toFixed somehow
 	s += String(date);
 	s += '\n';
-	s += '**Team 1** \t(Avg: ' + obj.avgT1 + ' mmr): \n*' + obj.team1[0].userName + ' (' + obj.team1[0].mmr + ')';
+	s += '**Team 1** \t(Avg: ' + obj.avgT1 + ' mmr): \n*' + obj.team1[0].userName + ' (' + obj.team1[0].getMMR(game) + ')';
 	for(var i = 1; i < obj.team1.length; i++){
-		s += ',\t' + obj.team1[i].userName + ' (' + obj.team1[i].mmr + ')';
+		s += ',\t' + obj.team1[i].userName + ' (' + obj.team1[i].getMMR(game) + ')';
 	}	
 	s += '*\n';
-	s += '**Team 2** \t(Avg: ' + obj.avgT2 + ' mmr): \n*' + obj.team2[0].userName + ' (' + obj.team2[0].mmr + ')';
+	s += '**Team 2** \t(Avg: ' + obj.avgT2 + ' mmr): \n*' + obj.team2[0].userName + ' (' + obj.team2[0].getMMR(game) + ')';
 	for(var i = 1; i < obj.team2.length; i++){
-		s += ',\t' + obj.team2[i].userName + ' (' + obj.team2[i].mmr + ')';
+		s += ',\t' + obj.team2[i].userName + ' (' + obj.team2[i].getMMR(game) + ')';
 	}
 	s += '*\n\n';
 	s += '*Connect:* \n**connect 217.78.24.14:27302; password null**'; // Lukas' server on datHost, requires Petter/Lukas/Martin ingame to use

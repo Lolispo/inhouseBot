@@ -31,6 +31,9 @@ CREATE TABLE users(
 );
 */
 
+
+/*
+// This has been done
 ALTER TABLE users ADD cs int;
 ALTER TABLE users ADD cs1v1 int;
 ALTER TABLE users ADD dota int;
@@ -39,4 +42,8 @@ ALTER TABLE users ADD trivia int;
 
 UPDATE users SET cs = mmr, cs1v1 = 2500, dota = 2500, dota1v1 = 2500, trivia = 0;
 
+
+// This is left to do
 ALTER TABLE users DROP mmr;
+
+*/
