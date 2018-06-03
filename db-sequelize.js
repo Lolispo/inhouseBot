@@ -18,6 +18,38 @@ var Users = {};
 		(Potential) Unsure if dbpw is remembered between usage from balance.js and mmr.js (only initialized in balance.js) 
 */
 
+exports.initializePlayers = function(players, dbpw, callback){
+	// Init mmr for players
+	db_sequelize.initDb(dbpw);
+	// Currently fetches entire database, instead of specific users
+	db_sequelize.getTable(function(data){
+		addMissingUsers(players, data, function(){ // players are updated from within method
+			callback(players, data);
+		}); 
+	});
+}
+
+// Adds missing users to database 
+// Updates players mmr entry correctly
+function addMissingUsers(players, data){
+	//console.log('DEBUG: @addMissingUsers, Insert the mmr from data: ', players);
+	for(var i = 0; i < players.size(); i++){
+		// Check database for this data
+		var existingMMR = -1;
+		data.forEach(function(oneData){
+			if(players[i].uid === oneData.uid){
+				existingMMR = oneData.mmr;
+			}
+		});
+		if(existingMMR === -1){ // Make new entry in database since entry doesn't exist
+			db_sequelize.createUser(players[i].uid, players[i].userName, players[i].defaultMMR);
+			players[i].setMMR(players[i].defaultMMR);
+		} else{ // Update players[i] mmr to the correct value
+			players[i].setMMR(existingMMR);
+		}
+	}
+}
+
 // Initializes sequelize variables for further usage
 exports.initDb = function(dbpw){
 	sequelize = new Sequelize('pettea', 'pettea_admin', dbpw, {

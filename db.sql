@@ -25,6 +25,7 @@ CREATE TABLE users(
 	cs1v1 int,
 	dota int,
 	dota1v1 int,
+	trivia int,
 	gamesPlayed int,
 	PRIMARY KEY (uid)
 );
@@ -39,28 +40,3 @@ ALTER TABLE users ADD trivia int;
 UPDATE users SET cs = mmr, cs1v1 = 2500, dota = 2500, dota1v1 = 2500, trivia = 0;
 
 ALTER TABLE users DROP mmr;
-
-
-/*
-INSERT INTO mmrs (uid, cs, cs1v1, dota, dota1v1) VALUES (x, (SELECT mmr FROM users WHERE uid = x), 2500, 2500, 2500)
-
-SELECT * FROM users, mmrs;
-
-CREATE TABLE mmrs(
-	uid VARCHAR(64) NOT NULL,
-	cs int,
-	cs1v1 int,
-	dota int,
-	dota1v1 int,
-	PRIMARY KEY (uid)
-);
-
-*/
-/*
-CREATE TABLE matches(
-	mid int NOT NULL AUTO_INCREMENT,
-	*//*Save all players playing and winning team*//* 
-	PRIMARY KEY(mid)
-);
-
-*/

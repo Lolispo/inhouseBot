@@ -201,8 +201,16 @@ function handleMessage(message) {
 		message.author.send(buildHelpString());
 		f.deleteDiscMessage(message, 10000, 'help');
 	}
-	else if(message.content === `${prefix}b` || message.content === `${prefix}balance` || message.content === `${prefix}inhousebalance`){
+	else if(startsWith(message, prefix + 'b') || startsWith(message, prefix + 'balance') || startsWith(message, prefix + 'inhousebalance')){
 		if(stage === 0){
+			var options = message.content.split(' ');
+			var game = 'cs';
+			if(options.length === 2){
+				if(player_js.getGameModes().includes(options[1])){
+					console.log('DEBUG @b Game chosen as: ' + options[1]);
+					game = options[1];
+				}
+			}
 			matchupMessage = message; // Used globally in print method
 			var voiceChannel = message.guild.member(message.author).voiceChannel;
 				
@@ -210,7 +218,9 @@ function handleMessage(message) {
 				var players = findPlayersStart(message, voiceChannel); // initalize players objects with playerInformation
 				var numPlayers = players.size();
 				if(numPlayers == 10 || numPlayers == 8 || numPlayers == 6 || numPlayers == 4){ // TODO: Change matchup criterias
-					balance.initializePlayers(players, dbpw); // Initialize balancing, Result is printed and stage = 1 when done
+					db_sequelize.initializePlayers(players, dbpw, function(players, data){
+						balance.balanceTeams(players, data, game);
+					}); // Initialize balancing, Result is printed and stage = 1 when done
 				} else if((numPlayers === 1 || numPlayers === 2) && (adminUids.includes(message.author.id)) ){
 					testBalanceGeneric(); // TODO: Adjust test to be more relevant, remove numPlayers === 2
 				} else{ // TODO: Adjust this error message on allowed sizes, when duel is added
@@ -428,7 +438,9 @@ function testBalanceGeneric(){
 		//console.log('DEBUG: @findPlayersStart, tempPlayer =', tempPlayer);
 		players.add(tempPlayer);
 	}
-	balance.initializePlayers(players, dbpw); // Initialize balancing and prints result. Sets stage = 1 when done
+	db_sequelize.initializePlayers(players, dbpw, function(players, data){
+		balance.balanceTeams(players, data, 'cs');
+	}) // Initialize balancing and prints result. Sets stage = 1 when done
 }
 
 // Handling of voteMessageReactions

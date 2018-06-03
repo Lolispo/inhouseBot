@@ -6,6 +6,7 @@
 	TODO Feature: 
 		Add dynamic storage of mmr for support of more games, potential of aim map skill 2v2
 */
+const gameModes = ['cs','dota', 'cs1v1', 'dota1v1', 'trivia'];
 const startMMR = 2500;
 
 function Player(username, discId){
@@ -21,10 +22,9 @@ function Player(username, discId){
 		this.latestUpdate = 0;			// How much mmr was changed
 		this.latestUpdatePrefix = ''; 	// A '+' or ''?
 	}
-	this.mmrs.set('cs', mmrStruct(startMMR));
-	this.mmrs.set('dota', mmrStruct(startMMR));
-	this.mmrs.set('cs1v1', mmrStruct(startMMR));
-	this.mmrs.set('dota1v1', mmrStruct(startMMR));
+	for(var i = 0; i < gameModes.length; i++){
+		this.mmrs.set(gameModes[i], mmrStruct(startMMR));
+	}
 	this.mmrs.set('trivia', mmrStruct(0));
 
 	this.setMMR = function(game, value){
@@ -65,6 +65,10 @@ function Player(username, discId){
 // Used to initiate players, returns a player 'object'
 exports.createPlayer = function(username, discId){
 	return new Player(username, discId);
+}
+
+exports.getGameModes = function(){
+	return gameModes;
 }
 
 // Returns highest mmr player object from team

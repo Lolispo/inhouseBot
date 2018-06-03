@@ -12,24 +12,12 @@ const bot = require('./bot');
 	Uses bot to return the teams to the discord clients
 
 	TODO: Check if this would work if restrictions for team sizes are removed, generateTeamCombs changes required
-	TODO: Reevalute why arraylist was chosen instead of normal javascript arrays
+	TODO: Reevalute why arraylist was chosen instead of normal javascript arrays, feels unnecesary
 */
 
-exports.initializePlayers = function(players, dbpw){
-	// Init mmr for players
-	db_sequelize.initDb(dbpw);
-	// Currently fetches entire database, instead of specific users
-	db_sequelize.getTable(function(data){
-		balanceTeams(players, data);			
-	});
-}
-
 // @param players should contain ArrayList of initialized Players of people playing
-function balanceTeams(players, data){
+exports.balanceTeams = function(players, data){
 	// Generate team combs, all possibilities of the 10 players
-
-	addMissingUsers(players, data); // players are updated from within method
-
 	var teamCombs = generateTeamCombs(players);
 	
 	var result = findBestTeamComb(players, teamCombs);
@@ -38,26 +26,6 @@ function balanceTeams(players, data){
 	buildReturnString(result, callbackBalanceInfo); // callbackBalanceInfo = method 
 }
 
-// Adds missing users to database 
-// Updates players mmr entry correctly
-function addMissingUsers(players, data){
-	//console.log('DEBUG: @addMissingUsers, Insert the mmr from data: ', players);
-	for(var i = 0; i < players.size(); i++){
-		// Check database for this data
-		var existingMMR = -1;
-		data.forEach(function(oneData){
-			if(players[i].uid === oneData.uid){
-				existingMMR = oneData.mmr;
-			}
-		});
-		if(existingMMR === -1){ // Make new entry in database since entry doesn't exist
-			db_sequelize.createUser(players[i].uid, players[i].userName, players[i].defaultMMR);
-			players[i].setMMR(players[i].defaultMMR);
-		} else{ // Update players[i] mmr to the correct value
-			players[i].setMMR(existingMMR);
-		}
-	}
-}
 
 // TODO Refactor: Should make less repetitive code
 // Generates the combinations for different team sizes
