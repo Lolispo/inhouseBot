@@ -23,19 +23,21 @@ const { prefix, token, dbpw } = require('./conf.json');
 /*
 	TODO:
 		Features:
+			Trivia
+				Remember Token - on file maybe?
+			Store MMR for more games
+				Default cs, otherwise dota
+				Decide where you specify which mmr (either at balance or at win)
+			Find a fix for printing result alignment - redo system for printouts?
+				Didn't work, since char diff length: Handle name lengths for prints in f.js so names are aligned in tabs after longest names
 			Support unite to channels with names over one word
 			Challenge / Duel: Challenge someone to 1v1
 				Challenge specific person or "Queue" so anyone can accept
 				If challenged: message that user where user can react to response in dm. Update in channel that match is on
 				Default cs1v1, otherwise dota1v1
-			Store MMR for more games
-				Default cs, otherwise dota
-				Decide where you specify which mmr (either at balance or at win)
 			Save every field as a Collection{GuildSnowflake -> field variable} to make sure bot works on many servers at once
 				Change bot to be instances instead of file methods, reach everythging from guildSnowflake thahn
 			Start MMR chosen as either 2400, 2500 or 2600 depending on own skill, for better distribution in first games, better matchup
-			Find a fix for printing result alignment - redo system for printouts?
-				Didn't work, since char diff length: Handle name lengths for prints in f.js so names are aligned in tabs after longest names
 		Refactor:
 			Fix async/await works
 				Recheck every instace returning promises to use async/await instead https://javascript.info/async-await

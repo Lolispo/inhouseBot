@@ -17,6 +17,7 @@ var messageVar; // Initialize somewhere on a message in chat
 var questionMessage;
 var censoredMessage;
 var shuffledMessage;
+var finishMessage;
 var allMessages = [];
 
 const channelName = 'trivia-channel';
@@ -34,7 +35,9 @@ exports.isCorrect = function(message){
 		// db_sequelize.updateMmr(message.author.id, newMmr, trivia);
 
 		// Decide if messages should be removed differently
-		f.print(message, message.author.username + ' answered correctly! Answer was: ' + ans + '. Trivia Rating: ' + newMmr + ' (+' + pointsToIncrease + ')'); 
+		f.print(message, message.author.username + ' answered correctly! Answer was: ' + ans + '. Trivia Rating: ' + newMmr + ' (+' + pointsToIncrease + ')', function(msg){
+			finishMessage = msg;
+		}); 
 
 		finishedQuestion();
 		startQuestion();
@@ -78,6 +81,7 @@ function startQuestion(){
 	var index = questionIndex;
 	console.log('Starting new Question[' + index + '], done = ' + done[index]); // Done[index] is undefined here TODO: Fix
 	if(index === questionsArray.length){
+		f.deleteDiscMessage(finishMessage, bot.getRemoveTime(), 'finishMessage');
 		f.print(messageVar, 'Game Ended. Results: \n' + player_js.getSortedRating(activePlayers, 'trivia'));
 		gameOnGoing = false;
 	} else{
@@ -89,53 +93,57 @@ function startQuestion(){
 		console.log('Finished Censored:' + '\n', thisQuestion.lessCensored);
 		*/
 		done[index] = false;
-		f.print(messageVar, q.question, function(msg){
+		f.print(messageVar, '**Question: **' + parseMessage(q.question), function(msg){
 			questionMessage = msg;
 		}); // TODO: Add callback, save question and remove in finishQuestion()
-		ans = q.correct_answer;
+		ans = parseMessage(q.correct_answer);
 		if(ans.length >= lengthForShuffle){
 			setTimeout(function(){
 				if(!done[index]){
-					f.print(messageVar, '`' + q.shuffledAns + '`', function(msg){
+					f.print(messageVar, '**Scrambled: **`' + q.shuffledAns + '`', function(msg){
 						shuffledMessage = msg;
 					});
-					nextLessCensored(q.lessCensored, 0, messageVar, index);		
+					nextLessCensored(q.lessCensored, 0, messageVar, index, waitTimeForSteps / 2);		
 				}	
-			}, waitTimeForSteps);
+			}, waitTimeForSteps / 2);
 		} else {
-			nextLessCensored(q.lessCensored, 0, messageVar, index);
+			nextLessCensored(q.lessCensored, 0, messageVar, index, waitTimeForSteps);
 		}
 	}
 }
 
 // Print next clue after next interval
-function nextLessCensored(array, index, message, qIndex){
+function nextLessCensored(array, index, message, qIndex, waitTime){
 	setTimeout(function(){
 		if(!done[qIndex]){
 			if(index === 0){
 				f.print(message, '`' + array[index] + '`', function(msg){
 					censoredMessage = msg;
-					nextLessCensored(array, index + 1, msg, qIndex);		
+					nextLessCensored(array, index + 1, msg, qIndex, waitTime);		
 				});
 			} else if(index === array.length){ // Out of hints, Fail -> next question
-				f.print(message, 'Noone answered in time! Answer was: ' + ans); 
+				f.print(message, 'Noone answered in time! Answer was: ' + ans, function(msg){
+					f.deleteDiscMessage(finishMessage, 0, 'finishMessage', function(msg2){
+						finishMessage = msg;
+					});
+				}); 
 				finishedQuestion();
 				startQuestion();
 			} else{
 				console.log('@nextLessCensored Editing');
 				censoredMessage.edit('`' + array[index] + '`')
 				.then(msg => {
-					nextLessCensored(array, index + 1, msg, qIndex);
+					nextLessCensored(array, index + 1, msg, qIndex, waitTime);
 				});
 			}
 		}
-	}, waitTimeForSteps);
+	}, waitTime);
 }
 
 // TODO: Add more options for different questions, generic might be better, more categories
 // https://opentdb.com/api_config.php
 exports.getDataQuestions = function(message, amount = 10, category = 1, difficulty = 0){
-	console.log('@getDataQuestions');
+	console.log('@getDataQuestions', amount, category, difficulty);
 	messageVar = message;
 	var categories = '&category=';
 	if(category === 0){
@@ -175,7 +183,7 @@ function urlGenerate(a, c, d, t){
 		if(error !== null){
 			console.log('error:', error);
 		}else{
-			body = parseData(body);
+			body = JSON.parse(body); // parseData before
 			if(body.response_code === 3 || body.response_code === 4){ // Token not found
 				getToken(a, c, d);
 			} else if(body.response_code === 0){
@@ -203,23 +211,18 @@ function getToken(a, c, d){
 	});
 }
 
-// TODO FIX THIS STUPID SHIT
-function parseData(body){
-	body = body.replace(/&#034;/g,'"');
-	body = body.replace(/&quot;/g,'"');
-	body = body.replace(/&#039;/g,"'");
-	body = body.replace(/&shy;/g,'-\n'); // Test this, Question looked really weird with this
-	body = body.replace(/&amp;/g, '&');
-	var parsed = JSON.parse(body);
-	return parsed;
+function parseMessage(msg){
+	msg = msg.replace(/&#034;|&quot;|rdquo;|&ldquo;/g,'"');
+	msg = msg.replace(/&#039;|&rsquo;|lsquo;/g,"'");
+	msg = msg.replace(/&shy;/g,''); // '-\n' could work as wellTest this, Question looked really weird with this
+	msg = msg.replace(/&amp;/g, '&');
+	return msg;
 }
 
 function handleQuestions(questions, callback){		
 	questions.forEach(function(thisQuestion){
 		
-		var q = thisQuestion.question;
-		var ans = thisQuestion.correct_answer;
-		//console.log(q);
+		var ans = parseMessage(thisQuestion.correct_answer);
 		//console.log(ans);
 		
 		var cen_obj = getCensored(ans);

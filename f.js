@@ -34,14 +34,14 @@ var listToDeleteFrom = new Map();
 
 var deleteDiscMessage = function(messageVar, time = bot.getRemoveTime(), messageName = 'defaultName', callback = function(msg) {}){
 	// Alt. (Somehow) Compare freshest time, delete other timeout
-	console.log('DEBUG @delete1 for ' + messageName + ', addDelete(' + time + ') = ' + (!listToDeleteFrom.has(messageName) && !isUndefined(messageVar) && messageVar.content !== ''), listToDeleteFrom.has(messageName));
+	//console.log('DEBUG @delete1 for ' + messageName + ', addDelete(' + time + ') = ' + (!listToDeleteFrom.has(messageName) && !isUndefined(messageVar) && messageVar.content !== ''), listToDeleteFrom.has(messageName));
 	if(!listToDeleteFrom.has(messageName) && !isUndefined(messageVar) && messageVar.content !== ''){
 		if(!messageVar.content.includes('<removed>')){
 			listToDeleteFrom.set(messageName, messageVar);	
 		}
 	}
 	setTimeout(function(){
-		console.log('DEBUG @delete2 for ' + messageName + ':', listToDeleteFrom.has(messageName), time);
+		//console.log('DEBUG @delete2 for ' + messageName + ':', listToDeleteFrom.has(messageName), time);
 		if(listToDeleteFrom.has(messageName)){ // Makes sure it isn't already deleted
 			listToDeleteFrom.delete(messageName); // TODO: Adjust this, should remove but make sure it continues to work. Remove since there seem to be no way of knowing if message is deleted
 			messageVar.delete()
@@ -106,6 +106,7 @@ var getLongestNameLength = function(activePlayers){
 	s = ' \t\t\t'
 	s2 = '\t'
 */
+// TODO Use me together with `` blocks
 var getTabsForName = function(nameLength, longestName){
 	console.log('DEBUG: @getTabsForName', longestName, nameLength);
 	var discTabSize = 4;
