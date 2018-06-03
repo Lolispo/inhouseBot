@@ -7,5 +7,5 @@ CREATE TABLE ratings(
 	losses int,  
 	PRIMARY KEY (uid, gameName),
 	FOREIGN KEY (uid) REFERENCES users(uid),
-	FOREIGN KEY (gameName) REFERENCES game(gameName),
+	FOREIGN KEY (gameName) REFERENCES game(gameName)
 );

@@ -101,7 +101,7 @@ var getTable = function(callback){
 // Gets Top 5 users ordered by mmr
 // TODO on more mmr: update mmr to a default value or input (callback, mmr = 'cs') example
 var getHighScore = function(game, callback){
-	Users.findAll({
+	Users.findAll({ // TODO: Where gameName = game
 		limit: 5,
 		order: [
 			[game, 'DESC'],

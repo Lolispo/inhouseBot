@@ -267,7 +267,8 @@ function handleMessage(message) {
 	else if(startsWith(message, prefix + 'leaderboard')){
 		var game = getGameChosen(message);
 		db_sequelize.getHighScore(game, function(data){
-			var s = '**Leaderboard Top 5:**\n';
+			var s = '**Leaderboard Top 5 for ' ++ game + ':**\n';
+			// TODO: Fix print with `` codeblock
 			data.forEach(function(oneData){ // TODO: Update on gamesPlayed db update
 				s += oneData.userName + ': \t**' + oneData[game] + ' mmr** \t(Games Played: ' + oneData.gamesPlayed + ')\n';
 			});
