@@ -49,8 +49,10 @@ CREATE TABLE ratings(
 	losses int,  
 	PRIMARY KEY (uid, gameName),
 	FOREIGN KEY (uid) REFERENCES users(uid),
-	FOREIGN KEY (gameName) REFERENCES game(gameName),
+	FOREIGN KEY (gameName) REFERENCES game(gameName)
 );
+
+INSERT INTO ratings (uid, gameName, mmr, gamesPlayed, wins, losses) VALUES ((SELECT uid FROM users), 'cs', (SELECT cs FROM users), (SELECT gamesPlayed FROM users), 0, 0);
 */
 
 
