@@ -5,6 +5,7 @@ var request = require('request');
 const f = require('./f');
 const player_js = require('./player');
 const bot = require('./bot')
+const db_sequelize = require('./db-sequelize');
 var gameOnGoing = false;
 var token = '';
 var ans = '';
@@ -30,9 +31,11 @@ exports.isCorrect = function(message){
 	if(message.content.toLowerCase() === ans.toLowerCase()){
 		var pointsToIncrease = pointMap.get(message.author.id);
 		var player = player_js.getPlayer(activePlayers, message.author.id);
-		var newMmr = pointsToIncrease; // TODO: Temp, implement when player.js is updated and DB is updated
-		// var newMmr = player.trivia + pointsToIncrease;
-		// db_sequelize.updateMmr(message.author.id, newMmr, trivia);
+		//var newMmr = pointsToIncrease; // TODO: Temp, implement when player.js is updated and DB is updated
+		var newMmr = player.getMMR('trivia') + pointsToIncrease;
+		// Update mmr
+		player.setMMR('trivia', newMmr);
+		db_sequelize.updateMMR(message.author.id, newMmr, 'trivia');
 
 		// Decide if messages should be removed differently
 		f.print(message, message.author.username + ' answered correctly! Answer was: ' + ans + '. Trivia Rating: ' + newMmr + ' (+' + pointsToIncrease + ')', function(msg){
@@ -62,7 +65,6 @@ exports.startGame = function(message, questions, players){
 	for(var i = 0; i < questions.length; i++){
 		done.push(false);
 	}
-	console.log('Done =', done);
 	questionsArray = questions;
 	questionIndex = 0;
 	// Find text channel: Send start message
@@ -183,7 +185,7 @@ function urlGenerate(a, c, d, t){
 		if(error !== null){
 			console.log('error:', error);
 		}else{
-			body = JSON.parse(body); // parseData before
+			body = JSON.parse(body);
 			if(body.response_code === 3 || body.response_code === 4){ // Token not found
 				getToken(a, c, d);
 			} else if(body.response_code === 0){
@@ -205,7 +207,7 @@ function getToken(a, c, d){
 	console.log('@urlGenerate');
 	request('https://opentdb.com/api_token.php?command=request', function (error, response, body) {
 		//console.log('body:', body);
-		body = parseData(body);
+		body = JSON.parse(body);
 		console.log('@getToken', body.token);
 		urlGenerate(a, c, d, body.token);
 	});

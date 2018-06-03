@@ -203,14 +203,7 @@ function handleMessage(message) {
 	}
 	else if(startsWith(message, prefix + 'b') || startsWith(message, prefix + 'balance') || startsWith(message, prefix + 'inhousebalance')){
 		if(stage === 0){
-			var options = message.content.split(' ');
-			var game = 'cs';
-			if(options.length === 2){
-				if(player_js.getGameModes().includes(options[1])){
-					console.log('DEBUG @b Game chosen as: ' + options[1]);
-					game = options[1];
-				}
-			}
+			var game = getGameChosen(message);
 			matchupMessage = message; // Used globally in print method
 			var voiceChannel = message.guild.member(message.author).voiceChannel;
 				
@@ -222,7 +215,7 @@ function handleMessage(message) {
 						balance.balanceTeams(players, data, game);
 					}); // Initialize balancing, Result is printed and stage = 1 when done
 				} else if((numPlayers === 1 || numPlayers === 2) && (adminUids.includes(message.author.id)) ){
-					testBalanceGeneric(); // TODO: Adjust test to be more relevant, remove numPlayers === 2
+					testBalanceGeneric(game); // TODO: Adjust test to be more relevant, remove numPlayers === 2
 				} else{ // TODO: Adjust this error message on allowed sizes, when duel is added
 					f.print(message, 'Currently only support even games of 4, 6, 8 and 10 players', callbackInvalidCommand);
 				}
@@ -271,26 +264,28 @@ function handleMessage(message) {
 	}
 
 	// Show top 5 MMR 
-	else if(message.content === `${prefix}leaderboard`){
-		db_sequelize.getHighScore(function(data){
+	else if(startsWith(message, prefix + 'leaderboard')){
+		var game = getGameChosen(message);
+		db_sequelize.getHighScore(game, function(data){
 			var s = '**Leaderboard Top 5:**\n';
-			data.forEach(function(oneData){ 
-				s += oneData.userName + ': \t**' + oneData.mmr + ' mmr** \t(Games Played: ' + oneData.gamesPlayed + ')\n';
+			data.forEach(function(oneData){ // TODO: Update on gamesPlayed db update
+				s += oneData.userName + ': \t**' + oneData[game] + ' mmr** \t(Games Played: ' + oneData.gamesPlayed + ')\n';
 			});
 			f.print(message, s);
 		});
 		f.deleteDiscMessage(message, 15000, 'leaderboard');
 	}
 	// Sends private information about your statistics
-	else if(message.content === `${prefix}stats`){
-		db_sequelize.getPersonalStats(message.author.id, function(data){
+	else if(startsWith(message, prefix + 'stats')){
+		var game = getGameChosen(message);
+		db_sequelize.getPersonalStats(message.author.id, game, function(data){
 			var s = '';
 			if(data.length === 0){
 				s += "**User doesn't have any games played**";
 			}
 			else {
 				s += '**Your stats:**\n';
-				data.forEach(function(oneData){
+				data.forEach(function(oneData){ // TODO: Either choose options OR show all stats that have gamesPlayed > 0
 					s += oneData.userName + ': \t**' + oneData.mmr + ' mmr** \t(Games Played: ' + oneData.gamesPlayed + ')\n';
 				});
 			}
@@ -376,6 +371,18 @@ function startsWith(message, string){
 	return (message.content.lastIndexOf(string, 0) === 0)
 }
 
+function getGameChosen(message){
+	var options = message.content.split(' ');
+	var game = 'cs';
+	if(options.length === 2){
+		if(player_js.getGameModes().includes(options[1]) || player_js.getOtherRatings().includes(options[1])){
+			console.log('DEBUG @b Game chosen as: ' + options[1]);
+			game = options[1];
+		}
+	}
+	return game;
+}
+
 async function cleanupExit(){
 	await setStage(0); 
 	await f.onExitDelete();
@@ -430,7 +437,7 @@ function findPlayersStart(message, channel){
 }
 
 // A Test for balancing and getting to stage 1 without players available
-function testBalanceGeneric(){
+function testBalanceGeneric(game){
 	console.log('\t<-- Testing Environment: 10 player game, res in console -->');
 	var players = new ArrayList;
 	for(var i = 0; i < 10; i++){
@@ -439,7 +446,7 @@ function testBalanceGeneric(){
 		players.add(tempPlayer);
 	}
 	db_sequelize.initializePlayers(players, dbpw, function(players, data){
-		balance.balanceTeams(players, data, 'cs');
+		balance.balanceTeams(players, data, game);
 	}) // Initialize balancing and prints result. Sets stage = 1 when done
 }
 

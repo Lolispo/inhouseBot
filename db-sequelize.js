@@ -100,11 +100,11 @@ var getTable = function(callback){
 
 // Gets Top 5 users ordered by mmr
 // TODO on more mmr: update mmr to a default value or input (callback, mmr = 'cs') example
-var getHighScore = function(callback){
+var getHighScore = function(game, callback){
 	Users.findAll({
 		limit: 5,
 		order: [
-			['mmr', 'DESC'],
+			[game, 'DESC'],
 			['gamesPlayed', 'DESC'],
 			['userName', 'ASC']
 		]
@@ -127,16 +127,41 @@ var getPersonalStats = function(uid, callback){
 }; 
 
 // Used to update a player in database, increasing matches and changing mmr
-// TODO on more mmr: Requires which to update: mmr -> cs, cs1v1, dota, dota1v1 (, mmrType = mmr) ?
-var updateMMR = function(uid, newMmr){
+// TODO on more mmr: Requires which to update: mmr -> cs, cs1v1, dota, dota1v1 (, mmrType = mmr) ? mmr -> [game] or something
+var updateMMR = function(uid, newMmr, game){
 	Users.findById(uid).then(function(user) {
-		user
-		.update({
-			mmr: newMmr,
-			gamesPlayed: sequelize.literal('gamesPlayed +1')
-	    }).then(function(){
-			//console.log('User (id =', uid + ') new mmr set to ' + newMmr)
-		})
+		switch(game){ // TODO: Find a better way to choose column from variable, instead of hard code
+			case 'dota':
+				user.update({
+					dota: newMmr,
+					gamesPlayed: sequelize.literal('gamesPlayed +1')
+			    })
+				break;
+			case 'dota1v1':
+				user.update({
+					dota1v1: newMmr,
+					gamesPlayed: sequelize.literal('gamesPlayed +1')
+			    })
+				break;
+			case 'cs1v1':
+				user.update({
+					cs1v1: newMmr,
+					gamesPlayed: sequelize.literal('gamesPlayed +1')
+			    })
+				break;
+			case 'trivia':
+				user.update({
+					trivia: newMmr,
+			    })
+				break;
+			case 'cs':
+			default:
+				user.update({
+					cs: newMmr,
+					gamesPlayed: sequelize.literal('gamesPlayed +1')
+			    })
+				break;
+		}
 	});
 }
 

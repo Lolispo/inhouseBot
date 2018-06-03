@@ -16,8 +16,7 @@ CREATE TABLE users(
 );
 
 /*
-
-NEW
+OLD
 CREATE TABLE users(
 	uid VARCHAR(64) NOT NULL,
 	userName VARCHAR(64), 
@@ -28,6 +27,29 @@ CREATE TABLE users(
 	trivia int,
 	gamesPlayed int,
 	PRIMARY KEY (uid)
+);
+
+CREATE TABLE users(
+	uid VARCHAR(64) NOT NULL,
+	userName VARCHAR(64), 
+	PRIMARY KEY (uid)
+);
+
+CREATE TABLE game(
+	gameName VARCHAR(64) NOT NULL,
+	PRIMARY KEY (gameName)
+);
+
+CREATE TABLE ratings(
+	uid VARCHAR(64) NOT NULL,
+	gameName VARCHAR(64) NOT NULL,
+	mmr int,
+	gamesPlayed int,
+	wins int,
+	losses int,  
+	PRIMARY KEY (uid, gameName),
+	FOREIGN KEY (uid) REFERENCES users(uid),
+	FOREIGN KEY (gameName) REFERENCES game(gameName),
 );
 */
 

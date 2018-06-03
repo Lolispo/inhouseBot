@@ -13,8 +13,8 @@ const db_sequelize = require('./db-sequelize');
 // Update mmr for all players and returns result to clients
 exports.updateMMR = function(winner, balanceInfo, callbackUpdate){ // winner = 0 -> draw, 1 -> team 1, 2 -> team 2
 	var mmrChange = eloUpdate(balanceInfo.avgT1, balanceInfo.avgT2, winner); 
-	updateTeamMMR(balanceInfo.team1, mmrChange.t1);
-	updateTeamMMR(balanceInfo.team2, mmrChange.t2);
+	updateTeamMMR(balanceInfo.team1, mmrChange.t1, balanceInfo.game);
+	updateTeamMMR(balanceInfo.team2, mmrChange.t2, balanceInfo.game);
 
 	buildMMRUpdateString(winner, callbackResult, balanceInfo.team1, balanceInfo.team2, callbackUpdate);
 }
@@ -60,13 +60,14 @@ function eloUpdate(t1mmr, t2mmr, winner){
 }
 
 // Update team mmr for the given team locally and in database
-function updateTeamMMR(team, change){
+function updateTeamMMR(team, change, game){
 	for(var i = 0; i < team.size(); i++){
-		var newMMR = team[i].mmr + change;
-		team[i].setMMRChange(change);
-		team[i].setMMR(newMMR);
-		team[i].setPlusMinus((change > 0 ? '+' : ''));
-		db_sequelize.updateMMR(team[i].uid, newMMR); // TODO: Check, error might be from here, since result is not awaited. Redo with method for await?
+		var newMMR = team[i].getMMR(game) + change;
+		team[i].setMMRChange(game, change);
+		team[i].setMMR(game, newMMR);
+		team[i].setPlusMinus(game, (change > 0 ? '+' : ''));
+		db_sequelize.updateMMR(team[i].uid, newMMR, game); // TODO: Check, error might be from here, since result is not awaited. Redo with method for await?
+		// TODO on more mmr: , mmrType
 	}
 }
 

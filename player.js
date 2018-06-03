@@ -6,7 +6,8 @@
 	TODO Feature: 
 		Add dynamic storage of mmr for support of more games, potential of aim map skill 2v2
 */
-const gameModes = ['cs','dota', 'cs1v1', 'dota1v1', 'trivia'];
+const gameModes = ['cs','dota', 'cs1v1', 'dota1v1'];
+const otherRatings = ['trivia'];
 const startMMR = 2500;
 
 function Player(username, discId){
@@ -21,10 +22,12 @@ function Player(username, discId){
 	this.initializeMMR = function(){
 		for(var i = 0; i < gameModes.length; i++){
 			var struct = new mmrStruct(startMMR);
-			//console.log('DEBUG init struct: ', gameModes[i], struct);
 			this.mmrs.set(gameModes[i], struct);
 		}
-		this.mmrs.set('trivia', new mmrStruct(0));		
+		for(var i = 0; i < otherRatings.length; i++){
+			var struct = new mmrStruct(0);
+			this.mmrs.set(otherRatings[i], struct);
+		}	
 	}
 
 	this.setMMR = function(game, value){
@@ -47,27 +50,9 @@ function Player(username, discId){
 		struct.latestUpdatePrefix = value;
 	}
 	this.initializeMMR();
-	/*
-	this.mmr = this.defaultMMR; 	// MMR is updated when all players are fetched
-	this.prevMMR = this.defaultMMR; // MMR at previous instance
-	this.latestUpdate = 0;			// How much mmr was changed
-	this.latestUpdatePrefix = ''; 	// A '+' or ''?
-
-	this.setMMR = function(value){
-		this.prevMMR = this.mmr; // Keeps track of last recorded mmr
-		this.mmr = value;
-	}
-
-	this.setMMRChange = function(value){
-		this.latestUpdate = value;
-	}
-
-	this.setPlusMinus = function(value){
-		this.latestUpdatePrefix = value;
-	}
-	*/
 }
 
+// MMR struct - holding information about mmr for a game, used in map to map game with struct
 function mmrStruct(startMmr){
 	this.mmr = startMmr;
 	this.prevMMR = startMmr; 		// MMR at previous instance
@@ -83,6 +68,11 @@ exports.createPlayer = function(username, discId){
 exports.getGameModes = function(){
 	return gameModes;
 }
+
+exports.getOtherRatings = function(){
+	return otherRatings;
+}
+
 
 // Returns highest mmr player object from team
 exports.getHighestMMR = function(team){ // TODO add for which game
