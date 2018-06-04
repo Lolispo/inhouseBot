@@ -43,16 +43,21 @@ CREATE TABLE game(
 CREATE TABLE ratings(
 	uid VARCHAR(64) NOT NULL,
 	gameName VARCHAR(64) NOT NULL,
+	userName VARCHAR(64),
 	mmr int,
 	gamesPlayed int,
 	wins int,
 	losses int,  
 	PRIMARY KEY (uid, gameName),
 	FOREIGN KEY (uid) REFERENCES users(uid),
-	FOREIGN KEY (gameName) REFERENCES game(gameName)
+	FOREIGN KEY (gameName) REFERENCES game(gameName),
+	FOREIGN KEY (userName) REFERENCES users(userName)
 );
 
-INSERT INTO ratings (uid, gameName, mmr, gamesPlayed, wins, losses) VALUES ((SELECT uid FROM users), 'cs', (SELECT cs FROM users), (SELECT gamesPlayed FROM users), 0, 0);
+
+// Moving data
+INSERT INTO ratings (uid, gameName, userName, mmr, gamesPlayed, wins, losses) VALUES 
+((SELECT uid FROM users where userName = 'Petter'), 'cs', 'Petter', (SELECT cs FROM users where userName = 'Petter'), (SELECT gamesPlayed FROM users where userName = 'Petter'), 0, 0);
 */
 
 

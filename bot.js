@@ -24,11 +24,23 @@ const { prefix, token, dbpw } = require('./conf.json');
 	TODO:
 		Features:
 			Trivia
-				Remember Token - on file maybe?
+				Remember Token - on file maybe? CHECK IF WORK
+				Exit game
+				If noone answered anything 5 questions (attempted) in a row, end questions
+				Author of message must be in voice channel fix 
+				2 URL requests are currently happening. Fix 
+				remove
+					Noone answered in time msgs remove
+					Answered correctly msgs remove
+					start msg remove
+				require some lock to prevent 2 people getting same answer in at same time?
+			Check to see that all command variables work!
+			Help command generated through command variables instead, match up perfectly
+				Should generate readme part directly through this as well
 			Store MMR for more games
-				Default cs, otherwise dota
-				Decide where you specify which mmr (either at balance or at win)
+				Change into new created tables, ratings etc to have gamesPlayed for all games instead of sharing
 			Find a fix for printing result alignment - redo system for printouts?
+				`` Code blocks could be used for same size on chars, but cant have bold text then (Used on player names?)
 				Didn't work, since char diff length: Handle name lengths for prints in f.js so names are aligned in tabs after longest names
 			Support unite to channels with names over one word
 			Challenge / Duel: Challenge someone to 1v1
@@ -50,7 +62,7 @@ const { prefix, token, dbpw } = require('./conf.json');
 			(QoL) On exit, remove messages that are waiting for be removed (For better testing)
 		Reflect:
 			Better Printout / message to clients (Currently as message, but not nice looking)
-				`` Code blocks could be used for same size on chars, but cant have bold text then (Used on player names?)
+				
 			Better names for commands
 		Deluxe Features (Ideas):
 			Gör så att botten kan göra custom emojis, och adda de till servern för usage (ex. mapVeto emotes och seemsgood)
@@ -102,6 +114,20 @@ const voteText = '**Majority of players that played the game need to confirm thi
 const adminUids = ['96293765001519104', '107882667894124544']; // Admin ids, get access to specific admin rights
 const removeBotMessageDefaultTime = 60000; // 300000
 
+const balanceCommands = [prefix + 'b', prefix + 'balance', prefix + 'balanceGame', prefix + 'inhousebalance'];
+const helpCommands = [prefix + 'h', prefix + 'help'];
+const team1wonCommands = [prefix + 'team1won'];
+const team2wonCommands = [prefix + 'team2won'];
+const tieCommands = [prefix + 'tie', prefix + 'draw'];
+const cancelCommands = [prefix + 'c', prefix + 'cancel', prefix + 'gamenotplayed'];
+const splitCommands = [prefix + 'split'];
+const uniteCommands = [prefix + 'u', prefix + 'unite'];
+const uniteAllCommands = [prefix + 'ua', prefix + 'uniteAll'];
+const mapvetostartCommands = [prefix + 'mapveto', prefix + 'startmapveto', prefix + 'mapvetostart', prefix + 'startmaps'];
+const triviaCommands = [prefix + 'trivia', prefix + 'starttrivia', prefix + 'triviastart'];
+const leaderboardCommands = [prefix + 'leaderboard'];
+const statsCommands = [prefix + 'stats'];
+const exitCommands = [prefix + 'exit'];
 
 // Listener on message
 client.on('message', message => {
@@ -121,7 +147,7 @@ client.on('message', message => {
 			.then(result => {
 				f.deleteDiscMessage(result, removeBotMessageDefaultTime * 2);
 			});
-			if(message.content === prefix+'help' || message.content === prefix+'h'){ // Special case for allowing help messages to show up in DM
+			if(helpCommands.includes(message.content)){ // Special case for allowing help messages to show up in DM
 				message.author.send(buildHelpString())
 				.then(result => {
 					f.deleteDiscMessage(result, removeBotMessageDefaultTime * 2);
@@ -178,10 +204,10 @@ client.on('messageReactionRemove', (messageReaction, user) => {
 function handleMessage(message) { 
 	console.log('< MSG (' + message.channel.guild.name + '.' + message.channel.name + ') ' + message.author.username + ':', message.content); 
 	// All stages commands, Commands that should always work, from every stage
-	if(message.content == 'hej'){
+	if(startsWith(message, 'hej')){
 		f.print(message, 'Hej ' + message.author.username, noop); // Not removing hej messages
 	}
-	else if(message.content === prefix+'ping'){ // Good for testing prefix and connection to bot
+	else if(message.content === prefix + 'ping'){ // Good for testing prefix and connection to bot
 		console.log('PingAlert, user had !ping as command');
 		f.print(message, 'Pong');
 		f.deleteDiscMessage(message, removeBotMessageDefaultTime, 'ping');
@@ -197,11 +223,11 @@ function handleMessage(message) {
 		}
 	}
 	// Sends available commands privately to the user
-	else if(message.content === prefix+'help' || message.content === prefix+'h'){
+	else if(helpCommands.includes(message.content)){
 		message.author.send(buildHelpString());
 		f.deleteDiscMessage(message, 10000, 'help');
 	}
-	else if(startsWith(message, prefix + 'b') || startsWith(message, prefix + 'balance') || startsWith(message, prefix + 'inhousebalance')){
+	else if(startsWith(message, balanceCommands)){
 		if(stage === 0){
 			var game = getGameChosen(message);
 			matchupMessage = message; // Used globally in print method
@@ -237,37 +263,50 @@ function handleMessage(message) {
 			(amount, 1) 	Games, all difficulties
 			(amount, 2, 3)  Generic knowledge questions, hard difficulty
 	*/
-	else if(startsWith(message, prefix + 'trivia')){
+	else if(startsWith(message, triviaCommands)){
 		var mode = message.content.split(' '); 
 		if(mode.length >= 2){
 			// Grabs second argument if available
 			switch(mode[1]){
+				case 'all':
+				case '0':
+				case 'allsubjectseasy':
+					trivia.getDataQuestions(message, 10, 0, 1);
+					break;
+				case 'anything':
+					trivia.getDataQuestions(message, 10, 0);
+					break;
 				case 'game':
 				case 'games':
+				case 'gamesall':
 				case '1':
 					trivia.getDataQuestions(message, 10, 1);
 					break;
-				case 'all':
-				case '0':
-					trivia.getDataQuestions(message, 10, 0, 1);
+				case 'gameseasy':
+					trivia.getDataQuestions(message, 10, 1, 1);
 					break;
 				case '2':
 				case 'generic':
-					trivia.getDataQuestions(message, 10, 2, 1); 
+				case 'genericeasy':
+					trivia.getDataQuestions(message, 10, 2, 1);
+					break;
+				case 'genericall':
+					trivia.getDataQuestions(message, 10, 2);
+					break;
 				default:
 					trivia.getDataQuestions(message, 10, 0);
 			}
 		} else{ // No mode chosen, use default
-			trivia.getDataQuestions(message, 10, 2, 1);
+			trivia.getDataQuestions(message, 10, 0, 1);
 		}
 		f.deleteDiscMessage(message, 15000, 'trivia');
 	}
 
 	// Show top 5 MMR 
-	else if(startsWith(message, prefix + 'leaderboard')){
+	else if(startsWith(message, leaderboardCommands)){
 		var game = getGameChosen(message);
 		db_sequelize.getHighScore(game, function(data){
-			var s = '**Leaderboard Top 5 for ' ++ game + ':**\n';
+			var s = '**Leaderboard Top 5 for ' + game + ':**\n';
 			// TODO: Fix print with `` codeblock
 			data.forEach(function(oneData){ // TODO: Update on gamesPlayed db update
 				s += oneData.userName + ': \t**' + oneData[game] + ' mmr** \t(Games Played: ' + oneData.gamesPlayed + ')\n';
@@ -277,17 +316,17 @@ function handleMessage(message) {
 		f.deleteDiscMessage(message, 15000, 'leaderboard');
 	}
 	// Sends private information about your statistics
-	else if(startsWith(message, prefix + 'stats')){
+	else if(startsWith(message, statsCommands)){
 		var game = getGameChosen(message);
-		db_sequelize.getPersonalStats(message.author.id, game, function(data){
+		db_sequelize.getPersonalStats(message.author.id, game, function(data, game){
 			var s = '';
 			if(data.length === 0){
 				s += "**User doesn't have any games played**";
 			}
 			else {
-				s += '**Your stats:**\n';
+				s += '**Your stats for ' + game + ':**\n';
 				data.forEach(function(oneData){ // TODO: Either choose options OR show all stats that have gamesPlayed > 0
-					s += oneData.userName + ': \t**' + oneData.mmr + ' mmr** \t(Games Played: ' + oneData.gamesPlayed + ')\n';
+					s += oneData.userName + ': \t**' + oneData[game] + ' mmr**' + (game === 'cs' ? '\t(Games Played: ' + oneData.gamesPlayed + ')\n' : '');
 				});
 			}
 			message.author.send(s)  // Private message
@@ -297,38 +336,39 @@ function handleMessage(message) {
 		});
 		f.deleteDiscMessage(message, 15000, 'stats');
 	}
+	
 	// Used for tests
-	else if(message.content === `${prefix}exit`){
+	else if(exitCommands.includes(message.content)){
 		if(adminUids.includes(message.author.id)){
 			// Do tests:
 			cleanupExit();
 		}
-		f.deleteDiscMessage(message, 1, 'test');
+		f.deleteDiscMessage(message, 1, 'exit');
 	}
 	// Unites all channels, INDEPENDENT of game ongoing
 	// Optional additional argument to choose name of voiceChannel to uniteIn, otherwise same as balance was called from
-	else if(startsWith(message, prefix + 'ua') || startsWith(message, prefix + 'uniteall') ){ // TODO: Not from break room, idle chat
+	else if(startsWith(message, uniteAllCommands)){ // TODO: Not from break room, idle chat
 		voiceMove_js.uniteAll(message);
 		f.deleteDiscMessage(message, 15000, 'ua');
 	}
 	// STAGE 1 COMMANDS: (After balance is made)
 	else if(stage === 1){
-		if(message.content === `${prefix}team1won`){
+		if(team1wonCommands.includes(message.content)){
 			teamWonMessage = message;
 			teamWon = 1;
 			f.print(message, voteText + ' (0/' + (balanceInfo.team1.size() + 1)+ ')', callbackVoteText);
 		}
-		else if(message.content === `${prefix}team2won`){
+		else if(team1wonCommands.includes(message.content)){
 			teamWonMessage = message;
 			teamWon = 2;
 			f.print(message, voteText + ' (0/' + (balanceInfo.team1.size() + 1)+ ')', callbackVoteText);
 		}
-		else if(message.content === `${prefix}tie` || message.content === `${prefix}draw`){
+		else if(tieCommands.includes(message.content)){
 			teamWonMessage = message;
 			teamWon = 0;
 			f.print(message, voteText + ' (0/' + (balanceInfo.team1.size() + 1)+ ')', callbackVoteText);
 		}
-		else if(message.content === `${prefix}c` || message.content === `${prefix}cancel` || message.content === `${prefix}gamenotplayed`){
+		else if(cancelCommands.includes(message.content)){
 			// Only creator of game can cancel it
 			if(message.author.id === matchupMessage.author.id){
 				setStage(0);
@@ -341,19 +381,19 @@ function handleMessage(message) {
 
 		// Splits the players playing into the Voice Channels 'Team1' and 'Team2'
 		// TODO: Logic for if these aren't available
-		else if(message.content === `${prefix}split`){
+		else if(splitCommands.includes(message.content)){
 			voiceMove_js.split(message, balanceInfo, activeMembers);
 			f.deleteDiscMessage(message, 15000, 'split');
 		}
 		// Take every user in 'Team1' and 'Team2' and move them to the same voice chat
 		// Optional additional argument to choose name of voiceChannel to uniteIn, otherwise same as balance was called from
-		else if(startsWith(message, prefix + 'u') || startsWith(message, prefix + 'unite')){ 
+		else if(startsWith(message, uniteCommands)){ 
 			voiceMove_js.unite(message, activeMembers);
 			f.deleteDiscMessage(message, 15000, 'u');
 		}
 
 		// mapVeto made between one captain from each team
-		else if(message.content === `${prefix}mapveto`){
+		else if(mapvetostartCommands.includes(message.content)){
 			map_js.mapVetoStart(message, balanceInfo, client.emojis)
 			.then(result => {
 				mapMessages = result;
@@ -368,8 +408,19 @@ function handleMessage(message) {
 }
 
 // Returns boolean of if message starts with string
-function startsWith(message, string){
-	return (message.content.lastIndexOf(string, 0) === 0)
+// Can also accept command to be array, then if any command in array is start of msg, return true
+function startsWith(message, command){
+	//console.log('DEBUG @startsWith', command, Array.isArray(command));
+	if(Array.isArray(command)){
+		for(var i = 0; i < command.length; i++){
+			if(message.content.lastIndexOf(command[i], 0) === 0){
+				return true;
+			}
+		}
+		return false;
+	}else {
+		return (message.content.lastIndexOf(command, 0) === 0);	
+	}
 }
 
 function getGameChosen(message){
@@ -396,7 +447,8 @@ exports.triviaStart = function(questions, message){
 	// Start game in text channel with these questions
 	savedTriviaQuestions = questions;
 	var voiceChannel = message.guild.member(message.author).voiceChannel;
-	if(voiceChannel !== null && !f.isUndefined(voiceChannel)){ // Makes sure user is in a voice channel
+	console.log('DEBUG @triviaStart AM I RUNNING TWICE?', message.content, voiceChannel.name, voiceChannel !== null && !f.isUndefined(voiceChannel));
+	if(voiceChannel !== null && !f.isUndefined(voiceChannel)){ // Makes sure user is in a voice channel TODO: Decide if needed
 		var players = findPlayersStart(message, voiceChannel);
 		trivia.startGame(message, questions, players);
 	} else{

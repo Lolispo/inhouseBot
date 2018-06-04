@@ -3,6 +3,7 @@
 
 // Should handle general help functions
 const bot = require('./bot')
+var fs = require('fs');
 
 /*
 var nodeCleanup = require('node-cleanup');
@@ -66,6 +67,26 @@ var onExitDelete = function(){
 
 function callbackPrintDefault(message){
 	deleteDiscMessage(message);
+}
+
+var writeToFile = function(filePath, contentToWrite, messageOnSuccess){
+	fs.writeFile(filePath, contentToWrite, function(err) {
+	    if(err) {
+	        return console.log(err);
+	    }
+	    console.log(messageOnSuccess);
+	}); 
+}
+
+var readFromFile = function(filePath, messageRead, callback, callbackError){
+	fs.readFile(filePath, 'utf8', function (err,data) {
+		if (err || isUndefined(data)) {
+			console.log(err);
+			callbackError();
+		}
+		console.log(messageRead + data);
+		callback(data);
+	});
 }
 
 // Takes an Array of Players and returns an Array of GuildMembers with same ids
@@ -133,5 +154,7 @@ module.exports = {
 	onExitDelete : onExitDelete,
 	teamToGuildMember : teamToGuildMember,
 	getLongestNameLength : getLongestNameLength,
-	getTabsForName : getTabsForName
+	getTabsForName : getTabsForName,
+	writeToFile : writeToFile,
+	readFromFile : readFromFile
 }

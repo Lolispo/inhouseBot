@@ -7,6 +7,7 @@ const player_js = require('./player');
 const bot = require('./bot')
 const db_sequelize = require('./db-sequelize');
 var gameOnGoing = false;
+var author;
 var token = '';
 var ans = '';
 var activePlayers = [];
@@ -25,9 +26,14 @@ const channelName = 'trivia-channel';
 const waitTimeForSteps = 8000;
 const lengthForShuffle = 8;
 const maxPossiblePoints = 5;
+const exitCommands = ['exit', 'exitgame', 'exittrivia', 'quit', 'quitTrivia'];
 
 // Checks logic for message, matches with current answer
 exports.isCorrect = function(message){
+	if(author === message.author && exitCommands.includes(message.content.toLowerCase())){
+		// Makes this the final question
+		questionIndex = questionsArray.length;
+	}
 	if(message.content.toLowerCase() === ans.toLowerCase()){
 		var pointsToIncrease = pointMap.get(message.author.id);
 		var player = player_js.getPlayer(activePlayers, message.author.id);
@@ -55,6 +61,7 @@ exports.isCorrect = function(message){
 
 // Starts game, requires messageVar (from correct textchannel) and questions
 exports.startGame = function(message, questions, players){
+	console.log('DEBUG @startGame');
 	gameOnGoing = true;
 	activePlayers = players;
 	pointMap = new Map();
@@ -69,9 +76,9 @@ exports.startGame = function(message, questions, players){
 	questionIndex = 0;
 	// Find text channel: Send start message
 	var channel = message.guild.channels.find('name', channelName);
-	channel.send('Starting game of trivia!')
+	channel.send('Starting game of trivia! If any weird letters are found looking like "&---;", message admin the combination')
 	.then(result => {
-		messageVar = result;		// Initialize messageVar to be in correct chhanel, used for print
+		messageVar = result;			// Initialize messageVar to be in correct chanel, used for print
 		f.deleteDiscMessage(result);	// Delete start message after default time
 		console.log('DEBUG: Starting question');
 		startQuestion();
@@ -81,19 +88,15 @@ exports.startGame = function(message, questions, players){
 // Start a new question, when previous is finished
 function startQuestion(){
 	var index = questionIndex;
-	console.log('Starting new Question[' + index + '], done = ' + done[index]); // Done[index] is undefined here TODO: Fix
-	if(index === questionsArray.length){
-		f.deleteDiscMessage(finishMessage, bot.getRemoveTime(), 'finishMessage');
+	if(index >= questionsArray.length){
+		if(!f.isUndefined(finishMessage)){
+			f.deleteDiscMessage(finishMessage, bot.getRemoveTime(), 'finishMessage');
+		}
 		f.print(messageVar, 'Game Ended. Results: \n' + player_js.getSortedRating(activePlayers, 'trivia'));
 		gameOnGoing = false;
 	} else{
-		var q = questionsArray[index]; // TODO See if / how it should work
-		/*
-		console.log('Question: ' + thisQuestion.question);
-		console.log('Ans:', thisQuestion.correct_answer);
-		console.log('Shuffled ans:', thisQuestion.shuffledAns);
-		console.log('Finished Censored:' + '\n', thisQuestion.lessCensored);
-		*/
+		console.log('Starting new Question[' + index + '], done = ' + done[index]); // Done[index] is undefined here TODO: Fix
+		var q = questionsArray[index];
 		done[index] = false;
 		f.print(messageVar, '**Question: **' + parseMessage(q.question), function(msg){
 			questionMessage = msg;
@@ -102,7 +105,7 @@ function startQuestion(){
 		if(ans.length >= lengthForShuffle){
 			setTimeout(function(){
 				if(!done[index]){
-					f.print(messageVar, '**Scrambled: **`' + q.shuffledAns + '`', function(msg){
+					f.print(messageVar, '`' + q.shuffledAns + '`', function(msg){
 						shuffledMessage = msg;
 					});
 					nextLessCensored(q.lessCensored, 0, messageVar, index, waitTimeForSteps / 2);		
@@ -146,6 +149,7 @@ function nextLessCensored(array, index, message, qIndex, waitTime){
 // https://opentdb.com/api_config.php
 exports.getDataQuestions = function(message, amount = 10, category = 1, difficulty = 0){
 	console.log('@getDataQuestions', amount, category, difficulty);
+	author = message.author;
 	messageVar = message;
 	var categories = '&category=';
 	if(category === 0){
@@ -165,11 +169,13 @@ exports.getDataQuestions = function(message, amount = 10, category = 1, difficul
 	} else if(difficulty === 3){ // Hard
 		difficulties += 'hard';
 	}
-	if(token === ''){
+	f.readFromFile('token_trivia', 'Token Trivia: ', function(tokenVar){
+		console.log('@getDataQuestions Read Token: ', tokenVar);
+		urlGenerate(amount, categories, difficulties, tokenVar);
+	}, function(){
+		console.log('@getDataQuestions fileRead failed - Getting new token');
 		getToken(amount, categories, difficulties);
-	} else {
-		urlGenerate(amount, categories, difficulties, token);	
-	}
+	});
 }
 
 function urlGenerate(a, c, d, t){
@@ -180,18 +186,19 @@ function urlGenerate(a, c, d, t){
 	} else{
 		console.log('UNDEFINED TOKEN, continues without token');
 	}
-	console.log(url);
+	console.log('URL = ' + url);
 	request(url, function (error, response, body) {
 		if(error !== null){
 			console.log('error:', error);
 		}else{
 			body = JSON.parse(body);
 			if(body.response_code === 3 || body.response_code === 4){ // Token not found
+				console.log('DEBUG: response_code =', body.response_code);
 				getToken(a, c, d);
 			} else if(body.response_code === 0){
 				//console.log('response:', response);
 				//console.log('body:', body);
-				console.log('Valid Token: Success!');
+				console.log('Success! Got questions');
 				handleQuestions(body.results, function(questions, message){
 					bot.triviaStart(questions, message);
 				});				
@@ -202,13 +209,14 @@ function urlGenerate(a, c, d, t){
 	});	
 }
 
-// Get token
+// Get new token
 function getToken(a, c, d){
-	console.log('@urlGenerate');
+	console.log('@getToken');
 	request('https://opentdb.com/api_token.php?command=request', function (error, response, body) {
 		//console.log('body:', body);
 		body = JSON.parse(body);
-		console.log('@getToken', body.token);
+		console.log('@getToken request new', body.token);
+		writeToFile('token_trivia', body.token, 'Success! Wrote token to file for trivia');
 		urlGenerate(a, c, d, body.token);
 	});
 }
@@ -218,6 +226,7 @@ function parseMessage(msg){
 	msg = msg.replace(/&#039;|&rsquo;|lsquo;/g,"'");
 	msg = msg.replace(/&shy;/g,''); // '-\n' could work as wellTest this, Question looked really weird with this
 	msg = msg.replace(/&amp;/g, '&');
+	msg = msg.replace(/&hellip;/g, '...');
 	return msg;
 }
 
@@ -267,11 +276,12 @@ function handleQuestions(questions, callback){
 		}
 		var charArray = Array.from(thisQuestion.correct_answer).filter(word => word !== ' ');
 		thisQuestion.shuffledAns = shuffle(charArray).join('').toLowerCase(); // lower case
-
+		/*
 		console.log('Question: ' + thisQuestion.question);
 		console.log('Ans:', thisQuestion.correct_answer);
 		console.log('Shuffled ans:', thisQuestion.shuffledAns);
 		console.log('Finished Censored:' + '\n', thisQuestion.lessCensored);
+		*/
 	});
 	callback(questions, messageVar);
 }

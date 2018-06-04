@@ -16,7 +16,7 @@ exports.updateMMR = function(winner, balanceInfo, callbackUpdate){ // winner = 0
 	updateTeamMMR(balanceInfo.team1, mmrChange.t1, balanceInfo.game);
 	updateTeamMMR(balanceInfo.team2, mmrChange.t2, balanceInfo.game);
 
-	buildMMRUpdateString(winner, callbackResult, balanceInfo.team1, balanceInfo.team2, callbackUpdate);
+	buildMMRUpdateString(winner, callbackResult, balanceInfo.team1, balanceInfo.team2, callbackUpdate, balanceInfo.game);
 }
 
 // Calculates the mmr change for two teams with given average team mmr and winner
@@ -67,23 +67,22 @@ function updateTeamMMR(team, change, game){
 		team[i].setMMR(game, newMMR);
 		team[i].setPlusMinus(game, (change > 0 ? '+' : ''));
 		db_sequelize.updateMMR(team[i].uid, newMMR, game); // TODO: Check, error might be from here, since result is not awaited. Redo with method for await?
-		// TODO on more mmr: , mmrType
 	}
 }
 
 // After a finished game, prints out new updated mmr
-// TODO: Decide the best design for mmr syntax, currently (1150, 1100 +50)
-function buildMMRUpdateString(team1Won, callback, T1, T2, callbackUpdate){
-	var s = '';
-	s += '**Team ' + (team1Won ? '1' : '2') + ' won!** Updated mmr is: \n';
-	s += '**Team 1**: \n\t*' + T1[0].userName + ' (' + T1[0].mmr + ' mmr, ' + T1[0].prevMMR + ' ' + T1[0].latestUpdatePrefix + T1[0].latestUpdate + ')';
+// TODO: Update text with ``
+function buildMMRUpdateString(team1Won, callback, T1, T2, callbackkUpdate, game){
+	var s = ''; 
+	s += '**Team ' + (team1Won ? '1' : '2') + ' won!** Played game: **' + game + '**. Updated mmr is: \n';
+	s += '**Team 1**: \n\t*' + T1[0].userName + ' (' + T1[0].getMMR(game).mmr + ' mmr, ' + T1[0].getMMR(game).prevMMR + ' ' + T1[0].getMMR(game).latestUpdatePrefix + T1[0].getMMR(game).latestUpdate + ')';
 	for(var i = 1; i < T1.size(); i++){
-		s += '\n\t' + T1[i].userName + ' (' + T1[i].mmr + ' mmr, ' + T1[i].prevMMR + ' ' + T1[i].latestUpdatePrefix + T1[i].latestUpdate + ')';
+		s += '\n\t' + T1[i].userName + ' (' + T1[i].getMMR(game).mmr + ' mmr, ' + T1[i].getMMR(game).prevMMR + ' ' + T1[i].getMMR(game).latestUpdatePrefix + T1[i].getMMR(game).latestUpdate + ')';
 	}
 	s += '*\n';
-	s += '**Team 2**: \n\t*' + T2[0].userName + ' (' + T2[0].mmr + ' mmr, ' + T2[0].prevMMR + ' ' + T2[0].latestUpdatePrefix + T2[0].latestUpdate + ')';
+	s += '**Team 2**: \n\t*' + T2[0].userName + ' (' + T2[0].getMMR(game).mmr + ' mmr, ' + T2[0].getMMR(game).prevMMR + ' ' + T2[0].getMMR(game).latestUpdatePrefix + T2[0].getMMR(game).latestUpdate + ')';
 	for(var i = 1; i < T2.size(); i++){
-		s += '\n\t' + T2[i].userName + ' (' + T2[i].mmr + ' mmr, ' + T2[i].prevMMR + ' ' + T2[i].latestUpdatePrefix + T2[i].latestUpdate + ')';
+		s += '\n\t' + T2[i].userName + ' (' + T2[i].getMMR(game).mmr + ' mmr, ' + T2[i].getMMR(game).prevMMR + ' ' + T2[i].getMMR(game).latestUpdatePrefix + T2[i].getMMR(game).latestUpdate + ')';
 	}
 	s += '*\n';
 	callback(0, s, callbackUpdate);

@@ -101,10 +101,16 @@ exports.getPlayer = function(array, uid){
 // TODO Add sort on DESC Game
 exports.getSortedRating = function(players, game){
 	var s = '';
-	if(game === 'trivia'){
-		for(var i = 0; i < players.size(); i++){
-			s += players[i].userName + ': Trivia Rating: ' + players[i].game + '\n'; // trivia
-		}
+	var ratingOrMMR = '';
+	if(gameModes.includes(game)){
+		ratingOrMMR = 'mmr';
+	} else if(otherRatings.includes(game)){
+		ratingOrMMR = 'rating';
+	} else {
+		throw err('Invalid game @getSortedRating', game);
+	}
+	for(var i = 0; i < players.size(); i++){
+		s += players[i].userName + "'s **" + game + '** ' + ratingOrMMR + ': ' + players[i].getMMR(game) + '\n'; // trivia
 	}
 	return s;
 }

@@ -35,6 +35,7 @@ var initializePlayers = function(players, dbpw, callback){
 function addMissingUsers(players, data, callback){
 	//console.log('DEBUG: @addMissingUsers, Insert the mmr from data: ', players);
 	var gameModes = player_js.getGameModes();
+	var otherRatings = player_js.getOtherRatings();
 	for(var i = 0; i < players.size(); i++){
 		// Check database for this data
 		var existingUser = -1;
@@ -48,6 +49,11 @@ function addMissingUsers(players, data, callback){
 		} else{ // Update players[i] mmr to the correct value
 			for(var j = 0; j < gameModes.length; j++){
 				players[i].setMMR(gameModes[j], existingUser.dataValues[gameModes[j]]);
+			}
+			console.log('DEBUG @addMissingUsers outside', otherRatings);
+			for(var j = 0; j < otherRatings.length; j++){
+				console.log('DEBUG: @addMissingUsers', otherRatings[j]);
+				players[i].setMMR(otherRatings[j], existingUser.dataValues[otherRatings[j]]);
 			}
 		}
 	}
@@ -88,6 +94,33 @@ var initDb = function(dbpw){
 	}, {
 		timestamps: false
 	}); 
+/*
+	CREATE TABLE ratings(
+		uid VARCHAR(64) NOT NULL,
+		gameName VARCHAR(64) NOT NULL,
+		userName VARCHAR(64),
+		mmr int,
+		gamesPlayed int,
+		wins int,
+		losses int,  
+		PRIMARY KEY (uid, gameName),
+		FOREIGN KEY (uid) REFERENCES users(uid),
+		FOREIGN KEY (gameName) REFERENCES game(gameName),
+		FOREIGN KEY (userName) REFERENCES users(userName)
+	);
+
+	Ratings = sequelize.define('ratings', {
+		uid: {type: Sequelize.STRING, primaryKey: true},
+		gameName: {type: Sequelize.STRING, primaryKey: true},
+		userName: Sequelize.STRING,
+		mmr: Sequelize.INTEGER,
+		gamesPlayed: Sequelize.INTEGER,
+		wins: Sequelize.INTEGER,
+		losses: Sequelize.INTEGER,
+	}, {
+		timestamps: false
+	}); 
+*/
 }
 
 // Returns table of users
@@ -115,14 +148,14 @@ var getHighScore = function(game, callback){
 }; 
 
 // Gets personal stats for user
-var getPersonalStats = function(uid, callback){
+var getPersonalStats = function(uid, game, callback){
 	Users.findAll({
 		where: {
 			uid: uid
 		}
 	})
 	.then(function(result) {
-		callback(result);
+		callback(result, game);
 	})
 }; 
 

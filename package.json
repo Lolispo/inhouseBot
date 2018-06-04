@@ -20,6 +20,7 @@
     "arraylist": "^0.1.0",
     "check-node-version": "^3.2.0",
     "discord.js": "^11.3.2",
+    "fs": "0.0.1-security",
     "moment": "^2.22.1",
     "mysql2": "^1.5.3",
     "node-cleanup": "^2.1.2",
