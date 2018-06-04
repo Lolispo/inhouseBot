@@ -34,10 +34,11 @@ exports.isCorrect = function(message){
 		// Makes this the final question
 		questionIndex = questionsArray.length;
 	}
+	// TODO: Make sure all user entried questioned are pushed
+	allMessages.push(message);
 	if(message.content.toLowerCase() === ans.toLowerCase()){
 		var pointsToIncrease = pointMap.get(message.author.id);
 		var player = player_js.getPlayer(activePlayers, message.author.id);
-		//var newMmr = pointsToIncrease; // TODO: Temp, implement when player.js is updated and DB is updated
 		var newMmr = player.getMMR('trivia') + pointsToIncrease;
 		// Update mmr
 		player.setMMR('trivia', newMmr);
@@ -55,8 +56,6 @@ exports.isCorrect = function(message){
 		var currentPoints = pointMap.get(message.author.id);
 		pointMap.set(message.author.id, ((currentPoints - 1) < 1 ? 1 : (currentPoints - 1))); 
 	}
-	// TODO: Add message to allMessages and remove these messages maybe? Remove them if question is removed
-	allMessages.push(message);
 }
 
 // Starts game, requires messageVar (from correct textchannel) and questions
@@ -76,7 +75,7 @@ exports.startGame = function(message, questions, players){
 	questionIndex = 0;
 	// Find text channel: Send start message
 	var channel = message.guild.channels.find('name', channelName);
-	channel.send('Starting game of trivia! If any weird letters are found looking like "&---;", message admin the combination')
+	channel.send('Starting game of trivia! (BETA: If any weird letters are found looking like *&...;*, message admin the word, so it can be fixed)')
 	.then(result => {
 		messageVar = result;			// Initialize messageVar to be in correct chanel, used for print
 		f.deleteDiscMessage(result);	// Delete start message after default time
@@ -95,7 +94,7 @@ function startQuestion(){
 		f.print(messageVar, 'Game Ended. Results: \n' + player_js.getSortedRating(activePlayers, 'trivia'));
 		gameOnGoing = false;
 	} else{
-		console.log('Starting new Question[' + index + '], done = ' + done[index]); // Done[index] is undefined here TODO: Fix
+		console.log('Starting new Question[' + index + '], done = ' + done[index]);
 		var q = questionsArray[index];
 		done[index] = false;
 		f.print(messageVar, '**Question: **' + parseMessage(q.question), function(msg){
@@ -145,7 +144,7 @@ function nextLessCensored(array, index, message, qIndex, waitTime){
 	}, waitTime);
 }
 
-// TODO: Add more options for different questions, generic might be better, more categories
+// Start getting questions from db
 // https://opentdb.com/api_config.php
 exports.getDataQuestions = function(message, amount = 10, category = 1, difficulty = 0){
 	console.log('@getDataQuestions', amount, category, difficulty);
@@ -216,7 +215,7 @@ function getToken(a, c, d){
 		//console.log('body:', body);
 		body = JSON.parse(body);
 		console.log('@getToken request new', body.token);
-		writeToFile('token_trivia', body.token, 'Success! Wrote token to file for trivia');
+		f.writeToFile('token_trivia', body.token, 'Success! Wrote token to file for trivia');
 		urlGenerate(a, c, d, body.token);
 	});
 }

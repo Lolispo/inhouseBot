@@ -27,7 +27,6 @@ var print = function(messageVar, message, callback = callbackPrintDefault){
 	messageVar.channel.send(message)
 	.then(result => {
 		callback(result);
-		// TODO: Remove on exit
 	}).catch(err => console.log('@print for ' + message + ' :\n' + err));
 }
 
@@ -37,14 +36,14 @@ var deleteDiscMessage = function(messageVar, time = bot.getRemoveTime(), message
 	// Alt. (Somehow) Compare freshest time, delete other timeout
 	//console.log('DEBUG @delete1 for ' + messageName + ', addDelete(' + time + ') = ' + (!listToDeleteFrom.has(messageName) && !isUndefined(messageVar) && messageVar.content !== ''), listToDeleteFrom.has(messageName));
 	if(!listToDeleteFrom.has(messageName) && !isUndefined(messageVar) && messageVar.content !== ''){
-		if(!messageVar.content.includes('<removed>')){
+		if(!messageVar.content.includes('<removed>')){ // TODO: If repeated attempts are made to delete same thing, reflect if <removed> should be added
 			listToDeleteFrom.set(messageName, messageVar);	
 		}
 	}
 	setTimeout(function(){
 		//console.log('DEBUG @delete2 for ' + messageName + ':', listToDeleteFrom.has(messageName), time);
 		if(listToDeleteFrom.has(messageName)){ // Makes sure it isn't already deleted
-			listToDeleteFrom.delete(messageName); // TODO: Adjust this, should remove but make sure it continues to work. Remove since there seem to be no way of knowing if message is deleted
+			listToDeleteFrom.delete(messageName);
 			messageVar.delete()
 			.then(res => {
 				callback(res); // Use optional callback (Default noop)
@@ -127,7 +126,7 @@ var getLongestNameLength = function(activePlayers){
 	s = ' \t\t\t'
 	s2 = '\t'
 */
-// TODO Use me together with `` blocks
+// TODO Print``
 var getTabsForName = function(nameLength, longestName){
 	console.log('DEBUG: @getTabsForName', longestName, nameLength);
 	var discTabSize = 4;
@@ -146,7 +145,7 @@ var getTabsForName = function(nameLength, longestName){
 	return s;
 }
 
-// TODO: Redo all public functions like this?
+// TODO: Redo all public functions like this? Atleast in file that requires usage on methods from both inside and outside (currently f and db-sequelize)
 module.exports = {
 	isUndefined : isUndefined,
 	print : print,

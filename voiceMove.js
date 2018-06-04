@@ -9,7 +9,7 @@ var splitChannel;		// Channel we split in latest
 
 exports.unite = function(message, activeMembers){
 	var channel = getVoiceChannel(message);
-	console.log('DEBUG unite', channel.name);
+	console.log('DEBUG unite on channel', channel.name); // TODO Check if work as wanted
 	if(f.isUndefined(activeMembers)){
 		console.log('Error: activeMembers not initialized in @unite (Test case = ok)'); // Since it is assumed to always be initialized, throw error otherwise
 	}else{
@@ -79,7 +79,7 @@ function getVoiceChannel(message){
 		var channelName = res[1];
 		message.guild.channels.forEach(function(channel) { // TODO: Redo since forEach doesn't break on return
 			console.log(channel.name, channel.type, channelName, channel.type === 'voice' && channel.name === channelName);
-			if(channel.type === 'voice' && channel.name === channelName){
+			if(channel.type === 'voice' && channel.name === channelName && channel.id !== message.guild.afkChannelID){
 				channel1 = channel;
 			}
 		});
@@ -93,16 +93,14 @@ function getVoiceChannel(message){
 	channel1 = message.guild.member(message.author).voiceChannel;
 	
 	//console.log('DEBUG: getVoiceChannel', channel1);
-	if(f.isUndefined(channel1) || channel1.id === message.guild.afkChannelID){ // TODO: Decide if it should work if not in voice
+	if(f.isUndefined(channel1) || channel1.id === message.guild.afkChannelID){
 		message.guild.channels.forEach(function(channel) { // TODO: Find way to break foreach / Change this to for loop instead (wont break)
 			if(channel.type === 'voice' && channel.id !== message.guild.afkChannelID){
 				channel1 = channel;
 			}
 		});
-	}else{
-		console.log('DEBUG @getVoiceChannel: Own Channel:', channel1.name);	
 	}
-	//console.log('DEBUG @getVoiceChannel: Channel chosen for unite (not param or splitChannel):', channel1.name); // TODO: Check channel1.name or something
+	//console.log('DEBUG @getVoiceChannel: Channel chosen for unite (not param or splitChannel):', channel1.name);
 	return channel1;
 }
 

@@ -18,7 +18,7 @@ var game;
 */
 
 // @param players should contain ArrayList of initialized Players of people playing
-exports.balanceTeams = function(players, data, gameVar){
+exports.balanceTeams = function(players, gameVar){
 	// Generate team combs, all possibilities of the 10 players
 	var teamCombs = generateTeamCombs(players);
 	game = gameVar;	
@@ -181,11 +181,11 @@ function addTeamMMR(team){ // Function to be used in summing over players
 }
 
 // Build a string to return to print as message
-function buildReturnString(obj, callback){ // TODO: Make print consistently nice
+function buildReturnString(obj, callback){ // TODO: Print``
 	//console.log('DEBUG: @buildReturnString', obj);
 	var date = moment().format('LLL'); // Date format. TODO: Change from AM/PM to military time
 	var s = '';
-	s += '**New Game!** Playing **' + game + '**. MMR Average difference: ' + parseFloat(obj.avgDiff).toFixed(2) + ' (Total: ' + obj.difference + 'p). '; // TODO Check toFixed somehow
+	s += '**New Game!** Playing **' + game + '**. MMR Average difference: ' + parseFloat(obj.avgDiff).toFixed(2) + ' (Total: ' + obj.difference + 'p). ';
 	s += String(date);
 	s += '\n';
 	s += '**Team 1** \t(Avg: ' + obj.avgT1 + ' mmr): \n*' + obj.team1[0].userName + ' (' + obj.team1[0].getMMR(game) + ')';

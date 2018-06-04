@@ -9,14 +9,6 @@ var player_js = require('./player')
 /*
 	This file handles database communication using sequelize
 	The database is a mysql database, running at KTH servers
-
-	TODO 
-	Feature: 
-		Add method for returning top 3 MMR holders
-		Adjust getTable method to only get users with uid in uids (received error when attempted)
-
-	Bug
-		(Potential) Unsure if dbpw is remembered between usage from balance.js and mmr.js (only initialized in balance.js) 
 */
 
 var initializePlayers = function(players, dbpw, callback){
@@ -24,8 +16,8 @@ var initializePlayers = function(players, dbpw, callback){
 	initDb(dbpw);
 	// Currently fetches entire database, instead of specific users
 	getTable(function(data){
-		addMissingUsers(players, data, function(playerList, table){ // players are updated from within method
-			callback(playerList, table);
+		addMissingUsers(players, data, function(playerList){ // players are updated from within method
+			callback(playerList);
 		}); 
 	});
 }
@@ -57,7 +49,7 @@ function addMissingUsers(players, data, callback){
 			}
 		}
 	}
-	callback(players, data);
+	callback(players);
 }
 
 // Initializes sequelize variables for further usage
@@ -124,6 +116,7 @@ var initDb = function(dbpw){
 }
 
 // Returns table of users
+// TODO: Adjust method to only get users with uid in uids (received error when attempted) instead of every user
 var getTable = function(callback){
 	Users.findAll({})
 	.then(function(result) {
@@ -132,9 +125,8 @@ var getTable = function(callback){
 }; 
 
 // Gets Top 5 users ordered by mmr
-// TODO on more mmr: update mmr to a default value or input (callback, mmr = 'cs') example
 var getHighScore = function(game, callback){
-	Users.findAll({ // TODO: Where gameName = game
+	Users.findAll({ // TODO: RefactorDB Where gameName = game
 		limit: 5,
 		order: [
 			[game, 'DESC'],
@@ -160,10 +152,11 @@ var getPersonalStats = function(uid, game, callback){
 }; 
 
 // Used to update a player in database, increasing matches and changing mmr
-// TODO on more mmr: Requires which to update: mmr -> cs, cs1v1, dota, dota1v1 (, mmrType = mmr) ? mmr -> [game] or something
+// TODO	Find a better way to choose column from variable, instead of hard code
+//  	mmr -> [game] or something
 var updateMMR = function(uid, newMmr, game){
 	Users.findById(uid).then(function(user) {
-		switch(game){ // TODO: Find a better way to choose column from variable, instead of hard code
+		switch(game){ 
 			case 'dota':
 				user.update({
 					dota: newMmr,
@@ -199,7 +192,6 @@ var updateMMR = function(uid, newMmr, game){
 }
 
 // Add a user to database
-// TODO on more mmr: cs: mmr, cs1v1: mmr, dota: mmr, dota1v1: mmr
 var createUser = function(uid, userName, mmr){
 	console.log('DEBUG: @createUser', );
 	Users.create({ uid: uid, userName: userName, cs: mmr, dota: mmr, cs1v1: mmr, dota1v1: mmr, trivia: 0, gamesPlayed: 0})

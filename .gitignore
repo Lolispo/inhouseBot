@@ -2,4 +2,5 @@
 *.in
 !package.json
 
+token_trivia
 node_modules/

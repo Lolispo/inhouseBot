@@ -27,7 +27,7 @@ var captainVote = function(messageReaction, user, i){
 		changeTurn();
 		if(mapMessages.length === 1){ // We are done and have only one map left
 			var chosenMap = mapMessages[0];
-			mapMessages = undefined; // TODO: More beutiful line for resetting mapMessages
+			mapMessages = undefined; // TODO: Alternative way of init mapMessages? undefined = ugly
 			if(!f.isUndefined(mapMessages)){
 				throw 'Error should be gone here: Make sure it is otherwise', mapMessages;
 			}
@@ -78,15 +78,15 @@ var otherMapVote = function(messageReaction, user, activeMembers){
 
 async function mapVetoStart(message, balanceInfo, clientEmojis){
 	// Get captain from both teams
-	captain1 = player_js.getHighestMMR(balanceInfo.team1); // TODO: Check if problem with not being async, moved from function
-	captain2 = player_js.getHighestMMR(balanceInfo.team2);
+	captain1 = player_js.getHighestMMR(balanceInfo.team1, 'cs');
+	captain2 = player_js.getHighestMMR(balanceInfo.team2, 'cs');
 	// Choose who starts (random)
 	mapVetoTurn = Math.floor((Math.random() * 2));
 	mapMessages = []; 
 	var startingCaptainUsername = (mapVetoTurn === 0 ? captain1.userName : captain2.userName); 
 	await f.print(message, getMapString(false, startingCaptainUsername), callbackMapHandle); 
 	// Get maps. Temp solution:
-	// TODO: Database on Map texts, map emojis( and presets of maps, 5v5, 2v2 etc)
+	// TODO: Database on Map texts, map emojis and presets of maps, 5v5, 2v2 etc)
 	await getMapMessages(message, clientEmojis);
 	return mapMessages;
 }
@@ -107,24 +107,6 @@ async function getMapMessages(message, clientEmojis){ // TODO Check Should run a
 	initMap('Overpass', clientEmojis, message, callbackMapMessage);
 	initMap('Train', clientEmojis, message, callbackMapMessage);
 }	
-/*
-	const map_dust2 = clientEmojis.find("name", "Dust2");
-	const map_mirage = clientEmojis.find("name", "Mirage");
-	const map_train = clientEmojis.find("name", "Train");
-	const map_cache = clientEmojis.find("name", "Cache");
-	const map_overpass = clientEmojis.find("name", "Overpass");
-	const map_inferno = clientEmojis.find("name", "Inferno");
-	const map_nuke = clientEmojis.find("name", "Nuke");
-	setTimeout(initMap('Dust2', map_dust2, message, callbackMapMessage), 0); // TODO: Check if faster
-	setTimeout(initMap('Inferno', map_inferno, message, callbackMapMessage), 0);
-	setTimeout(initMap('Mirage', map_mirage, message, callbackMapMessage), 0);
-	setTimeout(initMap('Nuke', map_nuke, message, callbackMapMessage), 0);
-	setTimeout(initMap('Cache', map_cache, message, callbackMapMessage), 0);
-	setTimeout(initMap('Overpass', map_overpass, message, callbackMapMessage), 0);
-	setTimeout(initMap('Train', map_train, message, callbackMapMessage), 0);
-*/
-// setTimeout(initMap('Train', map_train, message, callbackMapMessage), 0);
-// f.print(message, mapEmoji.toString() + mapName + mapEmoji.toString(), callback); <- clientEmojis -> mapEmoji
 
 var longLine = '\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\n';
 

@@ -66,12 +66,12 @@ function updateTeamMMR(team, change, game){
 		team[i].setMMRChange(game, change);
 		team[i].setMMR(game, newMMR);
 		team[i].setPlusMinus(game, (change > 0 ? '+' : ''));
-		db_sequelize.updateMMR(team[i].uid, newMMR, game); // TODO: Check, error might be from here, since result is not awaited. Redo with method for await?
+		db_sequelize.updateMMR(team[i].uid, newMMR, game);
 	}
 }
 
 // After a finished game, prints out new updated mmr
-// TODO: Update text with ``
+// TODO: Print``
 function buildMMRUpdateString(team1Won, callback, T1, T2, callbackkUpdate, game){
 	var s = ''; 
 	s += '**Team ' + (team1Won ? '1' : '2') + ' won!** Played game: **' + game + '**. Updated mmr is: \n';

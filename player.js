@@ -2,9 +2,6 @@
 // Author: Petter Andersson
 /*
 	Class handles player objects which take care of player data
-
-	TODO Feature: 
-		Add dynamic storage of mmr for support of more games, potential of aim map skill 2v2
 */
 const gameModes = ['cs','dota', 'cs1v1', 'dota1v1'];
 const otherRatings = ['trivia'];
@@ -13,13 +10,10 @@ const startMMR = 2500;
 function Player(username, discId){
 	this.userName = username;
 	this.uid = discId;
-	this.defaultMMR = startMMR; 
-	// TODO Store array of mmr instead, fetchable by game or something
-	
+	this.defaultMMR = startMMR; 	
 	this.mmrs = new Map();
-
-	// Initializes mmr values to defaults
-	this.initializeMMR = function(){
+	// Initializes mmr values to defaults. Ran instantly on creation
+	this.initializeDefaultMMR = function(){
 		for(var i = 0; i < gameModes.length; i++){
 			var struct = new mmrStruct(startMMR);
 			this.mmrs.set(gameModes[i], struct);
@@ -49,7 +43,7 @@ function Player(username, discId){
 		var struct = this.mmrs.get(game);
 		struct.latestUpdatePrefix = value;
 	}
-	this.initializeMMR();
+	this.initializeDefaultMMR();
 }
 
 // MMR struct - holding information about mmr for a game, used in map to map game with struct
@@ -75,12 +69,12 @@ exports.getOtherRatings = function(){
 
 
 // Returns highest mmr player object from team
-exports.getHighestMMR = function(team){ // TODO add for which game
+exports.getHighestMMR = function(team, game){
 	var highestMMR = -1;
 	var index = -1;
 	for(var i = 0; i < team.size(); i++){
-		if(team[i].mmr > highestMMR){
-			highestMMR = team[i].mmr;
+		if(team[i].getMMR(game).mmr > highestMMR){
+			highestMMR = team[i].getMMR(game).mmr;
 			index = i;
 		}
 	}
@@ -98,7 +92,7 @@ exports.getPlayer = function(array, uid){
 	return correctPlayer;
 }
 
-// TODO Add sort on DESC Game
+// TODO Add sort on DESC Game (Used in trivia result currently)
 exports.getSortedRating = function(players, game){
 	var s = '';
 	var ratingOrMMR = '';

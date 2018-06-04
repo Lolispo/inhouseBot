@@ -9,73 +9,83 @@ const ArrayList = require('arraylist');
 // Get Instance of discord client
 const client = new Discord.Client();
 
-const balance = require('./balance');
-const mmr_js = require('./mmr');
-const player_js = require('./player');
-const map_js = require('./mapVeto');
-const voiceMove_js = require('./voiceMove'); 
-const f = require('./f');
-const db_sequelize = require('./db-sequelize');
-const trivia = require('./trivia')
-//get config data
-const { prefix, token, dbpw } = require('./conf.json');
+const balance = require('./balance');					// Balances and starts game between 2 teams
+const mmr_js = require('./mmr');						// Handles balanced mmr update
+const player_js = require('./player');					// Handles player storage in session, the database in action
+const map_js = require('./mapVeto');					// MapVeto system
+const voiceMove_js = require('./voiceMove'); 			// Handles moving of users between voiceChannels
+const f = require('./f');								// Function class used by many classes, ex. isUndefined, messagesDeletion
+const db_sequelize = require('./db-sequelize');			// Handles communication with db
+const trivia = require('./trivia')						// Trivia
+const { prefix, token, dbpw } = require('./conf.json'); // Load config data from file
 
 /*
 	TODO:
+		Bug / Crash:
+			Trivia fix. Listed below
 		Features:
 			Trivia
-				Remember Token - on file maybe? CHECK IF WORK
 				Exit game
+					if exit is called, discord unhandledpromiserejectionwarning. Some deletion tried on something?
+					Game wasn't finished, ended with finishmessage of last question and then warning. No end table
 				If noone answered anything 5 questions (attempted) in a row, end questions
-				Author of message must be in voice channel fix 
-				2 URL requests are currently happening. Fix 
+				2 URL requests are currently happening. Fix. Check if occurs?
+					Author of message must be in voice channel fix
 				remove
 					Noone answered in time msgs remove
 					Answered correctly msgs remove
 					start msg remove
 				require some lock to prevent 2 people getting same answer in at same time?
-			Check to see that all command variables work!
+				Make it known that prefix commands wont work in trivia channel
+			Restrict 1v1 gamemodes so they cant be started by > 2 players
+				Reflect: Should aim map be affected in what you play? Assumed for 1v1, but what about 2v2?
 			Help command generated through command variables instead, match up perfectly
 				Should generate readme part directly through this as well
-			Store MMR for more games
-				Change into new created tables, ratings etc to have gamesPlayed for all games instead of sharing
-			Find a fix for printing result alignment - redo system for printouts?
+			Handle name lengths for prints in f.js so names are aligned in tabs after longest names
+				Find a fix for printing result alignment - redo system with ``
 				`` Code blocks could be used for same size on chars, but cant have bold text then (Used on player names?)
-				Didn't work, since char diff length: Handle name lengths for prints in f.js so names are aligned in tabs after longest names
+				Reference: TODO: Print``
 			Support unite to channels with names over one word
+		Bigger but Core Features:
 			Challenge / Duel: Challenge someone to 1v1
 				Challenge specific person or "Queue" so anyone can accept
 				If challenged: message that user where user can react to response in dm. Update in channel that match is on
 				Default cs1v1, otherwise dota1v1
+				Reference TODO: Duel
 			Save every field as a Collection{GuildSnowflake -> field variable} to make sure bot works on many servers at once
-				Change bot to be instances instead of file methods, reach everythging from guildSnowflake thahn
-			Start MMR chosen as either 2400, 2500 or 2600 depending on own skill, for better distribution in first games, better matchup
+				Change bot to be instances instead of file methods, reach everything from guildSnowflake then (same logic as player but for bot)
+				Reference: TODO: guildSnowFlake
 		Refactor:
+			Store MMR for more games
+				Change into new created tables, ratings etc to have gamesPlayed for all games instead of sharing (only relevant for cs)
+				Reference: TODO: RefactorDB
 			Fix async/await works
 				Recheck every instace returning promises to use async/await instead https://javascript.info/async-await
 					Double check places returning promises, to see if they are .then correctly
-		Bug / Crash:
-			If internet dies, gets unhandled "error" event, Client.emit, on the default case in the onMessage event
-				Restart in 30 sec when connection terminated due to no internet connection, currently: Unhandled "error" event. Client.emit (events.js:186:19)
 		Tests:
-			Add test method so system can be live without updating data base on every match (-balance test or something)
-			(QoL) On exit, remove messages that are waiting for be removed (For better testing)
-		Reflect:
-			Better Printout / message to clients (Currently as message, but not nice looking)
-				
-			Better names for commands
+			Add test method so system can be live without updating db on every match (-balance test or something)
 		Deluxe Features (Ideas):
-			Gör så att botten kan göra custom emojis, och adda de till servern för usage (ex. mapVeto emotes och seemsgood)
-			(Connected to StartMMR) 
+			(Different System for Starting MMR)
+				Start MMR chosen as either 2400, 2500 or 2600 depending on own skill, for better distribution in first games, better matchup
+				OR
 				Add a second hidden rating for each user, so even though they all start at same mmr, 
-					this rating is used to even out the teams when unsure (ONLY BEGINNING)
-			mapVeto using majority vote instead of captains
-			Add feature for user to remove themself from databse (should not be used as a reset) = ban from system
-				GDPR laws
-
+					this rating is used to even out the teams when unsure (Only between people of same rank)
+			(Additions for new channel support / less manual work)
+				Custom emojis
+					mapVeto emotes, custom upvote/downvote (seemsgood maybe)
+				Voice channels for Team split (Team1, Team2)
+				Text channel for trivia
+			Benefits of running system through node process handler (something):
+				Restart in 30 sec when connection terminated due to no internet connection, currently: Unhandled "error" event. Client.emit (events.js:186:19)
+				Better handling of removing messages. require('node-cleanup'); code could be run better in f.js
+			Alternative MapVeto:
+				mapVeto using majority vote instead of captains
+			GDPR laws
+				Add feature for user to remove themself from databse (should not be used as a reset) = ban from system
+		Big ideas:
 			Twitter deathmatch
 			Family Feud
-	*/
+*/
 
 // will only do stuff after it's ready
 client.on('ready', () => {
@@ -86,13 +96,8 @@ client.on('ready', () => {
 // Login
 client.login(token);
 
-// Current: Stage = 0 -> nothing started yet, default. Stage = 1 -> rdy for: mapVeto/split/team1Won/team2Won/gameNotPlayed.
-var stage = 0; 
-
-// TODO: 	Should have a balanceInfo instance available for every server. Collection{GuildSnowflake -> balanceInfo} or something
-// 			Should also change in setBalanceInfo to send guild snowflake
-var balanceInfo; 		// Object: {team1, team2, difference, avgT1, avgT2, avgDiff} Initialized on transition between stage 0 and 1. 
-
+var stage = 0; 			// Current: Stage = 0 -> nothing started yet, default. Stage = 1 -> rdy for: mapVeto/split/team1Won/team2Won/gameNotPlayed.
+var balanceInfo; 		// Object: {team1, team2, difference, avgT1, avgT2, avgDiff, game} Initialized on transition between stage 0 and 1. 
 var activeMembers; 		// Active members playing (team1 players + team2 players)
 
 var matchupMessage; 	// -b, users made command
@@ -103,7 +108,7 @@ var teamWon;			// Keeps track on which team won
 var mapStatusMessage;	// Message that keep track of which maps are banned and whose turn is it
 
 var mapMessages = [];	// Keeps track of the discord messages for the different maps 
-var savedTriviaQuestions = [];
+var savedTriviaQuestions = []; // TODO: Reuse this if not empty and not used to not waste any questions
 
 const emoji_agree = '👌'; 		// Agree emoji. Alt: 👍, Om custom Emojis: Borde vara seemsgood emoji
 const emoji_disagree = '👎';	// Disagree emoji. 
@@ -134,14 +139,12 @@ client.on('message', message => {
 	if(!message.author.bot && message.author.username !== bot_name){ // Message sent from user
 		if(!f.isUndefined(message.channel.guild)){
 			message.content = message.content.toLowerCase(); // Allows command to not care about case
-			if(message.channel.name === trivia.getChannelName() && trivia.getGameOnGoing()){ // TODO: Should you check here if user is an active user? Restrict or allow everyone to play
-				// Trivia channel - make a trivia channel chat
+			if(message.channel.name === trivia.getChannelName() && trivia.getGameOnGoing()){
 				trivia.isCorrect(message);
-				// f.deleteDiscMessage(message, removeBotMessageDefaultTime, 'trivia-channel message'); // Add this if messages should be removed from trivia chat
 			} else {
 				handleMessage(message);			
 			}
-		}else{ // Someone tried to DM the bot
+		}else{ // Direct Message to Bot
 			console.log('DM msg = ' + message.author.username + ': ' + message.content);
 			message.author.send('Send commands in a server - not to me!')
 			.then(result => {
@@ -153,6 +156,7 @@ client.on('message', message => {
 					f.deleteDiscMessage(result, removeBotMessageDefaultTime * 2);
 				});
 			}
+			// TODO Allow Stats messages here as well
 		}
 	} // Should handle every message except bot messages
 });
@@ -236,13 +240,13 @@ function handleMessage(message) {
 			if(voiceChannel !== null && !f.isUndefined(voiceChannel)){ // Makes sure user is in a voice channel
 				var players = findPlayersStart(message, voiceChannel); // initalize players objects with playerInformation
 				var numPlayers = players.size();
-				if(numPlayers == 10 || numPlayers == 8 || numPlayers == 6 || numPlayers == 4){ // TODO: Change matchup criterias
-					db_sequelize.initializePlayers(players, dbpw, function(players, data){
-						balance.balanceTeams(players, data, game);
+				if(numPlayers == 10 || numPlayers == 8 || numPlayers == 6 || numPlayers == 4){ // TODO: Duel Change matchup criterias
+					db_sequelize.initializePlayers(players, dbpw, function(playerList){
+						balance.balanceTeams(playerList, game);
 					}); // Initialize balancing, Result is printed and stage = 1 when done
 				} else if((numPlayers === 1 || numPlayers === 2) && (adminUids.includes(message.author.id)) ){
-					testBalanceGeneric(game); // TODO: Adjust test to be more relevant, remove numPlayers === 2
-				} else{ // TODO: Adjust this error message on allowed sizes, when duel is added
+					testBalanceGeneric(game); // TODO: Duel remove numPlayers === 2
+				} else{ // TODO: Duel Adjust this error message on allowed sizes, when duel is added
 					f.print(message, 'Currently only support even games of 4, 6, 8 and 10 players', callbackInvalidCommand);
 				}
 			} else {
@@ -307,8 +311,8 @@ function handleMessage(message) {
 		var game = getGameChosen(message);
 		db_sequelize.getHighScore(game, function(data){
 			var s = '**Leaderboard Top 5 for ' + game + ':**\n';
-			// TODO: Fix print with `` codeblock
-			data.forEach(function(oneData){ // TODO: Update on gamesPlayed db update
+			// TODO: Print``
+			data.forEach(function(oneData){ // TODO: RefactorDB
 				s += oneData.userName + ': \t**' + oneData[game] + ' mmr** \t(Games Played: ' + oneData.gamesPlayed + ')\n';
 			});
 			f.print(message, s);
@@ -325,7 +329,7 @@ function handleMessage(message) {
 			}
 			else {
 				s += '**Your stats for ' + game + ':**\n';
-				data.forEach(function(oneData){ // TODO: Either choose options OR show all stats that have gamesPlayed > 0
+				data.forEach(function(oneData){ // TODO: RefactorDB Either choose options OR show all stats that have gamesPlayed > 0
 					s += oneData.userName + ': \t**' + oneData[game] + ' mmr**' + (game === 'cs' ? '\t(Games Played: ' + oneData.gamesPlayed + ')\n' : '');
 				});
 			}
@@ -347,7 +351,7 @@ function handleMessage(message) {
 	}
 	// Unites all channels, INDEPENDENT of game ongoing
 	// Optional additional argument to choose name of voiceChannel to uniteIn, otherwise same as balance was called from
-	else if(startsWith(message, uniteAllCommands)){ // TODO: Not from break room, idle chat
+	else if(startsWith(message, uniteAllCommands)){
 		voiceMove_js.uniteAll(message);
 		f.deleteDiscMessage(message, 15000, 'ua');
 	}
@@ -380,7 +384,6 @@ function handleMessage(message) {
 		}
 
 		// Splits the players playing into the Voice Channels 'Team1' and 'Team2'
-		// TODO: Logic for if these aren't available
 		else if(splitCommands.includes(message.content)){
 			voiceMove_js.split(message, balanceInfo, activeMembers);
 			f.deleteDiscMessage(message, 15000, 'split');
@@ -447,10 +450,12 @@ exports.triviaStart = function(questions, message){
 	// Start game in text channel with these questions
 	savedTriviaQuestions = questions;
 	var voiceChannel = message.guild.member(message.author).voiceChannel;
-	console.log('DEBUG @triviaStart AM I RUNNING TWICE?', message.content, voiceChannel.name, voiceChannel !== null && !f.isUndefined(voiceChannel));
+	console.log('DEBUG @triviaStart AM I RUNNING TWICE?', message.content, voiceChannel.id, voiceChannel !== null && !f.isUndefined(voiceChannel));
 	if(voiceChannel !== null && !f.isUndefined(voiceChannel)){ // Makes sure user is in a voice channel TODO: Decide if needed
 		var players = findPlayersStart(message, voiceChannel);
-		trivia.startGame(message, questions, players);
+		db_sequelize.initializePlayers(players, dbpw, function(playerList){
+			trivia.startGame(message, questions, playerList); 
+		});
 	} else{
 		f.print(message, 'Invalid command: Author of message must be in voiceChannel', callbackInvalidCommand); 
 	}
@@ -498,8 +503,8 @@ function testBalanceGeneric(game){
 		//console.log('DEBUG: @findPlayersStart, tempPlayer =', tempPlayer);
 		players.add(tempPlayer);
 	}
-	db_sequelize.initializePlayers(players, dbpw, function(players, data){
-		balance.balanceTeams(players, data, game);
+	db_sequelize.initializePlayers(players, dbpw, function(playerList){
+		balance.balanceTeams(playerList, game);
 	}) // Initialize balancing and prints result. Sets stage = 1 when done
 }
 
@@ -520,7 +525,7 @@ function voteMessageReaction(messageReaction){
 
 // Updates voteMessage on like / unlike the agree emoji
 // Is async to await the voteMessage.edit promise
-// TODO: Check if works still after refactor. RETURNS A PROMISE. Voting still works it seems
+// TODO: Check if works still after refactor
 async function voteMessageTextUpdate(messageReaction){
 	var amountRel = await countAmountUsersPlaying(balanceInfo.team1, messageReaction.users) + countAmountUsersPlaying(balanceInfo.team2, messageReaction.users);
 	var totalNeed = await (balanceInfo.team1.size() + 1);
@@ -532,14 +537,14 @@ async function voteMessageTextUpdate(messageReaction){
 	return {amountRelevant: amountRel, totalNeeded: totalNeed}
 }
 
-// Handle relevant emoji todo: write me
+// Handle relevant emoji
 function handleRelevantEmoji(emojiConfirm, winner, messageReaction, amountRelevant, totalNeeded){
 	//console.log('DEBUG: @handleRelevantEmoji', amountRelevant, totalNeeded, emojiConfirm);
 	if(amountRelevant >= totalNeeded){
 		if(emojiConfirm){
 			console.log(emoji_agree + ' CONFIRMED! ' + ' (' + amountRelevant + '/' + totalNeeded + ') Removing voteText msg and team#Won msg');
 			mmr_js.updateMMR(winner, balanceInfo, callbackGameFinished); // Update mmr for both teams
-			console.log('DEBUG CHECK ME: ', messageReaction.message.content, voteMessage.content); // TODO Check: are these the same
+			console.log('DEBUG CHECK ME: ARE THE TWO FOLLOWING THE SAME: ', messageReaction.message.content, voteMessage.content); // TODO Check: are these the same
 			f.deleteDiscMessage(messageReaction.message, 3000, 'voteMessage');
 			f.deleteDiscMessage(teamWonMessage, 3000, 'teamWonMessage');
 		}else{
@@ -564,7 +569,7 @@ function countAmountUsersPlaying(team, peopleWhoReacted){
 	return counter;
 }
 
-// TODO Perm: Keep updated with recent information
+// TODO commandHelp: Keep updated with recent information
 function buildHelpString(){
 	var s = '*Available commands for ' + bot_name + ':* \n';
 	s += '**' + prefix + 'ping** *Pong*\n';
@@ -584,10 +589,9 @@ function buildHelpString(){
 	return s;
 }
 
-// Here follows callbackFunctions for handling bot sent messages
-// Might throw the warning, Unhandled Promise Rejection, unknown message
+// Used to delete messages if interrupts occur
 function onExit(){
-	if(!f.isUndefined(mapMessages)){ // TODO: Probably requires to check to see if content === '' since it seems you can delete message in chat and variable stays
+	if(!f.isUndefined(mapMessages)){
 		for(var i = 0; i < mapMessages.length; i++){
 			f.deleteDiscMessage(mapMessages[i], 0, 'mapMessage['+i+']');		
 		}
@@ -609,6 +613,8 @@ function onExit(){
 		f.deleteDiscMessage(matchupMessage, 0, 'matchupMessage');
 	}
 }
+
+// Here follows callbackFunctions for handling bot sent messages
 
 function callbackInvalidCommand(message){
 	f.deleteDiscMessage(message, 15000, 'invalidCommand');
@@ -632,11 +638,11 @@ function callbackGameFinished(message){
 	onExit();
 }
 
-function noop(message){ // callback used for noop
+function noop(message){ // callback used when no operation is wanted
 	// Doesn't delete the message
 }
 
-// TODO: Move all reset logic here to get stage 0
+// Should contain all reset logic to get back to stage 0
 function setStage(value){
 	stage = value;
 	if(value === 0){
@@ -644,16 +650,15 @@ function setStage(value){
 	}
 }
 
-
-// TODO: Maybe add setResult/MatchupMessage functionality into this, depending on stage
 exports.setStage = function(value){
 	setStage(value);
 }
 
-exports.printMessage = function(message, callback = noop){ // DEFAULT: NOT removing message
+exports.printMessage = function(message, callback = noop){ // Default: NOT removing message
 	f.print(matchupMessage, message, callback);
 }
 
+// TODO: guildSnowFlake for all setters
 exports.setBalanceInfo = function(obj){
 	balanceInfo = obj;
 }
