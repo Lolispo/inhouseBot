@@ -41,7 +41,7 @@ var deleteDiscMessage = function(messageVar, time = bot.getRemoveTime(), message
 		}
 	}
 	setTimeout(function(){
-		//console.log('DEBUG @delete2 for ' + messageName + ':', listToDeleteFrom.has(messageName), time);
+		console.log('DEBUG @delete2 for ' + messageName + ':', listToDeleteFrom.has(messageName), time);
 		if(listToDeleteFrom.has(messageName)){ // Makes sure it isn't already deleted
 			listToDeleteFrom.delete(messageName);
 			messageVar.delete()

@@ -55,21 +55,21 @@ function mmrStruct(startMmr){
 }
 
 // Used to initiate players, returns a player 'object'
-exports.createPlayer = function(username, discId){
+var createPlayer = function(username, discId){
 	return new Player(username, discId);
 }
 
-exports.getGameModes = function(){
+var getGameModes = function(){
 	return gameModes;
 }
 
-exports.getOtherRatings = function(){
+var getOtherRatings = function(){
 	return otherRatings;
 }
 
 
 // Returns highest mmr player object from team
-exports.getHighestMMR = function(team, game){
+var getHighestMMR = function(team, game){
 	var highestMMR = -1;
 	var index = -1;
 	for(var i = 0; i < team.size(); i++){
@@ -82,7 +82,7 @@ exports.getHighestMMR = function(team, game){
 }
 
 // Return a player with given id from the array
-exports.getPlayer = function(array, uid){
+var getPlayer = function(array, uid){
 	var correctPlayer = '';
 	array.forEach(function(player){
 		if(player.uid === uid){
@@ -93,18 +93,30 @@ exports.getPlayer = function(array, uid){
 }
 
 // TODO Add sort on DESC Game (Used in trivia result currently)
-exports.getSortedRating = function(players, game){
+var getSortedRating = function(players, game){
 	var s = '';
-	var ratingOrMMR = '';
+	for(var i = 0; i < players.size(); i++){
+		s += players[i].userName + "'s **" + game + '** ' + ratingOrMMR(game) + ': ' + players[i].getMMR(game) + '\n'; // trivia
+	}
+	return s;
+}
+
+var ratingOrMMR = function(game){
 	if(gameModes.includes(game)){
-		ratingOrMMR = 'mmr';
+		return 'mmr';
 	} else if(otherRatings.includes(game)){
-		ratingOrMMR = 'rating';
+		return 'rating';
 	} else {
 		throw err('Invalid game @getSortedRating', game);
 	}
-	for(var i = 0; i < players.size(); i++){
-		s += players[i].userName + "'s **" + game + '** ' + ratingOrMMR + ': ' + players[i].getMMR(game) + '\n'; // trivia
-	}
-	return s;
+}
+
+module.exports = {
+	getHighestMMR : getHighestMMR,
+	getPlayer : getPlayer,
+	getSortedRating : getSortedRating,
+	ratingOrMMR : ratingOrMMR,
+	createPlayer : createPlayer,
+	getGameModes : getGameModes,
+	getOtherRatings : getOtherRatings
 }

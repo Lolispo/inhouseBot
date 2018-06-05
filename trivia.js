@@ -13,6 +13,7 @@ var ans = '';
 var activePlayers = [];
 var questionsArray = [];
 var questionIndex;
+var lastQuestionIndex;
 var pointMap;
 var done;		// Array over if questions are done or not
 var messageVar; // Initialize somewhere on a message in chat
@@ -26,16 +27,15 @@ const channelName = 'trivia-channel';
 const waitTimeForSteps = 8000;
 const lengthForShuffle = 8;
 const maxPossiblePoints = 5;
+const maxAllowedAnswerLength = 40;
 const exitCommands = ['exit', 'exitgame', 'exittrivia', 'quit', 'quitTrivia'];
 
 // Checks logic for message, matches with current answer
 exports.isCorrect = function(message){
 	if(author === message.author && exitCommands.includes(message.content.toLowerCase())){
 		// Makes this the final question
-		questionIndex = questionsArray.length;
+		lastQuestionIndex = questionIndex;
 	}
-	// TODO: Make sure all user entried questioned are pushed
-	allMessages.push(message);
 	if(message.content.toLowerCase() === ans.toLowerCase()){
 		var pointsToIncrease = pointMap.get(message.author.id);
 		var player = player_js.getPlayer(activePlayers, message.author.id);
@@ -43,19 +43,29 @@ exports.isCorrect = function(message){
 		// Update mmr
 		player.setMMR('trivia', newMmr);
 		db_sequelize.updateMMR(message.author.id, newMmr, 'trivia');
-
-		// Decide if messages should be removed differently
-		f.print(message, message.author.username + ' answered correctly! Answer was: ' + ans + '. Trivia Rating: ' + newMmr + ' (+' + pointsToIncrease + ')', function(msg){
-			finishMessage = msg;
-		}); 
-
-		finishedQuestion();
-		startQuestion();
+		if(!f.isUndefined(finishMessage)){
+			f.deleteDiscMessage(finishMessage, 0, 'finishMessage', function(msg){
+				// Decide if messages should be removed differently
+				f.print(message, message.author.username + ' answered correctly! Answer was: ' + ans + '. Trivia Rating: ' + newMmr + ' (+' + pointsToIncrease + ')', function(msg){
+					finishMessage = msg;
+					finishedQuestion();
+					startQuestion();
+				}); 		
+			});
+		} else {
+			f.print(message, message.author.username + ' answered correctly! Answer was: ' + ans + '. Trivia Rating: ' + newMmr + ' (+' + pointsToIncrease + ')', function(msg){
+				finishMessage = msg;
+				finishedQuestion();
+				startQuestion();
+			}); 	
+		}
 	} else{
 		// Decrease personal possible points for player, down to 1 point
 		var currentPoints = pointMap.get(message.author.id);
 		pointMap.set(message.author.id, ((currentPoints - 1) < 1 ? 1 : (currentPoints - 1))); 
 	}
+	// TODO: Make sure all user entried questioned are pushed
+	allMessages.push(message);
 }
 
 // Starts game, requires messageVar (from correct textchannel) and questions
@@ -72,6 +82,7 @@ exports.startGame = function(message, questions, players){
 		done.push(false);
 	}
 	questionsArray = questions;
+	lastQuestionIndex = questionsArray.length;
 	questionIndex = 0;
 	// Find text channel: Send start message
 	var channel = message.guild.channels.find('name', channelName);
@@ -87,7 +98,7 @@ exports.startGame = function(message, questions, players){
 // Start a new question, when previous is finished
 function startQuestion(){
 	var index = questionIndex;
-	if(index >= questionsArray.length){
+	if(index >= lastQuestionIndex){
 		if(!f.isUndefined(finishMessage)){
 			f.deleteDiscMessage(finishMessage, bot.getRemoveTime(), 'finishMessage');
 		}
@@ -126,15 +137,23 @@ function nextLessCensored(array, index, message, qIndex, waitTime){
 					nextLessCensored(array, index + 1, msg, qIndex, waitTime);		
 				});
 			} else if(index === array.length){ // Out of hints, Fail -> next question
-				f.print(message, 'Noone answered in time! Answer was: ' + ans, function(msg){
-					f.deleteDiscMessage(finishMessage, 0, 'finishMessage', function(msg2){
+				if(!f.isUndefined(finishMessage)){
+					f.deleteDiscMessage(finishMessage, 0, 'finishMessage', function(msg){
+						f.print(message, 'Noone answered in time! Answer was: ' + ans, function(msg){
+							//console.log('DEBUG: finishMsg before =', finishMessage.content, '. after = ' + msg.content);	
+							finishMessage = msg;
+							finishedQuestion();
+							startQuestion();
+						}); 
+					});	
+				} else {
+					f.print(message, 'Noone answered in time! Answer was: ' + ans, function(msg){
 						finishMessage = msg;
-					});
-				}); 
-				finishedQuestion();
-				startQuestion();
+						finishedQuestion();
+						startQuestion();
+					}); 
+				}
 			} else{
-				console.log('@nextLessCensored Editing');
 				censoredMessage.edit('`' + array[index] + '`')
 				.then(msg => {
 					nextLessCensored(array, index + 1, msg, qIndex, waitTime);
@@ -223,9 +242,10 @@ function getToken(a, c, d){
 function parseMessage(msg){
 	msg = msg.replace(/&#034;|&quot;|rdquo;|&ldquo;/g,'"');
 	msg = msg.replace(/&#039;|&rsquo;|lsquo;/g,"'");
-	msg = msg.replace(/&shy;/g,''); // '-\n' could work as wellTest this, Question looked really weird with this
+	msg = msg.replace(/&shy;/g,''); // '-\n' for linebreak (used to allow line breaks with - for big words)
 	msg = msg.replace(/&amp;/g, '&');
 	msg = msg.replace(/&hellip;/g, '...');
+	msg = msg.replace(/&eacute;/g, 'é');
 	return msg;
 }
 
@@ -240,6 +260,10 @@ function handleQuestions(questions, callback){
 		var charCounter = cen_obj.charCounter;
 		//console.log(censored_ans);
 		var indexes = [];
+		if(ans.length > maxAllowedAnswerLength){ // Set some limit to answer (found answer with 50 chars)
+			return; // Should continue with next iteration since forEach
+		}
+		// TODO: Dont allow questions containing 'not', usually not fit for the game, or 'following' and 'not'
 		for(var i = 0; i < ans.length; i++){
 			indexes.push(i);
 		}
@@ -335,11 +359,15 @@ function finishedQuestion(){
 		f.deleteDiscMessage(questionMessage, 0, 'questionMessage');	
 	}
 	if(!f.isUndefined(allMessages)){
-		for(var i = 0; i < allMessages.length; i++){
-			f.deleteDiscMessage(allMessages[i], 0, 'allMessages['+i+']');		
+		for(var i = allMessages.length - 1; i >= 0; i--){
+			f.deleteDiscMessage(allMessages[i], 0, 'allMessages['+i+']', function(msg){
+				var index = allMessages.indexOf(msg);
+				if (index > -1) {
+					allMessages.splice(index, 1);
+				}
+			});	
 		}
 	}
-	allMessages = [];
 	pointMap.forEach(function(value, key) {
 		pointMap.set(key, maxPossiblePoints);
 	});

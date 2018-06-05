@@ -21,22 +21,22 @@ const { prefix, token, dbpw } = require('./conf.json'); // Load config data from
 
 /*
 	TODO:
+			Need to check all functionality, since so much is changed
 		Bug / Crash:
 			Trivia fix. Listed below
 		Features:
+			Deletion wont occur if variable is overwritten. Needs fix (Leaderboards example)
+				Roll not deleted, Due to this? shouldnt be
 			Trivia
-				Exit game
-					if exit is called, discord unhandledpromiserejectionwarning. Some deletion tried on something?
-					Game wasn't finished, ended with finishmessage of last question and then warning. No end table
-				If noone answered anything 5 questions (attempted) in a row, end questions
-				2 URL requests are currently happening. Fix. Check if occurs?
-					Author of message must be in voice channel fix
-				remove
-					Noone answered in time msgs remove
-					Answered correctly msgs remove
-					start msg remove
-				require some lock to prevent 2 people getting same answer in at same time?
-				Make it known that prefix commands wont work in trivia channel
+				Check if size on ans restriction (40) is good size, or too long
+				Exit game - Check
+				Feature: 
+					Decrease point on hint reveals as well
+					Avoid 'not' 'following' questions
+					If noone answered anything 5 questions (attempted) in a row, end questions
+					require some lock to prevent 2 people getting same answer in at same time?
+						Do this if you notice buggy behaviour, seems fine for now
+					Make it known that prefix commands wont work in trivia channel
 			Restrict 1v1 gamemodes so they cant be started by > 2 players
 				Reflect: Should aim map be affected in what you play? Assumed for 1v1, but what about 2v2?
 			Help command generated through command variables instead, match up perfectly
@@ -307,13 +307,14 @@ function handleMessage(message) {
 	}
 
 	// Show top 5 MMR 
+	// TODO Games played only for cs, rating for otherRatings instead of mmr (as in player.js)
 	else if(startsWith(message, leaderboardCommands)){
 		var game = getGameChosen(message);
 		db_sequelize.getHighScore(game, function(data){
 			var s = '**Leaderboard Top 5 for ' + game + ':**\n';
 			// TODO: Print``
 			data.forEach(function(oneData){ // TODO: RefactorDB
-				s += oneData.userName + ': \t**' + oneData[game] + ' mmr** \t(Games Played: ' + oneData.gamesPlayed + ')\n';
+				s += oneData.userName + ': \t**' + oneData[game] + ' ' + player_js.ratingOrMMR(game) + '**' + (game === 'cs' ? '\t(Games Played: ' + oneData.gamesPlayed + ')\n' : '\n');
 			});
 			f.print(message, s);
 		});
@@ -330,7 +331,7 @@ function handleMessage(message) {
 			else {
 				s += '**Your stats for ' + game + ':**\n';
 				data.forEach(function(oneData){ // TODO: RefactorDB Either choose options OR show all stats that have gamesPlayed > 0
-					s += oneData.userName + ': \t**' + oneData[game] + ' mmr**' + (game === 'cs' ? '\t(Games Played: ' + oneData.gamesPlayed + ')\n' : '');
+					s += oneData.userName + ': \t**' + oneData[game] + ' ' + player_js.ratingOrMMR(game) + '**' + (game === 'cs' ? '\t(Games Played: ' + oneData.gamesPlayed + ')\n' : '\n');
 				});
 			}
 			message.author.send(s)  // Private message

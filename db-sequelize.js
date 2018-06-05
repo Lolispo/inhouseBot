@@ -37,14 +37,12 @@ function addMissingUsers(players, data, callback){
 			}
 		});
 		if(existingUser === -1){ // Make new entry in database since entry doesn't exist
-			db_sequelize.createUser(players[i].uid, players[i].userName, players[i].defaultMMR);
+			createUser(players[i].uid, players[i].userName, players[i].defaultMMR);
 		} else{ // Update players[i] mmr to the correct value
 			for(var j = 0; j < gameModes.length; j++){
 				players[i].setMMR(gameModes[j], existingUser.dataValues[gameModes[j]]);
 			}
-			console.log('DEBUG @addMissingUsers outside', otherRatings);
 			for(var j = 0; j < otherRatings.length; j++){
-				console.log('DEBUG: @addMissingUsers', otherRatings[j]);
 				players[i].setMMR(otherRatings[j], existingUser.dataValues[otherRatings[j]]);
 			}
 		}
@@ -160,19 +158,16 @@ var updateMMR = function(uid, newMmr, game){
 			case 'dota':
 				user.update({
 					dota: newMmr,
-					gamesPlayed: sequelize.literal('gamesPlayed +1')
 			    })
 				break;
 			case 'dota1v1':
 				user.update({
 					dota1v1: newMmr,
-					gamesPlayed: sequelize.literal('gamesPlayed +1')
 			    })
 				break;
 			case 'cs1v1':
 				user.update({
 					cs1v1: newMmr,
-					gamesPlayed: sequelize.literal('gamesPlayed +1')
 			    })
 				break;
 			case 'trivia':
