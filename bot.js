@@ -30,18 +30,15 @@ const { prefix, token, dbpw } = require('./conf.json'); // Load config data from
 				Check if size on ans restriction (40) is good size, or too long
 				Exit game - Check
 				Feature: 
-					Decrease point on hint reveals as well
+					Decrease point for all players (some rule to not increase if you have below a certain value through this) on hint reveals as well
+						Only decrease the people with highest potential point earnings (Down to 3?)
 					Avoid 'not' 'following' questions
 					If noone answered anything 5 questions (attempted) in a row, end questions
 					require some lock to prevent 2 people getting same answer in at same time?
 						Do this if you notice buggy behaviour, seems fine for now
 					Make it known that prefix commands wont work in trivia channel
-			Restrict 1v1 gamemodes so they cant be started by > 2 players
-				Reflect: Should aim map be affected in what you play? Assumed for 1v1, but what about 2v2?
-			Help command generated through command variables instead, match up perfectly
-				Should generate readme part directly through this as well
+			Help command generate readme text
 			Handle name lengths for prints in f.js so names are aligned in tabs after longest names
-				Find a fix for printing result alignment - redo system with ``
 				`` Code blocks could be used for same size on chars, but cant have bold text then (Used on player names?)
 				Reference: TODO: Print``
 			Support unite to channels with names over one word
@@ -62,6 +59,7 @@ const { prefix, token, dbpw } = require('./conf.json'); // Load config data from
 			Fix async/await works
 				Recheck every instace returning promises to use async/await instead https://javascript.info/async-await
 					Double check places returning promises, to see if they are .then correctly
+		Reflect: Should aim map be affected in what you play? Assumed for 1v1, but what about 2v2?
 		Tests:
 			Add test method so system can be live without updating db on every match (-balance test or something)
 		Deluxe Features (Ideas):
@@ -487,7 +485,7 @@ exports.triviaStart = function(questions, message){
 	// Start game in text channel with these questions
 	savedTriviaQuestions = questions;
 	var voiceChannel = message.guild.member(message.author).voiceChannel;
-	console.log('DEBUG @triviaStart AM I RUNNING TWICE?', message.content, voiceChannel.id, voiceChannel !== null && !f.isUndefined(voiceChannel));
+	console.log('DEBUG @triviaStart AM I RUNNING TWICE?', message.content, voiceChannel !== null && !f.isUndefined(voiceChannel));
 	if(voiceChannel !== null && !f.isUndefined(voiceChannel)){ // Makes sure user is in a voice channel TODO: Decide if needed
 		var players = findPlayersStart(message, voiceChannel);
 		db_sequelize.initializePlayers(players, dbpw, function(playerList){
@@ -619,7 +617,7 @@ function buildHelpString(userID, messageNum){
 		s += '**' + statsCommands.toString().replace(/,/g, ' | ') + '** Returns your own rating\n';
 		s += '**' + prefix + 'roll [high] [low, high]** Rolls a number (0 - 100)\n';
 		s += '**' + triviaCommands.toString().replace(/,/g, ' | ') + '** Starts a trivia game in the textchannel *' + trivia.getChannelName() + '*\n'
-		s += '**' + balanceCommands.toString().replace(/,/g, ' | ') + '** Starts an inhouse game with the players in the same voice chat as the message author. ';
+		s += '**' + balanceCommands.toString().replace(/,/g, ' | ') + '** Starts an inhouse game with the players in the same voice chat as the message author.\n';
 		s += '**' + team1wonCommands.toString().replace(/,/g, ' | ') + ' | ' + team2wonCommands.toString().replace(/,/g, ' | ') 
 			+ '** Starts report of match result, requires majority of players to upvote from game for stats to be recorded.\n';
 		s += '**' + tieCommands.toString().replace(/,/g, ' | ') + '** If a match end in a tie, use this as match result. Same rules for reporting as **' + prefix + 'team1Won | ' + prefix + 'team2Won**\n';
