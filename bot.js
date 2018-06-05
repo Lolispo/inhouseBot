@@ -26,7 +26,6 @@ const { prefix, token, dbpw } = require('./conf.json'); // Load config data from
 			Trivia fix. Listed below
 		Features:
 			Deletion wont occur if variable is overwritten. Needs fix (Leaderboards example)
-				Roll not deleted, Due to this? shouldnt be
 			Trivia
 				Check if size on ans restriction (40) is good size, or too long
 				Exit game - Check
@@ -58,6 +57,7 @@ const { prefix, token, dbpw } = require('./conf.json'); // Load config data from
 		Refactor:
 			Store MMR for more games
 				Change into new created tables, ratings etc to have gamesPlayed for all games instead of sharing (only relevant for cs)
+				Stats: Show all stats where stats are available (gamesPlayed > 0)
 				Reference: TODO: RefactorDB
 			Fix async/await works
 				Recheck every instace returning promises to use async/await instead https://javascript.info/async-await
@@ -78,6 +78,7 @@ const { prefix, token, dbpw } = require('./conf.json'); // Load config data from
 			Benefits of running system through node process handler (something):
 				Restart in 30 sec when connection terminated due to no internet connection, currently: Unhandled "error" event. Client.emit (events.js:186:19)
 				Better handling of removing messages. require('node-cleanup'); code could be run better in f.js
+				Cleanupandexit can then have process.exit();
 			Alternative MapVeto:
 				mapVeto using majority vote instead of captains
 			GDPR laws
@@ -253,7 +254,7 @@ function handleMessage(message) {
 				f.print(message, 'Invalid command: Author of message must be in voiceChannel', callbackInvalidCommand); 
 			}
 			f.deleteDiscMessage(message, 10000, 'matchupMessage', function(msg){
-				msg.content = '-b <removed>';
+				msg.content += '<removed>';
 			});
 		} else{
 			f.print(message, 'Invalid command: Inhouse already ongoing', callbackInvalidCommand); 
@@ -443,8 +444,6 @@ async function cleanupExit(){
 	await setStage(0); 
 	await f.onExitDelete();
 	await onExit();
-	//console.log('EXITING PROCESS');
-	//await process.exit();
 }
 
 exports.triviaStart = function(questions, message){
@@ -510,6 +509,7 @@ function testBalanceGeneric(game){
 }
 
 // Handling of voteMessageReactions
+// TODO: Refactor the following three methods
 function voteMessageReaction(messageReaction){
 	// Check if majority number contain enough players playing
 	if(messageReaction.emoji.toString() === emoji_agree){
@@ -591,10 +591,16 @@ function buildHelpString(){
 }
 
 // Used to delete messages if interrupts occur
+// TODO Change name to represent more of the cleaning aspect instead of exiting
 function onExit(){
 	if(!f.isUndefined(mapMessages)){
-		for(var i = 0; i < mapMessages.length; i++){
-			f.deleteDiscMessage(mapMessages[i], 0, 'mapMessage['+i+']');		
+		for(var i = mapMessages.length - 1; i >= 0; i--){
+			f.deleteDiscMessage(mapMessages[i], 0, 'mapMessages['+i+']', function(msg){
+				var index = mapMessages.indexOf(msg);
+				if (index > -1) {
+					mapMessages.splice(index, 1);
+				}
+			});	
 		}
 	}
 	if(!f.isUndefined(mapStatusMessage)){

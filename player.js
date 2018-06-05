@@ -34,6 +34,10 @@ function Player(username, discId){
 		return this.mmrs.get(game).mmr;
 	}
 
+	this.getGame = function(game){
+		return this.mmrs.get(game);
+	}
+
 	this.setMMRChange = function(game, value){
 		var struct = this.mmrs.get(game);
 		struct.latestUpdate = value;
@@ -73,8 +77,8 @@ var getHighestMMR = function(team, game){
 	var highestMMR = -1;
 	var index = -1;
 	for(var i = 0; i < team.size(); i++){
-		if(team[i].getMMR(game).mmr > highestMMR){
-			highestMMR = team[i].getMMR(game).mmr;
+		if(team[i].getMMR(game) > highestMMR){
+			highestMMR = team[i].getMMR(game);
 			index = i;
 		}
 	}
