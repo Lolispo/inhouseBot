@@ -134,6 +134,7 @@ const triviaCommands = [prefix + 'trivia', prefix + 'starttrivia', prefix + 'tri
 const leaderboardCommands = [prefix + 'leaderboard'];
 const statsCommands = [prefix + 'stats'];
 const exitCommands = [prefix + 'exit'];
+const duelCommands = [prefix + 'duel', prefix + 'challenge']
 
 // Listener on message
 client.on('message', message => {
@@ -152,10 +153,15 @@ client.on('message', message => {
 				f.deleteDiscMessage(result, removeBotMessageDefaultTime * 2);
 			});
 			if(helpCommands.includes(message.content)){ // Special case for allowing help messages to show up in DM
-				message.author.send(buildHelpString())
+				message.author.send(buildHelpString(message.author.id, 1))
 				.then(result => {
-					f.deleteDiscMessage(result, removeBotMessageDefaultTime * 2);
+					f.deleteDiscMessage(result, removeBotMessageDefaultTime * 4);
 				});
+				message.author.send(buildHelpString(message.author.id, 2))
+				.then(result => {
+					f.deleteDiscMessage(result, removeBotMessageDefaultTime * 4);
+				});
+				f.deleteDiscMessage(message, 10000, 'help');
 			}
 			// TODO Allow Stats messages here as well
 		}
@@ -229,12 +235,19 @@ function handleMessage(message) {
 	}
 	// Sends available commands privately to the user
 	else if(helpCommands.includes(message.content)){
-		message.author.send(buildHelpString());
+		message.author.send(buildHelpString(message.author.id, 1))
+		.then(result => {
+			f.deleteDiscMessage(result, removeBotMessageDefaultTime * 4);
+		});;
+		message.author.send(buildHelpString(message.author.id, 2))
+		.then(result => {
+			f.deleteDiscMessage(result, removeBotMessageDefaultTime * 4);
+		});;
 		f.deleteDiscMessage(message, 10000, 'help');
 	}
 	else if(startsWith(message, balanceCommands)){
 		if(stage === 0){
-			var game = getGameChosen(message);
+			var game = getModeChosen(message);
 			matchupMessage = message; // Used globally in print method
 			var voiceChannel = message.guild.member(message.author).voiceChannel;
 				
@@ -272,25 +285,30 @@ function handleMessage(message) {
 		var mode = message.content.split(' '); 
 		if(mode.length >= 2){
 			// Grabs second argument if available
+			// TODO: Redo system of trivia options, add to trivia.js. trivia.getMode(mode[1]) or something
 			switch(mode[1]){
-				case 'all':
-				case '0':
 				case 'allsubjectseasy':
 					trivia.getDataQuestions(message, 10, 0, 1);
 					break;
+				case 'all':
+				case 'allquestions':
 				case 'anything':
 					trivia.getDataQuestions(message, 10, 0);
 					break;
 				case 'game':
 				case 'games':
 				case 'gamesall':
-				case '1':
 					trivia.getDataQuestions(message, 10, 1);
 					break;
 				case 'gameseasy':
 					trivia.getDataQuestions(message, 10, 1, 1);
 					break;
-				case '2':
+				case 'gamesmedium':
+					trivia.getDataQuestions(message, 10, 1, 3);
+					break;
+				case 'gameshard':
+					trivia.getDataQuestions(message, 10, 1, 3);
+					break;
 				case 'generic':
 				case 'genericeasy':
 					trivia.getDataQuestions(message, 10, 2, 1);
@@ -299,10 +317,10 @@ function handleMessage(message) {
 					trivia.getDataQuestions(message, 10, 2);
 					break;
 				default:
-					trivia.getDataQuestions(message, 10, 0);
+					trivia.getDataQuestions(message, 10, 0, 1); // allsubjectseasy
 			}
 		} else{ // No mode chosen, use default
-			trivia.getDataQuestions(message, 10, 0, 1);
+			trivia.getDataQuestions(message, 10, 0, 1); // allsubjectseasy
 		}
 		f.deleteDiscMessage(message, 15000, 'trivia');
 	}
@@ -310,7 +328,7 @@ function handleMessage(message) {
 	// Show top 5 MMR 
 	// TODO Games played only for cs, rating for otherRatings instead of mmr (as in player.js)
 	else if(startsWith(message, leaderboardCommands)){
-		var game = getGameChosen(message);
+		var game = getModeChosen(message);
 		db_sequelize.getHighScore(game, function(data){
 			var s = '**Leaderboard Top 5 for ' + game + ':**\n';
 			// TODO: Print``
@@ -323,7 +341,7 @@ function handleMessage(message) {
 	}
 	// Sends private information about your statistics
 	else if(startsWith(message, statsCommands)){
-		var game = getGameChosen(message);
+		var game = getModeChosen(message);
 		db_sequelize.getPersonalStats(message.author.id, game, function(data, game){
 			var s = '';
 			if(data.length === 0){
@@ -428,7 +446,7 @@ function startsWith(message, command){
 	}
 }
 
-function getGameChosen(message){
+function getModeChosen(message){
 	var options = message.content.split(' ');
 	var game = 'cs';
 	if(options.length === 2){
@@ -571,23 +589,50 @@ function countAmountUsersPlaying(team, peopleWhoReacted){
 }
 
 // TODO commandHelp: Keep updated with recent information
-function buildHelpString(){
-	var s = '*Available commands for ' + bot_name + ':* \n';
-	s += '**' + prefix + 'ping** *Pong*\n';
-	s += '**' + prefix + 'b | balance | inhouseBalance** Starts an inhouse game with the players in the same voice chat as the message author. '
-		+ 'Requires 4, 6, 8 or 10 players in voice chat to work\n';
-	s += '**' + prefix + 'team1Won | ' + prefix + 'team2Won** Starts report of match result, requires majority of players to upvote from game for stats to be recorded. '
-		+ 'If majority of players downvote, this match result report dissapears, use **' + prefix + 'cancel** for canceling the match after this\n';
-	s += '**' + prefix + 'draw | tie** If a match end in a tie, use this as match result. Same rules for reporting as **' + prefix + 'team1Won | ' + prefix + 'team2Won**\n';
-	s += '**' + prefix + 'c | cancel** Cancels the game, to be used when game was decided to not be played\n';
-	s += '**' + prefix + 'h | help** Shows the available commands\n';
-	s += '**' + prefix + 'leaderboard** Returns Top 5 MMR holders\n';
-	s += '**' + prefix + 'stats** Returns your own rating\n';
-	s += '**' + prefix + 'split** Splits voice chat\n';
-	s += '**' + prefix + 'u | unite** Unite voice chat after game\n';
-	s += '**' + prefix + 'mapVeto** Start map veto\n';
-	s += '**' + prefix + 'roll** Rolls a number (0 - 100)\n'
-	return s;
+function buildHelpString(userID, messageNum){
+	if(messageNum === 0){
+		// TODO: More simple help without detailed explanation, add this option to helpCommands line
+	}
+	if(messageNum === 1){
+		var s = '*Available commands for ' + bot_name + ':* \n';
+		s += '(**[opt = default]** Syntax for optional arguments)\n\n';
+		s += '**' + prefix + 'ping** *Pong*\n';
+		s += '**' + helpCommands.toString().replace(/,/g, ' | ') + '** Shows the available commands\n\n';
+		s += '**' + leaderboardCommands.toString().replace(/,/g, ' | ') + ' [game = cs]** Returns Top 5 MMR holders\n'
+			+ '**[game]** Opt. argument: name of the mode to retrieve top leaderboard for. Available modes are [' + player_js.getAllModes() + ']\n\n';
+		s += '**' + statsCommands.toString().replace(/,/g, ' | ') + ' [game = cs]** Returns your own rating\n'
+			+ '**[game]** Opt. argument: name of the mode to retrieve stats for. Available modes are [' + player_js.getAllModes() + ']\n\n';
+		s += '**' + prefix + 'roll [high] [low, high]** Rolls a number (0 - 100)\n' // TODO: More logical way of writing the parameters, since high change place depending on #args
+			+ '**[high]** (0 - high) \t\t**[low, high]** (low - high)\n\n';
+		s += '**' + triviaCommands.toString().replace(/,/g, ' | ') + ' [questions = allsubjectseasy]** Starts a trivia game in the textchannel *' + trivia.getChannelName() + '*\n\n'
+			+ '**[questions]** Opt. argument: name of question field and difficulty.'; // TODO Available trivia options
+		if(adminUids.includes(userID)){
+			s += '**' + exitCommands.toString().replace(/,/g, ' | ') + '** *Admin Command* Clear all messages, exit games, prepares for restart\n\n';
+		}
+		return s;	
+	} else if(messageNum === 2){
+		var s = '**Start Game commands**\n\n';
+		s += '**' + balanceCommands.toString().replace(/,/g, ' | ') + ' [game = cs]** Starts an inhouse game with the players in the same voice chat as the message author. '
+			+ 'Requires 4, 6, 8 or 10 players in voice chat to work.\n'
+			+ '**[game]** Opt. argument: name of the game being played. Available games are [' + player_js.getGameModes() + ']\n\n';
+		s += '**' + team1wonCommands.toString().replace(/,/g, ' | ') + ' | ' + team2wonCommands.toString().replace(/,/g, ' | ') 
+			+ '** Starts report of match result, requires majority of players to upvote from game for stats to be recorded. '
+			+ 'If majority of players downvote, this match result report disappears, use **' + prefix + 'cancel** for canceling the match after this\n\n';
+		s += '**' + tieCommands.toString().replace(/,/g, ' | ') + '** If a match end in a tie, use this as match result. Same rules for reporting as **' + prefix + 'team1Won | ' + prefix + 'team2Won**\n\n';
+		s += '**' + cancelCommands.toString().replace(/,/g, ' | ') + '** Cancels the game, to be used when game was decided to not be played\n'
+			+ 'Game can only be canceled by the person who started the game\n\n';
+		s += '**' + splitCommands.toString().replace(/,/g, ' | ') + '** Splits voice chat into two separate voice chats\n\n';
+		s += '**' + uniteCommands.toString().replace(/,/g, ' | ') + ' [channel]** Unite voice chat after game\n'
+			+ '**[channel]** Opt. argument: name of channel to unite in\n\n';
+		s += '**' + uniteAllCommands.toString().replace(/,/g, ' | ') + ' [channel]** Unite all users active in voice to same channel\n'
+			+ '**[channel]** Opt. argument: name of channel to unite in\n\n';
+		s += '**' + mapvetostartCommands.toString().replace(/,/g, ' | ') + '** Starts a map veto (*cs only*)\n\n';
+		s += '**' + duelCommands.toString().replace(/,/g, ' | ') + ' [player] [game = cs] ** Starts a duel, a 1v1 match between 2 people **TBA**\n'
+			+ 'If only two people are in voiceChannel, start duel between them. Otherwise [player] is required.\n'
+			+ '**[player]** Required if more than 2 players in voiceChannel. Person who is challenged\n'
+			+ '**[game]** Opt. argument: name of the game being played. Available games are [' + player_js.getGameModes1v1() + ']\n\n';
+		return s;	
+	}
 }
 
 // Used to delete messages if interrupts occur

@@ -26,8 +26,7 @@ var initializePlayers = function(players, dbpw, callback){
 // Updates players mmr entry correctly
 function addMissingUsers(players, data, callback){
 	//console.log('DEBUG: @addMissingUsers, Insert the mmr from data: ', players);
-	var gameModes = player_js.getGameModes();
-	var otherRatings = player_js.getOtherRatings();
+	var allGameModes = player_js.getAllModes();
 	for(var i = 0; i < players.size(); i++){
 		// Check database for this data
 		var existingUser = -1;
@@ -39,11 +38,8 @@ function addMissingUsers(players, data, callback){
 		if(existingUser === -1){ // Make new entry in database since entry doesn't exist
 			createUser(players[i].uid, players[i].userName, players[i].defaultMMR);
 		} else{ // Update players[i] mmr to the correct value
-			for(var j = 0; j < gameModes.length; j++){
-				players[i].setMMR(gameModes[j], existingUser.dataValues[gameModes[j]]);
-			}
-			for(var j = 0; j < otherRatings.length; j++){
-				players[i].setMMR(otherRatings[j], existingUser.dataValues[otherRatings[j]]);
+			for(var j = 0; j < allGameModes.length; j++){ // Initialize all gameMode ratings
+				players[i].setMMR(allGameModes[j], existingUser.dataValues[allGameModes[j]]);
 			}
 		}
 	}

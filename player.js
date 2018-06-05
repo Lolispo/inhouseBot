@@ -3,8 +3,9 @@
 /*
 	Class handles player objects which take care of player data
 */
-const gameModes = ['cs','dota', 'cs1v1', 'dota1v1'];
-const otherRatings = ['trivia'];
+const modesGame = ['cs','dota'];
+const modes1v1 = ['cs1v1', 'dota1v1'];
+const modesRatings = ['trivia'];
 const startMMR = 2500;
 
 function Player(username, discId){
@@ -14,13 +15,17 @@ function Player(username, discId){
 	this.mmrs = new Map();
 	// Initializes mmr values to defaults. Ran instantly on creation
 	this.initializeDefaultMMR = function(){
-		for(var i = 0; i < gameModes.length; i++){
+		for(var i = 0; i < modesGame.length; i++){
 			var struct = new mmrStruct(startMMR);
-			this.mmrs.set(gameModes[i], struct);
+			this.mmrs.set(modesGame[i], struct);
 		}
-		for(var i = 0; i < otherRatings.length; i++){
+		for(var i = 0; i < modes1v1.length; i++){
+			var struct = new mmrStruct(startMMR);
+			this.mmrs.set(modes1v1[i], struct);
+		}
+		for(var i = 0; i < modesRatings.length; i++){
 			var struct = new mmrStruct(0);
-			this.mmrs.set(otherRatings[i], struct);
+			this.mmrs.set(modesRatings[i], struct);
 		}	
 	}
 
@@ -64,11 +69,19 @@ var createPlayer = function(username, discId){
 }
 
 var getGameModes = function(){
-	return gameModes;
+	return modesGame;
+}
+
+var getGameModes1v1 = function(){
+	return modes1v1;
 }
 
 var getOtherRatings = function(){
-	return otherRatings;
+	return modesRatings;
+}
+
+var getAllModes = function(){
+	return modesGame.concat(modes1v1).concat(modesRatings);
 }
 
 
@@ -122,5 +135,7 @@ module.exports = {
 	ratingOrMMR : ratingOrMMR,
 	createPlayer : createPlayer,
 	getGameModes : getGameModes,
-	getOtherRatings : getOtherRatings
+	getGameModes1v1 : getGameModes1v1,
+	getOtherRatings : getOtherRatings,
+	getAllModes : getAllModes
 }
