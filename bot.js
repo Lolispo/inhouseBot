@@ -122,6 +122,7 @@ const removeBotMessageDefaultTime = 60000; // 300000
 
 const balanceCommands = [prefix + 'b', prefix + 'balance', prefix + 'balanceGame', prefix + 'inhousebalance'];
 const helpCommands = [prefix + 'h', prefix + 'help'];
+const helpAllCommands = [prefix + 'ha', prefix + 'helpall'];
 const team1wonCommands = [prefix + 'team1won'];
 const team2wonCommands = [prefix + 'team2won'];
 const tieCommands = [prefix + 'tie', prefix + 'draw'];
@@ -148,11 +149,13 @@ client.on('message', message => {
 			}
 		}else{ // Direct Message to Bot
 			console.log('DM msg = ' + message.author.username + ': ' + message.content);
-			message.author.send('Send commands in a server - not to me!')
-			.then(result => {
-				f.deleteDiscMessage(result, removeBotMessageDefaultTime * 2);
-			});
-			if(helpCommands.includes(message.content)){ // Special case for allowing help messages to show up in DM
+			// Help and stats commands are allowed
+			if(helpCommands.includes(message.content)){
+				message.author.send(buildHelpString(message.author.id, 0))
+				.then(result => {
+					f.deleteDiscMessage(result, removeBotMessageDefaultTime * 2);
+				});
+			} else if(helpAllCommands.includes(message.content)){
 				message.author.send(buildHelpString(message.author.id, 1))
 				.then(result => {
 					f.deleteDiscMessage(result, removeBotMessageDefaultTime * 4);
@@ -161,9 +164,14 @@ client.on('message', message => {
 				.then(result => {
 					f.deleteDiscMessage(result, removeBotMessageDefaultTime * 4);
 				});
-				f.deleteDiscMessage(message, 10000, 'help');
+			} else if(startsWith(message, statsCommands)){
+				stats(message);		
+			} else{
+				message.author.send('Send commands in a server - not to me!\nAllowed command here are: **[' + helpCommands + ',' + helpAllCommands + ',' + statsCommands + ']**\n')
+				.then(result => {
+					f.deleteDiscMessage(result, 10000, 'sendDMMessage');
+				});
 			}
-			// TODO Allow Stats messages here as well
 		}
 	} // Should handle every message except bot messages
 });
@@ -235,6 +243,13 @@ function handleMessage(message) {
 	}
 	// Sends available commands privately to the user
 	else if(helpCommands.includes(message.content)){
+		message.author.send(buildHelpString(message.author.id, 0))
+		.then(result => {
+			f.deleteDiscMessage(result, removeBotMessageDefaultTime * 2);
+		});
+		f.deleteDiscMessage(message, 10000, 'help');
+	}
+	else if(helpAllCommands.includes(message.content)){
 		message.author.send(buildHelpString(message.author.id, 1))
 		.then(result => {
 			f.deleteDiscMessage(result, removeBotMessageDefaultTime * 4);
@@ -243,7 +258,7 @@ function handleMessage(message) {
 		.then(result => {
 			f.deleteDiscMessage(result, removeBotMessageDefaultTime * 4);
 		});;
-		f.deleteDiscMessage(message, 10000, 'help');
+		f.deleteDiscMessage(message, 10000, 'helpAll');
 	}
 	else if(startsWith(message, balanceCommands)){
 		if(stage === 0){
@@ -341,23 +356,7 @@ function handleMessage(message) {
 	}
 	// Sends private information about your statistics
 	else if(startsWith(message, statsCommands)){
-		var game = getModeChosen(message);
-		db_sequelize.getPersonalStats(message.author.id, game, function(data, game){
-			var s = '';
-			if(data.length === 0){
-				s += "**User doesn't have any games played**";
-			}
-			else {
-				s += '**Your stats for ' + game + ':**\n';
-				data.forEach(function(oneData){ // TODO: RefactorDB Either choose options OR show all stats that have gamesPlayed > 0
-					s += oneData.userName + ': \t**' + oneData[game] + ' ' + player_js.ratingOrMMR(game) + '**' + (game === 'cs' ? '\t(Games Played: ' + oneData.gamesPlayed + ')\n' : '\n');
-				});
-			}
-			message.author.send(s)  // Private message
-			.then(result => {
-				f.deleteDiscMessage(result, removeBotMessageDefaultTime * 2);
-			}); 
-		});
+		stats(message);
 		f.deleteDiscMessage(message, 15000, 'stats');
 	}
 	
@@ -462,6 +461,26 @@ async function cleanupExit(){
 	await setStage(0); 
 	await f.onExitDelete();
 	await onExit();
+}
+
+function stats(message){
+	var game = getModeChosen(message);
+	db_sequelize.getPersonalStats(message.author.id, game, function(data, game){
+		var s = '';
+		if(data.length === 0){
+			s += "**User doesn't have any games played**";
+		}
+		else {
+			s += '**Your stats for ' + game + ':**\n';
+			data.forEach(function(oneData){ // TODO: RefactorDB Either choose options OR show all stats that have gamesPlayed > 0
+				s += oneData.userName + ': \t**' + oneData[game] + ' ' + player_js.ratingOrMMR(game) + '**' + (game === 'cs' ? '\t(Games Played: ' + oneData.gamesPlayed + ')\n' : '\n');
+			});
+		}
+		message.author.send(s)  // Private message
+		.then(result => {
+			f.deleteDiscMessage(result, removeBotMessageDefaultTime * 2);
+		}); 
+	});
 }
 
 exports.triviaStart = function(questions, message){
@@ -592,20 +611,44 @@ function countAmountUsersPlaying(team, peopleWhoReacted){
 function buildHelpString(userID, messageNum){
 	if(messageNum === 0){
 		// TODO: More simple help without detailed explanation, add this option to helpCommands line
+		var s = '*Available commands for ' + bot_name + ':* \n';
+		s += '**' + helpAllCommands.toString().replace(/,/g, ' | ') + '** Shows information about all commands in detail\n';
+		s += '**' + prefix + 'ping** *Pong*\n';
+		s += '**' + helpCommands.toString().replace(/,/g, ' | ') + '** Shows the available commands\n';
+		s += '**' + leaderboardCommands.toString().replace(/,/g, ' | ') + '** Returns Top 5 MMR holders\n';
+		s += '**' + statsCommands.toString().replace(/,/g, ' | ') + '** Returns your own rating\n';
+		s += '**' + prefix + 'roll [high] [low, high]** Rolls a number (0 - 100)\n';
+		s += '**' + triviaCommands.toString().replace(/,/g, ' | ') + '** Starts a trivia game in the textchannel *' + trivia.getChannelName() + '*\n'
+		s += '**' + balanceCommands.toString().replace(/,/g, ' | ') + '** Starts an inhouse game with the players in the same voice chat as the message author. ';
+		s += '**' + team1wonCommands.toString().replace(/,/g, ' | ') + ' | ' + team2wonCommands.toString().replace(/,/g, ' | ') 
+			+ '** Starts report of match result, requires majority of players to upvote from game for stats to be recorded.\n';
+		s += '**' + tieCommands.toString().replace(/,/g, ' | ') + '** If a match end in a tie, use this as match result. Same rules for reporting as **' + prefix + 'team1Won | ' + prefix + 'team2Won**\n';
+		s += '**' + cancelCommands.toString().replace(/,/g, ' | ') + '** Cancels the game, to be used when game was decided to not be played\n';
+		s += '**' + splitCommands.toString().replace(/,/g, ' | ') + '** Splits voice chat into two separate voice chats\n';
+		s += '**' + uniteCommands.toString().replace(/,/g, ' | ') + ' [channel]** Unite voice chat after game\n';
+		s += '**' + uniteAllCommands.toString().replace(/,/g, ' | ') + ' [channel]** Unite all users active in voice to same channel\n';
+		s += '**' + mapvetostartCommands.toString().replace(/,/g, ' | ') + '** Starts a map veto (*cs only*)\n';
+		s += '**' + duelCommands.toString().replace(/,/g, ' | ') + ' [player] [game = cs] ** Starts a duel, a 1v1 match between 2 people **TBA**\n';
+		if(adminUids.includes(userID)){
+			s += '**' + exitCommands.toString().replace(/,/g, ' | ') + '** *Admin Command* Clear all messages, exit games, prepares for restart\n';
+		}
+		return s;	
 	}
 	if(messageNum === 1){
-		var s = '*Available commands for ' + bot_name + ':* \n';
+		var s = '*Available commands for ' + bot_name + ' (All Options):* \n';
 		s += '(**[opt = default]** Syntax for optional arguments)\n\n';
-		s += '**' + prefix + 'ping** *Pong*\n';
+		s += '**' + prefix + 'ping** *Pong*\n\n'; // 
 		s += '**' + helpCommands.toString().replace(/,/g, ' | ') + '** Shows the available commands\n\n';
+		s += '**' + helpAllCommands.toString().replace(/,/g, ' | ') + '** Shows information about all commands in detail\n\n';
 		s += '**' + leaderboardCommands.toString().replace(/,/g, ' | ') + ' [game = cs]** Returns Top 5 MMR holders\n'
 			+ '**[game]** Opt. argument: name of the mode to retrieve top leaderboard for. Available modes are [' + player_js.getAllModes() + ']\n\n';
 		s += '**' + statsCommands.toString().replace(/,/g, ' | ') + ' [game = cs]** Returns your own rating\n'
 			+ '**[game]** Opt. argument: name of the mode to retrieve stats for. Available modes are [' + player_js.getAllModes() + ']\n\n';
-		s += '**' + prefix + 'roll [high] [low, high]** Rolls a number (0 - 100)\n' // TODO: More logical way of writing the parameters, since high change place depending on #args
+		s += '**' + prefix + 'roll [high] [low, high]** Rolls a number (0 - 100)\n' 
+		// TODO: More logical way of writing the parameters, since high change place depending on #args. Change in simple above as well
 			+ '**[high]** (0 - high) \t\t**[low, high]** (low - high)\n\n';
-		s += '**' + triviaCommands.toString().replace(/,/g, ' | ') + ' [questions = allsubjectseasy]** Starts a trivia game in the textchannel *' + trivia.getChannelName() + '*\n\n'
-			+ '**[questions]** Opt. argument: name of question field and difficulty.'; // TODO Available trivia options
+		s += '**' + triviaCommands.toString().replace(/,/g, ' | ') + ' [questions = allsubjectseasy]** Starts a trivia game in the textchannel *' + trivia.getChannelName() + '*\n'
+			+ '**[questions]** Opt. argument: name of question field and difficulty.\n\n'; // TODO Available trivia options
 		if(adminUids.includes(userID)){
 			s += '**' + exitCommands.toString().replace(/,/g, ' | ') + '** *Admin Command* Clear all messages, exit games, prepares for restart\n\n';
 		}

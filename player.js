@@ -119,9 +119,9 @@ var getSortedRating = function(players, game){
 }
 
 var ratingOrMMR = function(game){
-	if(gameModes.includes(game)){
+	if(modesGame.includes(game) || modes1v1.includes(game)){
 		return 'mmr';
-	} else if(otherRatings.includes(game)){
+	} else if(modesRatings.includes(game)){
 		return 'rating';
 	} else {
 		throw err('Invalid game @getSortedRating', game);
