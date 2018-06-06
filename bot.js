@@ -248,6 +248,7 @@ function handleMessage(message) {
 		f.deleteDiscMessage(message, 10000, 'help');
 	}
 	else if(helpAllCommands.includes(message.content)){
+		console.log(buildHelpString(message.author.id, 1) + '\n' + buildHelpString(message.author.id, 2));
 		message.author.send(buildHelpString(message.author.id, 1))
 		.then(result => {
 			f.deleteDiscMessage(result, removeBotMessageDefaultTime * 4);

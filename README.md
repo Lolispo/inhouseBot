@@ -8,35 +8,60 @@
 
 Prefix and bot-name can be modified to own liking
 
-*Available commands for inhouse-bot:* 
+*Available commands for inhouse-bot (All Options):*  
+(**[opt = default]** Syntax for optional arguments)
 
 **-ping** *Pong*
 
-**-b | balance | inhouseBalance** Starts an inhouse game with the players in the same voice chat as the message author. Requires 4, 6, 8 or 10 players in voice chat to work
+**-h | -help** Shows the available commands
 
-**-team1Won | -team2Won** Starts report of match result, requires majority of players to upvote from game for stats to be recorded. If majority of players downvote, this match result report dissapears, use **-cancel** for canceling the match after this
+**-ha | -helpall** Shows information about all commands in detail
 
-**-draw | tie** If a match end in a tie, use this as match result. Same rules for reporting as **-team1Won | -team2Won**
+**-leaderboard [game = cs]** Returns Top 5 MMR holders  
+**[game]** Opt. argument: name of the mode to retrieve top leaderboard for. Available modes are [cs,dota,cs1v1,dota1v1,trivia]
 
-**-c | cancel** Cancels the game, to be used when game was decided to not be played
+**-stats [game = cs]** Returns your own rating  
+**[game]** Opt. argument: name of the mode to retrieve stats for. Available modes are [cs,dota,cs1v1,dota1v1,trivia]
 
-**-h | help** Shows the available commands
+**-roll [high] [low, high]** Rolls a number (0 - 100)  
+**[high]** (0 - high)           **[low, high]** (low - high)
 
-**-leaderboard** Returns Top 5 MMR holders
+**-trivia | -starttrivia | -triviastart [questions = allsubjectseasy]** Starts a trivia game in the textchannel *trivia-channel*  
+**[questions]** Opt. argument: name of question field and difficulty.
 
-**-stats** Returns your own rating
+**-exit** *Admin Command* Clear all messages, exit games, prepares for restart
 
-**-split** Splits voice chat
 
-**-u | unite** Unite voice chat after game
+**Start Game commands**
 
-**-mapVeto** Start map veto
+**-b | -balance | -balanceGame | -inhousebalance [game = cs]** Starts an inhouse game with the players in the same voice chat as the message author.   
+Requires 4, 6, 8 or 10 players in voice chat to work.  
+**[game]** Opt. argument: name of the game being played. Available games are [cs,dota]
 
-**-roll** Rolls a number (0 - 100)
+**-team1won | -team2won** Starts report of match result, requires majority of players to upvote from game for stats to be recorded.   
+If majority of players downvote, this match result report disappears, use **-cancel** for canceling the match after this
 
-**-duel | -challenge** Challenge another user for a duel **TBA**
+**-tie | -draw** If a match end in a tie, use this as match result. Same rules for reporting as **-team1Won | -team2Won**
 
-## Ideas for future?
+**-c | -cancel | -gamenotplayed** Cancels the game, to be used when game was decided to not be played  
+Game can only be canceled by the person who started the game
+
+**-split** Splits voice chat into two separate voice chats
+
+**-u | -unite [channel]** Unite voice chat after game  
+**[channel]** Opt. argument: name of channel to unite in
+
+**-ua | -uniteAll [channel]** Unite all users active in voice to same channel  
+**[channel]** Opt. argument: name of channel to unite in
+
+**-mapveto | -startmapveto | -mapvetostart | -startmaps** Starts a map veto (*cs only*)
+
+**-duel | -challenge [player] [game = cs] ** Starts a duel, a 1v1 match between 2 people **TBA**  
+If only two people are in voiceChannel, start duel between them. Otherwise [player] is required.  
+**[player]** Required if more than 2 players in voiceChannel. Person who is challenged  
+**[game]** Opt. argument: name of the game being played. Available games are [cs1v1,dota1v1]
+
+## Do you have any ideas for the future?
 
 Make a pull request for a new issue in the repository.
 
