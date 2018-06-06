@@ -25,6 +25,7 @@ exports.unite = function(message, activeMembers){
 exports.uniteAll = function(message){
 	var channel = getVoiceChannel(message);
 	// TODO: Find all users active in a voiceChannel, currently iterates over all members of guild
+	// client.voiceConnections (need to access bot.getClient() <- needs to be made)
 	//console.log('DEBUG uniteAll', channel);
 	message.guild.members.forEach(function(member){
 		// As long as they are still in some voice chat

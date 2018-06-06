@@ -25,7 +25,11 @@ const { prefix, token, dbpw } = require('./conf.json'); // Load config data from
 		Bug / Crash:
 			Trivia fix. Listed below
 		Features:
-			Deletion wont occur if variable is overwritten. Needs fix (Leaderboards example)
+			voiceMove, redo uniteAll get all voice connections
+				requires client getter
+			Exchange read of optional commands to all be from bot.js (voiceMove have in variable for example )
+				Every place that have startsWith instead of includes
+				https://anidiotsguide_old.gitbooks.io/discord-js-bot-guide/content/examples/command-with-arguments.html
 			Trivia
 				Check if size on ans restriction (40) is good size, or too long
 				Exit game - Check
@@ -37,8 +41,9 @@ const { prefix, token, dbpw } = require('./conf.json'); // Load config data from
 					require some lock to prevent 2 people getting same answer in at same time?
 						Do this if you notice buggy behaviour, seems fine for now
 					Make it known that prefix commands wont work in trivia channel
-			Help command generate readme text
+			Move files into folders
 			Handle name lengths for prints in f.js so names are aligned in tabs after longest names
+				https://anidiotsguide_old.gitbooks.io/discord-js-bot-guide/content/examples/using-embeds-in-messages.html
 				`` Code blocks could be used for same size on chars, but cant have bold text then (Used on player names?)
 				Reference: TODO: Print``
 			Support unite to channels with names over one word
@@ -118,9 +123,9 @@ const voteText = '**Majority of players that played the game need to confirm thi
 const adminUids = ['96293765001519104', '107882667894124544']; // Admin ids, get access to specific admin rights
 const removeBotMessageDefaultTime = 60000; // 300000
 
-const balanceCommands = [prefix + 'b', prefix + 'balance', prefix + 'balanceGame', prefix + 'inhousebalance'];
 const helpCommands = [prefix + 'h', prefix + 'help'];
 const helpAllCommands = [prefix + 'ha', prefix + 'helpall'];
+const balanceCommands = [prefix + 'b', prefix + 'balance', prefix + 'balanceGame', prefix + 'inhousebalance'];
 const team1wonCommands = [prefix + 'team1won'];
 const team2wonCommands = [prefix + 'team2won'];
 const tieCommands = [prefix + 'tie', prefix + 'draw'];
@@ -133,7 +138,8 @@ const triviaCommands = [prefix + 'trivia', prefix + 'starttrivia', prefix + 'tri
 const leaderboardCommands = [prefix + 'leaderboard'];
 const statsCommands = [prefix + 'stats'];
 const exitCommands = [prefix + 'exit'];
-const duelCommands = [prefix + 'duel', prefix + 'challenge']
+const duelCommands = [prefix + 'duel', prefix + 'challenge'];
+const lennyCommand = ['lenny', 'lennyface', prefix + 'lenny', prefix + 'lennyface'];
 
 // Listener on message
 client.on('message', message => {
@@ -154,6 +160,8 @@ client.on('message', message => {
 					f.deleteDiscMessage(result, removeBotMessageDefaultTime * 2);
 				});
 			} else if(helpAllCommands.includes(message.content)){
+				// TODO: Find a better way to update readme
+				//console.log(buildHelpString(message.author.id, 1) + '\n' + buildHelpString(message.author.id, 2)); // Used to update readme
 				message.author.send(buildHelpString(message.author.id, 1))
 				.then(result => {
 					f.deleteDiscMessage(result, removeBotMessageDefaultTime * 4);
@@ -224,9 +232,16 @@ function handleMessage(message) {
 	if(startsWith(message, 'hej')){
 		f.print(message, 'Hej ' + message.author.username, noop); // Not removing hej messages
 	}
+	else if(lennyCommand.includes(message.content)){
+		f.print(message, (`( ͡° ͜ʖ ͡°)`));
+		f.deleteDiscMessage(message, 10000, 'lenny');
+	}
+	else if(!startsWith(message, prefix)){ // Every command after here need to start with prefix
+		return;
+	}
 	else if(message.content === prefix + 'ping'){ // Good for testing prefix and connection to bot
-		console.log('PingAlert, user had !ping as command');
-		f.print(message, 'Pong');
+		console.log('PingAlert, user had !ping as command', client.pings);
+		f.print(message, 'Time of response ' + client.pings[0] + ' ms');
 		f.deleteDiscMessage(message, removeBotMessageDefaultTime, 'ping');
 	}
 	else if(startsWith(message, prefix + 'roll')){ // Roll command for luls
@@ -248,7 +263,6 @@ function handleMessage(message) {
 		f.deleteDiscMessage(message, 10000, 'help');
 	}
 	else if(helpAllCommands.includes(message.content)){
-		console.log(buildHelpString(message.author.id, 1) + '\n' + buildHelpString(message.author.id, 2));
 		message.author.send(buildHelpString(message.author.id, 1))
 		.then(result => {
 			f.deleteDiscMessage(result, removeBotMessageDefaultTime * 4);
@@ -612,7 +626,7 @@ function buildHelpString(userID, messageNum){
 		// TODO: More simple help without detailed explanation, add this option to helpCommands line
 		var s = '*Available commands for ' + bot_name + ':* \n';
 		s += '**' + helpAllCommands.toString().replace(/,/g, ' | ') + '** Shows information about all commands in detail\n';
-		s += '**' + prefix + 'ping** *Pong*\n';
+		s += '**' + prefix + 'ping** Returns time of response to server\n';
 		s += '**' + helpCommands.toString().replace(/,/g, ' | ') + '** Shows the available commands\n';
 		s += '**' + leaderboardCommands.toString().replace(/,/g, ' | ') + '** Returns Top 5 MMR holders\n';
 		s += '**' + statsCommands.toString().replace(/,/g, ' | ') + '** Returns your own rating\n';
@@ -636,7 +650,7 @@ function buildHelpString(userID, messageNum){
 	if(messageNum === 1){
 		var s = '*Available commands for ' + bot_name + ' (All Options):* \n';
 		s += '(**[opt = default]** Syntax for optional arguments)\n\n';
-		s += '**' + prefix + 'ping** *Pong*\n\n'; // 
+		s += '**' + prefix + 'ping** Returns time of response to server\n\n'; // 
 		s += '**' + helpCommands.toString().replace(/,/g, ' | ') + '** Shows the available commands\n\n';
 		s += '**' + helpAllCommands.toString().replace(/,/g, ' | ') + '** Shows information about all commands in detail\n\n';
 		s += '**' + leaderboardCommands.toString().replace(/,/g, ' | ') + ' [game = cs]** Returns Top 5 MMR holders\n'
