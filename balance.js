@@ -126,7 +126,7 @@ function findBestTeamComb(players, teamCombs, game){
 	for(var i = 0; i < teamCombs.length; i++){
 		var teams = getBothTeams(teamCombs[i], players);
 		//console.log('DEBUG: @findBestTeamComb, getBothTeams = ', teams);
-		var res = mmrCompare(teams.t1, teams.t2);
+		var res = mmrCompare(teams.t1, teams.t2, game);
 		//console.log('DEBUG: @findBestTeamComb, mmrCompare = ', res);
 		if(res.diff < bestPossibleTeamComb){ // TODO: Add random aspect between combinations when combinations have same result
 			bestPossibleTeamComb = res.diff;
@@ -165,14 +165,14 @@ function getBothTeams(teamComb, players){
 
 // @param two teams of players
 // @return total mmr difference
-function mmrCompare(t1, t2){
-	var avgTeam1 = addTeamMMR(t1); 
-	var avgTeam2 = addTeamMMR(t2); 
+function mmrCompare(t1, t2, game){
+	var avgTeam1 = addTeamMMR(t1, game); 
+	var avgTeam2 = addTeamMMR(t2, game); 
 	var difference = Math.abs(avgTeam1 - avgTeam2);
 	return {diff : difference, avgT1 : (avgTeam1 / t1.length), avgT2 : (avgTeam2 / t2.length)};
 }
 
-function addTeamMMR(team){ // Function to be used in summing over players
+function addTeamMMR(team, game){ // Function to be used in summing over players
 	var sum = 0;
 	for(var i = 0; i < team.length; i++){
 		sum += team[i].getMMR(game);
@@ -188,9 +188,9 @@ function buildReturnString(obj, callback){ // TODO: Print``
 	var s = '';
 	s += '**New Game!** Playing **' + obj.game + '**. ';
 	if(obj.team1.length === 1){ // No average for 2 player matchup
-		s += 'MMR difference: ' + obj.difference + ' mmr. ';
+		s += 'MMR diff: ' + obj.difference + ' mmr. ';
 	} else{
-		s += 'MMR Average difference: ' + parseFloat(obj.avgDiff).toFixed(2) + ' mmr (Total: ' + obj.difference + ' mmr). ';	
+		s += 'MMR Avg diff: ' + parseFloat(obj.avgDiff).toFixed(2) + ' mmr (Total: ' + obj.difference + ' mmr). ';	
 	}
 	s += String(date);
 	s += '\n';

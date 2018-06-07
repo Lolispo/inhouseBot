@@ -55,6 +55,7 @@ const { prefix, token, dbpw } = require('./conf.json'); // Load config data from
 				Change bot to be instances instead of file methods, reach everything from guildSnowflake then (same logic as player but for bot)
 				Reference: TODO: guildSnowFlake
 		Refactor:
+			Come up with better system for choosing winner of games
 			Store MMR for more games
 				Change into new created tables, ratings etc to have gamesPlayed for all games instead of sharing (only relevant for cs)
 				Stats: Show all stats where stats are available (gamesPlayed > 0)
@@ -290,8 +291,8 @@ function handleMessage(message) {
 					db_sequelize.initializePlayers(players, dbpw, function(playerList){
 						balance.balanceTeams(playerList, game);
 					});
-				} else if((numPlayers === 1) && (adminUids.includes(message.author.id)) ){
-					testBalanceGeneric(game);
+				} else if((numPlayers === 1) && (adminUids.includes(message.author.id))){
+					testBalanceGeneric(player_js.getGameModes()[0]);
 				} else{ // TODO: Duel Adjust this error message on allowed sizes, when duel is added
 					f.print(message, 'Currently only support even games of 2, 4, 6, 8 and 10 players', callbackInvalidCommand);
 				}
@@ -565,7 +566,7 @@ function testBalanceGeneric(game){
 	}
 	db_sequelize.initializePlayers(players, dbpw, function(playerList){
 		balance.balanceTeams(playerList, game);
-	}) // Initialize balancing and prints result. Sets stage = 1 when done
+	})
 }
 
 // Handling of voteMessageReactions
