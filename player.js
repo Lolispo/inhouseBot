@@ -3,6 +3,7 @@
 /*
 	Class handles player objects which take care of player data
 */
+// Default choices is the first indexed mode
 const modesGame = ['cs','dota'];
 const modes1v1 = ['cs1v1', 'dota1v1'];
 const modesRatings = ['trivia'];
@@ -80,7 +81,7 @@ var getOtherRatings = function(){
 	return modesRatings;
 }
 
-var getAllModes = function(){
+var getAllModes = function(){ // Default option should still be 'cs', TODO Check
 	return modesGame.concat(modes1v1).concat(modesRatings);
 }
 

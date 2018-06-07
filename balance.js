@@ -6,8 +6,6 @@ const moment = require('moment');
 const db_sequelize = require('./db-sequelize');
 const bot = require('./bot');
 
-var game;
-
 /*
 	Handles getting the most balanced team matchup for the given 10 players
 	Uses db_sequelize to receive the player information and add new players
@@ -18,14 +16,13 @@ var game;
 */
 
 // @param players should contain ArrayList of initialized Players of people playing
-exports.balanceTeams = function(players, gameVar){
+exports.balanceTeams = function(players, game){
 	// Generate team combs, all possibilities of the 10 players
 	var teamCombs = generateTeamCombs(players);
-	game = gameVar;	
 	var result = findBestTeamComb(players, teamCombs, game);
 
 	// Return string to message to clients
-	buildReturnString(result, callbackBalanceInfo, game); // callbackBalanceInfo = method 
+	buildReturnString(result, callbackBalanceInfo); // callbackBalanceInfo = method 
 }
 
 
@@ -35,9 +32,13 @@ exports.balanceTeams = function(players, gameVar){
 // @return teamCombs is returned with all possible matchups
 function generateTeamCombs(players){
 	//console.log('DEBUG: @generateTeamCombs');
-	var teamCombs = [];   // Saves all team combination, as arrays of indexes of 5 (other team is implied)
+	var teamCombs = [];   // Saves all team combination, as arrays of indexes of one team (other team is implied)
 	var uniqueCombs = new Set(); // A number combination for each comb, to prevent saving duplicates.
 	var len = players.size();
+	if(len === 2){
+		teamCombs.push([i]); // Only one team exist, its one player
+		return teamCombs;
+	}
 	for(var i = 0; i < len; i++){
 		for(var j = i+1; j < len; j++){
 			for(var k = j+1; k < len; k++){
@@ -46,7 +47,7 @@ function generateTeamCombs(players){
 						if(len === 10){ 
 							var uniqueSum = uniVal(i) + uniVal(j) + uniVal(k) + uniVal(l) + uniVal(m); 
 							if(!uniqueCombs.has(uniqueSum)){	
-								var teamComb = [i,j,k,l,m]
+								var teamComb = [i,j,k,l,m];
 								teamCombs.push(teamComb); // Add new combination to teamCombs // [i,j,k,l,m]
 								uniqueCombs.add(uniqueSum);
 								uniqueCombs.add(reverseUniqueSum([i,j,k,l,m], len)); 
@@ -56,7 +57,7 @@ function generateTeamCombs(players){
 					if(len === 8){
 						var uniqueSum = uniVal(i) + uniVal(j) + uniVal(k) + uniVal(l); 
 						if(!uniqueCombs.has(uniqueSum)){	
-							var teamComb = [i,j,k,l]
+							var teamComb = [i,j,k,l];
 							teamCombs.push(teamComb); // Add new combination to teamCombs // [i,j,k,l]
 							uniqueCombs.add(uniqueSum);
 							uniqueCombs.add(reverseUniqueSum([i,j,k,l], len));
@@ -66,7 +67,7 @@ function generateTeamCombs(players){
 				if(len === 6){
 					var uniqueSum = uniVal(i) + uniVal(j) + uniVal(k); 
 					if(!uniqueCombs.has(uniqueSum)){	
-						var teamComb = [i,j,k]
+						var teamComb = [i,j,k];
 						teamCombs.push(teamComb); // Add new combination to teamCombs // [i,j,k]
 						uniqueCombs.add(uniqueSum);
 						uniqueCombs.add(reverseUniqueSum([i,j,k], len));
@@ -76,7 +77,7 @@ function generateTeamCombs(players){
 			if(len === 4){
 				var uniqueSum = uniVal(i) + uniVal(j); 
 				if(!uniqueCombs.has(uniqueSum)){	
-					var teamComb = [i,j]
+					var teamComb = [i,j];
 					teamCombs.push(teamComb); // Add new combination to teamCombs // [i,j]
 					uniqueCombs.add(uniqueSum);
 					uniqueCombs.add(reverseUniqueSum([i,j], len));
@@ -114,7 +115,7 @@ function reverseUniqueSum(list, len){
 	return sum;
 }
 
-function findBestTeamComb(players, teamCombs){
+function findBestTeamComb(players, teamCombs, game){
 	// Compare elo matchup between teamCombinations, lowest difference wins
 	var bestPossibleTeamComb = Number.MAX_VALUE;
 	var t1 = [];
@@ -127,7 +128,7 @@ function findBestTeamComb(players, teamCombs){
 		//console.log('DEBUG: @findBestTeamComb, getBothTeams = ', teams);
 		var res = mmrCompare(teams.t1, teams.t2);
 		//console.log('DEBUG: @findBestTeamComb, mmrCompare = ', res);
-		if(res.diff < bestPossibleTeamComb){
+		if(res.diff < bestPossibleTeamComb){ // TODO: Add random aspect between combinations when combinations have same result
 			bestPossibleTeamComb = res.diff;
 			avgTeam1 = res.avgT1;
 			avgTeam2 = res.avgT2;
@@ -183,19 +184,24 @@ function addTeamMMR(team){ // Function to be used in summing over players
 // Build a string to return to print as message
 function buildReturnString(obj, callback){ // TODO: Print``
 	//console.log('DEBUG: @buildReturnString', obj);
-	var date = moment().format('LLL'); // Date format. TODO: Change from AM/PM to military time
+	var date = moment().format('LLL'); // Date format. TODO: Change from AM/PM to military time. http://momentjs.com/docs/#/parsing/string-format/
 	var s = '';
-	s += '**New Game!** Playing **' + game + '**. MMR Average difference: ' + parseFloat(obj.avgDiff).toFixed(2) + ' (Total: ' + obj.difference + 'p). ';
+	s += '**New Game!** Playing **' + obj.game + '**. ';
+	if(obj.team1.length === 1){ // No average for 2 player matchup
+		s += 'MMR difference: ' + obj.difference + ' mmr. ';
+	} else{
+		s += 'MMR Average difference: ' + parseFloat(obj.avgDiff).toFixed(2) + ' mmr (Total: ' + obj.difference + ' mmr). ';	
+	}
 	s += String(date);
 	s += '\n';
-	s += '**Team 1** \t(Avg: ' + obj.avgT1 + ' mmr): \n*' + obj.team1[0].userName + ' (' + obj.team1[0].getMMR(game) + ')';
+	s += '**Team 1** \t(Avg: ' + obj.avgT1 + ' mmr): \n*' + obj.team1[0].userName + ' (' + obj.team1[0].getMMR(obj.game) + ')';
 	for(var i = 1; i < obj.team1.length; i++){
-		s += ',\t' + obj.team1[i].userName + ' (' + obj.team1[i].getMMR(game) + ')';
+		s += ',\t' + obj.team1[i].userName + ' (' + obj.team1[i].getMMR(obj.game) + ')';
 	}	
 	s += '*\n';
-	s += '**Team 2** \t(Avg: ' + obj.avgT2 + ' mmr): \n*' + obj.team2[0].userName + ' (' + obj.team2[0].getMMR(game) + ')';
+	s += '**Team 2** \t(Avg: ' + obj.avgT2 + ' mmr): \n*' + obj.team2[0].userName + ' (' + obj.team2[0].getMMR(obj.game) + ')';
 	for(var i = 1; i < obj.team2.length; i++){
-		s += ',\t' + obj.team2[i].userName + ' (' + obj.team2[i].getMMR(game) + ')';
+		s += ',\t' + obj.team2[i].userName + ' (' + obj.team2[i].getMMR(obj.game) + ')';
 	}
 	s += '*\n\n';
 	s += '*Connect:* \n**connect 217.78.24.14:27302; password null**'; // Lukas' server on datHost, requires Petter/Lukas/Martin ingame to use
@@ -211,4 +217,3 @@ function callbackBalanceInfo(stage, message, obj){
 function callbackSetMatchupGameMessage(message){
 	bot.setMatchupMsg(message);
 }
-

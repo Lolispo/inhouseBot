@@ -22,26 +22,24 @@ const { prefix, token, dbpw } = require('./conf.json'); // Load config data from
 /*
 	TODO:
 			Need to check all functionality, since so much is changed
-		Bug / Crash:
-			Trivia fix. Listed below
 		Features:
-			voiceMove, redo uniteAll get all voice connections
-				requires client getter
-			Exchange read of optional commands to all be from bot.js (voiceMove have in variable for example )
-				Every place that have startsWith instead of includes
-				https://anidiotsguide_old.gitbooks.io/discord-js-bot-guide/content/examples/command-with-arguments.html
+			Refactor All commands from bot, make arguments read from same place
+				Exchange read of optional commands to all be from bot.js (voiceMove have in variable for example )
+					Every place that have startsWith instead of includes
+					https://anidiotsguide_old.gitbooks.io/discord-js-bot-guide/content/examples/command-with-arguments.html
+				Move files into folders, command folder
+					https://anidiotsguide_old.gitbooks.io/discord-js-bot-guide/content/coding-guides/a-basic-command-handler.html
 			Trivia
 				Check if size on ans restriction (40) is good size, or too long
 				Exit game - Check
 				Feature: 
 					Decrease point for all players (some rule to not increase if you have below a certain value through this) on hint reveals as well
 						Only decrease the people with highest potential point earnings (Down to 3?)
-					Avoid 'not' 'following' questions
+					Avoid 'not' 'following' questions, since multiple answers -> write
 					If noone answered anything 5 questions (attempted) in a row, end questions
 					require some lock to prevent 2 people getting same answer in at same time?
 						Do this if you notice buggy behaviour, seems fine for now
 					Make it known that prefix commands wont work in trivia channel
-			Move files into folders
 			Handle name lengths for prints in f.js so names are aligned in tabs after longest names
 				https://anidiotsguide_old.gitbooks.io/discord-js-bot-guide/content/examples/using-embeds-in-messages.html
 				`` Code blocks could be used for same size on chars, but cant have bold text then (Used on player names?)
@@ -49,9 +47,9 @@ const { prefix, token, dbpw } = require('./conf.json'); // Load config data from
 			Support unite to channels with names over one word
 		Bigger but Core Features:
 			Challenge / Duel: Challenge someone to 1v1
+				Should work, but not tested, for 2 users in same voice chat using balance command
 				Challenge specific person or "Queue" so anyone can accept
 				If challenged: message that user where user can react to response in dm. Update in channel that match is on
-				Default cs1v1, otherwise dota1v1
 				Reference TODO: Duel
 			Save every field as a Collection{GuildSnowflake -> field variable} to make sure bot works on many servers at once
 				Change bot to be instances instead of file methods, reach everything from guildSnowflake then (same logic as player but for bot)
@@ -132,7 +130,7 @@ const tieCommands = [prefix + 'tie', prefix + 'draw'];
 const cancelCommands = [prefix + 'c', prefix + 'cancel', prefix + 'gamenotplayed'];
 const splitCommands = [prefix + 'split'];
 const uniteCommands = [prefix + 'u', prefix + 'unite'];
-const uniteAllCommands = [prefix + 'ua', prefix + 'uniteAll'];
+const uniteAllCommands = [prefix + 'ua', prefix + 'uniteall'];
 const mapvetostartCommands = [prefix + 'mapveto', prefix + 'startmapveto', prefix + 'mapvetostart', prefix + 'startmaps'];
 const triviaCommands = [prefix + 'trivia', prefix + 'starttrivia', prefix + 'triviastart'];
 const leaderboardCommands = [prefix + 'leaderboard'];
@@ -233,7 +231,7 @@ function handleMessage(message) {
 		f.print(message, 'Hej ' + message.author.username, noop); // Not removing hej messages
 	}
 	else if(lennyCommand.includes(message.content)){
-		f.print(message, (`( ͡° ͜ʖ ͡°)`));
+		f.print(message, '( ͡° ͜ʖ ͡°)');
 		f.deleteDiscMessage(message, 10000, 'lenny');
 	}
 	else if(!startsWith(message, prefix)){ // Every command after here need to start with prefix
@@ -275,21 +273,27 @@ function handleMessage(message) {
 	}
 	else if(startsWith(message, balanceCommands)){
 		if(stage === 0){
-			var game = getModeChosen(message);
 			matchupMessage = message; // Used globally in print method
 			var voiceChannel = message.guild.member(message.author).voiceChannel;
 				
 			if(voiceChannel !== null && !f.isUndefined(voiceChannel)){ // Makes sure user is in a voice channel
 				var players = findPlayersStart(message, voiceChannel); // initalize players objects with playerInformation
 				var numPlayers = players.size();
+			 	// Initialize balancing, Result is printed and stage = 1 when done
 				if(numPlayers == 10 || numPlayers == 8 || numPlayers == 6 || numPlayers == 4){ // TODO: Duel Change matchup criterias
+					let game = getModeChosen(message, player_js.getGameModes());
 					db_sequelize.initializePlayers(players, dbpw, function(playerList){
 						balance.balanceTeams(playerList, game);
-					}); // Initialize balancing, Result is printed and stage = 1 when done
-				} else if((numPlayers === 1 || numPlayers === 2) && (adminUids.includes(message.author.id)) ){
-					testBalanceGeneric(game); // TODO: Duel remove numPlayers === 2
+					});
+				} else if(numPlayers === 2){ // TODO: Also add a duel command, duelCommands
+					let game = getModeChosen(message, player_js.getGameModes1v1());
+					db_sequelize.initializePlayers(players, dbpw, function(playerList){
+						balance.balanceTeams(playerList, game);
+					});
+				} else if((numPlayers === 1) && (adminUids.includes(message.author.id)) ){
+					testBalanceGeneric(game);
 				} else{ // TODO: Duel Adjust this error message on allowed sizes, when duel is added
-					f.print(message, 'Currently only support even games of 4, 6, 8 and 10 players', callbackInvalidCommand);
+					f.print(message, 'Currently only support even games of 2, 4, 6, 8 and 10 players', callbackInvalidCommand);
 				}
 			} else {
 				f.print(message, 'Invalid command: Author of message must be in voiceChannel', callbackInvalidCommand); 
@@ -302,6 +306,12 @@ function handleMessage(message) {
 			f.deleteDiscMessage(message, 10000, 'matchupMessage');
 		}
 	}
+	/*
+	// TODO Add me, maybe after command moves
+	else if(startsWith(message, duelCommands)){
+		// Arguments etc
+	}
+	*/
 	/*
 		Starts a trivia game for the people in voice channel
 		getDataQuestions options: 
@@ -356,12 +366,12 @@ function handleMessage(message) {
 	// Show top 5 MMR 
 	// TODO Games played only for cs, rating for otherRatings instead of mmr (as in player.js)
 	else if(startsWith(message, leaderboardCommands)){
-		var game = getModeChosen(message);
+		var game = getModeChosen(message, player_js.getAllModes());
 		db_sequelize.getHighScore(game, function(data){
 			var s = '**Leaderboard Top 5 for ' + game + ':**\n';
 			// TODO: Print``
 			data.forEach(function(oneData){ // TODO: RefactorDB
-				s += oneData.userName + ': \t**' + oneData[game] + ' ' + player_js.ratingOrMMR(game) + '**' + (game === 'cs' ? '\t(Games Played: ' + oneData.gamesPlayed + ')\n' : '\n');
+				s += oneData.userName + ': \t**' + oneData[game] + ' ' + player_js.ratingOrMMR(game) + '**' + (game === player_js.getGameModes()[0] ? '\t(Games Played: ' + oneData.gamesPlayed + ')\n' : '\n');
 			});
 			f.print(message, s);
 		});
@@ -458,11 +468,11 @@ function startsWith(message, command){
 	}
 }
 
-function getModeChosen(message){
+function getModeChosen(message, modeCategory){
 	var options = message.content.split(' ');
-	var game = 'cs';
+	var game = modeCategory[0];
 	if(options.length === 2){
-		if(player_js.getGameModes().includes(options[1]) || player_js.getOtherRatings().includes(options[1])){
+		if(modeCategory.includes(options[1])){
 			console.log('DEBUG @b Game chosen as: ' + options[1]);
 			game = options[1];
 		}
@@ -477,7 +487,7 @@ async function cleanupExit(){
 }
 
 function stats(message){
-	var game = getModeChosen(message);
+	var game = getModeChosen(message, player_js.getAllModes());
 	db_sequelize.getPersonalStats(message.author.id, game, function(data, game){
 		var s = '';
 		if(data.length === 0){
@@ -486,7 +496,7 @@ function stats(message){
 		else {
 			s += '**Your stats for ' + game + ':**\n';
 			data.forEach(function(oneData){ // TODO: RefactorDB Either choose options OR show all stats that have gamesPlayed > 0
-				s += oneData.userName + ': \t**' + oneData[game] + ' ' + player_js.ratingOrMMR(game) + '**' + (game === 'cs' ? '\t(Games Played: ' + oneData.gamesPlayed + ')\n' : '\n');
+				s += oneData.userName + ': \t**' + oneData[game] + ' ' + player_js.ratingOrMMR(game) + '**' + (game === player_js.getGameModes()[0] ? '\t(Games Played: ' + oneData.gamesPlayed + ')\n' : '\n');
 			});
 		}
 		message.author.send(s)  // Private message
@@ -669,7 +679,7 @@ function buildHelpString(userID, messageNum){
 	} else if(messageNum === 2){
 		var s = '**Start Game commands**\n\n';
 		s += '**' + balanceCommands.toString().replace(/,/g, ' | ') + ' [game = cs]** Starts an inhouse game with the players in the same voice chat as the message author. '
-			+ 'Requires 4, 6, 8 or 10 players in voice chat to work.\n'
+			+ 'Requires 2, 4, 6, 8 or 10 players in voice chat to work.\n'
 			+ '**[game]** Opt. argument: name of the game being played. Available games are [' + player_js.getGameModes() + ']\n\n';
 		s += '**' + team1wonCommands.toString().replace(/,/g, ' | ') + ' | ' + team2wonCommands.toString().replace(/,/g, ' | ') 
 			+ '** Starts report of match result, requires majority of players to upvote from game for stats to be recorded. '
@@ -683,7 +693,7 @@ function buildHelpString(userID, messageNum){
 		s += '**' + uniteAllCommands.toString().replace(/,/g, ' | ') + ' [channel]** Unite all users active in voice to same channel\n'
 			+ '**[channel]** Opt. argument: name of channel to unite in\n\n';
 		s += '**' + mapvetostartCommands.toString().replace(/,/g, ' | ') + '** Starts a map veto (*cs only*)\n\n';
-		s += '**' + duelCommands.toString().replace(/,/g, ' | ') + ' [player] [game = cs] ** Starts a duel, a 1v1 match between 2 people **TBA**\n'
+		s += '**' + duelCommands.toString().replace(/,/g, ' | ') + ' [player] [game = cs1v1] ** Starts a duel, a 1v1 match between 2 people **TBA**\n'
 			+ 'If only two people are in voiceChannel, start duel between them. Otherwise [player] is required.\n'
 			+ '**[player]** Required if more than 2 players in voiceChannel. Person who is challenged\n'
 			+ '**[game]** Opt. argument: name of the game being played. Available games are [' + player_js.getGameModes1v1() + ']\n\n';

@@ -35,7 +35,7 @@ var listToDeleteFrom = new Map();
 var deleteDiscMessage = function(messageVar, time = bot.getRemoveTime(), messageName = 'defaultName', callback = function(msg) {}){
 	// Alt. (Somehow) Compare freshest time, delete other timeout
 	//console.log('DEBUG @delete1 for ' + messageName + ', addDelete(' + time + ') = ' + (!listToDeleteFrom.has(messageName) && !isUndefined(messageVar) && messageVar.content !== ''), listToDeleteFrom.has(messageName));
-	messageName = messageName + messageVar.id;
+	messageName = messageName + '.id='+messageVar.id;
 	if(!listToDeleteFrom.has(messageName) && !isUndefined(messageVar) && messageVar.content !== ''){
 		if(!messageVar.content.includes('<removed>')){ // TODO: If repeated attempts are made to delete same thing, reflect if <removed> should be added
 			listToDeleteFrom.set(messageName, messageVar);	
