@@ -260,7 +260,13 @@ function handleQuestions(questions, callback){
 		var charCounter = cen_obj.charCounter;
 		//console.log(censored_ans);
 		var indexes = [];
+		if(thisQuestion.question.includes('not') && (thisQuestion.question.includes('following') || thisQuestion.question.includes('which'))){
+			// Filter out bad questions for this format
+			console.log('Skipping a question, Question: ' + thisQuestion.question);
+			return;
+		}
 		if(ans.length > maxAllowedAnswerLength){ // Set some limit to answer (found answer with 50 chars)
+			console.log('Skipping a question, Answer: ' + ans);
 			return; // Should continue with next iteration since forEach
 		}
 		// TODO: Dont allow questions containing 'not', usually not fit for the game, or 'following' and 'not'
@@ -297,7 +303,7 @@ function handleQuestions(questions, callback){
 				break;
 			}
 		}
-		var charArray = Array.from(thisQuestion.correct_answer).filter(word => word !== ' ');
+		var charArray = Array.from(ans).filter(word => word !== ' ');
 		thisQuestion.shuffledAns = shuffle(charArray).join('').toLowerCase(); // lower case
 		/*
 		console.log('Question: ' + thisQuestion.question);

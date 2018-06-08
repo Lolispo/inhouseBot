@@ -233,7 +233,7 @@ function handleMessage(message) {
 	}
 	else if(lennyCommand.includes(message.content)){
 		f.print(message, '( ͡° ͜ʖ ͡°)');
-		f.deleteDiscMessage(message, 10000, 'lenny');
+		f.deleteDiscMessage(message, 15000, 'lenny');
 	}
 	else if(!startsWith(message, prefix)){ // Every command after here need to start with prefix
 		return;
@@ -321,45 +321,46 @@ function handleMessage(message) {
 			(amount, 2, 3)  Generic knowledge questions, hard difficulty
 	*/
 	else if(startsWith(message, triviaCommands)){
+		var amount = 15;
 		var mode = message.content.split(' '); 
 		if(mode.length >= 2){
 			// Grabs second argument if available
 			// TODO: Redo system of trivia options, add to trivia.js. trivia.getMode(mode[1]) or something
 			switch(mode[1]){
 				case 'allsubjectseasy':
-					trivia.getDataQuestions(message, 10, 0, 1);
+					trivia.getDataQuestions(message, amount, 0, 1);
 					break;
 				case 'all':
 				case 'allquestions':
 				case 'anything':
-					trivia.getDataQuestions(message, 10, 0);
+					trivia.getDataQuestions(message, amount, 0);
 					break;
 				case 'game':
 				case 'games':
 				case 'gamesall':
-					trivia.getDataQuestions(message, 10, 1);
+					trivia.getDataQuestions(message, amount, 1);
 					break;
 				case 'gameseasy':
-					trivia.getDataQuestions(message, 10, 1, 1);
+					trivia.getDataQuestions(message, amount, 1, 1);
 					break;
 				case 'gamesmedium':
-					trivia.getDataQuestions(message, 10, 1, 3);
+					trivia.getDataQuestions(message, amount, 1, 3);
 					break;
 				case 'gameshard':
-					trivia.getDataQuestions(message, 10, 1, 3);
+					trivia.getDataQuestions(message, amount, 1, 3);
 					break;
 				case 'generic':
 				case 'genericeasy':
-					trivia.getDataQuestions(message, 10, 2, 1);
+					trivia.getDataQuestions(message, amount, 2, 1);
 					break;
 				case 'genericall':
-					trivia.getDataQuestions(message, 10, 2);
+					trivia.getDataQuestions(message, amount, 2);
 					break;
 				default:
-					trivia.getDataQuestions(message, 10, 0, 1); // allsubjectseasy
+					trivia.getDataQuestions(message, amount, 0, 1); // allsubjectseasy
 			}
 		} else{ // No mode chosen, use default
-			trivia.getDataQuestions(message, 10, 0, 1); // allsubjectseasy
+			trivia.getDataQuestions(message, amount, 0, 1); // allsubjectseasy
 		}
 		f.deleteDiscMessage(message, 15000, 'trivia');
 	}
