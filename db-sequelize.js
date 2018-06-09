@@ -25,7 +25,7 @@ var initializePlayers = function(players, callback){
 function addMissingUsers(players, data, callback){
 	//console.log('DEBUG: @addMissingUsers, Insert the mmr from data: ', players);
 	var allGameModes = player_js.getAllModes();
-	for(var i = 0; i < players.size(); i++){
+	for(var i = 0; i < players.length; i++){
 		// Check database for this data
 		var existingUser = -1;
 		data.forEach(function(oneData){ 

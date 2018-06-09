@@ -4,7 +4,7 @@
 // Main File for discord bot: Handles event for messages
 
 const Discord = require('discord.js');
-const ArrayList = require('arraylist');
+//const ArrayList = require('arraylist');
 
 // Get Instance of discord client
 const client = new Discord.Client();
@@ -282,7 +282,7 @@ function handleMessage(message) {
 				
 			if(voiceChannel !== null && !f.isUndefined(voiceChannel)){ // Makes sure user is in a voice channel
 				var players = findPlayersStart(message, voiceChannel); // initalize players objects with playerInformation
-				var numPlayers = players.size();
+				var numPlayers = players.length;
 			 	// Initialize balancing, Result is printed and stage = 1 when done
 				if(numPlayers == 10 || numPlayers == 8 || numPlayers == 6 || numPlayers == 4){ // TODO: Duel Change matchup criterias
 					let game = getModeChosen(message, player_js.getGameModes());
@@ -407,17 +407,17 @@ function handleMessage(message) {
 		if(team1wonCommands.includes(message.content)){
 			teamWonMessage = message;
 			teamWon = 1;
-			f.print(message, voteText + ' (0/' + (balanceInfo.team1.size() + 1)+ ')', callbackVoteText);
+			f.print(message, voteText + ' (0/' + (balanceInfo.team1.length + 1)+ ')', callbackVoteText);
 		}
 		else if(team1wonCommands.includes(message.content)){
 			teamWonMessage = message;
 			teamWon = 2;
-			f.print(message, voteText + ' (0/' + (balanceInfo.team1.size() + 1)+ ')', callbackVoteText);
+			f.print(message, voteText + ' (0/' + (balanceInfo.team1.length + 1)+ ')', callbackVoteText);
 		}
 		else if(tieCommands.includes(message.content)){
 			teamWonMessage = message;
 			teamWon = 0;
-			f.print(message, voteText + ' (0/' + (balanceInfo.team1.size() + 1)+ ')', callbackVoteText);
+			f.print(message, voteText + ' (0/' + (balanceInfo.team1.length + 1)+ ')', callbackVoteText);
 		}
 		else if(cancelCommands.includes(message.content)){
 			// Only creator of game can cancel it
@@ -547,14 +547,14 @@ function roll(message, start, end){
 // Starting balancing of a game for given voice channel
 function findPlayersStart(message, channel){
 	console.log('VoiceChannel', channel.name, ' (id =',channel.id,') active users: (Total: ', channel.members.size ,')');
-	var players = new ArrayList; // TODO Replace with [], all add -> push etc
+	var players = []; // TODO Replace with [], all add -> push etc
 	activeMembers = Array.from(channel.members.values());
 	//console.log('DEBUG: Channel', channel.members);
 	activeMembers.forEach(function(member){
 		if(!member.bot){ // Only real users
 			console.log('\t' + member.user.username + '(' + member.user.id + ')'); // Printar alla activa users i denna voice chatt
 			var tempPlayer = player_js.createPlayer(member.user.username, member.user.id);
-			players.add(tempPlayer);
+			players.push(tempPlayer);
 		}
 	});
 	return players;
@@ -563,11 +563,11 @@ function findPlayersStart(message, channel){
 // A Test for balancing and getting to stage 1 without players available
 function testBalanceGeneric(game){
 	console.log('\t<-- Testing Environment: 10 player game, res in console -->');
-	var players = new ArrayList;
+	var players = [];
 	for(var i = 0; i < 10; i++){
 		var tempPlayer = player_js.createPlayer('Player ' + i, i.toString());
 		//console.log('DEBUG: @findPlayersStart, tempPlayer =', tempPlayer);
-		players.add(tempPlayer);
+		players.push(tempPlayer);
 	}
 	db_sequelize.initializePlayers(players, function(playerList){
 		balance.balanceTeams(playerList, game);
@@ -585,7 +585,7 @@ function voteMessageReaction(messageReaction){
 		});
 	}else if(messageReaction.emoji.toString() === emoji_disagree){
 		var amountRelevant = countAmountUsersPlaying(balanceInfo.team1, messageReaction.users) + countAmountUsersPlaying(balanceInfo.team2, messageReaction.users);
-		var totalNeeded = (balanceInfo.team1.size() + 1);
+		var totalNeeded = (balanceInfo.team1.length + 1);
 		handleRelevantEmoji(false, teamWon, messageReaction, amountRelevant, totalNeeded);
 	}
 }
@@ -595,7 +595,7 @@ function voteMessageReaction(messageReaction){
 // TODO: Check if works still after refactor
 async function voteMessageTextUpdate(messageReaction){
 	var amountRel = await countAmountUsersPlaying(balanceInfo.team1, messageReaction.users) + countAmountUsersPlaying(balanceInfo.team2, messageReaction.users);
-	var totalNeed = await (balanceInfo.team1.size() + 1);
+	var totalNeed = await (balanceInfo.team1.length + 1);
 	//console.log('DEBUG: @messageReactionAdd, count =', amountRelevant, ', Majority number is =', totalNeeded);
 	var voteAmountString = ' (' + amountRel + '/' + totalNeed + ')';
 	var newVoteMessage = (voteText + voteAmountString);
@@ -627,7 +627,7 @@ function countAmountUsersPlaying(team, peopleWhoReacted){
 	var counter = 0;
 	//console.log('DEBUG: @countAmountUsersPlaying', team, peopleWhoReacted);
 	peopleWhoReacted.forEach(function(user){
-		for(var i = 0; i < team.size(); i++){
+		for(var i = 0; i < team.length; i++){
 			if(user.id === team[i].uid){ // If person who reacted is in the game
 				counter++;
 			}

@@ -1,7 +1,7 @@
 'use strict';
 // Author: Petter Andersson
 
-const ArrayList = require('arraylist');
+//const ArrayList = require('arraylist');
 const moment = require('moment');
 const db_sequelize = require('./db-sequelize');
 const bot = require('./bot');
@@ -34,7 +34,7 @@ function generateTeamCombs(players){
 	//console.log('DEBUG: @generateTeamCombs');
 	var teamCombs = [];   // Saves all team combination, as arrays of indexes of one team (other team is implied)
 	var uniqueCombs = new Set(); // A number combination for each comb, to prevent saving duplicates.
-	var len = players.size();
+	var len = players.length;
 	if(len === 2){
 		teamCombs.push([i]); // Only one team exist, its one player
 		return teamCombs;
@@ -144,9 +144,9 @@ function findBestTeamComb(players, teamCombs, game){
 
 // Get the two teams of players from the teamComb
 function getBothTeams(teamComb, players){
-	var team1 = new ArrayList;
-	var team2 = new ArrayList;
-	for(var i = 0; i < players.size(); i++){
+	var team1 = [];
+	var team2 = [];
+	for(var i = 0; i < players.length; i++){
 		var contains = false;
 		for(var j = 0; j < teamComb.length; j++){ // TODO Refactor/Redo. Do better check for this contain check, teamComb = list ([])
 			if(i === teamComb[j]){
@@ -154,9 +154,9 @@ function getBothTeams(teamComb, players){
 			}
 		}
 		if(contains){
-			team1.add(players[i]);
+			team1.push(players[i]);
 		} else {
-			team2.add(players[i]);
+			team2.push(players[i]);
 		}
 	}
 	//console.log('DEBUG: @getBothTeams, team1 = ', team1, '\nteam2 = ', team2, 'teamComb', teamComb);
