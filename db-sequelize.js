@@ -11,9 +11,7 @@ var player_js = require('./player')
 	The database is a mysql database, running at KTH servers
 */
 
-var initializePlayers = function(players, dbpw, callback){
-	// Init mmr for players
-	initDb(dbpw);
+var initializePlayers = function(players, callback){
 	// Currently fetches entire database, instead of specific users
 	getTable(function(data){
 		addMissingUsers(players, data, function(playerList){ // players are updated from within method

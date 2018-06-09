@@ -33,6 +33,8 @@ const { prefix, token, dbpw } = require('./conf.json'); // Load config data from
 				Check if size on ans restriction (40) is good size, or too long
 				Exit game - Check
 				Feature: 
+					Maybe not print result at end, make players feel in it
+						Alt session rating that prints at end with total in ()
 					Decrease point for all players (some rule to not increase if you have below a certain value through this) on hint reveals as well
 						Only decrease the people with highest potential point earnings (Down to 3?)
 					Avoid 'not' 'following' questions, since multiple answers -> write
@@ -45,6 +47,7 @@ const { prefix, token, dbpw } = require('./conf.json'); // Load config data from
 				`` Code blocks could be used for same size on chars, but cant have bold text then (Used on player names?)
 				Reference: TODO: Print``
 			Support unite to channels with names over one word
+				Easier with commands change, take all arguments after first as one, for this one
 		Bigger but Core Features:
 			Challenge / Duel: Challenge someone to 1v1
 				Should work, but not tested, for 2 users in same voice chat using balance command
@@ -283,12 +286,12 @@ function handleMessage(message) {
 			 	// Initialize balancing, Result is printed and stage = 1 when done
 				if(numPlayers == 10 || numPlayers == 8 || numPlayers == 6 || numPlayers == 4){ // TODO: Duel Change matchup criterias
 					let game = getModeChosen(message, player_js.getGameModes());
-					db_sequelize.initializePlayers(players, dbpw, function(playerList){
+					db_sequelize.initializePlayers(players, function(playerList){
 						balance.balanceTeams(playerList, game);
 					});
 				} else if(numPlayers === 2){ // TODO: Also add a duel command, duelCommands
 					let game = getModeChosen(message, player_js.getGameModes1v1());
-					db_sequelize.initializePlayers(players, dbpw, function(playerList){
+					db_sequelize.initializePlayers(players, function(playerList){
 						balance.balanceTeams(playerList, game);
 					});
 				} else if((numPlayers === 1) && (adminUids.includes(message.author.id))){
@@ -515,11 +518,12 @@ exports.triviaStart = function(questions, message){
 	console.log('DEBUG @triviaStart AM I RUNNING TWICE?', message.content, voiceChannel !== null && !f.isUndefined(voiceChannel));
 	if(voiceChannel !== null && !f.isUndefined(voiceChannel)){ // Makes sure user is in a voice channel TODO: Decide if needed
 		var players = findPlayersStart(message, voiceChannel);
-		db_sequelize.initializePlayers(players, dbpw, function(playerList){
+		db_sequelize.initializePlayers(players, function(playerList){
 			trivia.startGame(message, questions, playerList); 
 		});
 	} else{
-		f.print(message, 'Invalid command: Author of message must be in voiceChannel', callbackInvalidCommand); 
+		//f.print(message, 'Invalid command: Author of message must be in voiceChannel', callbackInvalidCommand); 
+		trivia.startGame(message, questions, []); // Initialize players as empty TODO Arraylist -> array Needs check 
 	}
 }
 
@@ -543,7 +547,7 @@ function roll(message, start, end){
 // Starting balancing of a game for given voice channel
 function findPlayersStart(message, channel){
 	console.log('VoiceChannel', channel.name, ' (id =',channel.id,') active users: (Total: ', channel.members.size ,')');
-	var players = new ArrayList;
+	var players = new ArrayList; // TODO Replace with [], all add -> push etc
 	activeMembers = Array.from(channel.members.values());
 	//console.log('DEBUG: Channel', channel.members);
 	activeMembers.forEach(function(member){
@@ -565,7 +569,7 @@ function testBalanceGeneric(game){
 		//console.log('DEBUG: @findPlayersStart, tempPlayer =', tempPlayer);
 		players.add(tempPlayer);
 	}
-	db_sequelize.initializePlayers(players, dbpw, function(playerList){
+	db_sequelize.initializePlayers(players, function(playerList){
 		balance.balanceTeams(playerList, game);
 	})
 }

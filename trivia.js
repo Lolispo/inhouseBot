@@ -36,28 +36,17 @@ exports.isCorrect = function(message){
 		// Makes this the final question
 		lastQuestionIndex = questionIndex;
 	}
-	if(message.content.toLowerCase() === ans.toLowerCase()){
-		var pointsToIncrease = pointMap.get(message.author.id);
+	if(message.content.toLowerCase() === ans.toLowerCase()){ // Correct answer
 		var player = player_js.getPlayer(activePlayers, message.author.id);
-		var newMmr = player.getMMR('trivia') + pointsToIncrease;
-		// Update mmr
-		player.setMMR('trivia', newMmr);
-		db_sequelize.updateMMR(message.author.id, newMmr, 'trivia');
-		if(!f.isUndefined(finishMessage)){
-			f.deleteDiscMessage(finishMessage, 0, 'finishMessage', function(msg){
-				// Decide if messages should be removed differently
-				f.print(message, message.author.username + ' answered correctly! Answer was: ' + ans + '. Trivia Rating: ' + newMmr + ' (+' + pointsToIncrease + ')', function(msg){
-					finishMessage = msg;
-					finishedQuestion();
-					startQuestion();
-				}); 		
+		if(player === ''){ // TODO: Initialize db for this player
+			var tempPlayer = player_js.createPlayer(message.author.username, message.author.id);
+			var tempPlayers = [tempPlayer]; // TODO Check to see that it doesnt crash since tempPlayers =/= ArrayList
+			activePlayers.add(tempPlayer);
+			db_sequelize.initializePlayers(tempPlayers, function(playerList){
+				updateTriviaMMR(message, playerList[0]); // Only one player used here, since this user wasn't initialized
 			});
-		} else {
-			f.print(message, message.author.username + ' answered correctly! Answer was: ' + ans + '. Trivia Rating: ' + newMmr + ' (+' + pointsToIncrease + ')', function(msg){
-				finishMessage = msg;
-				finishedQuestion();
-				startQuestion();
-			}); 	
+		} else{
+			updateTriviaMMR(message, player);
 		}
 	} else{
 		// Decrease personal possible points for player, down to 1 point
@@ -66,6 +55,30 @@ exports.isCorrect = function(message){
 	}
 	// TODO: Make sure all user entried questioned are pushed
 	allMessages.push(message);
+}
+
+function updateTriviaMMR(message, player){
+	var pointsToIncrease = pointMap.get(message.author.id);
+	var newMmr = player.getMMR('trivia') + pointsToIncrease;
+	// Update mmr
+	player.setMMR('trivia', newMmr);
+	db_sequelize.updateMMR(message.author.id, newMmr, 'trivia');
+	var answer_correct = message.author.username + ' answered correctly! Answer was: ' + ans + '. Trivia Rating: ' + newMmr + ' (+' + pointsToIncrease + ')';
+	if(!f.isUndefined(finishMessage)){
+		f.deleteDiscMessage(finishMessage, 0, 'finishMessage', function(msg){ // Msg = deleted message reference
+			callbackFinishMessage(message, answer_correct);
+		});
+	} else {
+		callbackFinishMessage(message, answer_correct);
+	}
+}
+
+function callbackFinishMessage(message, messageString){
+	f.print(message, messaageString , function(msg){
+		finishMessage = msg;
+		finishedQuestion();
+		startQuestion();
+	}); 	
 }
 
 // Starts game, requires messageVar (from correct textchannel) and questions
@@ -137,21 +150,13 @@ function nextLessCensored(array, index, message, qIndex, waitTime){
 					nextLessCensored(array, index + 1, msg, qIndex, waitTime);		
 				});
 			} else if(index === array.length){ // Out of hints, Fail -> next question
+				var noone_answered = 'Noone answered in time! Answer was: ' + ans;
 				if(!f.isUndefined(finishMessage)){
 					f.deleteDiscMessage(finishMessage, 0, 'finishMessage', function(msg){
-						f.print(message, 'Noone answered in time! Answer was: ' + ans, function(msg){
-							//console.log('DEBUG: finishMsg before =', finishMessage.content, '. after = ' + msg.content);	
-							finishMessage = msg;
-							finishedQuestion();
-							startQuestion();
-						}); 
+						callbackFinishMessage(message, noone_answered);
 					});	
 				} else {
-					f.print(message, 'Noone answered in time! Answer was: ' + ans, function(msg){
-						finishMessage = msg;
-						finishedQuestion();
-						startQuestion();
-					}); 
+					callbackFinishMessage(message, noone_answered);
 				}
 			} else{
 				censoredMessage.edit('`' + array[index] + '`')
