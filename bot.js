@@ -4,7 +4,6 @@
 // Main File for discord bot: Handles event for messages
 
 const Discord = require('discord.js');
-//const ArrayList = require('arraylist');
 
 // Get Instance of discord client
 const client = new Discord.Client();
@@ -523,7 +522,7 @@ exports.triviaStart = function(questions, message){
 		});
 	} else{
 		//f.print(message, 'Invalid command: Author of message must be in voiceChannel', callbackInvalidCommand); 
-		trivia.startGame(message, questions, []); // Initialize players as empty TODO Arraylist -> array Needs check 
+		trivia.startGame(message, questions, []); // Initialize players as empty
 	}
 }
 
@@ -552,7 +551,7 @@ function findPlayersStart(message, channel){
 	//console.log('DEBUG: Channel', channel.members);
 	activeMembers.forEach(function(member){
 		if(!member.bot){ // Only real users
-			console.log('\t' + member.user.username + '(' + member.user.id + ')'); // Printar alla activa users i denna voice chatt
+			console.log('\t' + member.user.username + '(' + member.user.id + ')'); // Printar alla activa users i denna voice chat
 			var tempPlayer = player_js.createPlayer(member.user.username, member.user.id);
 			players.push(tempPlayer);
 		}

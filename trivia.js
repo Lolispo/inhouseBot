@@ -40,7 +40,7 @@ exports.isCorrect = function(message){
 		var player = player_js.getPlayer(activePlayers, message.author.id);
 		if(player === ''){ // TODO: Initialize db for this player
 			var tempPlayer = player_js.createPlayer(message.author.username, message.author.id);
-			var tempPlayers = [tempPlayer]; // TODO Check to see that it doesnt crash since tempPlayers =/= ArrayList
+			var tempPlayers = [tempPlayer];
 			activePlayers.push(tempPlayer);
 			db_sequelize.initializePlayers(tempPlayers, function(playerList){
 				updateTriviaMMR(message, playerList[0]); // Only one player used here, since this user wasn't initialized
@@ -87,7 +87,7 @@ exports.startGame = function(message, questions, players){
 	gameOnGoing = true;
 	activePlayers = players;
 	pointMap = new Map();
-	for(var i = 0; i < activePlayers.size(); i++){
+	for(var i = 0; i < activePlayers.length; i++){
 		pointMap.set(activePlayers[i].uid, maxPossiblePoints);
 	}
 	done = [];
