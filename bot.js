@@ -31,18 +31,18 @@ const { prefix, token, dbpw } = require('./conf.json'); // Load config data from
 			Trivia
 				Check if size on ans restriction (40) is good size, or too long
 				Exit game - Check
+				Avoid 'not' 'following' questions, since multiple answers -> write TODO Check if good
 				Feature: 
 					Maybe not print result at end, make players feel in it
 						Alt session rating that prints at end with total in ()
 					Decrease point for all players (some rule to not increase if you have below a certain value through this) on hint reveals as well
 						Only decrease the people with highest potential point earnings (Down to 3?)
-					Avoid 'not' 'following' questions, since multiple answers -> write
 					If noone answered anything 5 questions (attempted) in a row, end questions
 					require some lock to prevent 2 people getting same answer in at same time?
 						Do this if you notice buggy behaviour, seems fine for now
 					Make it known that prefix commands wont work in trivia channel
 			Handle name lengths for prints in f.js so names are aligned in tabs after longest names
-				https://anidiotsguide_old.gitbooks.io/discord-js-bot-guide/content/examples/using-embeds-in-messages.html
+				Try embeds, otherwise below https://anidiotsguide_old.gitbooks.io/discord-js-bot-guide/content/examples/using-embeds-in-messages.html
 				`` Code blocks could be used for same size on chars, but cant have bold text then (Used on player names?)
 				Reference: TODO: Print``
 			Support unite to channels with names over one word
