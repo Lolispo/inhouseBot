@@ -90,7 +90,7 @@ var getAllModes = function(){ // Default option should still be 'cs', TODO Check
 var getHighestMMR = function(team, game){
 	var highestMMR = -1;
 	var index = -1;
-	for(var i = 0; i < team.size(); i++){
+	for(var i = 0; i < team.length; i++){
 		if(team[i].getMMR(game) > highestMMR){
 			highestMMR = team[i].getMMR(game);
 			index = i;
@@ -113,7 +113,7 @@ var getPlayer = function(array, uid){
 // TODO Add sort on DESC Game (Used in trivia result currently)
 var getSortedRating = function(players, game){
 	var s = '';
-	for(var i = 0; i < players.size(); i++){
+	for(var i = 0; i < players.length; i++){
 		s += players[i].userName + "'s **" + game + '** ' + ratingOrMMR(game) + ': ' + players[i].getMMR(game) + '\n'; // trivia
 	}
 	return s;

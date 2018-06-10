@@ -27,16 +27,17 @@ const channelName = 'trivia-channel';
 const waitTimeForSteps = 8000;
 const lengthForShuffle = 8;
 const maxPossiblePoints = 5;
-const maxAllowedAnswerLength = 40;
+const maxAllowedAnswerLength = 30;
 const exitCommands = ['exit', 'exitgame', 'exittrivia', 'quit', 'quitTrivia'];
 
 // Checks logic for message, matches with current answer
 exports.isCorrect = function(message){
 	if(author === message.author && exitCommands.includes(message.content.toLowerCase())){
 		// Makes this the final question
+		console.log('Exit command used. This is the final question!');
 		lastQuestionIndex = questionIndex;
 	}
-	if(message.content.toLowerCase() === ans.toLowerCase()){ // Correct answer
+	if(message.content.toLowerCase() === ans.toLowerCase()){ // Correct answer TODO: Souls question is bugged. CHECK UNDERSCORE
 		var player = player_js.getPlayer(activePlayers, message.author.id);
 		if(player === ''){ // TODO: Initialize db for this player
 			var tempPlayer = player_js.createPlayer(message.author.username, message.author.id);
@@ -58,6 +59,7 @@ exports.isCorrect = function(message){
 }
 
 function updateTriviaMMR(message, player){
+	pointMap.set(message.author.id, maxPossiblePoints);
 	var pointsToIncrease = pointMap.get(message.author.id);
 	var newMmr = player.getMMR('trivia') + pointsToIncrease;
 	// Update mmr
@@ -74,7 +76,7 @@ function updateTriviaMMR(message, player){
 }
 
 function callbackFinishMessage(message, messageString){
-	f.print(message, messaageString , function(msg){
+	f.print(message, messageString , function(msg){
 		finishMessage = msg;
 		finishedQuestion();
 		startQuestion();
@@ -110,32 +112,40 @@ exports.startGame = function(message, questions, players){
 
 // Start a new question, when previous is finished
 function startQuestion(){
-	var index = questionIndex;
-	if(index >= lastQuestionIndex){
+	// **Question: **In "Fallout 4" which faction is not present in the game?, crashes. Get answer undefined
+	if(questionIndex >= lastQuestionIndex){
 		if(!f.isUndefined(finishMessage)){
 			f.deleteDiscMessage(finishMessage, bot.getRemoveTime(), 'finishMessage');
 		}
 		f.print(messageVar, 'Game Ended. Results: \n' + player_js.getSortedRating(activePlayers, 'trivia'));
 		gameOnGoing = false;
 	} else{
-		console.log('Starting new Question[' + index + '], done = ' + done[index]);
-		var q = questionsArray[index];
-		done[index] = false;
+		console.log('Starting new Question[' + questionIndex + '], done = ' + done[questionIndex]);
+		var q = questionsArray[questionIndex];
+		for(var i = questionIndex; i < lastQuestionIndex; i++){
+			if(!q.used){
+				questionIndex++;
+				q = questionsArray[questionIndex];
+			} else {
+				break;
+			}
+		}
+		done[questionIndex] = false;
 		f.print(messageVar, '**Question: **' + parseMessage(q.question), function(msg){
 			questionMessage = msg;
 		}); // TODO: Add callback, save question and remove in finishQuestion()
 		ans = parseMessage(q.correct_answer);
 		if(ans.length >= lengthForShuffle){
 			setTimeout(function(){
-				if(!done[index]){
+				if(!done[questionIndex]){
 					f.print(messageVar, '`' + q.shuffledAns + '`', function(msg){
 						shuffledMessage = msg;
 					});
-					nextLessCensored(q.lessCensored, 0, messageVar, index, waitTimeForSteps / 2);		
+					nextLessCensored(q.lessCensored, 0, messageVar, questionIndex, waitTimeForSteps / 2);		
 				}	
 			}, waitTimeForSteps / 2);
 		} else {
-			nextLessCensored(q.lessCensored, 0, messageVar, index, waitTimeForSteps);
+			nextLessCensored(q.lessCensored, 0, messageVar, questionIndex, waitTimeForSteps);
 		}
 	}
 }
@@ -145,7 +155,7 @@ function nextLessCensored(array, index, message, qIndex, waitTime){
 	setTimeout(function(){
 		if(!done[qIndex]){
 			if(index === 0){
-				f.print(message, '`' + array[index] + '`', function(msg){
+				f.print(message, '`' + array[index] + '`', function(msg){ // array[index] = undefined, crash bot
 					censoredMessage = msg;
 					nextLessCensored(array, index + 1, msg, qIndex, waitTime);		
 				});
@@ -245,6 +255,7 @@ function getToken(a, c, d){
 }
 
 function parseMessage(msg){
+	//console.log('Parsing Ans: ' + msg);
 	msg = msg.replace(/&#034;|&quot;|rdquo;|&ldquo;/g,'"');
 	msg = msg.replace(/&#039;|&rsquo;|lsquo;/g,"'");
 	msg = msg.replace(/&shy;/g,''); // '-\n' for linebreak (used to allow line breaks with - for big words)
@@ -263,17 +274,19 @@ function handleQuestions(questions, callback){
 		var cen_obj = getCensored(ans);
 		var censored_ans = cen_obj.censored;
 		var charCounter = cen_obj.charCounter;
-		//console.log(censored_ans);
 		var indexes = [];
-		if(thisQuestion.question.includes('not') && (thisQuestion.question.includes('following') || thisQuestion.question.includes('which'))){
+		if(thisQuestion.question.toLowerCase().includes('not') && (thisQuestion.question.toLowerCase().includes('following') || thisQuestion.question.toLowerCase().includes('which'))){
 			// Filter out bad questions for this format
 			console.log('Skipping a question, Question: ' + thisQuestion.question);
+			thisQuestion.used = false;
 			return;
 		}
-		if(ans.length > maxAllowedAnswerLength){ // Set some limit to answer (found answer with 50 chars)
+		if(ans.length > maxAllowedAnswerLength){
 			console.log('Skipping a question, Answer: ' + ans);
+			thisQuestion.used = false;
 			return; // Should continue with next iteration since forEach
 		}
+		thisQuestion.used = true;
 		// TODO: Dont allow questions containing 'not', usually not fit for the game, or 'following' and 'not'
 		for(var i = 0; i < ans.length; i++){
 			indexes.push(i);

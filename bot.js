@@ -343,6 +343,7 @@ function handleMessage(message) {
 					trivia.getDataQuestions(message, amount, 1);
 					break;
 				case 'gameseasy':
+				case 'gameeasy':
 					trivia.getDataQuestions(message, amount, 1, 1);
 					break;
 				case 'gamesmedium':
@@ -514,7 +515,6 @@ exports.triviaStart = function(questions, message){
 	// Start game in text channel with these questions
 	savedTriviaQuestions = questions;
 	var voiceChannel = message.guild.member(message.author).voiceChannel;
-	console.log('DEBUG @triviaStart AM I RUNNING TWICE?', message.content, voiceChannel !== null && !f.isUndefined(voiceChannel));
 	if(voiceChannel !== null && !f.isUndefined(voiceChannel)){ // Makes sure user is in a voice channel TODO: Decide if needed
 		var players = findPlayersStart(message, voiceChannel);
 		db_sequelize.initializePlayers(players, function(playerList){
