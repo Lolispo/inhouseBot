@@ -29,13 +29,15 @@ const waitTimeForSteps = 8000;
 const lengthForShuffle = 8;
 const maxPossiblePoints = 5;
 const maxAllowedAnswerLength = 30;
-const exitCommands = ['exit', 'exitgame', 'exittrivia', 'quit', 'quitTrivia', '-exit', '-quit'];
+const exitCommands = ['exit', 'exitgame', 'exittrivia', 'quit', 'quitTrivia'];
 
 // Checks logic for message, matches with current answer
 exports.isCorrect = function(message){
-	if((author === message.author || bot.getAdminUids().includes(message.author.id)) && exitCommands.includes(message.content.toLowerCase())){
+	if((author === message.author || bot.getAdminUids().includes(message.author.id)) // Valid user doing the command
+		&& (exitCommands.includes(message.content.toLowerCase()) || exitCommands.includes(message.content.toLowerCase().slice(bot.getPrefix().length))) // Valid command 
+		){
 		// Makes this the final question
-		console.log('Exit command used. This is the final question!');
+		f.print(message, 'Exit command used. This is the final question!');
 		lastQuestionIndex = questionIndex;
 	}
 	if(message.content.toLowerCase() === ans.toLowerCase()){
@@ -118,7 +120,11 @@ function startQuestion(){
 		if(!f.isUndefined(finishMessage)){
 			f.deleteDiscMessage(finishMessage, bot.getRemoveTime(), 'finishMessage');
 		}
-		f.print(messageVar, 'Game Ended. Results: \n' + player_js.getSortedRating(activePlayers, 'trivia'));
+		var resultString = '';
+		if(activePlayers.length > 0){
+			resultString = 'Results: \n' + player_js.getSortedRating(activePlayers, 'trivia');
+		}
+		f.print(messageVar, 'Game Ended. ' + resultString);
 		gameOnGoing = false;
 	} else{
 		console.log('Starting new Question[' + questionIndex + '], done = ' + done[questionIndex]);
