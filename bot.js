@@ -16,6 +16,7 @@ const voiceMove_js = require('./voiceMove'); 			// Handles moving of users betwe
 const f = require('./f');								// Function class used by many classes, ex. isUndefined, messagesDeletion
 const db_sequelize = require('./db-sequelize');			// Handles communication with db
 const trivia = require('./trivia')						// Trivia
+
 const { prefix, token, dbpw } = require('./conf.json'); // Load config data from file
 
 /*
@@ -29,10 +30,10 @@ const { prefix, token, dbpw } = require('./conf.json'); // Load config data from
 				Move files into folders, command folder
 					https://anidiotsguide_old.gitbooks.io/discord-js-bot-guide/content/coding-guides/a-basic-command-handler.html
 			Trivia
-				Check if size on ans restriction (40) is good size, or too long
-				Exit game - Check
-				Avoid 'not' 'following' questions, since multiple answers -> write TODO Check if good
 				Feature: 
+					Update choosing game modes to support all game modes from this list : List start from 9 and forward on category
+						Vote for modes and difficulty in disc, instead of typing (start on -trivia command)
+						https://opentdb.com/api_config.php
 					Maybe not print result at end, make players feel in it
 						Alt session rating that prints at end with total in ()
 					Decrease point for all players (some rule to not increase if you have below a certain value through this) on hint reveals as well
@@ -798,6 +799,14 @@ exports.setMapStatusMessage = function(variable){
 	mapStatusMessage = variable;
 }
 
+exports.getPrefix = function(){
+	return prefix;
+}
+
 exports.getRemoveTime = function(){
 	return removeBotMessageDefaultTime;
+}
+
+exports.getAdminUids = function(){
+	return adminUids;
 }

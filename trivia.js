@@ -28,16 +28,16 @@ const waitTimeForSteps = 8000;
 const lengthForShuffle = 8;
 const maxPossiblePoints = 5;
 const maxAllowedAnswerLength = 30;
-const exitCommands = ['exit', 'exitgame', 'exittrivia', 'quit', 'quitTrivia'];
+const exitCommands = ['exit', 'exitgame', 'exittrivia', 'quit', 'quitTrivia', bot.getPrefix() + 'exit', bot.getPrefix() + 'quit'];
 
 // Checks logic for message, matches with current answer
 exports.isCorrect = function(message){
-	if(author === message.author && exitCommands.includes(message.content.toLowerCase())){
+	if((author === message.author || bot.getAdminUids().includes(message.author.id)) && exitCommands.includes(message.content.toLowerCase())){
 		// Makes this the final question
 		console.log('Exit command used. This is the final question!');
 		lastQuestionIndex = questionIndex;
 	}
-	if(message.content.toLowerCase() === ans.toLowerCase()){ // Correct answer TODO: Souls question is bugged. CHECK UNDERSCORE
+	if(message.content.toLowerCase() === ans.toLowerCase()){
 		var player = player_js.getPlayer(activePlayers, message.author.id);
 		if(player === ''){ // TODO: Initialize db for this player
 			var tempPlayer = player_js.createPlayer(message.author.username, message.author.id);
