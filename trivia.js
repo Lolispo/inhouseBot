@@ -4,8 +4,9 @@ var request = require('request');
 
 const f = require('./f');
 const player_js = require('./player');
-const bot = require('./bot')
+const bot = require('./bot');
 const db_sequelize = require('./db-sequelize');
+
 var gameOnGoing = false;
 var author;
 var token = '';
@@ -28,7 +29,7 @@ const waitTimeForSteps = 8000;
 const lengthForShuffle = 8;
 const maxPossiblePoints = 5;
 const maxAllowedAnswerLength = 30;
-const exitCommands = ['exit', 'exitgame', 'exittrivia', 'quit', 'quitTrivia', bot.getPrefix() + 'exit', bot.getPrefix() + 'quit'];
+const exitCommands = ['exit', 'exitgame', 'exittrivia', 'quit', 'quitTrivia', '-exit', '-quit'];
 
 // Checks logic for message, matches with current answer
 exports.isCorrect = function(message){
