@@ -23,6 +23,7 @@ const { prefix, token, dbpw } = require('./conf.json'); // Load config data from
 	TODO:
 			Need to check all functionality, since so much is changed
 		Features:
+			Check to see if optional prefix can be used elsewhere (used in trivia)
 			Refactor All commands from bot, make arguments read from same place
 				Exchange read of optional commands to all be from bot.js (voiceMove have in variable for example )
 					Every place that have startsWith instead of includes
