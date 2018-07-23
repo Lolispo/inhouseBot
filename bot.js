@@ -24,6 +24,7 @@ const { prefix, token, dbpw } = require('./conf.json'); // Load config data from
 			Need to check all functionality, since so much is changed
 		Features:
 			Check to see if optional prefix can be used elsewhere (used in trivia)
+				Move functional call to f, so only requires array of commands, f handles prefix check
 			Refactor All commands from bot, make arguments read from same place
 				Exchange read of optional commands to all be from bot.js (voiceMove have in variable for example )
 					Every place that have startsWith instead of includes
@@ -37,6 +38,7 @@ const { prefix, token, dbpw } = require('./conf.json'); // Load config data from
 						https://opentdb.com/api_config.php
 					Maybe not print result at end, make players feel in it
 						Alt session rating that prints at end with total in ()
+					Decrement points not working?
 					Decrease point for all players (some rule to not increase if you have below a certain value through this) on hint reveals as well
 						Only decrease the people with highest potential point earnings (Down to 3?)
 					If noone answered anything 5 questions (attempted) in a row, end questions
@@ -58,6 +60,7 @@ const { prefix, token, dbpw } = require('./conf.json'); // Load config data from
 			Save every field as a Collection{GuildSnowflake -> field variable} to make sure bot works on many servers at once
 				Change bot to be instances instead of file methods, reach everything from guildSnowflake then (same logic as player but for bot)
 				Reference: TODO: guildSnowFlake
+			Alternative map veto system (faster). Ban message and pick message, maps through emotes. Add all for picks, remove for ban. Highest sum after time => chosen
 		Refactor:
 			Come up with better system for choosing winner of games
 			Store MMR for more games

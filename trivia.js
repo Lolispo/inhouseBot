@@ -271,6 +271,7 @@ function parseMessage(msg){
 	msg = msg.replace(/&amp;/g, '&');
 	msg = msg.replace(/&hellip;/g, '...');
 	msg = msg.replace(/&eacute;/g, 'é');
+	msg = msg.replace(/&oacute;/g, 'ó');
 	return msg;
 }
 
