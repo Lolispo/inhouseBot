@@ -1,7 +1,6 @@
 # inhouseBot - Make your own inhouse league!
 
-[![Open Issues](https://img.shields.io/github/issues-raw/badges/shields.svg)](https://github.com/worlund/inhouseBot/issues)
-![Last Commit](https://img.shields.io/github/last-commit/google/skia.svg)
+[![License](https://img.shields.io/github/license/mashape/apistatus.svg)](https://opensource.org/licenses/MIT)
 
 #### A discord bot made in NodeJS that handles a inhouse system with rating for each individual user. 
 
