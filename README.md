@@ -1,7 +1,7 @@
 # inhouseBot - Make your own inhouse league!
 
-[![Issues Here](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/worlund/inhouseBot/issues/new)
-[![Installation Here](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/worlund/inhouseBot/wiki/Installation)
+[![Open Issues](https://img.shields.io/github/issues-raw/badges/shields.svg)](https://github.com/worlund/inhouseBot/issues)
+![Last Commit](https://img.shields.io/github/last-commit/google/skia.svg)
 
 #### A discord bot made in NodeJS that handles a inhouse system with rating for each individual user. 
 
@@ -64,9 +64,13 @@ If only two people are in voiceChannel, start duel between them. Otherwise [play
 **[player]** Required if more than 2 players in voiceChannel. Person who is challenged  
 **[game]** Opt. argument: name of the game being played. Available games are [cs1v1,dota1v1]
 
+## [Installation](https://github.com/worlund/inhouseBot/wiki/Installation)
+
+If any issues occur, let developer know
+
 ## Do you have any ideas for the future?
 
-Make a pull request for a new issue in the repository.
+Make a [Pull Request](https://github.com/worlund/inhouseBot/issues) for a new issue in the repository.
 
 Current TODO:s for the projects are listed in the files, main TODO section is in bot.js
 
