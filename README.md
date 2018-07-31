@@ -1,6 +1,7 @@
 # inhouseBot - Make your own inhouse league!
 
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://reactjs.org/docs/how-to-contribute.html#your-first-pull-request)
+[![Issues Here](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/worlund/inhouseBot/issues/new)
+[![Installation Here](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/worlund/inhouseBot/wiki/Installation)
 
 #### A discord bot made in NodeJS that handles a inhouse system with rating for each individual user. 
 
