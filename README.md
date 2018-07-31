@@ -1,5 +1,7 @@
 # inhouseBot - Make your own inhouse league!
 
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://reactjs.org/docs/how-to-contribute.html#your-first-pull-request)
+
 #### A discord bot made in NodeJS that handles a inhouse system with rating for each individual user. 
 
 #### Supports sizes of 2v2, 3v3, 4v4 and 5v5
