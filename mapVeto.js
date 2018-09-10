@@ -6,6 +6,7 @@
 const bot = require('./bot');
 const player_js = require('./player');
 const f = require('./f');
+
 var captain1;			// Captain for team 1
 var captain2;			// Captain for team 2
 var mapMessages;		// Keeps track of the discord messages for the different maps 

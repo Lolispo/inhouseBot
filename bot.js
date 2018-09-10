@@ -8,12 +8,12 @@ const Discord = require('discord.js');
 // Get Instance of discord client
 const client = new Discord.Client();
 
+const f = require('./f');								// Function class used by many classes, ex. isUndefined, messagesDeletion
 const balance = require('./balance');					// Balances and starts game between 2 teams
 const mmr_js = require('./mmr');						// Handles balanced mmr update
 const player_js = require('./player');					// Handles player storage in session, the database in action
 const map_js = require('./mapVeto');					// MapVeto system
 const voiceMove_js = require('./voiceMove'); 			// Handles moving of users between voiceChannels
-const f = require('./f');								// Function class used by many classes, ex. isUndefined, messagesDeletion
 const db_sequelize = require('./db-sequelize');			// Handles communication with db
 const trivia = require('./trivia')						// Trivia
 
@@ -23,6 +23,12 @@ const { prefix, token, dbpw } = require('./conf.json'); // Load config data from
 	TODO:
 			Need to check all functionality, since so much is changed
 		Features:
+			Move into files
+				src folder:
+					move every .js file here
+					Requires remap of './conf.json' to correct PATH, since they won't be same folder
+				img folder
+					can add UML diagram here, to be featured in Wiki
 			Support starting multiple games at the same time
 				Might only be relevant for duel, but would be stupid to clog the system
 			Support restarting bot and realizing game is going
@@ -104,6 +110,7 @@ const { prefix, token, dbpw } = require('./conf.json'); // Load config data from
 		Big ideas:
 			Twitter deathmatch
 			Family Feud
+			Pick-em CS (Check on progames, choose stuff, hltv)
 */
 
 // will only do stuff after it's ready

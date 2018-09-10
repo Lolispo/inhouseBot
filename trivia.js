@@ -2,6 +2,11 @@
 // Author: Petter Andersson
 var request = require('request');
 
+/* 
+	Handles a trivia gamemode
+	Uses player and db-sequelize to update rating
+*/
+
 const f = require('./f');
 const player_js = require('./player');
 const bot = require('./bot');
@@ -25,6 +30,7 @@ var finishMessage;
 var allMessages = [];
 
 const channelName = 'trivia-channel';
+const token_fileName = 'trivia.token';
 const waitTimeForSteps = 8000;
 const lengthForShuffle = 8;
 const maxPossiblePoints = 5;
@@ -217,7 +223,7 @@ exports.getDataQuestions = function(message, amount = 10, category = 1, difficul
 	} else if(difficulty === 3){ // Hard
 		difficulties += 'hard';
 	}
-	f.readFromFile('token_trivia', 'Token Trivia: ', function(tokenVar){
+	f.readFromFile(token_fileName, 'Token Trivia: ', function(tokenVar){
 		console.log('@getDataQuestions Read Token: ', tokenVar);
 		urlGenerate(amount, categories, difficulties, tokenVar);
 	}, function(){
@@ -264,7 +270,7 @@ function getToken(a, c, d){
 		//console.log('body:', body);
 		body = JSON.parse(body);
 		console.log('@getToken request new', body.token);
-		f.writeToFile('token_trivia', body.token, 'Success! Wrote token to file for trivia');
+		f.writeToFile(token_fileName, body.token, 'Success! Wrote token to file for trivia');
 		urlGenerate(a, c, d, body.token);
 	});
 }

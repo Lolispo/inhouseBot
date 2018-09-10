@@ -1,13 +1,10 @@
 'use strict';
 // Author: Petter Andersson
 
-//const moment = require('moment');
-const db_sequelize = require('./db-sequelize');
 const bot = require('./bot');
 
 /*
 	Handles getting the most balanced team matchup for the given 10 players
-	Uses db_sequelize to receive the player information and add new players
 	Uses bot to return the teams to the discord clients
 
 	TODO: Check if this would work if restrictions for team sizes are removed, generateTeamCombs changes required
@@ -16,9 +13,7 @@ const bot = require('./bot');
 // @param players should contain Array of initialized Players of people playing
 exports.balanceTeams = function(players, game){
 	// Generate team combs, all possibilities of the 10 players
-	console.log('@balanceTeams', players);
 	var teamCombs = generateTeamCombs(players);
-	console.log('@balanceTeams', teamCombs)
 	var result = findBestTeamComb(players, teamCombs, game);
 
 	// Return string to message to clients
@@ -117,7 +112,6 @@ function reverseUniqueSum(list, len){
 
 function findBestTeamComb(players, teamCombs, game){
 	// Compare elo matchup between teamCombinations, lowest difference wins
-	console.log('@findBestTeamComb', teamCombs)
 	var bestPossibleTeamComb = Number.MAX_VALUE;
 	var t1 = [];
 	var t2 = [];
@@ -185,7 +179,6 @@ function addTeamMMR(team, game){ // Function to be used in summing over players
 // Build a string to return to print as message
 function buildReturnString(obj, callback){ // TODO: Print``
 	//console.log('DEBUG: @buildReturnString', obj);
-	//var date = moment().format('LLL'); // Date format. TODO: Change from AM/PM to military time. http://momentjs.com/docs/#/parsing/string-format/
 	var s = '';
 	console.log('@buildReturnString', obj)
 	s += '**New Game!** Playing **' + obj.game + '**. ';
@@ -194,7 +187,6 @@ function buildReturnString(obj, callback){ // TODO: Print``
 	} else{
 		s += 'MMR Avg diff: ' + parseFloat(obj.avgDiff).toFixed(2) + ' mmr (Total: ' + obj.difference + ' mmr). ';	
 	}
-	//s += String(date);
 	s += '\n';
 	s += '**Team 1** \t(Avg: ' + obj.avgT1 + ' mmr): \n*' + obj.team1[0].userName + ' (' + obj.team1[0].getMMR(obj.game) + ')';
 	for(var i = 1; i < obj.team1.length; i++){

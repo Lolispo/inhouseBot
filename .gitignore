@@ -1,6 +1,7 @@
 *.json
 *.in
 !package.json
+!package-lock.json
 
-token_trivia
+trivia.token
 node_modules/
