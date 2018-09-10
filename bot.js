@@ -23,6 +23,10 @@ const { prefix, token, dbpw } = require('./conf.json'); // Load config data from
 	TODO:
 			Need to check all functionality, since so much is changed
 		Features:
+			Support starting multiple games at the same time
+				Might only be relevant for duel, but would be stupid to clog the system
+			Support restarting bot and realizing game is going
+				Potentially -pickupGame [disc message ID] or something
 			Check to see if optional prefix can be used elsewhere (used in trivia)
 				Move functional call to f, so only requires array of commands, f handles prefix check
 			Refactor All commands from bot, make arguments read from same place
@@ -33,17 +37,19 @@ const { prefix, token, dbpw } = require('./conf.json'); // Load config data from
 					https://anidiotsguide_old.gitbooks.io/discord-js-bot-guide/content/coding-guides/a-basic-command-handler.html
 			Trivia
 				Feature: 
+					Report Question button, saves question for analysis
+						If question is uninteresting (which of the following, should be filtered) or buggy
+						Update Text on start trivia with this feature when implemented
+					Prevent starting 2 games at once
+						Move so faster block to prevent more than one trivia trying to start
 					Update choosing game modes to support all game modes from this list : List start from 9 and forward on category
 						Vote for modes and difficulty in disc, instead of typing (start on -trivia command)
 						https://opentdb.com/api_config.php
 					Maybe not print result at end, make players feel in it
 						Alt session rating that prints at end with total in ()
-					Decrement points not working?
 					Decrease point for all players (some rule to not increase if you have below a certain value through this) on hint reveals as well
 						Only decrease the people with highest potential point earnings (Down to 3?)
 					If noone answered anything 5 questions (attempted) in a row, end questions
-					require some lock to prevent 2 people getting same answer in at same time?
-						Do this if you notice buggy behaviour, seems fine for now
 					Make it known that prefix commands wont work in trivia channel
 			Handle name lengths for prints in f.js so names are aligned in tabs after longest names
 				Try embeds, otherwise below https://anidiotsguide_old.gitbooks.io/discord-js-bot-guide/content/examples/using-embeds-in-messages.html
@@ -53,10 +59,13 @@ const { prefix, token, dbpw } = require('./conf.json'); // Load config data from
 				Easier with commands change, take all arguments after first as one, for this one
 		Bigger but Core Features:
 			Challenge / Duel: Challenge someone to 1v1
-				Should work, but not tested, for 2 users in same voice chat using balance command
-				Challenge specific person or "Queue" so anyone can accept
+				Duel: Should be same as balance for 2 people in call
+				Queue: Solo "Queue" so anyone can accept, creates game between user that accepts and person queuing
+				Reference TODO: Queue
+				Challenge:  specific person 
+				if challenge is used: Should be able to challenge anyone in discord
 				If challenged: message that user where user can react to response in dm. Update in channel that match is on
-				Reference TODO: Duel
+				Reference TODO: Challenge
 			Save every field as a Collection{GuildSnowflake -> field variable} to make sure bot works on many servers at once
 				Change bot to be instances instead of file methods, reach everything from guildSnowflake then (same logic as player but for bot)
 				Reference: TODO: guildSnowFlake
@@ -143,8 +152,10 @@ const mapvetostartCommands = [prefix + 'mapveto', prefix + 'startmapveto', prefi
 const triviaCommands = [prefix + 'trivia', prefix + 'starttrivia', prefix + 'triviastart'];
 const leaderboardCommands = [prefix + 'leaderboard'];
 const statsCommands = [prefix + 'stats'];
-const exitCommands = [prefix + 'exit'];
-const duelCommands = [prefix + 'duel', prefix + 'challenge'];
+const exitCommands = [prefix + 'exit', prefix + 'clear'];
+const duelCommands = [prefix + 'duel'];
+const challengeCommands = [prefix + 'challenge'];
+const queueCommands = [prefix + 'soloqueue', prefix + 'queue'];
 const lennyCommand = ['lenny', 'lennyface', prefix + 'lenny', prefix + 'lennyface'];
 
 // Listener on message
@@ -288,19 +299,19 @@ function handleMessage(message) {
 				var players = findPlayersStart(message, voiceChannel); // initalize players objects with playerInformation
 				var numPlayers = players.length;
 			 	// Initialize balancing, Result is printed and stage = 1 when done
-				if(numPlayers == 10 || numPlayers == 8 || numPlayers == 6 || numPlayers == 4){ // TODO: Duel Change matchup criterias
+				if(numPlayers == 10 || numPlayers == 8 || numPlayers == 6 || numPlayers == 4){
 					let game = getModeChosen(message, player_js.getGameModes());
 					db_sequelize.initializePlayers(players, function(playerList){
 						balance.balanceTeams(playerList, game);
 					});
-				} else if(numPlayers === 2){ // TODO: Also add a duel command, duelCommands
+				} else if(numPlayers === 2){
 					let game = getModeChosen(message, player_js.getGameModes1v1());
 					db_sequelize.initializePlayers(players, function(playerList){
 						balance.balanceTeams(playerList, game);
 					});
 				} else if((numPlayers === 1) && (adminUids.includes(message.author.id))){
 					testBalanceGeneric(player_js.getGameModes()[0]);
-				} else{ // TODO: Duel Adjust this error message on allowed sizes, when duel is added
+				} else{
 					f.print(message, 'Currently only support even games of 2, 4, 6, 8 and 10 players', callbackInvalidCommand);
 				}
 			} else {
@@ -314,12 +325,36 @@ function handleMessage(message) {
 			f.deleteDiscMessage(message, 10000, 'matchupMessage');
 		}
 	}
-	/*
+
 	// TODO Add me, maybe after command moves
 	else if(startsWith(message, duelCommands)){
-		// Arguments etc
+		if(stage === 0){
+			matchupMessage = message; // Used globally in print method
+			var voiceChannel = message.guild.member(message.author).voiceChannel;
+			if(voiceChannel !== null && !f.isUndefined(voiceChannel)){ // Makes sure user is in a voice channel
+				var players = findPlayersStart(message, voiceChannel); // initalize players objects with playerInformation
+				var numPlayers = players.length;
+				if(numPlayers === 2){
+					let game = getModeChosen(message, player_js.getGameModes1v1());
+					db_sequelize.initializePlayers(players, function(playerList){
+						balance.balanceTeams(playerList, game);
+					});
+				} else{
+					f.print(message, 'Currently only support even games of 2, 4, 6, 8 and 10 players', callbackInvalidCommand);
+				}
+			}
+			else {
+				f.print(message, 'Invalid command: Author of message must be in voiceChannel', callbackInvalidCommand); 
+			}
+			f.deleteDiscMessage(message, 10000, 'matchupMessage', function(msg){
+				msg.content += '<removed>';
+			});
+		} else{
+			f.print(message, 'Invalid command: Inhouse already ongoing', callbackInvalidCommand); 
+			f.deleteDiscMessage(message, 10000, 'matchupMessage');
+		}
 	}
-	*/
+	
 	/*
 		Starts a trivia game for the people in voice channel
 		getDataQuestions options: 
@@ -414,10 +449,10 @@ function handleMessage(message) {
 			teamWon = 1;
 			f.print(message, voteText + ' (0/' + (balanceInfo.team1.length + 1)+ ')', callbackVoteText);
 		}
-		else if(team1wonCommands.includes(message.content)){
+		else if(team2wonCommands.includes(message.content)){
 			teamWonMessage = message;
 			teamWon = 2;
-			f.print(message, voteText + ' (0/' + (balanceInfo.team1.length + 1)+ ')', callbackVoteText);
+			f.print(message, voteText + ' (0/' + (balanceInfo.team2.length + 1)+ ')', callbackVoteText);
 		}
 		else if(tieCommands.includes(message.content)){
 			teamWonMessage = message;
@@ -455,6 +490,11 @@ function handleMessage(message) {
 			});
 			f.deleteDiscMessage(message, 15000, 'mapveto'); // Remove mapVeto text
 		}
+
+		else if(startsWith(message,prefix)){ // Message start with prefix
+			f.print(message, 'Invalid command: List of available commands at **' + prefix + 'help**', callbackInvalidCommand);
+			f.deleteDiscMessage(message, 3000, 'invalidCommand'); // Overlaps delete call from callbackInvalidCommand above^
+		}
 	}
 	else if(startsWith(message,prefix)){ // Message start with prefix
 		f.print(message, 'Invalid command: List of available commands at **' + prefix + 'help**', callbackInvalidCommand);
@@ -478,13 +518,16 @@ function startsWith(message, command){
 	}
 }
 
+// Returns first valid gamemode from arguments
+// TODO: A way to set cs1v1 if cs is given or dota if dota1v1 is given (instead of default)
 function getModeChosen(message, modeCategory){
-	var options = message.content.split(' ');
-	var game = modeCategory[0];
-	if(options.length === 2){
-		if(modeCategory.includes(options[1])){
-			console.log('DEBUG @b Game chosen as: ' + options[1]);
-			game = options[1];
+	var options = message.content.split(' '); // Message input, [0] is command, after is potential arguments
+	var game = modeCategory[0]; // default command (Either cs or cs1v1)
+	for(var i = 1; i < options.length; i++){
+		if(modeCategory.includes(options[i])){
+			console.log('DEBUG @b Game chosen as: ' + options[i]);
+			game = options[i];
+			break;
 		}
 	}
 	return game;

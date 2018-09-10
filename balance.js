@@ -1,8 +1,7 @@
 'use strict';
 // Author: Petter Andersson
 
-//const ArrayList = require('arraylist');
-const moment = require('moment');
+//const moment = require('moment');
 const db_sequelize = require('./db-sequelize');
 const bot = require('./bot');
 
@@ -12,13 +11,14 @@ const bot = require('./bot');
 	Uses bot to return the teams to the discord clients
 
 	TODO: Check if this would work if restrictions for team sizes are removed, generateTeamCombs changes required
-	TODO: Reevalute why arraylist was chosen instead of normal javascript arrays, feels unnecesary
 */
 
-// @param players should contain ArrayList of initialized Players of people playing
+// @param players should contain Array of initialized Players of people playing
 exports.balanceTeams = function(players, game){
 	// Generate team combs, all possibilities of the 10 players
+	console.log('@balanceTeams', players);
 	var teamCombs = generateTeamCombs(players);
+	console.log('@balanceTeams', teamCombs)
 	var result = findBestTeamComb(players, teamCombs, game);
 
 	// Return string to message to clients
@@ -36,7 +36,7 @@ function generateTeamCombs(players){
 	var uniqueCombs = new Set(); // A number combination for each comb, to prevent saving duplicates.
 	var len = players.length;
 	if(len === 2){
-		teamCombs.push([i]); // Only one team exist, its one player
+		teamCombs.push([0]); // Only one team exist, its one player
 		return teamCombs;
 	}
 	for(var i = 0; i < len; i++){
@@ -117,6 +117,7 @@ function reverseUniqueSum(list, len){
 
 function findBestTeamComb(players, teamCombs, game){
 	// Compare elo matchup between teamCombinations, lowest difference wins
+	console.log('@findBestTeamComb', teamCombs)
 	var bestPossibleTeamComb = Number.MAX_VALUE;
 	var t1 = [];
 	var t2 = [];
@@ -184,20 +185,21 @@ function addTeamMMR(team, game){ // Function to be used in summing over players
 // Build a string to return to print as message
 function buildReturnString(obj, callback){ // TODO: Print``
 	//console.log('DEBUG: @buildReturnString', obj);
-	var date = moment().format('LLL'); // Date format. TODO: Change from AM/PM to military time. http://momentjs.com/docs/#/parsing/string-format/
+	//var date = moment().format('LLL'); // Date format. TODO: Change from AM/PM to military time. http://momentjs.com/docs/#/parsing/string-format/
 	var s = '';
+	console.log('@buildReturnString', obj)
 	s += '**New Game!** Playing **' + obj.game + '**. ';
 	if(obj.team1.length === 1){ // No average for 2 player matchup
 		s += 'MMR diff: ' + obj.difference + ' mmr. ';
 	} else{
 		s += 'MMR Avg diff: ' + parseFloat(obj.avgDiff).toFixed(2) + ' mmr (Total: ' + obj.difference + ' mmr). ';	
 	}
-	s += String(date);
+	//s += String(date);
 	s += '\n';
 	s += '**Team 1** \t(Avg: ' + obj.avgT1 + ' mmr): \n*' + obj.team1[0].userName + ' (' + obj.team1[0].getMMR(obj.game) + ')';
 	for(var i = 1; i < obj.team1.length; i++){
 		s += ',\t' + obj.team1[i].userName + ' (' + obj.team1[i].getMMR(obj.game) + ')';
-	}	
+	}
 	s += '*\n';
 	s += '**Team 2** \t(Avg: ' + obj.avgT2 + ' mmr): \n*' + obj.team2[0].userName + ' (' + obj.team2[0].getMMR(obj.game) + ')';
 	for(var i = 1; i < obj.team2.length; i++){

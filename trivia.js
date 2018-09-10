@@ -29,6 +29,7 @@ const waitTimeForSteps = 8000;
 const lengthForShuffle = 8;
 const maxPossiblePoints = 5;
 const maxAllowedAnswerLength = 30;
+const waitTimeStartQuestion = 3000;
 const exitCommands = ['exit', 'exitgame', 'exittrivia', 'quit', 'quitTrivia'];
 
 // Checks logic for message, matches with current answer
@@ -64,13 +65,16 @@ exports.isCorrect = function(message){
 }
 
 function updateTriviaMMR(message, player){
-	pointMap.set(message.author.id, maxPossiblePoints);
 	var pointsToIncrease = pointMap.get(message.author.id);
+	if(f.isUndefined(pointsToIncrease)){
+		pointsToIncrease = maxPossiblePoints;
+	}
+	pointMap.set(message.author.id, pointsToIncrease);
 	var newMmr = player.getMMR('trivia') + pointsToIncrease;
 	// Update mmr
 	player.setMMR('trivia', newMmr);
 	db_sequelize.updateMMR(message.author.id, newMmr, 'trivia');
-	var answer_correct = message.author.username + ' answered correctly! Answer was: ' + ans + '. Trivia Rating: ' + newMmr + ' (+' + pointsToIncrease + ')';
+	var answer_correct = message.author.username + ' answered correctly! Answer was: **' + ans + '**. Trivia Rating: ' + newMmr + ' (+' + pointsToIncrease + ')';
 	if(!f.isUndefined(finishMessage)){
 		f.deleteDiscMessage(finishMessage, 0, 'finishMessage', function(msg){ // Msg = deleted message reference
 			callbackFinishMessage(message, answer_correct);
@@ -129,33 +133,35 @@ function startQuestion(){
 		f.print(messageVar, 'Game Ended. ' + resultString);
 		gameOnGoing = false;
 	} else{
-		console.log('Starting new Question[' + questionIndex + '], done = ' + done[questionIndex]);
-		var q = questionsArray[questionIndex];
-		for(var i = questionIndex; i < lastQuestionIndex; i++){
-			if(!q.used){
-				questionIndex++;
-				q = questionsArray[questionIndex];
-			} else {
-				break;
+		setTimeout(function(){
+			console.log('Starting new Question[' + questionIndex + '], done = ' + done[questionIndex]);
+			var q = questionsArray[questionIndex];
+			for(var i = questionIndex; i < lastQuestionIndex; i++){
+				if(!q.used){
+					questionIndex++;
+					q = questionsArray[questionIndex];
+				} else {
+					break;
+				}
 			}
-		}
-		done[questionIndex] = false;
-		f.print(messageVar, '**Question: **' + parseMessage(q.question), function(msg){
-			questionMessage = msg;
-		}); // TODO: Add callback, save question and remove in finishQuestion()
-		ans = parseMessage(q.correct_answer);
-		if(ans.length >= lengthForShuffle){
-			setTimeout(function(){
-				if(!done[questionIndex]){
-					f.print(messageVar, '`' + q.shuffledAns + '`', function(msg){
-						shuffledMessage = msg;
-					});
-					nextLessCensored(q.lessCensored, 0, messageVar, questionIndex, waitTimeForSteps / 2);		
-				}	
-			}, waitTimeForSteps / 2);
-		} else {
-			nextLessCensored(q.lessCensored, 0, messageVar, questionIndex, waitTimeForSteps);
-		}
+			done[questionIndex] = false;
+			f.print(messageVar, '**Question: **' + parseMessage(q.question), function(msg){
+				questionMessage = msg;
+			}); // TODO: Add callback, save question and remove in finishQuestion()
+			ans = parseMessage(q.correct_answer);
+			if(ans.length >= lengthForShuffle){
+				setTimeout(function(){
+					if(!done[questionIndex]){
+						f.print(messageVar, '`' + q.shuffledAns + '`', function(msg){
+							shuffledMessage = msg;
+						});
+						nextLessCensored(q.lessCensored, 0, messageVar, questionIndex, waitTimeForSteps / 2);		
+					}	
+				}, waitTimeForSteps / 2);
+			} else {
+				nextLessCensored(q.lessCensored, 0, messageVar, questionIndex, waitTimeForSteps);
+			}
+		}, waitTimeStartQuestion);
 	}
 }
 

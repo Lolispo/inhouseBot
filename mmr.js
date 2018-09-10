@@ -61,7 +61,7 @@ function eloUpdate(t1mmr, t2mmr, winner){
 
 // Update team mmr for the given team locally and in database
 function updateTeamMMR(team, change, game){
-	for(var i = 0; i < team.size(); i++){
+	for(var i = 0; i < team.length; i++){
 		var newMMR = team[i].getMMR(game) + change;
 		team[i].setMMRChange(game, change);
 		team[i].setMMR(game, newMMR);
@@ -76,12 +76,12 @@ function buildMMRUpdateString(team1Won, callback, T1, T2, callbackkUpdate, game)
 	var s = ''; 
 	s += '**Team ' + (team1Won ? '1' : '2') + ' won!** Played game: **' + game + '**. Updated mmr is: \n';
 	s += '**Team 1**: \n\t*' + T1[0].userName + ' (' + T1[0].getMMR(game) + ' mmr, ' + T1[0].getGame(game).prevMMR + ' ' + T1[0].getGame(game).latestUpdatePrefix + T1[0].getGame(game).latestUpdate + ')';
-	for(var i = 1; i < T1.size(); i++){
+	for(var i = 1; i < T1.length; i++){
 		s += '\n\t' + T1[i].userName + ' (' + T1[i].getMMR(game) + ' mmr, ' + T1[i].getGame(game).prevMMR + ' ' + T1[i].getGame(game).latestUpdatePrefix + T1[i].getGame(game).latestUpdate + ')';
 	}
 	s += '*\n';
 	s += '**Team 2**: \n\t*' + T2[0].userName + ' (' + T2[0].getMMR(game) + ' mmr, ' + T2[0].getGame(game).prevMMR + ' ' + T2[0].getGame(game).latestUpdatePrefix + T2[0].getGame(game).latestUpdate + ')';
-	for(var i = 1; i < T2.size(); i++){
+	for(var i = 1; i < T2.length; i++){
 		s += '\n\t' + T2[i].userName + ' (' + T2[i].getMMR(game) + ' mmr, ' + T2[i].getGame(game).prevMMR + ' ' + T2[i].getGame(game).latestUpdatePrefix + T2[i].getGame(game).latestUpdate + ')';
 	}
 	s += '*\n';
