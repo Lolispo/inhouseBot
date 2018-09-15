@@ -51,7 +51,7 @@ exports.isCorrect = function(message){
 	}
 	if(message.content.toLowerCase() === ans.toLowerCase()){
 		var player = player_js.getPlayer(activePlayers, message.author.id);
-		if(player === ''){ // TODO: Initialize db for this player
+		if(player === ''){
 			var tempPlayer = player_js.createPlayer(message.author.username, message.author.id);
 			var tempPlayers = [tempPlayer];
 			activePlayers.push(tempPlayer);
@@ -128,6 +128,8 @@ exports.startGame = function(message, questions, players){
 // Start a new question, when previous is finished
 function startQuestion(){
 	// **Question: **In "Fallout 4" which faction is not present in the game?, crashes. Get answer undefined
+	// SpongeBob SquarePants, couldnt find answer, look at caps
+	// What is not a wind instrument?
 	if(questionIndex >= lastQuestionIndex){
 		if(!f.isUndefined(finishMessage)){
 			f.deleteDiscMessage(finishMessage, bot.getRemoveTime(), 'finishMessage');
@@ -284,6 +286,7 @@ function parseMessage(msg){
 	msg = msg.replace(/&hellip;/g, '...');
 	msg = msg.replace(/&eacute;/g, 'é');
 	msg = msg.replace(/&oacute;/g, 'ó');
+	msg = msg.replace(/&ouml;/g, 'ö');
 	return msg;
 }
 
@@ -297,7 +300,8 @@ function handleQuestions(questions, callback){
 		var censored_ans = cen_obj.censored;
 		var charCounter = cen_obj.charCounter;
 		var indexes = [];
-		if(thisQuestion.question.toLowerCase().includes('not') && (thisQuestion.question.toLowerCase().includes('following') || thisQuestion.question.toLowerCase().includes('which'))){
+		var current_question = thisQuestion.question.toLowerCase();
+		if(current_question.includes('following') || current_question.includes('which of these')){
 			// Filter out bad questions for this format
 			console.log('Skipping a question, Question: ' + thisQuestion.question);
 			thisQuestion.used = false;

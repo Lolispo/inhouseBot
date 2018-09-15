@@ -43,6 +43,10 @@ const { prefix, token, dbpw } = require('./conf.json'); // Load config data from
 					https://anidiotsguide_old.gitbooks.io/discord-js-bot-guide/content/coding-guides/a-basic-command-handler.html
 			Trivia
 				Feature: 
+					If spam bot, it can print new questions result with last responses answer
+						Check to make sure it prints the newest questions repsonse at all time
+					Sometimes sends 2 questions at once
+					Something about caps in ans
 					Report Question button, saves question for analysis
 						If question is uninteresting (which of the following, should be filtered) or buggy
 						Update Text on start trivia with this feature when implemented
