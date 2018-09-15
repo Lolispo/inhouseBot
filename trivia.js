@@ -1,6 +1,9 @@
 'use strict';
 // Author: Petter Andersson
 var request = require('request');
+const Entities = require('html-entities').XmlEntities;
+ 
+const entities = new Entities();
 
 /* 
 	Handles a trivia gamemode
@@ -33,6 +36,7 @@ const channelName = 'trivia-channel';
 const token_fileName = 'trivia.token';
 const waitTimeForSteps = 8000;
 const lengthForShuffle = 8;
+const lengthForEvenFaster = 16;
 const maxPossiblePoints = 5;
 const maxAllowedAnswerLength = 30;
 const waitTimeStartQuestion = 3000;
@@ -79,8 +83,11 @@ function updateTriviaMMR(message, player){
 	var newMmr = player.getMMR('trivia') + pointsToIncrease;
 	// Update mmr
 	player.setMMR('trivia', newMmr);
+	var newMmrSession = player.getMMR('trivia_temp') + pointsToIncrease;
+	player.setMMR('trivia_temp', newMmrSession);
 	db_sequelize.updateMMR(message.author.id, newMmr, 'trivia');
-	var answer_correct = message.author.username + ' answered correctly! Answer was: **' + ans + '**. Trivia Rating: ' + newMmr + ' (+' + pointsToIncrease + ')';
+	var answer_correct = message.author.username + ' answered correctly! Answer was: **' + ans + '**. Trivia Rating: ' + newMmrSession + 
+		' (+' + pointsToIncrease + ', Total: ' + newMmr + ')';
 	if(!f.isUndefined(finishMessage)){
 		f.deleteDiscMessage(finishMessage, 0, 'finishMessage', function(msg){ // Msg = deleted message reference
 			callbackFinishMessage(message, answer_correct);
@@ -116,7 +123,7 @@ exports.startGame = function(message, questions, players){
 	questionIndex = 0;
 	// Find text channel: Send start message
 	var channel = message.guild.channels.find('name', channelName);
-	channel.send('Starting game of trivia! (BETA: If any weird letters are found looking like *&...;*, message admin the word, so it can be fixed)')
+	channel.send('Starting game of trivia!')
 	.then(result => {
 		messageVar = result;			// Initialize messageVar to be in correct chanel, used for print
 		f.deleteDiscMessage(result);	// Delete start message after default time
@@ -130,16 +137,20 @@ function startQuestion(){
 	// **Question: **In "Fallout 4" which faction is not present in the game?, crashes. Get answer undefined
 	// SpongeBob SquarePants, couldnt find answer, look at caps
 	// What is not a wind instrument?
+	// In which series of games do you collect souls to empower you and buy weaponry and armor with? 	Souls
+	// **Where is the train station "Llanfair&shy;pwllgwyngyll&shy;gogery&shy;chwyrn&shy;drobwll&shy;llan&shy;tysilio&shy;gogo&shy;goch"?
 	if(questionIndex >= lastQuestionIndex){
-		if(!f.isUndefined(finishMessage)){
-			f.deleteDiscMessage(finishMessage, bot.getRemoveTime(), 'finishMessage');
-		}
-		var resultString = '';
-		if(activePlayers.length > 0){
-			resultString = 'Results: \n' + player_js.getSortedRating(activePlayers, 'trivia');
-		}
-		f.print(messageVar, 'Game Ended. ' + resultString);
-		gameOnGoing = false;
+		setTimeout(function(){
+			if(!f.isUndefined(finishMessage)){
+				f.deleteDiscMessage(finishMessage, bot.getRemoveTime(), 'finishMessage');
+			}
+			var resultString = '';
+			if(activePlayers.length > 0){
+				resultString = 'Results: \n' + player_js.getSortedRatingTrivia(activePlayers);
+			}
+			f.print(messageVar, 'Game Ended. ' + resultString);
+			gameOnGoing = false;
+		}, waitTimeStartQuestion);
 	} else{
 		setTimeout(function(){
 			console.log('Starting new Question[' + questionIndex + '], done = ' + done[questionIndex]);
@@ -163,7 +174,13 @@ function startQuestion(){
 						f.print(messageVar, '`' + q.shuffledAns + '`', function(msg){
 							shuffledMessage = msg;
 						});
-						nextLessCensored(q.lessCensored, 0, messageVar, questionIndex, waitTimeForSteps / 2);		
+						var waitTime = waitTimeForSteps;
+						if(ans.length >= lengthForEvenFaster){
+							waitTime /= 3;
+						} else {
+							waitTime /= 2;
+						}
+						nextLessCensored(q.lessCensored, 0, messageVar, questionIndex, waitTime);		
 					}	
 				}, waitTimeForSteps / 2);
 			} else {
@@ -183,7 +200,7 @@ function nextLessCensored(array, index, message, qIndex, waitTime){
 					nextLessCensored(array, index + 1, msg, qIndex, waitTime);		
 				});
 			} else if(index === array.length){ // Out of hints, Fail -> next question
-				var noone_answered = 'Noone answered in time! Answer was: ' + ans;
+				var noone_answered = 'Noone answered in time! Answer was: **' + ans + '**';
 				if(!f.isUndefined(finishMessage)){
 					f.deleteDiscMessage(finishMessage, 0, 'finishMessage', function(msg){
 						callbackFinishMessage(message, noone_answered);
@@ -203,7 +220,7 @@ function nextLessCensored(array, index, message, qIndex, waitTime){
 
 // Start getting questions from db
 // https://opentdb.com/api_config.php
-exports.getDataQuestions = function(message, amount = 10, category = 1, difficulty = 0){
+exports.getDataQuestions = function(message, amount = 15, category = 0, difficulty = 0){
 	console.log('@getDataQuestions', amount, category, difficulty);
 	author = message.author;
 	messageVar = message;
@@ -214,16 +231,14 @@ exports.getDataQuestions = function(message, amount = 10, category = 1, difficul
 		categories += '15'; 
 	} else if(category === 2){ // Generic Knowledge
 		categories += '9';
-	} // TODO Add custom choice of category
+	} else if(category >= 9 && category <= 32){
+		categories += category;
+	}
 	var difficulties = '&difficulty=';
 	if(difficulty === 0){
 		difficulties = '';
-	} else if(difficulty === 1){ // Easy
-		difficulties += 'easy';
-	} else if(difficulty === 2){ // Medium
-		difficulties += 'medium';
-	} else if(difficulty === 3){ // Hard
-		difficulties += 'hard';
+	} else {
+		difficulties += difficulty;
 	}
 	f.readFromFile(token_fileName, 'Token Trivia: ', function(tokenVar){
 		console.log('@getDataQuestions Read Token: ', tokenVar);
@@ -250,7 +265,11 @@ function urlGenerate(a, c, d, t){
 			body = JSON.parse(body);
 			if(body.response_code === 3 || body.response_code === 4){ // Token not found
 				console.log('DEBUG: response_code =', body.response_code);
-				getToken(a, c, d);
+				if(f.isUndefined(t)){
+					getToken(a, c, d);
+				} else if(body.response_code === 4){ // Probably too many questions requested, request without token to get code === 1
+					urlGenerate(a, c, d); 
+				}
 			} else if(body.response_code === 0){
 				//console.log('response:', response);
 				//console.log('body:', body);
@@ -258,8 +277,14 @@ function urlGenerate(a, c, d, t){
 				handleQuestions(body.results, function(questions, message){
 					bot.triviaStart(questions, message);
 				});				
-			} else { // 1 and 2, NO results, (too many questions) and invalid parameters
-				console.log('DEBUG:', body.response_code); // Might be due to too many questions
+			} else if(body.response_code === 1){ // Not Enough questions
+				if(parseInt(a / 2) === 1){
+					f.print(messageVar, 'Not enough questions for this mode');
+				} else {
+					urlGenerate(parseInt(a / 2), c, d, t);				
+				}
+			} else if(body.response_code === 2){ // Invalid parameters
+				console.log('DEBUG: Check me', body.response_code); 
 			}
 		}
 	});	
@@ -279,14 +304,17 @@ function getToken(a, c, d){
 
 function parseMessage(msg){
 	//console.log('Parsing Ans: ' + msg);
+	msg = entities.decode(msg);
+	msg = msg.replace(/&shy;/g,''); // '-\n' for linebreak (used to allow line breaks with - for big words)
+	/*
 	msg = msg.replace(/&#034;|&quot;|rdquo;|&ldquo;/g,'"');
 	msg = msg.replace(/&#039;|&rsquo;|lsquo;/g,"'");
-	msg = msg.replace(/&shy;/g,''); // '-\n' for linebreak (used to allow line breaks with - for big words)
 	msg = msg.replace(/&amp;/g, '&');
 	msg = msg.replace(/&hellip;/g, '...');
 	msg = msg.replace(/&eacute;/g, 'é');
 	msg = msg.replace(/&oacute;/g, 'ó');
 	msg = msg.replace(/&ouml;/g, 'ö');
+	*/
 	return msg;
 }
 

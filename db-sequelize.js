@@ -37,7 +37,10 @@ function addMissingUsers(players, data, callback){
 			createUser(players[i].uid, players[i].userName, players[i].defaultMMR);
 		} else{ // Update players[i] mmr to the correct value
 			for(var j = 0; j < allGameModes.length; j++){ // Initialize all gameMode ratings
-				players[i].setMMR(allGameModes[j], existingUser.dataValues[allGameModes[j]]);
+				if(!allGameModes[j].includes('_temp')){ // Don't try to load temp ratings from Database
+					//console.log('Setting ' + allGameModes[j] + ' rating to ' + existingUser.dataValues[allGameModes[j]]);
+					players[i].setMMR(allGameModes[j], existingUser.dataValues[allGameModes[j]]);				
+				}
 			}
 		}
 	}

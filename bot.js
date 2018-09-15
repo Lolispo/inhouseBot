@@ -43,6 +43,7 @@ const { prefix, token, dbpw } = require('./conf.json'); // Load config data from
 					https://anidiotsguide_old.gitbooks.io/discord-js-bot-guide/content/coding-guides/a-basic-command-handler.html
 			Trivia
 				Feature: 
+					Exit trivia with user not initialized (not in voice on start or haven't answered yet) => NaN results
 					If spam bot, it can print new questions result with last responses answer
 						Check to make sure it prints the newest questions repsonse at all time
 					Sometimes sends 2 questions at once
@@ -151,7 +152,7 @@ const removeBotMessageDefaultTime = 60000; // 300000
 
 const helpCommands = [prefix + 'h', prefix + 'help'];
 const helpAllCommands = [prefix + 'ha', prefix + 'helpall'];
-const balanceCommands = [prefix + 'b', prefix + 'balance', prefix + 'balanceGame', prefix + 'inhousebalance'];
+const balanceCommands = [prefix + 'b', prefix + 'balance', prefix + 'balancegame', prefix + 'inhousebalance'];
 const team1wonCommands = [prefix + 'team1won'];
 const team2wonCommands = [prefix + 'team2won'];
 const tieCommands = [prefix + 'tie', prefix + 'draw'];
@@ -161,6 +162,7 @@ const uniteCommands = [prefix + 'u', prefix + 'unite'];
 const uniteAllCommands = [prefix + 'ua', prefix + 'uniteall'];
 const mapvetostartCommands = [prefix + 'mapveto', prefix + 'startmapveto', prefix + 'mapvetostart', prefix + 'startmaps'];
 const triviaCommands = [prefix + 'trivia', prefix + 'starttrivia', prefix + 'triviastart'];
+const triviaModesCommands = [prefix + 'modestrivia', prefix + 'helptrivia'];
 const leaderboardCommands = [prefix + 'leaderboard'];
 const statsCommands = [prefix + 'stats'];
 const exitCommands = [prefix + 'exit', prefix + 'clear'];
@@ -369,54 +371,85 @@ function handleMessage(message) {
 	/*
 		Starts a trivia game for the people in voice channel
 		getDataQuestions options: 
-			(amount, 0, 1)	All categories, easy difficulty
+			(amount, 0, 'easy')	All categories, easy difficulty
 			(amount, 1) 	Games, all difficulties
-			(amount, 2, 3)  Generic knowledge questions, hard difficulty
+			(amount, 2, 'hard')  Generic knowledge questions, hard difficulty
 	*/
 	else if(startsWith(message, triviaCommands)){
 		var amount = 15;
 		var mode = message.content.split(' '); 
-		if(mode.length >= 2){
-			// Grabs second argument if available
-			// TODO: Redo system of trivia options, add to trivia.js. trivia.getMode(mode[1]) or something
-			switch(mode[1]){
-				case 'allsubjectseasy':
-					trivia.getDataQuestions(message, amount, 0, 1);
-					break;
-				case 'all':
-				case 'allquestions':
-				case 'anything':
-					trivia.getDataQuestions(message, amount, 0);
-					break;
-				case 'game':
-				case 'games':
-				case 'gamesall':
-					trivia.getDataQuestions(message, amount, 1);
-					break;
-				case 'gameseasy':
-				case 'gameeasy':
-					trivia.getDataQuestions(message, amount, 1, 1);
-					break;
-				case 'gamesmedium':
-					trivia.getDataQuestions(message, amount, 1, 3);
-					break;
-				case 'gameshard':
-					trivia.getDataQuestions(message, amount, 1, 3);
-					break;
-				case 'generic':
-				case 'genericeasy':
-					trivia.getDataQuestions(message, amount, 2, 1);
-					break;
-				case 'genericall':
-					trivia.getDataQuestions(message, amount, 2);
-					break;
-				default:
-					trivia.getDataQuestions(message, amount, 0, 1); // allsubjectseasy
+		if(!trivia.getGameOnGoing()){
+			if(mode.length >= 2){
+				// Grabs second argument if available
+				// TODO: Redo system of trivia options, add to trivia.js. trivia.getMode(mode[1]) or something
+				var category = 0;
+				var difficulty = 0;
+				switch(mode[1]){
+					case 'allsubjectseasy':
+						difficulty = 'easy';
+						break;
+					case 'all':
+					case 'allquestions':
+					case 'anything':
+						break;
+					case 'game':
+					case 'games':
+					case 'gamesall':
+						category = 1;
+						break;
+					case 'gameseasy':
+					case 'gameeasy':
+						category = 1;
+						difficulty = 'easy';
+						break;
+					case 'gamesmedium':
+						category = 1;
+						difficulty = 'medium';
+						break;
+					case 'gameshard':
+						category = 1;
+						difficulty = 'hard';
+						break;
+					case 'generic':
+					case 'genericeasy':
+						category = 2;
+						difficulty = 'easy';
+						break;
+					case 'genericall':
+						category = 2;
+						break;
+					default: // Check for all modes
+						var categoryNum = parseInt(mode[1]);
+						if(!isNaN(categoryNum) && categoryNum >= 9 && categoryNum <= 32){
+							category = categoryNum;
+							if(mode.length >= 3){
+								if(mode[2] === 'easy' || mode[2] === 'medium' || mode[2] === 'hard'){
+									difficulty = mode[2];
+								}
+							}
+						} else {
+							difficulty = 'easy';			
+						}
+				}
+				console.log('Modes: category = ' + category + ', difficulty = ' + difficulty);
+				trivia.getDataQuestions(message, amount, category, difficulty);
+			} else{ // No mode chosen, use default
+				console.log('No mode chosen, use default (mode.length = ' + mode.length + ')');
+				trivia.getDataQuestions(message, amount, 0, 'easy'); // allsubjectseasy
 			}
-		} else{ // No mode chosen, use default
-			trivia.getDataQuestions(message, amount, 0, 1); // allsubjectseasy
+		} else { // Game currently on, don't start another one
+			console.log('Duplicate Trivia starts, ignoring ' + message.content + ' ...');
 		}
 		f.deleteDiscMessage(message, 15000, 'trivia');
+	}
+
+	// Trivia modes - gives list of categories
+	else if(triviaModesCommands.includes(message.content)){
+		message.author.send(buildTriviaHelpCommands())
+		.then(result => {
+			f.deleteDiscMessage(result, removeBotMessageDefaultTime * 2);
+		});
+		f.deleteDiscMessage(message, 10000, 'triviaModes');
 	}
 
 	// Show top 5 MMR 
@@ -574,7 +607,7 @@ exports.triviaStart = function(questions, message){
 	// Start game in text channel with these questions
 	savedTriviaQuestions = questions;
 	var voiceChannel = message.guild.member(message.author).voiceChannel;
-	if(voiceChannel !== null && !f.isUndefined(voiceChannel)){ // Makes sure user is in a voice channel TODO: Decide if needed
+	if(voiceChannel !== null && !f.isUndefined(voiceChannel)){ // Sets initial player array to user in disc channel if available
 		var players = findPlayersStart(message, voiceChannel);
 		db_sequelize.initializePlayers(players, function(playerList){
 			trivia.startGame(message, questions, playerList); 
@@ -694,6 +727,40 @@ function countAmountUsersPlaying(team, peopleWhoReacted){
 	return counter;
 }
 
+// Build String of trivia help commands
+function buildTriviaHelpCommands(){
+	var s = '*Available modes for trivia:* \n';
+	s += prefix + 'trivia [category] [difficulty]\n';
+	s += 'Arguments are optional\n';
+	s += '**Difficulties:** *easy*, *medium*, *hard*, *all*\n';
+	s += '**Categories:**\n';
+	s += '*9*: General Knowledge\n';
+	s += '*10*: Entertainment: Books\n';
+	s += '*11*: Entertainment: Film\n';
+	s += '*12*: Entertainment: Music\n';
+	s += '*13*: Entertainment: Musicals & Theatres\n';
+	s += '*14*: Entertainment: Television\n';
+	s += '*15*: Entertainment: Video Games\n';
+	s += '*16*: Entertainment: Board Games\n';
+	s += '*17*: Science & Nature\n';
+	s += '*18*: Science: Computers\n';
+	s += '*19*: Science: Mathematics\n';
+	s += '*20*: Mythology\n';
+	s += '*21*: Sports\n';
+	s += '*22*: Geography\n';
+	s += '*23*: History\n';
+	s += '*24*: Politics\n';
+	s += '*25*: Art\n';
+	s += '*26*: Celebrities\n';
+	s += '*27*: Animals\n';
+	s += '*28*: Vehicles\n';
+	s += '*29*: Entertainment: Comics\n';
+	s += '*30*: Science: Gadgets\n';
+	s += '*31*: Entertainment: Japanese Anime & Manga\n';
+	s += '*32*: Entertainment: Cartoons & Animations\n';
+	return s;
+}
+
 // TODO commandHelp: Keep updated with recent information
 function buildHelpString(userID, messageNum){
 	if(messageNum === 0){
@@ -705,7 +772,8 @@ function buildHelpString(userID, messageNum){
 		s += '**' + leaderboardCommands.toString().replace(/,/g, ' | ') + '** Returns Top 5 MMR holders\n';
 		s += '**' + statsCommands.toString().replace(/,/g, ' | ') + '** Returns your own rating\n';
 		s += '**' + prefix + 'roll [high] [low, high]** Rolls a number (0 - 100)\n';
-		s += '**' + triviaCommands.toString().replace(/,/g, ' | ') + '** Starts a trivia game in the textchannel *' + trivia.getChannelName() + '*\n'
+		s += '**' + triviaCommands.toString().replace(/,/g, ' | ') + '** Starts a trivia game in the textchannel *' + trivia.getChannelName() + '*\n';
+		s += '**' + triviaModesCommands.toString().replace(/,/g, ' | ') + '** Shows options for trivia mode\n';
 		s += '**' + balanceCommands.toString().replace(/,/g, ' | ') + '** Starts an inhouse game with the players in the same voice chat as the message author.\n';
 		s += '**' + team1wonCommands.toString().replace(/,/g, ' | ') + ' | ' + team2wonCommands.toString().replace(/,/g, ' | ') 
 			+ '** Starts report of match result, requires majority of players to upvote from game for stats to be recorded.\n';
@@ -715,7 +783,7 @@ function buildHelpString(userID, messageNum){
 		s += '**' + uniteCommands.toString().replace(/,/g, ' | ') + ' [channel]** Unite voice chat after game\n';
 		s += '**' + uniteAllCommands.toString().replace(/,/g, ' | ') + ' [channel]** Unite all users active in voice to same channel\n';
 		s += '**' + mapvetostartCommands.toString().replace(/,/g, ' | ') + '** Starts a map veto (*cs only*)\n';
-		s += '**' + duelCommands.toString().replace(/,/g, ' | ') + ' [player] [game = cs] ** Starts a duel, a 1v1 match between 2 people **TBA**\n';
+		s += '**' + duelCommands.toString().replace(/,/g, ' | ') + '** Starts a duel, a 1v1 match between 2 people\n';
 		if(adminUids.includes(userID)){
 			s += '**' + exitCommands.toString().replace(/,/g, ' | ') + '** *Admin Command* Clear all messages, exit games, prepares for restart\n';
 		}
@@ -735,7 +803,8 @@ function buildHelpString(userID, messageNum){
 		// TODO: More logical way of writing the parameters, since high change place depending on #args. Change in simple above as well
 			+ '**[high]** (0 - high) \t\t**[low, high]** (low - high)\n\n';
 		s += '**' + triviaCommands.toString().replace(/,/g, ' | ') + ' [questions = allsubjectseasy]** Starts a trivia game in the textchannel *' + trivia.getChannelName() + '*\n'
-			+ '**[questions]** Opt. argument: name of question field and difficulty.\n\n'; // TODO Available trivia options
+			+ '**[questions]** Opt. argument: name of question field and difficulty.\n\n';
+		s += '**' + triviaModesCommands.toString().replace(/,/g, ' | ') + '** Shows options for trivia mode\n';
 		if(adminUids.includes(userID)){
 			s += '**' + exitCommands.toString().replace(/,/g, ' | ') + '** *Admin Command* Clear all messages, exit games, prepares for restart\n\n';
 		}
@@ -757,10 +826,11 @@ function buildHelpString(userID, messageNum){
 		s += '**' + uniteAllCommands.toString().replace(/,/g, ' | ') + ' [channel]** Unite all users active in voice to same channel\n'
 			+ '**[channel]** Opt. argument: name of channel to unite in\n\n';
 		s += '**' + mapvetostartCommands.toString().replace(/,/g, ' | ') + '** Starts a map veto (*cs only*)\n\n';
-		s += '**' + duelCommands.toString().replace(/,/g, ' | ') + ' [player] [game = cs1v1] ** Starts a duel, a 1v1 match between 2 people **TBA**\n'
-			+ 'If only two people are in voiceChannel, start duel between them. Otherwise [player] is required.\n'
+		s += '**' + duelCommands.toString().replace(/,/g, ' | ') + '** Starts a duel, a 1v1 match between 2 people\n'
+			+ 'If only two people are in voiceChannel, start duel between them.\n';
+			/*
 			+ '**[player]** Required if more than 2 players in voiceChannel. Person who is challenged\n'
-			+ '**[game]** Opt. argument: name of the game being played. Available games are [' + player_js.getGameModes1v1() + ']\n\n';
+			+ '**[game]** Opt. argument: name of the game being played. Available games are [' + player_js.getGameModes1v1() + ']\n\n';*/
 		return s;	
 	}
 }

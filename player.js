@@ -6,7 +6,7 @@
 // Default choices is the first indexed mode
 const modesGame = ['cs','dota'];
 const modes1v1 = ['cs1v1', 'dota1v1'];
-const modesRatings = ['trivia'];
+const modesRatings = ['trivia', 'trivia_temp'];
 const startMMR = 2500;
 
 function Player(username, discId){
@@ -111,12 +111,28 @@ var getPlayer = function(array, uid){
 }
 
 // TODO Add sort on DESC Game (Used in trivia result currently)
-var getSortedRating = function(players, game){
+var getSortedRatingTrivia = function(players){
 	var s = '';
+	var game = 'trivia';
+	var game_temp = 'trivia_temp';
+	players = sortRating(players, game_temp);
 	for(var i = 0; i < players.length; i++){
-		s += players[i].userName + "'s **" + game + '** ' + ratingOrMMR(game) + ': ' + players[i].getMMR(game) + '\n'; // trivia
+		s += players[i].userName + "'s **" + game + '** ' + ratingOrMMR(game) + ': **' + players[i].getMMR(game_temp) + '** (Total: ' + players[i].getMMR(game) + ')\n';
 	}
 	return s;
+}
+
+// Insertion sort on the players on a given rating
+var sortRating = function(players, game){
+	for(var i = 0; i < players.length; i++){
+		var tempPlayer = players[i];
+		for(var j = i - 1; j > -1 && players[j].getMMR(game) > tempPlayer.getMMR(game); j--){
+			players[j + 1] = players[j];
+	    }
+	    // the last item we've reached should now hold the value of the currently sorted item
+	    players[j + 1] = tempPlayer;
+	}
+	return players;
 }
 
 var ratingOrMMR = function(game){
@@ -132,7 +148,7 @@ var ratingOrMMR = function(game){
 module.exports = {
 	getHighestMMR : getHighestMMR,
 	getPlayer : getPlayer,
-	getSortedRating : getSortedRating,
+	getSortedRatingTrivia : getSortedRatingTrivia,
 	ratingOrMMR : ratingOrMMR,
 	createPlayer : createPlayer,
 	getGameModes : getGameModes,
