@@ -53,11 +53,6 @@ const { prefix, token, dbpw } = require('./conf.json'); // Load config data from
 						Update Text on start trivia with this feature when implemented
 					Prevent starting 2 games at once
 						Move so faster block to prevent more than one trivia trying to start
-					Update choosing game modes to support all game modes from this list : List start from 9 and forward on category
-						Vote for modes and difficulty in disc, instead of typing (start on -trivia command)
-						https://opentdb.com/api_config.php
-					Maybe not print result at end, make players feel in it
-						Alt session rating that prints at end with total in ()
 					Decrease point for all players (some rule to not increase if you have below a certain value through this) on hint reveals as well
 						Only decrease the people with highest potential point earnings (Down to 3?)
 					If noone answered anything 5 questions (attempted) in a row, end questions
@@ -169,7 +164,8 @@ const exitCommands = [prefix + 'exit', prefix + 'clear'];
 const duelCommands = [prefix + 'duel'];
 const challengeCommands = [prefix + 'challenge'];
 const queueCommands = [prefix + 'soloqueue', prefix + 'queue'];
-const lennyCommand = ['lenny', 'lennyface', prefix + 'lenny', prefix + 'lennyface'];
+const lennyCommands = ['lenny', 'lennyface', prefix + 'lenny', prefix + 'lennyface'];
+const lukasServerCommands = [prefix + 'lukasserver', prefix + 'praccserver', prefix + 'server'];
 
 // Listener on message
 client.on('message', message => {
@@ -262,7 +258,7 @@ function handleMessage(message) {
 	if(startsWith(message, 'hej')){
 		f.print(message, 'Hej ' + message.author.username, noop); // Not removing hej messages
 	}
-	else if(lennyCommand.includes(message.content)){
+	else if(lennyCommands.includes(message.content)){
 		f.print(message, '( ͡° ͜ʖ ͡°)');
 		f.deleteDiscMessage(message, 15000, 'lenny');
 	}
@@ -283,6 +279,10 @@ function handleMessage(message) {
 		}else {
 			roll(message, 0, 100);
 		}
+	}
+	else if(lukasServerCommands.includes(message.content)){
+		f.print(message, '**connect 217.78.24.14:27302; password null**');
+		f.deleteDiscMessage(message, 15000, 'lukasServer');
 	}
 	// Sends available commands privately to the user
 	else if(helpCommands.includes(message.content)){

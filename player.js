@@ -126,10 +126,9 @@ var getSortedRatingTrivia = function(players){
 var sortRating = function(players, game){
 	for(var i = 0; i < players.length; i++){
 		var tempPlayer = players[i];
-		for(var j = i - 1; j > -1 && players[j].getMMR(game) > tempPlayer.getMMR(game); j--){
+		for(var j = i - 1; j > -1 && players[j].getMMR(game) < tempPlayer.getMMR(game); j--){
 			players[j + 1] = players[j];
 	    }
-	    // the last item we've reached should now hold the value of the currently sorted item
 	    players[j + 1] = tempPlayer;
 	}
 	return players;
