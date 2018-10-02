@@ -23,6 +23,24 @@ const { prefix, token, dbpw } = require('./conf.json'); // Load config data from
 	TODO:
 			Need to check all functionality, since so much is changed
 		Features:
+			Add log for all data, all prints should also write to logfile so dumps are saved to be analyzed
+			Trivia
+				Feature: 
+					Exit trivia with user not initialized (not in voice on start or haven't answered yet) => NaN results
+					If spam bot, it can print new questions result with last responses answer
+						Check to make sure it prints the newest questions repsonse at all time
+					Sometimes sends 2 questions at once
+						check so it doesn't happen on first try
+					Something about caps in ans
+					Report Question button, saves question for analysis
+						If question is uninteresting (which of the following, should be filtered) or buggy
+						Update Text on start trivia with this feature when implemented
+					Prevent starting 2 games at once
+						Move so faster block to prevent more than one trivia trying to start
+					Decrease point for all players (some rule to not increase if you have below a certain value through this) on hint reveals as well
+						Only decrease the people with highest potential point earnings (Down to 3?)
+					If noone answered anything 5 questions (attempted) in a row, end questions
+					Make it known that prefix commands wont work in trivia channel
 			Move into files
 				src folder:
 					move every .js file here
@@ -41,22 +59,6 @@ const { prefix, token, dbpw } = require('./conf.json'); // Load config data from
 					https://anidiotsguide_old.gitbooks.io/discord-js-bot-guide/content/examples/command-with-arguments.html
 				Move files into folders, command folder
 					https://anidiotsguide_old.gitbooks.io/discord-js-bot-guide/content/coding-guides/a-basic-command-handler.html
-			Trivia
-				Feature: 
-					Exit trivia with user not initialized (not in voice on start or haven't answered yet) => NaN results
-					If spam bot, it can print new questions result with last responses answer
-						Check to make sure it prints the newest questions repsonse at all time
-					Sometimes sends 2 questions at once
-					Something about caps in ans
-					Report Question button, saves question for analysis
-						If question is uninteresting (which of the following, should be filtered) or buggy
-						Update Text on start trivia with this feature when implemented
-					Prevent starting 2 games at once
-						Move so faster block to prevent more than one trivia trying to start
-					Decrease point for all players (some rule to not increase if you have below a certain value through this) on hint reveals as well
-						Only decrease the people with highest potential point earnings (Down to 3?)
-					If noone answered anything 5 questions (attempted) in a row, end questions
-					Make it known that prefix commands wont work in trivia channel
 			Handle name lengths for prints in f.js so names are aligned in tabs after longest names
 				Try embeds, otherwise below https://anidiotsguide_old.gitbooks.io/discord-js-bot-guide/content/examples/using-embeds-in-messages.html
 				`` Code blocks could be used for same size on chars, but cant have bold text then (Used on player names?)
@@ -143,6 +145,7 @@ const emoji_error = '❌'; 		// Error / Ban emoji. Alt: '🤚';
 const bot_name = 'inhouse-bot';
 const voteText = '**Majority of players that played the game need to confirm this result (Press ' + emoji_agree + ' or ' + emoji_disagree + ')**';
 const adminUids = ['96293765001519104', '107882667894124544']; // Admin ids, get access to specific admin rights
+const lukasIP = "connect tywin.dathost.net:28795; password null";
 const removeBotMessageDefaultTime = 60000; // 300000
 
 const helpCommands = [prefix + 'h', prefix + 'help'];
@@ -281,7 +284,7 @@ function handleMessage(message) {
 		}
 	}
 	else if(lukasServerCommands.includes(message.content)){
-		f.print(message, '**connect 217.78.24.14:27302; password null**');
+		f.print(message, '**' + lukasIP + '**');
 		f.deleteDiscMessage(message, 15000, 'lukasServer');
 	}
 	// Sends available commands privately to the user
@@ -929,6 +932,10 @@ exports.setMapStatusMessage = function(variable){
 
 exports.getPrefix = function(){
 	return prefix;
+}
+
+exports.getLukasIP = function(){
+	return lukasIP;
 }
 
 exports.getRemoveTime = function(){

@@ -198,7 +198,7 @@ function buildReturnString(obj, callback){ // TODO: Print``
 		s += ',\t' + obj.team2[i].userName + ' (' + obj.team2[i].getMMR(obj.game) + ')';
 	}
 	s += '*\n\n';
-	s += '*Connect:* \n**connect 217.78.24.14:27302; password null**'; // Lukas' server on datHost, requires Petter/Lukas/Martin ingame to use
+	s += '*Connect:* \n**' + bot.getLukasIP() + '**'; // Lukas' server on datHost, requires Petter/Lukas/Martin ingame to use
 	callback(1, s, obj); // Should send the message back to the bot
 }
 
