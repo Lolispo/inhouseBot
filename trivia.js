@@ -88,6 +88,10 @@ function updateTriviaMMR(message, player){
 	db_sequelize.updateMMR(message.author.id, newMmr, 'trivia');
 	var answer_correct = message.author.username + ' answered correctly! Answer was: **' + ans + '**. Trivia Rating: ' + newMmrSession + 
 		' (+' + pointsToIncrease + ', Total: ' + newMmr + ')';
+	if(isNaN(player.getMMR('trivia'))){
+		// Debug print: Check player if mmr is NaN
+		console.log('DEBUG @updateTriviaMMR', player.getMMR('trivia_temp'), answer_correct);
+	}
 	if(!f.isUndefined(finishMessage)){
 		f.deleteDiscMessage(finishMessage, 0, 'finishMessage', function(msg){ // Msg = deleted message reference
 			callbackFinishMessage(message, answer_correct);
@@ -265,7 +269,7 @@ function urlGenerate(a, c, d, t){
 			body = JSON.parse(body);
 			if(body.response_code === 3 || body.response_code === 4){ // Token not found
 				console.log('DEBUG: response_code =', body.response_code);
-				if(f.isUndefined(t)){
+				if(f.isUndefined(t) || body.response_code === 3){ // Either we dont have a token, tried to send something invalid, or old token
 					getToken(a, c, d);
 				} else if(body.response_code === 4){ // Probably too many questions requested, request without token to get code === 1
 					urlGenerate(a, c, d); 
