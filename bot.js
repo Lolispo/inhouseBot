@@ -252,6 +252,8 @@ client.on('messageReactionRemove', (messageReaction, user) => {
 	}
 });
 
+client.on('error', console.error);
+
 // Create more events to do fancy stuff with discord API
 
 // Main message handling function 
