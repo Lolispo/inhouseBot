@@ -17,7 +17,7 @@ const voiceMove_js = require('./voiceMove'); 			// Handles moving of users betwe
 const db_sequelize = require('./db-sequelize');			// Handles communication with db
 const trivia = require('./trivia')						// Trivia
 
-const { prefix, token, dbpw } = require('./conf.json'); // Load config data from file
+const { prefix, token, dbpw } = require('../conf.json'); // Load config data from file TODO: ../conf.json when moved files
 
 /*
 	TODO:
@@ -29,8 +29,6 @@ const { prefix, token, dbpw } = require('./conf.json'); // Load config data from
 					Exit trivia with user not initialized (not in voice on start or haven't answered yet) => NaN results
 					If spam bot, it can print new questions result with last responses answer
 						Check to make sure it prints the newest questions repsonse at all time
-					Sometimes sends 2 questions at once
-						check so it doesn't happen on first try
 					Something about caps in ans
 					Report Question button, saves question for analysis
 						If question is uninteresting (which of the following, should be filtered) or buggy
@@ -42,11 +40,8 @@ const { prefix, token, dbpw } = require('./conf.json'); // Load config data from
 					If noone answered anything 5 questions (attempted) in a row, end questions
 					Make it known that prefix commands wont work in trivia channel
 			Move into files
-				src folder:
-					move every .js file here
-					Requires remap of './conf.json' to correct PATH, since they won't be same folder
-				img folder
-					can add UML diagram here, to be featured in Wiki
+				trivia.token
+					../temp/trivia.token
 			Support starting multiple games at the same time
 				Might only be relevant for duel, but would be stupid to clog the system
 			Support restarting bot and realizing game is going
@@ -91,6 +86,7 @@ const { prefix, token, dbpw } = require('./conf.json'); // Load config data from
 		Tests:
 			Add test method so system can be live without updating db on every match (-balance test or something)
 		Deluxe Features (Ideas):
+			Remake db-sequelize with mysql lib instead of sequelize
 			(Different System for Starting MMR)
 				Start MMR chosen as either 2400, 2500 or 2600 depending on own skill, for better distribution in first games, better matchup
 				OR

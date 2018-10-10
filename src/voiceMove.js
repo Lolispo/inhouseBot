@@ -39,11 +39,6 @@ exports.split = function(message, balanceInfo, activeMembers){
 	var guildChannels = Array.from(message.guild.channels);
 	splitChannel = message.guild.member(message.author).voiceChannel;
 
-	/**TEST CODE FOR KTH SERVER ONLY**/
-	if(message.guild.name === 'KTH') {
-		KTHChannelSwapTest(message, guildChannels);
-	}
-
 	// Get team players as GuildMember objects
 	var t1players = f.teamToGuildMember(balanceInfo.team1, activeMembers); // Might give empty on test case (activeMember == undefined)
 	var t2players = f.teamToGuildMember(balanceInfo.team2, activeMembers);
@@ -103,21 +98,4 @@ function getVoiceChannel(message){
 	}
 	//console.log('DEBUG @getVoiceChannel: Channel chosen for unite (not param or splitChannel):', channel1.name);
 	return channel1;
-}
-
-// Test for movement functionality in KTH channel OLD
-function KTHChannelSwapTest(message, guildChannels){
-	var myVoiceChannel = message.guild.member(message.author).voiceChannel;
-	var testChannel = guildChannels.find(channel => channel[1].name === 'General')
-	var testChannel2 = guildChannels.find(channel => channel[1].name === 'UberVoice')
-	//console.log('testChannel: ', testChannel);
-	if(myVoiceChannel.name === 'General'){
-		message.guild.member(message.author).setVoiceChannel(testChannel2[1].id);
-		f.print(message, 'Moved '+message.author.username+' from channel: '+
-			message.guild.member(message.author).voiceChannel.name+' to: '+testChannel2[1].name);
-	}else if(myVoiceChannel.name === 'UberVoice'){
-		message.guild.member(message.author).setVoiceChannel(testChannel[1].id);
-		f.print(message, 'Moved '+message.author.username+' from channel: '+
-			message.guild.member(message.author).voiceChannel.name+' to: '+testChannel[1].name);
-	}
 }

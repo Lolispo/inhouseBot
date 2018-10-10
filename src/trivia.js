@@ -26,6 +26,7 @@ var lastQuestionIndex;
 var pointMap;
 var done;		// Array over if questions are done or not
 var messageVar; // Initialize somewhere on a message in chat
+var activeQuestion = false;
 var questionMessage;
 var censoredMessage;
 var shuffledMessage;
@@ -33,7 +34,7 @@ var finishMessage;
 var allMessages = [];
 
 const channelName = 'trivia-channel';
-const token_fileName = 'trivia.token';
+const token_fileName = 'trivia.token'; // TODO: Change to ../tmp/trivia.token (process.cwd())
 const waitTimeForSteps = 8000;
 const lengthForShuffle = 8;
 const lengthForEvenFaster = 16;
@@ -156,41 +157,44 @@ function startQuestion(){
 			gameOnGoing = false;
 		}, waitTimeStartQuestion);
 	} else{
-		setTimeout(function(){
-			console.log('Starting new Question[' + questionIndex + '], done = ' + done[questionIndex]);
-			var q = questionsArray[questionIndex];
-			for(var i = questionIndex; i < lastQuestionIndex; i++){
-				if(!q.used){
-					questionIndex++;
-					q = questionsArray[questionIndex];
-				} else {
-					break;
+		if(!activeQuestion){
+			activeQuestion = true;
+			setTimeout(function(){
+				console.log('Starting new Question[' + questionIndex + '], done = ' + done[questionIndex]);
+				var q = questionsArray[questionIndex];
+				for(var i = questionIndex; i < lastQuestionIndex; i++){
+					if(!q.used){
+						questionIndex++;
+						q = questionsArray[questionIndex];
+					} else {
+						break;
+					}
 				}
-			}
-			done[questionIndex] = false;
-			f.print(messageVar, '**Question: **' + parseMessage(q.question), function(msg){
-				questionMessage = msg;
-			}); // TODO: Add callback, save question and remove in finishQuestion()
-			ans = parseMessage(q.correct_answer);
-			if(ans.length >= lengthForShuffle){
-				setTimeout(function(){
-					if(!done[questionIndex]){
-						f.print(messageVar, '`' + q.shuffledAns + '`', function(msg){
-							shuffledMessage = msg;
-						});
-						var waitTime = waitTimeForSteps;
-						if(ans.length >= lengthForEvenFaster){
-							waitTime /= 3;
-						} else {
-							waitTime /= 2;
-						}
-						nextLessCensored(q.lessCensored, 0, messageVar, questionIndex, waitTime);		
-					}	
-				}, waitTimeForSteps / 2);
-			} else {
-				nextLessCensored(q.lessCensored, 0, messageVar, questionIndex, waitTimeForSteps);
-			}
-		}, waitTimeStartQuestion);
+				done[questionIndex] = false;
+				f.print(messageVar, '**Question: **' + parseMessage(q.question), function(msg){
+					questionMessage = msg;
+				}); // TODO: Add callback, save question and remove in finishQuestion()
+				ans = parseMessage(q.correct_answer);
+				if(ans.length >= lengthForShuffle){
+					setTimeout(function(){
+						if(!done[questionIndex]){
+							f.print(messageVar, '`' + q.shuffledAns + '`', function(msg){
+								shuffledMessage = msg;
+							});
+							var waitTime = waitTimeForSteps;
+							if(ans.length >= lengthForEvenFaster){
+								waitTime /= 3;
+							} else {
+								waitTime /= 2;
+							}
+							nextLessCensored(q.lessCensored, 0, messageVar, questionIndex, waitTime);		
+						}	
+					}, waitTimeForSteps / 2);
+				} else {
+					nextLessCensored(q.lessCensored, 0, messageVar, questionIndex, waitTimeForSteps);
+				}
+			}, waitTimeStartQuestion);
+		}
 	}
 }
 
@@ -430,6 +434,7 @@ function getCensored(ans){
 
 // Used inbetween question to reset pointMap, increase question index and show to timeouts that we are done
 function finishedQuestion(){
+	activeQuestion = false;
 	done[questionIndex] = true;
 	if(!f.isUndefined(shuffledMessage)){
 		f.deleteDiscMessage(shuffledMessage, 0, 'shuffledMessage');	

@@ -83,9 +83,10 @@ var readFromFile = function(filePath, messageRead, callback, callbackError){
 		if (err || isUndefined(data)) {
 			console.log(err);
 			callbackError();
+		} else {
+			console.log(messageRead + data);
+			callback(data);			
 		}
-		console.log(messageRead + data);
-		callback(data);
 	});
 }
 
