@@ -3,5 +3,7 @@
 !package.json
 !package-lock.json
 
-trivia.token
+tmp/
 node_modules/
+
+trivia.token

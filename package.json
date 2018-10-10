@@ -4,7 +4,8 @@
   "description": "inhouse matchmaking",
   "main": "bot.js",
   "scripts": {
-    "test": "check-node-version --node \">= 8\" && node bot.js"
+    "test": "check-node-version --node \">= 8\" && node src/bot.js",
+    "start": "check-node-version --node \">= 8\" && node src/bot.js"
   },
   "repository": {
     "type": "git",
