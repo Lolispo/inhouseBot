@@ -141,7 +141,7 @@ const emoji_error = '❌'; 		// Error / Ban emoji. Alt: '🤚';
 const bot_name = 'inhouse-bot';
 const voteText = '**Majority of players that played the game need to confirm this result (Press ' + emoji_agree + ' or ' + emoji_disagree + ')**';
 const adminUids = ['96293765001519104', '107882667894124544']; // Admin ids, get access to specific admin rights
-const lukasIP = "connect tywin.dathost.net:28795; password null";
+const lukasIP = 'connect tywin.dathost.net:28795; password secret';
 const removeBotMessageDefaultTime = 60000; // 300000
 
 const helpCommands = [prefix + 'h', prefix + 'help'];
