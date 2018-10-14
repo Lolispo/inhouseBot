@@ -17,7 +17,7 @@ const voiceMove_js = require('./voiceMove'); 			// Handles moving of users betwe
 const db_sequelize = require('./db-sequelize');			// Handles communication with db
 const trivia = require('./trivia')						// Trivia
 
-const { prefix, token, dbpw } = require('../conf.json'); // Load config data from file TODO: ../conf.json when moved files
+const { prefix, token, dbpw } = require('../conf.json'); // Load config data from file
 
 /*
 	TODO:
@@ -129,7 +129,7 @@ var teamWon;			// Keeps track on which team won
 var mapStatusMessage;	// Message that keep track of which maps are banned and whose turn is it
 
 var mapMessages = [];	// Keeps track of the discord messages for the different maps 
-var savedTriviaQuestions = []; // TODO: Reuse this if not empty and not used to not waste any questions
+var savedTriviaQuestions = []; // TODO: Reuse this if not empty and not used to not waste any questions. Currently not used
 
 const emoji_agree = '👌'; 		// Agree emoji. Alt: 👍, Om custom Emojis: Borde vara seemsgood emoji
 const emoji_disagree = '👎';	// Disagree emoji. 
@@ -337,7 +337,7 @@ function handleMessage(message) {
 		}
 	}
 
-	// TODO Add me, maybe after command moves
+	// Duel, balance for 2 players
 	else if(startsWith(message, duelCommands)){
 		if(stage === 0){
 			matchupMessage = message; // Used globally in print method
@@ -379,7 +379,6 @@ function handleMessage(message) {
 		if(!trivia.getGameOnGoing()){
 			if(mode.length >= 2){
 				// Grabs second argument if available
-				// TODO: Redo system of trivia options, add to trivia.js. trivia.getMode(mode[1]) or something
 				var category = 0;
 				var difficulty = 0;
 				switch(mode[1]){
