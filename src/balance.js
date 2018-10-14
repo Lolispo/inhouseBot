@@ -7,6 +7,8 @@ const bot = require('./bot');
 	Handles getting the most balanced team matchup for the given 10 players
 	Uses bot to return the teams to the discord clients
 
+	Since currently only mmr is needed, to algorithm could be simplified as placing players in different sorted by highest mmr, same result
+	Current implementation support addition of other factors, language support/known players etc
 	TODO: Check if this would work if restrictions for team sizes are removed, generateTeamCombs changes required
 */
 
@@ -40,49 +42,36 @@ function generateTeamCombs(players){
 				for(var l = k+1; l < len; l++){
 					for(var m = l+1; m < len; m++){
 						if(len === 10){ 
-							var uniqueSum = uniVal(i) + uniVal(j) + uniVal(k) + uniVal(l) + uniVal(m); 
-							if(!uniqueCombs.has(uniqueSum)){	
-								var teamComb = [i,j,k,l,m];
-								teamCombs.push(teamComb); // Add new combination to teamCombs // [i,j,k,l,m]
-								uniqueCombs.add(uniqueSum);
-								uniqueCombs.add(reverseUniqueSum([i,j,k,l,m], len)); 
-							} 	
+							combinationAdder(teamCombs, uniqueCombs, [i,j,k,l,m]);
 						}					
 					}
 					if(len === 8){
-						var uniqueSum = uniVal(i) + uniVal(j) + uniVal(k) + uniVal(l); 
-						if(!uniqueCombs.has(uniqueSum)){	
-							var teamComb = [i,j,k,l];
-							teamCombs.push(teamComb); // Add new combination to teamCombs // [i,j,k,l]
-							uniqueCombs.add(uniqueSum);
-							uniqueCombs.add(reverseUniqueSum([i,j,k,l], len));
-						} 	
+						combinationAdder(teamCombs, uniqueCombs, [i,j,k,l]);
 					}
 				}
 				if(len === 6){
-					var uniqueSum = uniVal(i) + uniVal(j) + uniVal(k); 
-					if(!uniqueCombs.has(uniqueSum)){	
-						var teamComb = [i,j,k];
-						teamCombs.push(teamComb); // Add new combination to teamCombs // [i,j,k]
-						uniqueCombs.add(uniqueSum);
-						uniqueCombs.add(reverseUniqueSum([i,j,k], len));
-					} 	
+					combinationAdder(teamCombs, uniqueCombs, [i,j,k]);
 				}
 			}
 			if(len === 4){
-				var uniqueSum = uniVal(i) + uniVal(j); 
-				if(!uniqueCombs.has(uniqueSum)){	
-					var teamComb = [i,j];
-					teamCombs.push(teamComb); // Add new combination to teamCombs // [i,j]
-					uniqueCombs.add(uniqueSum);
-					uniqueCombs.add(reverseUniqueSum([i,j], len));
-				} 	
+				combinationAdder(teamCombs, uniqueCombs, [i,j]);
 			}
 		}
 	}
 
 	//console.log('DEBUG: @generateTeamCombs, teamCombs = ', teamCombs, teamCombs.length, uniqueCombs, uniqueCombs.size);
 	return teamCombs;
+}
+
+function combinationAdder(teamCombs, uniqueCombs, players){
+	const reducer = (accumulator, currentValue) => accumulator + currentValue;
+	var uniqueSum = players.map(uniVal).reduce(reducer);  // Sum over uniVal for each player index, creating unique sum
+	if(!uniqueCombs.has(uniqueSum)){	
+		var teamComb = players;
+		teamCombs.push(teamComb); // Add new combination to teamCombs
+		uniqueCombs.add(uniqueSum);
+		uniqueCombs.add(reverseUniqueSum(players, players.length * 2)); // Removes so [0,1,2,3,4] is the same as [5,6,7,8,9]
+	} 	
 }
 
 // Unique number combinations for combinations of 5.
