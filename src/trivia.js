@@ -112,7 +112,6 @@ function callbackFinishMessage(message, messageString){
 
 // Starts game, requires messageVar (from correct textchannel) and questions
 exports.startGame = function(message, questions, players){
-	console.log('DEBUG @startGame');
 	gameOnGoing = true;
 	activePlayers = players;
 	pointMap = new Map();
@@ -132,7 +131,6 @@ exports.startGame = function(message, questions, players){
 	.then(result => {
 		messageVar = result;			// Initialize messageVar to be in correct chanel, used for print
 		f.deleteDiscMessage(result);	// Delete start message after default time
-		console.log('DEBUG: Starting question');
 		startQuestion();
 	}).catch(err => console.log('@startGame: ' + err));
 }
@@ -283,7 +281,7 @@ function urlGenerate(a, c, d, t){
 				//console.log('body:', body);
 				console.log('Success! Got questions');
 				handleQuestions(body.results, function(questions, message){
-					bot.triviaStart(questions, message);
+					bot.triviaStart(questions, message, author);
 				});				
 			} else if(body.response_code === 1){ // Not Enough questions
 				if(parseInt(a / 2) === 1){
@@ -314,15 +312,6 @@ function parseMessage(msg){
 	//console.log('Parsing Ans: ' + msg);
 	msg = entities.decode(msg);
 	msg = msg.replace(/&shy;/g,''); // '-\n' for linebreak (used to allow line breaks with - for big words)
-	/*
-	msg = msg.replace(/&#034;|&quot;|rdquo;|&ldquo;/g,'"');
-	msg = msg.replace(/&#039;|&rsquo;|lsquo;/g,"'");
-	msg = msg.replace(/&amp;/g, '&');
-	msg = msg.replace(/&hellip;/g, '...');
-	msg = msg.replace(/&eacute;/g, 'é');
-	msg = msg.replace(/&oacute;/g, 'ó');
-	msg = msg.replace(/&ouml;/g, 'ö');
-	*/
 	return msg;
 }
 
@@ -339,7 +328,7 @@ function handleQuestions(questions, callback){
 		var current_question = thisQuestion.question.toLowerCase();
 		if(current_question.includes('following') || current_question.includes('which of these')){
 			// Filter out bad questions for this format
-			console.log('Skipping a question, Question: ' + thisQuestion.question);
+			console.log('Skipping a question, Question: ' + parseMessage(thisQuestion.question));
 			thisQuestion.used = false;
 			return;
 		}

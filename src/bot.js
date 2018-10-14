@@ -39,9 +39,6 @@ const { prefix, token, dbpw } = require('../conf.json'); // Load config data fro
 						Only decrease the people with highest potential point earnings (Down to 3?)
 					If noone answered anything 5 questions (attempted) in a row, end questions
 					Make it known that prefix commands wont work in trivia channel
-			Move into files
-				trivia.token
-					../temp/trivia.token
 			Support starting multiple games at the same time
 				Might only be relevant for duel, but would be stupid to clog the system
 			Support restarting bot and realizing game is going
@@ -604,18 +601,20 @@ function stats(message){
 	});
 }
 
-exports.triviaStart = function(questions, message){
+// Start trivia game, sent from trivia when questions are fetched. 
+exports.triviaStart = function(questions, message, author){
 	// Start game in text channel with these questions
 	savedTriviaQuestions = questions;
 	var voiceChannel = message.guild.member(message.author).voiceChannel;
 	if(voiceChannel !== null && !f.isUndefined(voiceChannel)){ // Sets initial player array to user in disc channel if available
-		var players = findPlayersStart(message, voiceChannel);
+		var players = findPlayersStart(message, voiceChannel); 
 		db_sequelize.initializePlayers(players, function(playerList){
 			trivia.startGame(message, questions, playerList); 
 		});
-	} else{
-		//f.print(message, 'Invalid command: Author of message must be in voiceChannel', callbackInvalidCommand); 
-		trivia.startGame(message, questions, []); // Initialize players as empty
+	} else{ // No users in voice channel who wrote trivia
+		db_sequelize.initializePlayers([player_js.createPlayer(author.username, author.id)], function(playerList){
+			trivia.startGame(message, questions, playerList); // Initialize players as one who wrote message
+		});
 	}
 }
 
@@ -636,12 +635,11 @@ function roll(message, start, end){
 
 // Here follows starting balanced game methods
 
-// Starting balancing of a game for given voice channel
+// Initialize players array from given voice channel
 function findPlayersStart(message, channel){
 	console.log('VoiceChannel', channel.name, ' (id =',channel.id,') active users: (Total: ', channel.members.size ,')');
-	var players = []; // TODO Replace with [], all add -> push etc
+	var players = [];
 	activeMembers = Array.from(channel.members.values());
-	//console.log('DEBUG: Channel', channel.members);
 	activeMembers.forEach(function(member){
 		if(!member.bot){ // Only real users
 			console.log('\t' + member.user.username + '(' + member.user.id + ')'); // Printar alla activa users i denna voice chat
