@@ -37,41 +37,18 @@ function generateTeamCombs(players){
 		return teamCombs;
 	}
 
-	// recursiveFor([], len, 0, teamCombs, uniqueCombs);
-
-	for(var i = 0; i < len; i++){
-		for(var j = i+1; j < len; j++){
-			for(var k = j+1; k < len; k++){
-				for(var l = k+1; l < len; l++){
-					for(var m = l+1; m < len; m++){
-						if(len === 10){ 
-							combinationAdder(teamCombs, uniqueCombs, [i,j,k,l,m]);
-						}					
-					}
-					if(len === 8){
-						combinationAdder(teamCombs, uniqueCombs, [i,j,k,l]);
-					}
-				}
-				if(len === 6){
-					combinationAdder(teamCombs, uniqueCombs, [i,j,k]);
-				}
-			}
-			if(len === 4){
-				combinationAdder(teamCombs, uniqueCombs, [i,j]);
-			}
-		}
-	}
+	recursiveFor(0, [], len, 0, teamCombs, uniqueCombs);
 
 	//console.log('DEBUG: @generateTeamCombs, teamCombs = ', teamCombs, teamCombs.length, uniqueCombs, uniqueCombs.size);
 	return teamCombs;
 }
 
-function recursiveFor(indexes, len, forloopindex, teamCombs, uniqueCombs){
-	for(int i = 0; i < len; i++){
+function recursiveFor(startIndex, indexes, len, forloopindex, teamCombs, uniqueCombs){
+	for(var i = startIndex; i < len; i++){
 		var indexesArray = indexes.slice();
 		indexesArray.push(i);
-		if(forloopindex > len/2){
-			recursiveFor(indexesArray, len, forloopindex++, teamCombs, uniqueCombs);
+		if(forloopindex < len/2){
+			recursiveFor(startIndex + 1, indexesArray, len, forloopindex + 1, teamCombs, uniqueCombs);
 		} else {
 			combinationAdder(teamCombs, uniqueCombs, indexesArray);
 		}
@@ -119,22 +96,33 @@ function findBestTeamComb(players, teamCombs, game){
 	var bestPossibleTeamComb = Number.MAX_VALUE;
 	var t1 = [];
 	var t2 = [];
+	var multiple_t1 = [];
+	var multiple_t2 = [];
 	var avgTeam1 = -1;
 	var avgTeam2 = -1;
-	var index = -1;
 	for(var i = 0; i < teamCombs.length; i++){
 		var teams = getBothTeams(teamCombs[i], players);
-		//console.log('DEBUG: @findBestTeamComb, getBothTeams = ', teams);
 		var res = mmrCompare(teams.t1, teams.t2, game);
-		//console.log('DEBUG: @findBestTeamComb, mmrCompare = ', res);
-		if(res.diff < bestPossibleTeamComb){ // TODO: Add random aspect between combinations when combinations have same result
+		if(res.diff < bestPossibleTeamComb){ 
 			bestPossibleTeamComb = res.diff;
 			avgTeam1 = res.avgT1;
 			avgTeam2 = res.avgT2;
 			t1 = teams.t1;
 			t2 = teams.t2;
-			index = i;
+			multiple_t1 = [t1];
+			multiple_t2 = [t2];
+		} else if(res.diff === bestPossibleTeamComb){ // Random aspect between combinations when combinations have same result
+			// Should contain same avg rating
+			multiple_t1.push(teams.t1);
+			multiple_t2.push(teams.t2);
 		}
+	}
+
+	// Random from equal
+	if(multiple_t1.length > 1 && multiple_t2.length > 1){
+		var index = Math.floor(Math.random() * multiple_t1.length); // Random index chosen as teamcombination from equal ones
+		t1 = multiple_t1[index];
+		t2 = multiple_t2[index];
 	}
 
 	// Retrieved most fair teamComb
