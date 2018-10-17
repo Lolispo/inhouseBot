@@ -38,6 +38,7 @@ const { prefix, token, dbpw } = require('../conf.json'); // Load config data fro
 						Potentially -pickupGame [disc message ID] or something
 					Requires to pickupGame on startup of bot
 						Iterate through file and recreate game object from this
+						Remove messages, delete all on startup aswell, so bot doesn't clog unnecessarily
 				Update all uses of activeMembers
 				Store gameid on players when starting game
 				For every command currently requiring stage 1, check gameID => check if player is inGame => effect for that game. Else nothing ("not in a game")
