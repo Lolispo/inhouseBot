@@ -56,7 +56,7 @@ exports.isCorrect = function(message){
 	}
 	if(message.content.toLowerCase() === ans.toLowerCase()){
 		var player = player_js.getPlayer(activePlayers, message.author.id);
-		if(player === ''){
+		if(f.isUndefined(player)){
 			var tempPlayer = player_js.createPlayer(message.author.username, message.author.id);
 			var tempPlayers = [tempPlayer];
 			activePlayers.push(tempPlayer);
