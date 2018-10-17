@@ -22,10 +22,8 @@ exports.balanceTeams = function(players, game){
 	buildReturnString(result, callbackBalanceInfo); // callbackBalanceInfo = method 
 }
 
-
-// TODO Refactor: Should make less repetitive code
 // Generates the combinations for different team sizes
-// uniqueCombs makes sure that duplicates aren't saved (Unsure if uniqueSum even helps, should in theory)
+// uniqueCombs makes sure that duplicates aren't saved
 // @return teamCombs is returned with all possible matchups
 function generateTeamCombs(players){
 	//console.log('DEBUG: @generateTeamCombs');
@@ -43,6 +41,7 @@ function generateTeamCombs(players){
 	return teamCombs;
 }
 
+// Fills teamCombs with the teamcombination given amount of players
 function recursiveFor(startIndex, indexes, len, forloopindex, teamCombs, uniqueCombs){
 	for(var i = startIndex; i < len; i++){
 		var indexesArray = indexes.slice();
@@ -55,6 +54,8 @@ function recursiveFor(startIndex, indexes, len, forloopindex, teamCombs, uniqueC
 	}
 }
 
+// Store combinations for the given player indexes (players) and stores it in teamcombs
+// uniqueCombs holds a number that represent equal combinations of players, as well as their reverseComb
 function combinationAdder(teamCombs, uniqueCombs, players){
 	const reducer = (accumulator, currentValue) => accumulator + currentValue;
 	var uniqueSum = players.map(uniVal).reduce(reducer);  // Sum over uniVal for each player index, creating unique sum
@@ -91,8 +92,8 @@ function reverseUniqueSum(list, len){
 	return sum;
 }
 
+// Compare elo matchup between teamCombinations, lowest difference wins
 function findBestTeamComb(players, teamCombs, game){
-	// Compare elo matchup between teamCombinations, lowest difference wins
 	var bestPossibleTeamComb = Number.MAX_VALUE;
 	var t1 = [];
 	var t2 = [];
