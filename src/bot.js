@@ -23,20 +23,31 @@ const { prefix, token, dbpw } = require('../conf.json'); // Load config data fro
 	TODO:
 			Need to check all functionality, since so much is changed
 		Features:
+			Makes this TODO block into a markdown
+				"TODO.md"
+			Reduce amount of neccessary fields
 			Unite all exploit dodge
 				Before uniting all players, should save their current voiceChannel
 					Then, possible to unUniteAll to revert exploit 
 				Should everyone be allowed to uniteall?
 			Support starting multiple games at the same time
-				Might only be relevant for duel, but would be stupid to clog the system
+				Create Game object when starting game holding activeMembers, gameid etc
+				Potentially save this to file to solve following
+					"activeGames.txt"
+					Support restarting bot and realizing game is going
+						Potentially -pickupGame [disc message ID] or something
+					Requires to pickupGame on startup of bot
+						Iterate through file and recreate game object from this
+				Update all uses of activeMembers
 				Store gameid on players when starting game
-				For every command requiring stage 1, check game id
+				For every command currently requiring stage 1, check gameID => check if player is inGame => effect for that game. Else nothing ("not in a game")
 				Should remove phase 0 and 1 from code
-			Add tournament mode, ladders, brackets etc
+					Don't allow to start a game when you already are in a game
 			Add log for all data, all prints should also write to logfile so dumps are saved to be analyzed
 			Trivia
 				Feature: 
-					Exit trivia with user not initialized (not in voice on start or haven't answered yet) => NaN results
+					Fix so trivia start doesn't override activeMembers (findplayersstart, should be fixed by game object introduce)
+					NaN results fixed? Might still exist on -exit command + user that didn't start the trivia
 					If spam bot, it can print new questions result with last responses answer
 						Check to make sure it prints the newest questions repsonse at all time
 					Something about caps in ans
@@ -49,10 +60,9 @@ const { prefix, token, dbpw } = require('../conf.json'); // Load config data fro
 						Only decrease the people with highest potential point earnings (Down to 3?)
 					If noone answered anything 5 questions (attempted) in a row, end questions
 					Make it known that prefix commands wont work in trivia channel
-			Support restarting bot and realizing game is going
-				Potentially -pickupGame [disc message ID] or something
 			Check to see if optional prefix can be used elsewhere (used in trivia)
 				Move functional call to f, so only requires array of commands, f handles prefix check
+			Split command check for empty available channels if Team1 & Team2 isn't available
 			Refactor All commands from bot, make arguments read from same place
 				Exchange read of optional commands to all be from bot.js (voiceMove have in variable for example )
 					Every place that have startsWith instead of includes
@@ -66,14 +76,16 @@ const { prefix, token, dbpw } = require('../conf.json'); // Load config data fro
 			Support unite to channels with names over one word
 				Easier with commands change, take all arguments after first as one, for this one
 		Bigger but Core Features:
+			Add tournament mode, ladders, brackets etc
+			Add music functionality
 			Challenge / Duel: Challenge someone to 1v1
 				Duel: Should be same as balance for 2 people in call
-				Queue: Solo "Queue" so anyone can accept, creates game between user that accepts and person queuing
-				Reference TODO: Queue
+					Queue: Solo "Queue" so anyone can accept, creates game between user that accepts and person queuing
+					Reference TODO: Queue
 				Challenge:  specific person 
-				if challenge is used: Should be able to challenge anyone in discord
-				If challenged: message that user where user can react to response in dm. Update in channel that match is on
-				Reference TODO: Challenge
+					if challenge is used: Should be able to challenge anyone in discord
+					If challenged: message that user where user can react to response in dm. Update in channel that match is on
+					Reference TODO: Challenge
 			Save every field as a Collection{GuildSnowflake -> field variable} to make sure bot works on many servers at once
 				Change bot to be instances instead of file methods, reach everything from guildSnowflake then (same logic as player but for bot)
 				Reference: TODO: guildSnowFlake
@@ -89,7 +101,7 @@ const { prefix, token, dbpw } = require('../conf.json'); // Load config data fro
 					Double check places returning promises, to see if they are .then correctly
 		Reflect: Should aim map be affected in what you play? Assumed for 1v1, but what about 2v2?
 		Tests:
-			Add test method so system can be live without updating db on every match (-balance test or something)
+			Add test method so system can test balance / matchmaking without updating db on every match (-balance test or something)
 		Deluxe Features (Ideas):
 			Remake db-sequelize with mysql lib instead of sequelize
 			(Different System for Starting MMR)
@@ -97,7 +109,8 @@ const { prefix, token, dbpw } = require('../conf.json'); // Load config data fro
 				OR
 				Add a second hidden rating for each user, so even though they all start at same mmr, 
 					this rating is used to even out the teams when unsure (Only between people of same rank)
-			(Additions for new channel support / less manual work)
+			(Additions for new channel support / less manual work) (If automated it is easier to move bot to a different channel)
+				Check if channels are available on startup, create trivia text channel, etc
 				Custom emojis
 					mapVeto emotes, custom upvote/downvote (seemsgood maybe)
 				Voice channels for Team split (Team1, Team2)
@@ -126,6 +139,8 @@ client.on('ready', () => {
 client.login(token);
 
 var stage = 0; 			// Current: Stage = 0 -> nothing started yet, default. Stage = 1 -> rdy for: mapVeto/split/team1Won/team2Won/gameNotPlayed.
+
+// TODO: Move to game objects, a lot of fields here belong more to an active game session, game object
 var balanceInfo; 		// Object: {team1, team2, difference, avgT1, avgT2, avgDiff, game} Initialized on transition between stage 0 and 1. 
 var activeMembers; 		// Active members playing (team1 players + team2 players)
 
@@ -614,7 +629,7 @@ exports.triviaStart = function(questions, message, author){
 	savedTriviaQuestions = questions;
 	var voiceChannel = message.guild.member(message.author).voiceChannel;
 	if(voiceChannel !== null && !f.isUndefined(voiceChannel)){ // Sets initial player array to user in disc channel if available
-		var players = findPlayersStart(message, voiceChannel); 
+		var players = findPlayersStart(message, voiceChannel); // TODO: Make sure this doesn't replace activeMembers
 		db_sequelize.initializePlayers(players, function(playerList){
 			trivia.startGame(message, questions, playerList); 
 		});
@@ -643,6 +658,7 @@ function roll(message, start, end){
 // Here follows starting balanced game methods
 
 // Initialize players array from given voice channel
+// This method is currently used in trivia start method, which doesn't want to save over activeMembers
 function findPlayersStart(message, channel){
 	console.log('VoiceChannel', channel.name, ' (id =',channel.id,') active users: (Total: ', channel.members.size ,')');
 	var players = [];
