@@ -23,6 +23,16 @@ const { prefix, token, dbpw } = require('../conf.json'); // Load config data fro
 	TODO:
 			Need to check all functionality, since so much is changed
 		Features:
+			Unite all exploit dodge
+				Before uniting all players, should save their current voiceChannel
+					Then, possible to unUniteAll to revert exploit 
+				Should everyone be allowed to uniteall?
+			Support starting multiple games at the same time
+				Might only be relevant for duel, but would be stupid to clog the system
+				Store gameid on players when starting game
+				For every command requiring stage 1, check game id
+				Should remove phase 0 and 1 from code
+			Add tournament mode, ladders, brackets etc
 			Add log for all data, all prints should also write to logfile so dumps are saved to be analyzed
 			Trivia
 				Feature: 
@@ -39,8 +49,6 @@ const { prefix, token, dbpw } = require('../conf.json'); // Load config data fro
 						Only decrease the people with highest potential point earnings (Down to 3?)
 					If noone answered anything 5 questions (attempted) in a row, end questions
 					Make it known that prefix commands wont work in trivia channel
-			Support starting multiple games at the same time
-				Might only be relevant for duel, but would be stupid to clog the system
 			Support restarting bot and realizing game is going
 				Potentially -pickupGame [disc message ID] or something
 			Check to see if optional prefix can be used elsewhere (used in trivia)
