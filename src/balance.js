@@ -36,6 +36,9 @@ function generateTeamCombs(players){
 		teamCombs.push([0]); // Only one team exist, its one player
 		return teamCombs;
 	}
+
+	// recursiveFor([], len, 0, teamCombs, uniqueCombs);
+
 	for(var i = 0; i < len; i++){
 		for(var j = i+1; j < len; j++){
 			for(var k = j+1; k < len; k++){
@@ -61,6 +64,18 @@ function generateTeamCombs(players){
 
 	//console.log('DEBUG: @generateTeamCombs, teamCombs = ', teamCombs, teamCombs.length, uniqueCombs, uniqueCombs.size);
 	return teamCombs;
+}
+
+function recursiveFor(indexes, len, forloopindex, teamCombs, uniqueCombs){
+	for(int i = 0; i < len; i++){
+		var indexesArray = indexes.slice();
+		indexesArray.push(i);
+		if(forloopindex > len/2){
+			recursiveFor(indexesArray, len, forloopindex++, teamCombs, uniqueCombs);
+		} else {
+			combinationAdder(teamCombs, uniqueCombs, indexesArray);
+		}
+	}
 }
 
 function combinationAdder(teamCombs, uniqueCombs, players){
