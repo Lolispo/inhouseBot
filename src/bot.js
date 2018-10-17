@@ -331,7 +331,7 @@ function handleMessage(message) {
 			var voiceChannel = message.guild.member(message.author).voiceChannel;
 				
 			if(voiceChannel !== null && !f.isUndefined(voiceChannel)){ // Makes sure user is in a voice channel
-				var players = findPlayersStart(message, voiceChannel); // initalize players objects with playerInformation
+				var players = findPlayersStart(message, voiceChannel, true); // initalize players objects with playerInformation
 				var numPlayers = players.length;
 			 	// Initialize balancing, Result is printed and stage = 1 when done
 				if(numPlayers == 10 || numPlayers == 8 || numPlayers == 6 || numPlayers == 4){
@@ -367,7 +367,7 @@ function handleMessage(message) {
 			matchupMessage = message; // Used globally in print method
 			var voiceChannel = message.guild.member(message.author).voiceChannel;
 			if(voiceChannel !== null && !f.isUndefined(voiceChannel)){ // Makes sure user is in a voice channel
-				var players = findPlayersStart(message, voiceChannel); // initalize players objects with playerInformation
+				var players = findPlayersStart(message, voiceChannel, true); // initalize players objects with playerInformation
 				var numPlayers = players.length;
 				if(numPlayers === 2){
 					let game = getModeChosen(message, player_js.getGameModes1v1());
@@ -630,7 +630,7 @@ exports.triviaStart = function(questions, message, author){
 	savedTriviaQuestions = questions;
 	var voiceChannel = message.guild.member(message.author).voiceChannel;
 	if(voiceChannel !== null && !f.isUndefined(voiceChannel)){ // Sets initial player array to user in disc channel if available
-		var players = findPlayersStart(message, voiceChannel); // TODO: Make sure this doesn't replace activeMembers
+		var players = findPlayersStart(message, voiceChannel, false); // TODO: Make sure this doesn't replace activeMembers
 		db_sequelize.initializePlayers(players, function(playerList){
 			trivia.startGame(message, questions, playerList); 
 		});
@@ -659,18 +659,21 @@ function roll(message, start, end){
 // Here follows starting balanced game methods
 
 // Initialize players array from given voice channel
-// This method is currently used in trivia start method, which doesn't want to save over activeMembers
-function findPlayersStart(message, channel){
+// activeGame set to true => for phases where you should prevent others from overwriting (not trivia)
+function findPlayersStart(message, channel, activeGame){
 	console.log('VoiceChannel', channel.name, ' (id =',channel.id,') active users: (Total: ', channel.members.size ,')');
 	var players = [];
-	activeMembers = Array.from(channel.members.values());
-	activeMembers.forEach(function(member){
+	var members = Array.from(channel.members.values());
+	members.forEach(function(member){
 		if(!member.bot){ // Only real users
 			console.log('\t' + member.user.username + '(' + member.user.id + ')'); // Printar alla activa users i denna voice chat
 			var tempPlayer = player_js.createPlayer(member.user.username, member.user.id);
 			players.push(tempPlayer);
 		}
 	});
+	if(activeGame){
+		activeMembers = members;
+	}
 	return players;
 }
 
@@ -680,7 +683,6 @@ function testBalanceGeneric(game){
 	var players = [];
 	for(var i = 0; i < 10; i++){
 		var tempPlayer = player_js.createPlayer('Player ' + i, i.toString());
-		//console.log('DEBUG: @findPlayersStart, tempPlayer =', tempPlayer);
 		players.push(tempPlayer);
 	}
 	db_sequelize.initializePlayers(players, function(playerList){
