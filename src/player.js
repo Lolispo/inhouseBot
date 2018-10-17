@@ -102,12 +102,14 @@ var getHighestMMR = function(team, game){
 // Return a player with given id from the array
 var getPlayer = function(array, uid){
 	var correctPlayer = '';
-	array.forEach(function(player){
+	array.some(function(player){ // TODO: Check me, should break when correctPlayer found
 		if(player.uid === uid){
 			correctPlayer = player;
+			return true;
 		}
+		return false;
 	});
-	return correctPlayer;
+	return correctPlayer; // Should only be '' if player doesn't exist
 }
 
 // TODO Add sort on DESC Game (Used in trivia result currently)
