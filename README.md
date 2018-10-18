@@ -65,7 +65,7 @@ If only two people are in voiceChannel, start duel between them. Otherwise [play
 
 ## [Installation](https://github.com/worlund/inhouseBot/wiki/Installation)
 
-If any issues occur, let developer know
+If any issues occur, notify a developer.
 
 ## Do you have any ideas for the future?
 
