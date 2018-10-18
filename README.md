@@ -63,13 +63,13 @@ If only two people are in voiceChannel, start duel between them. Otherwise [play
 **[player]** Required if more than 2 players in voiceChannel. Person who is challenged  
 **[game]** Opt. argument: name of the game being played. Available games are [cs1v1,dota1v1]
 
-## [Installation](https://github.com/worlund/inhouseBot/wiki/Installation)
+## [Installation](https://github.com/Lolispo/inhouseBot/wiki/Installation)
 
 If any issues occur, notify a developer.
 
 ## Do you have any ideas for the future?
 
-Make a [Pull Request](https://github.com/worlund/inhouseBot/issues) for a new issue in the repository.
+Make a [Pull Request](https://github.com/Lolispo/inhouseBot/pulls) for a new issue in the repository.
 
 Current TODO:s for the projects are listed in the files, main TODO section is in bot.js
 
