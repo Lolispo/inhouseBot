@@ -9,14 +9,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/worlund/inhouseBot.git"
+    "url": "git+https://github.com/Lolispo/inhouseBot.git"
   },
   "author": "Petter Andersson, Robert Wörlund",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/worlund/inhouseBot/issues"
+    "url": "https://github.com/Lolispo/inhouseBot/issues"
   },
-  "homepage": "https://github.com/worlund/inhouseBot#readme",
+  "homepage": "https://github.com/Lolispo/inhouseBot#readme",
   "dependencies": {
     "check-node-version": "^3.2.0",
     "discord.js": "^11.3.2",
