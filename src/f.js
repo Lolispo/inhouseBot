@@ -97,11 +97,12 @@ var readFromFile = function(filePath, messageRead, callback, callbackError){
 		console.log('Error: activeMembers not initialized in @teamToGuildMember (Test case = ok)'); // Since it is assumed to always be initialized, throw error otherwise
 	}else{
 		team.forEach(function(player){
-			activeMembers.forEach(function(guildMember){
-				if(player.uid === guildMember.id){
-					teamMembers.push(guildMember);
-				}
+			var guildMember = activeMembers.find(function(guildMember){
+				return player.uid === guildMember.id;
 			});
+			if(!isUndefined(guildMember)){
+				teamMembers.push(guildMember);
+			}
 		});		
 	}
 	return teamMembers;

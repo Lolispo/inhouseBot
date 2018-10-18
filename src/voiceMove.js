@@ -73,11 +73,9 @@ function getVoiceChannel(message){
 
 	if(res.length == 2){ // TODO: Doesn't support channel names with name with spaces, fix
 		var channelName = res[1];
-		message.guild.channels.forEach(function(channel) { // TODO: Redo since forEach doesn't break on return
+		channel1 = message.guild.channels.find(function(channel) {
 			console.log(channel.name, channel.type, channelName, channel.type === 'voice' && channel.name === channelName);
-			if(channel.type === 'voice' && channel.name === channelName && channel.id !== message.guild.afkChannelID){
-				channel1 = channel;
-			}
+			return channel.type === 'voice' && channel.name === channelName && channel.id !== message.guild.afkChannelID;
 		});
 	}
 	if(!f.isUndefined(channel1)){ // If param is given use that
@@ -90,10 +88,8 @@ function getVoiceChannel(message){
 	
 	//console.log('DEBUG: getVoiceChannel', channel1);
 	if(f.isUndefined(channel1) || channel1.id === message.guild.afkChannelID){
-		message.guild.channels.forEach(function(channel) { // TODO: Find way to break foreach / Change this to for loop instead (wont break)
-			if(channel.type === 'voice' && channel.id !== message.guild.afkChannelID){
-				channel1 = channel;
-			}
+		channel1 = message.guild.channels.find(function(channel) {
+			return channel.type === 'voice' && channel.id !== message.guild.afkChannelID;
 		});
 	}
 	//console.log('DEBUG @getVoiceChannel: Channel chosen for unite (not param or splitChannel):', channel1.name);

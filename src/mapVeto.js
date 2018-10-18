@@ -65,11 +65,9 @@ var otherMapVote = function(messageReaction, user, activeMembers){
 	if(f.isUndefined(activeMembers)){
 		console.log('Error: activeMembers not initialized in @otherMapVote (Test case = ok)'); // Since it is assumed to always be initialized, throw error otherwise
 	}else{
-		activeMembers.forEach(function(guildMember){
+		allowed = activeMembers.some(function(guildMember){
 			console.log('DEBUG: Added reaction of', messageReaction.emoji.id, 'from', user.username, 'on msg :', messageReaction.message.id);
-			if(user.id === guildMember.id){
-				allowed = true;
-			}
+			return user.id === guildMember.id;
 		});
 	}
 	if(!allowed){

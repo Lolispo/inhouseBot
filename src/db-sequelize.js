@@ -27,13 +27,10 @@ function addMissingUsers(players, data, callback){
 	var allGameModes = player_js.getAllModes();
 	for(var i = 0; i < players.length; i++){
 		// Check database for this data
-		var existingUser = -1;
-		data.forEach(function(oneData){ 
-			if(players[i].uid === oneData.uid){ // TODO: Redo so you skip unecessary loops
-				existingUser = oneData;
-			}
+		var existingUser = data.find(function(oneData){ 
+			return players[i].uid === oneData.uid;
 		});
-		if(existingUser === -1){ // Make new entry in database since entry doesn't exist
+		if(f.isUndefined(existingUser)){ // Make new entry in database since entry doesn't exist
 			createUser(players[i].uid, players[i].userName, players[i].defaultMMR);
 		} else{ // Update players[i] mmr to the correct value
 			for(var j = 0; j < allGameModes.length; j++){ // Initialize all gameMode ratings
