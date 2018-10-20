@@ -1,10 +1,13 @@
 'use strict';
 // Author: Petter Andersson
 
-var Sequelize = require('sequelize');
+const player_js = require('./player')
+const f = require('./f')
+
+const Sequelize = require('sequelize');
 var sequelize = {};
 var Users = {};
-var player_js = require('./player')
+
 
 /*
 	This file handles database communication using sequelize

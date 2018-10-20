@@ -55,7 +55,7 @@ var deleteDiscMessage = function(messageVar, time = bot.getRemoveTime(), message
 
 // Used on exit, should delete all messages that are awaiting deletion instantly
 var onExitDelete = function(){
-	console.log('onExitDelete');
+	console.log('DEBUG @onExitDelete: Deleting all messages awaiting deletion');
 	var mapIter = listToDeleteFrom.values();
 	for(var i = 0; i < listToDeleteFrom.size; i++){
 		var ele = mapIter.next().value;
