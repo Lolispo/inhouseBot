@@ -7,96 +7,73 @@ const bot = require('./bot');
 const player_js = require('./player');
 const f = require('./f');
 
-var captain1;			// Captain for team 1
-var captain2;			// Captain for team 2
-var mapMessages;		// Keeps track of the discord messages for the different maps 
-var mapVetoTurn;		// Turn variable, whose turn it is
-var bannedMaps = [];	// String array holding who banned which map, is used in mapStatusMessage
+var mapMessagesBuilder;
 
 const emoji_agree = '👌'; 		// Agree emoji. Alt: 👍, Om custom Emojis: Borde vara seemsgood emoji
 const emoji_disagree = '👎';	// Disagree emoji. 
 const emoji_error = '❌'; 		// Error / Ban emoji. Alt: '🤚';
+const longLine = '\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\n';
 
-var captainVote = function(messageReaction, user, i){
-	console.log('DEBUG: CaptainVote', user.username, 'i = ', i, 'turn = ', mapVetoTurn);
-	if(user.id === captain1.uid && mapVetoTurn === 0){ // Check to see if author is a captain and his turn
-		var tempMessage = mapMessages[i]; 
-		var presentableName = String(tempMessage).split('\n')[1];
-		bannedMaps.push(user.username + ' banned ' + presentableName); // Maybe should add bold on second to last one
-		mapMessages.splice(i, 1); // splice(index, howMany)
-		tempMessage.delete(400);
-		changeTurn();
-		if(mapMessages.length === 1){ // We are done and have only one map left
-			var chosenMap = mapMessages[0];
-			mapMessages = undefined; // TODO: Alternative way of init mapMessages? undefined = ugly
-			if(!f.isUndefined(mapMessages)){
-				throw 'Error should be gone here: Make sure it is otherwise', mapMessages;
-			}
-			chosenMap.delete();
-			bannedMaps.push('\nChosen map is ' + String(chosenMap).split('\n')[1]);
-			bot.getMapStatusMessage().edit(getMapString(true)); // TODO Check
-		}
-	} else if(user.id === captain2.uid && mapVetoTurn === 1){
-		var tempMessage = mapMessages[i];
-		var presentableName = String(tempMessage).split('\n')[1];
-		bannedMaps.push(user.username + ' banned ' + presentableName); // Maybe should add bold on second to last one
-		mapMessages.splice(i, 1); // splice(index, howMany)
-		tempMessage.delete(400);
-		changeTurn();
-		if(mapMessages.length === 1){ // We are done and have only one map left
-			var chosenMap = mapMessages[0];
-			mapMessages = undefined;
-			if(!f.isUndefined(mapMessages)){
-				throw 'Error: mapMessages should be gone here: Make sure it is otherwise';
-			}
-			chosenMap.delete();
-			bannedMaps.push('Chosen map is ' + String(chosenMap).split('\n')[1]);
-			bot.getMapStatusMessage().edit(getMapString(true));
-		}
+var captainVote = function(messageReaction, user, mapMessage, gameObject){
+	console.log('DEBUG: CaptainVote', user.username, 'turn = ', gameObject.getMapVetoTurn());
+	if(user.id === gameObject.getCaptain1().uid && gameObject.getMapVetoTurn() === 0){ // Check to see if author is a captain and his turn
+		handleCaptainMessage(user, mapMessage, gameObject);
+	} else if(user.id === gameObject.getCaptain2().uid && gameObject.getMapVetoTurn() === 1){
+		handleCaptainMessage(user, mapMessage, gameObject);
 	} else { // Don't allow messageReaction of emoji_error otherwise
-		console.log('DEBUG: Not allowed user pressed ' + emoji_error);
+		console.log('DEBUG: Not allowed user ' + user.username +' pressed ' + emoji_error + ' (X, requires captain)');
 		messageReaction.remove(user);
+	}
+}
+
+function handleCaptainMessage(user, mapMessage, gameObject){
+	var tempMessage = mapMessage; 
+	var presentableName = String(tempMessage).split('\n')[1];
+	gameObject.getBannedMaps().push(user.username + ' banned ' + presentableName); // Maybe should add bold on second to last one
+	var gameMapMessages = gameObject.getMapMessages();
+	gameMapMessages.splice(mapMessage, 1); // splice(index, howMany)
+	tempMessage.delete(400); // Delete message in 400ms
+	changeTurn(gameObject);
+	if(gameMapMessages.length === 1){ // We are done and have only one map left
+		var chosenMap = gameMapMessages[0];
+		gameMapMessages = []; // TODO: Alternative way of init mapMessages? undefined = ugly
+		chosenMap.delete();
+		gameObject.getBannedMaps().push('\nChosen map is ' + String(chosenMap).split('\n')[1]);
+		gameObject.getMapStatusMessage().edit(getMapString(true, gameObject)); // TODO Check
 	}
 }
 
 var otherMapVote = function(messageReaction, user, activeMembers){
 	console.log('DEBUG: not captain vote', user.username);
-	var allowed = false; // TODO: Redo with some contains method
-	if(f.isUndefined(activeMembers)){
-		console.log('Error: activeMembers not initialized in @otherMapVote (Test case = ok)'); // Since it is assumed to always be initialized, throw error otherwise
-	}else{
-		allowed = activeMembers.some(function(guildMember){
-			console.log('DEBUG: Added reaction of', messageReaction.emoji.id, 'from', user.username, 'on msg :', messageReaction.message.id);
-			return user.id === guildMember.id;
-		});
-	}
+	var allowed = false;
+	allowed = activeMembers.some(function(guildMember){
+		console.log('DEBUG: Added reaction of', messageReaction.emoji.id, 'from', user.username, 'on msg :', messageReaction.message.id);
+		return user.id === guildMember.id;
+	});
 	if(!allowed){
 		messageReaction.remove(user);
 	}
 }
 
-async function mapVetoStart(message, balanceInfo, clientEmojis){
+async function mapVetoStart(message, gameObject, clientEmojis){
 	// Get captain from both teams
-	captain1 = player_js.getHighestMMR(balanceInfo.team1, 'cs');
-	captain2 = player_js.getHighestMMR(balanceInfo.team2, 'cs');
+	var balanceInfo = gameObject.getBalanceInfo();
+	gameObject.setCaptain1(player_js.getHighestMMR(balanceInfo.team1, 'cs'));
+	gameObject.setCaptain2(player_js.getHighestMMR(balanceInfo.team2, 'cs'));
 	// Choose who starts (random)
-	mapVetoTurn = Math.floor((Math.random() * 2));
-	mapMessages = []; 
-	var startingCaptainUsername = (mapVetoTurn === 0 ? captain1.userName : captain2.userName); 
-	await f.print(message, getMapString(false, startingCaptainUsername), callbackMapHandle); 
+	gameObject.setMapVetoTurn(Math.floor((Math.random() * 2)));
+	mapMessagesBuilder = []; 
+	var startingCaptainUsername = (gameObject.getMapVetoTurn() === 0 ? gameObject.getCaptain1().userName : gameObject.getCaptain2().userName); 
+	await f.print(message, getMapString(false, gameObject, startingCaptainUsername), function(message){
+		gameObject.setMapStatusMessage(message); // Set message that updates info on maps banned
+	}); 
 	// Get maps. Temp solution:
 	// TODO: Database on Map texts, map emojis and presets of maps, 5v5, 2v2 etc)
 	await getMapMessages(message, clientEmojis);
-	return mapMessages;
+	return mapMessagesBuilder;
 }
 
-
-function callbackMapHandle(message){
-	bot.setMapStatusMessage(message);
-}
-
-
-// Returns promise messages for maps
+// Create map messages, add default reactions and add them to mapMessageBuilder
 async function getMapMessages(message, clientEmojis){ // TODO Check Should run asynchrounsly, try setTimeout , 0 otherwise
 	initMap('Dust2', clientEmojis, message, callbackMapMessage);
 	initMap('Inferno', clientEmojis, message, callbackMapMessage);
@@ -107,7 +84,6 @@ async function getMapMessages(message, clientEmojis){ // TODO Check Should run a
 	initMap('Train', clientEmojis, message, callbackMapMessage);
 }	
 
-var longLine = '\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\n';
 
 function initMap(mapName, clientEmojis, message, callback){
 	const mapEmoji = clientEmojis.find('name', mapName);
@@ -116,7 +92,7 @@ function initMap(mapName, clientEmojis, message, callback){
 
 function callbackMapMessage(mapObj){
 	mapMessageReact(mapObj);
-	mapMessages.push(mapObj);
+	mapMessagesBuilder.push(mapObj);
 }
 
 async function mapMessageReact(message){
@@ -125,12 +101,13 @@ async function mapMessageReact(message){
 	message.react(emoji_disagree);
 }
 
-var getMapString = function(finished, startingCaptainUsername){ // Allows to be called without third parameter if finished = false
+var getMapString = function(finished, gameObject, startingCaptainUsername){ // Allows to be called without third parameter if finished = false
 	// Print out instructions
 	// TODO: Store long message as some field to create it more easily. First => better name and field
 	//console.log('DEBUG: @getMapString', finished, bannedMaps[bannedMaps.length-1]);
-	var s = '**Map Veto**\nThe captains **' + captain1.userName + '** and **' + captain2.userName + '** can now vote on which maps to play. \n';
+	var s = '**Map Veto**\nThe captains **' + gameObject.getCaptain1().userName + '** and **' + gameObject.getCaptain2().userName + '** can now vote on which maps to play. \n';
 	s += 'Keep banning maps by pressing ' + bot.emoji_error + ' on your turn until there is only one map left. \n\n';
+	var bannedMaps = gameObject.getBannedMaps();
 	for(var i = 0; i < bannedMaps.length; i++){
 		if(i === bannedMaps.length - 1){
 			s += '**' + bannedMaps[i] + '**\n'; // Latest one in bold
@@ -140,18 +117,19 @@ var getMapString = function(finished, startingCaptainUsername){ // Allows to be 
 	}
 	if(!finished){
 		if(f.isUndefined(startingCaptainUsername)){
-			throw 'Error: @getMapString. startingCaptainUsername should never be null';
+			throw 'Error: @getMapString. startingCaptainUsername should not be null (only last case)';
+		} else {
+			s += '\n**' + startingCaptainUsername + 's turn**';	
 		}
-		s += '\n**' + startingCaptainUsername + 's turn**';	
 	}
 	return s;
 }
 
 // Change turn between captains
-var changeTurn = function(){
-	mapVetoTurn = 1 - mapVetoTurn; // Flips between 1 and 0
-	var startingCaptainUsername = (mapVetoTurn === 0 ? captain1.userName : captain2.userName); 
-	bot.getMapStatusMessage().edit(getMapString(false, startingCaptainUsername))
+var changeTurn = function(gameObject){
+	gameObject.setMapVetoTurn(1 - gameObject.getMapVetoTurn()); // Flips between 1 and 0
+	var startingCaptainUsername = (gameObject.getMapVetoTurn() === 0 ? gameObject.getCaptain1().userName : gameObject.getCaptain2().userName); 
+	gameObject.getMapStatusMessage().edit(getMapString(false, startingCaptainUsername, gameObject))
 }
 
 module.exports.mapVetoStart = mapVetoStart;

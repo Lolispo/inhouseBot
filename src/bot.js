@@ -16,6 +16,7 @@ const map_js = require('./mapVeto');					// MapVeto system
 const voiceMove_js = require('./voiceMove'); 			// Handles moving of users between voiceChannels
 const db_sequelize = require('./db-sequelize');			// Handles communication with db
 const trivia = require('./trivia')						// Trivia
+const game_js = require('./game')
 
 const { prefix, token, dbpw } = require('../conf.json'); // Load config data from file
 
@@ -28,22 +29,6 @@ client.on('ready', () => {
 // Login
 client.login(token);
 
-var stage = 0; 			// Current: Stage = 0 -> nothing started yet, default. Stage = 1 -> rdy for: mapVeto/split/team1Won/team2Won/gameNotPlayed.
-
-// TODO: Move to game objects, a lot of fields here belong more to an active game session, game object
-var balanceInfo; 		// Object: {team1, team2, difference, avgT1, avgT2, avgDiff, game} Initialized on transition between stage 0 and 1. 
-var activeMembers; 		// Active members playing (team1 players + team2 players)
-
-var matchupMessage; 	// -b, users made command
-var matchupServerMsg; 	// Discord message for showing matchup, members in both teams and mmr difference
-var voteMessage;		// When voting on who won, this holds the voteText discord message
-var teamWonMessage;		// The typed teamWon message, used to vote on agreeing as well as remove on finished vote
-var teamWon;			// Keeps track on which team won
-var mapStatusMessage;	// Message that keep track of which maps are banned and whose turn is it
-
-var mapMessages = [];	// Keeps track of the discord messages for the different maps 
-var savedTriviaQuestions = []; // TODO: Reuse this if not empty and not used to not waste any questions. Currently not used
-
 const emoji_agree = '👌'; 		// Agree emoji. Alt: 👍, Om custom Emojis: Borde vara seemsgood emoji
 const emoji_disagree = '👎';	// Disagree emoji. 
 const emoji_error = '❌'; 		// Error / Ban emoji. Alt: '🤚';
@@ -53,6 +38,7 @@ const voteText = '**Majority of players that played the game need to confirm thi
 const adminUids = ['96293765001519104', '107882667894124544']; // Admin ids, get access to specific admin rights
 const lukasIP = 'connect tywin.dathost.net:28795; password secret';
 const removeBotMessageDefaultTime = 60000; // 300000
+const maxPlayers = 14;
 
 const helpCommands = [prefix + 'h', prefix + 'help'];
 const helpAllCommands = [prefix + 'ha', prefix + 'helpall'];
@@ -69,7 +55,7 @@ const triviaCommands = [prefix + 'trivia', prefix + 'starttrivia', prefix + 'tri
 const triviaModesCommands = [prefix + 'modestrivia', prefix + 'helptrivia'];
 const leaderboardCommands = [prefix + 'leaderboard'];
 const statsCommands = [prefix + 'stats'];
-const exitCommands = [prefix + 'exit', prefix + 'clear'];
+const exitCommands = [prefix + 'exit', prefix + 'clear', prefix + 'e'];
 const duelCommands = [prefix + 'duel'];
 const challengeCommands = [prefix + 'challenge'];
 const queueCommands = [prefix + 'soloqueue', prefix + 'queue'];
@@ -120,37 +106,45 @@ client.on('message', message => {
 // Listener on reactions added to messages
 client.on('messageReactionAdd', (messageReaction, user) => {
 	if(!user.bot){ // Bot adding reacts doesn't require our care
-		if(stage === 1){
+		if(game_js.hasActiveGames()){
 			// Reacted on voteMessage
 			//console.log('DEBUG: @messageReactionAdd by', user.username, 'on', messageReaction.message.author.username + ': ' + messageReaction.message.content, messageReaction.count);
-			if(!f.isUndefined(voteMessage) && messageReaction.message.id === voteMessage.id){ // Check if emojiReaction is on voteMessage, voteMessage != undefined
-				voteMessageReaction(messageReaction);
-			} else if(!f.isUndefined(mapMessages)){
-				for(var i = 0; i < mapMessages.length; i++){
-					if(messageReaction.message.id === mapMessages[i].id){ // Find if reacted on this map
-						if(messageReaction.emoji.toString() === emoji_error){
-							map_js.captainVote(messageReaction, user, i);
-						} else if(messageReaction.emoji.toString() === emoji_agree){ // If not captains, can only react with emoji_agree or emoji_disagree
-							map_js.otherMapVote(messageReaction, user, activeMembers);
-						} else if(messageReaction.emoji.toString() === emoji_disagree){ // If not captains, can only react with emoji_agree or emoji_disagree
-							map_js.otherMapVote(messageReaction, user, activeMembers);
-						}
-						break; // Don't continue in the loop for this event, only one map can be reacted to in one event
+			var gameObject = game_js.getGame(user);
+			// Check if emojiReaction is on voteMessage, voteMessage != undefined
+			if(!f.isUndefined(gameObject) && !f.isUndefined(gameObject.getVoteMessage()) && messageReaction.message.id === gameObject.getVoteMessage().id){
+				voteMessageReaction(messageReaction, gameObject);
+			} else { // TODO Game: Check 
+				var gameObjectMapMessage = game_js.getGameMapMessages(messageReaction);
+				if(!f.isUndefined(gameObjectMapMessage)){ // Reacted on a messageReaction
+					
+					var mapMessage = gameObject.getMapMessages().find(function(mapMsg){
+						return messageReaction.message.id === mapMsg.id
+					});
+
+					if(messageReaction.emoji.toString() === emoji_error){
+						map_js.captainVote(messageReaction, user, mapMessage, gameObject);
+					} else if(messageReaction.emoji.toString() === emoji_agree){ // If not captains, can only react with emoji_agree or emoji_disagree
+						map_js.otherMapVote(messageReaction, user, gameObjectMapMessage.getActiveMembers());
+					} else if(messageReaction.emoji.toString() === emoji_disagree){ // If not captains, can only react with emoji_agree or emoji_disagree
+						map_js.otherMapVote(messageReaction, user, gameObjectMapMessage.getActiveMembers());
 					}
 				}
+				// React on something on an active game
 			}
-			// React on something else
 		}
+		// React on something not connected to activeGames
 	}
 });
 
 // Listener on reactions removed from messages
 client.on('messageReactionRemove', (messageReaction, user) => {
 	if(!user.bot){
-		if(stage === 1){
+		if(game_js.hasActiveGames()){
 			// React removed on voteMessage
 			//console.log('DEBUG: @messageReactionRemove by', user.username, 'on', messageReaction.message.author.username + ': ' + messageReaction.message.content, messageReaction.count);
-			if(!f.isUndefined(voteMessage) && messageReaction.message.id === voteMessage.id && messageReaction.emoji.toString() === emoji_agree){ // Check if emojiReaction is on voteMessage
+			var gameObject = game_js.getGame(user);
+			// Check if emojiReaction is on voteMessage, voteMessage != undefined
+			if(!f.isUndefined(gameObject) && !f.isUndefined(gameObject.getVoteMessage()) && messageReaction.message.id === gameObject.getVoteMessage().id){
 				voteMessageTextUpdate(messageReaction);
 			}
 			// React removed on something else
@@ -214,69 +208,14 @@ function handleMessage(message) {
 		});;
 		f.deleteDiscMessage(message, 10000, 'helpAll');
 	}
+	// Start game
 	else if(startsWith(message, balanceCommands)){
-		if(stage === 0){
-			matchupMessage = message; // Used globally in print method
-			var voiceChannel = message.guild.member(message.author).voiceChannel;
-				
-			if(voiceChannel !== null && !f.isUndefined(voiceChannel)){ // Makes sure user is in a voice channel
-				var players = findPlayersStart(message, voiceChannel, true); // initalize players objects with playerInformation
-				var numPlayers = players.length;
-			 	// Initialize balancing, Result is printed and stage = 1 when done
-				if(numPlayers == 10 || numPlayers == 8 || numPlayers == 6 || numPlayers == 4){
-					let game = getModeChosen(message, player_js.getGameModes());
-					db_sequelize.initializePlayers(players, function(playerList){
-						balance.balanceTeams(playerList, game);
-					});
-				} else if(numPlayers === 2){
-					let game = getModeChosen(message, player_js.getGameModes1v1());
-					db_sequelize.initializePlayers(players, function(playerList){
-						balance.balanceTeams(playerList, game);
-					});
-				} else if((numPlayers === 1) && (adminUids.includes(message.author.id))){
-					testBalanceGeneric(player_js.getGameModes()[0]);
-				} else{
-					f.print(message, 'Currently only support even games of 2, 4, 6, 8 and 10 players', callbackInvalidCommand);
-				}
-			} else {
-				f.print(message, 'Invalid command: Author of message must be in voiceChannel', callbackInvalidCommand); 
-			}
-			f.deleteDiscMessage(message, 10000, 'matchupMessage', function(msg){
-				msg.content += '<removed>';
-			});
-		} else{
-			f.print(message, 'Invalid command: Inhouse already ongoing', callbackInvalidCommand); 
-			f.deleteDiscMessage(message, 10000, 'matchupMessage');
-		}
+		balanceCommand(message);
 	}
 
 	// Duel, balance for 2 players
 	else if(startsWith(message, duelCommands)){
-		if(stage === 0){
-			matchupMessage = message; // Used globally in print method
-			var voiceChannel = message.guild.member(message.author).voiceChannel;
-			if(voiceChannel !== null && !f.isUndefined(voiceChannel)){ // Makes sure user is in a voice channel
-				var players = findPlayersStart(message, voiceChannel, true); // initalize players objects with playerInformation
-				var numPlayers = players.length;
-				if(numPlayers === 2){
-					let game = getModeChosen(message, player_js.getGameModes1v1());
-					db_sequelize.initializePlayers(players, function(playerList){
-						balance.balanceTeams(playerList, game);
-					});
-				} else{
-					f.print(message, 'Currently only support even games of 2, 4, 6, 8 and 10 players', callbackInvalidCommand);
-				}
-			}
-			else {
-				f.print(message, 'Invalid command: Author of message must be in voiceChannel', callbackInvalidCommand); 
-			}
-			f.deleteDiscMessage(message, 10000, 'matchupMessage', function(msg){
-				msg.content += '<removed>';
-			});
-		} else{
-			f.print(message, 'Invalid command: Inhouse already ongoing', callbackInvalidCommand); 
-			f.deleteDiscMessage(message, 10000, 'matchupMessage');
-		}
+		balanceCommand(message);
 	}
 	
 	/*
@@ -396,64 +335,102 @@ function handleMessage(message) {
 		voiceMove_js.uniteAll(message);
 		f.deleteDiscMessage(message, 15000, 'ua');
 	}
-	// STAGE 1 COMMANDS: (After balance is made)
-	else if(stage === 1){
-		if(team1wonCommands.includes(message.content)){
-			teamWonMessage = message;
-			teamWon = 1;
-			f.print(message, voteText + ' (0/' + (balanceInfo.team1.length + 1)+ ')', callbackVoteText);
-		}
-		else if(team2wonCommands.includes(message.content)){
-			teamWonMessage = message;
-			teamWon = 2;
-			f.print(message, voteText + ' (0/' + (balanceInfo.team2.length + 1)+ ')', callbackVoteText);
-		}
-		else if(tieCommands.includes(message.content)){
-			teamWonMessage = message;
-			teamWon = 0;
-			f.print(message, voteText + ' (0/' + (balanceInfo.team1.length + 1)+ ')', callbackVoteText);
-		}
-		else if(cancelCommands.includes(message.content)){
-			// Only creator of game can cancel it
-			if(message.author.id === matchupMessage.author.id){
-				setStage(0);
-				f.print(message, 'Game canceled', callbackGameCanceled);
-				f.deleteDiscMessage(message, 15000, 'c'); // prefix+c
-			}else{
-				f.print(message, 'Invalid command: Only the person who started the game can cancel it (' + matchupMessage.author.username + ')', callbackInvalidCommand);
+	// Active Game commands: (After balance is made)
+	else if(isActiveGameCommand(message)){
+		var gameObject = game_js.getGame(message.author);
+		if(!f.isUndefined(gameObject)){
+			if(team1wonCommands.includes(message.content)){
+				var activeResultVote = gameObject.getTeamWon();
+				if(activeResultVote === 2 || activeResultVote === 1 || activeResultVote === 0){
+					if(activeResultVote != 0){
+						f.print(message, 'Invalid command: Active result vote for this game already ongoing, for team ' + activeResultVote, callbackInvalidCommand);
+					} else {
+						f.print(message, 'Invalid command: Active result vote for this game already ongoing, for a tie', callbackInvalidCommand);
+					}
+				} else {
+					gameObject.setTeamWonMessage(message);
+					gameObject.setTeamWon(1);
+					f.print(message, voteText + ' (0/' + (gameObject.getBalanceInfo().team1.length + 1)+ ')', callbackVoteText);
+				}
 			}
-		}
-
-		// Splits the players playing into the Voice Channels 'Team1' and 'Team2'
-		else if(splitCommands.includes(message.content)){
-			voiceMove_js.split(message, balanceInfo, activeMembers);
-			f.deleteDiscMessage(message, 15000, 'split');
-		}
-		// Take every user in 'Team1' and 'Team2' and move them to the same voice chat
-		// Optional additional argument to choose name of voiceChannel to uniteIn, otherwise same as balance was called from
-		else if(startsWith(message, uniteCommands)){ 
-			voiceMove_js.unite(message, activeMembers);
-			f.deleteDiscMessage(message, 15000, 'u');
-		}
-
-		// mapVeto made between one captain from each team
-		else if(mapvetostartCommands.includes(message.content)){
-			map_js.mapVetoStart(message, balanceInfo, client.emojis)
-			.then(result => {
-				mapMessages = result;
-			});
-			f.deleteDiscMessage(message, 15000, 'mapveto'); // Remove mapVeto text
-		}
-
-		else if(startsWith(message,prefix)){ // Message start with prefix
-			f.print(message, 'Invalid command: List of available commands at **' + prefix + 'help**', callbackInvalidCommand);
-			f.deleteDiscMessage(message, 3000, 'invalidCommand'); // Overlaps delete call from callbackInvalidCommand above^
+			else if(team2wonCommands.includes(message.content)){
+				var activeResultVote = gameObject.getTeamWon();
+				if(activeResultVote === 2 || activeResultVote === 1 || activeResultVote === 0){
+					if(activeResultVote != 0){
+						f.print(message, 'Invalid command: Active result vote for this game already ongoing, for team ' + activeResultVote, callbackInvalidCommand);
+					} else {
+						f.print(message, 'Invalid command: Active result vote for this game already ongoing, for a tie', callbackInvalidCommand);
+					}
+				} else {
+					gameObject.setTeamWonMessage(message);
+					gameObject.setTeamWon(2);
+					f.print(message, voteText + ' (0/' + (gameObject.getBalanceInfo().team2.length + 1)+ ')', callbackVoteText);
+				}
+			}
+			else if(tieCommands.includes(message.content)){
+				var activeResultVote = gameObject.getTeamWon();
+				if(activeResultVote === 2 || activeResultVote === 1 || activeResultVote === 0){
+					if(activeResultVote != 0){
+						f.print(message, 'Invalid command: Active result vote for this game already ongoing, for team ' + activeResultVote, callbackInvalidCommand);
+					} else {
+						f.print(message, 'Invalid command: Active result vote for this game already ongoing, for a tie', callbackInvalidCommand);
+					}
+				} else {
+					gameObject.setTeamWonMessage(message);
+					gameObject.setTeamWon(0);
+					f.print(message, voteText + ' (0/' + (gameObject.getBalanceInfo().team1.length + 1)+ ')', callbackVoteText);
+				}
+			}
+			else if(cancelCommands.includes(message.content)){
+				// Only creator of game can cancel it
+				var matchupMessage = gameObject.getMatchupMessage();
+				if(message.author.id === matchupMessage.author.id){
+					// TODO Game: Remove game from game.js
+					game_js.deleteGame(gameObject);
+					f.print(message, 'Game canceled', function(message){
+						f.deleteDiscMessage(message, 15000, 'gameCanceled');
+						cleanOnGameEnd(gameObject);
+					});
+					f.deleteDiscMessage(message, 15000, 'c'); // prefix+c
+				}else{
+					f.print(message, 'Invalid command: Only the person who started the game can cancel it (' + matchupMessage.author.username + ')', callbackInvalidCommand);
+				}
+			}
+	
+			// Splits the players playing into the Voice Channels 'Team1' and 'Team2'
+			else if(splitCommands.includes(message.content)){
+				voiceMove_js.split(message, gameObject.getBalanceInfo(), gameObject.getActiveMembers());
+				f.deleteDiscMessage(message, 15000, 'split');
+			}
+			// Take every user in 'Team1' and 'Team2' and move them to the same voice chat
+			// Optional additional argument to choose name of voiceChannel to uniteIn, otherwise same as balance was called from
+			else if(startsWith(message, uniteCommands)){ 
+				voiceMove_js.unite(message, gameObject.getActiveMembers());
+				f.deleteDiscMessage(message, 15000, 'u');
+			}
+	
+			// mapVeto made between one captain from each team
+			else if(mapvetostartCommands.includes(message.content)){
+				map_js.mapVetoStart(message, gameObject, client.emojis)
+				.then(result => {
+					gameObject.setMapMessages(result);
+				});
+				f.deleteDiscMessage(message, 15000, 'mapveto'); // Remove mapVeto text
+			}
+		} else {
+			f.print(message, 'Invalid command: User ' + message.author + ' not currently in a game', callbackInvalidCommand);
 		}
 	}
 	else if(startsWith(message,prefix)){ // Message start with prefix
 		f.print(message, 'Invalid command: List of available commands at **' + prefix + 'help**', callbackInvalidCommand);
 		f.deleteDiscMessage(message, 3000, 'invalidCommand'); // Overlaps delete call from callbackInvalidCommand above^
 	}
+}
+
+// Returns true if message is an active game command
+function isActiveGameCommand(message){
+	return (team1wonCommands.includes(message.content) || team2wonCommands.includes(message.content) || tieCommands.includes(message.content) ||
+			cancelCommands.includes(message.content) || splitCommands.includes(message.content) || startsWith(message, uniteCommands) || mapvetostartCommands.includes(message.content));
 }
 
 // Returns boolean of if message starts with string
@@ -488,9 +465,8 @@ function getModeChosen(message, modeCategory){
 }
 
 async function cleanupExit(){
-	await setStage(0); 
 	await f.onExitDelete();
-	await onExit();
+	await game_js.getActiveGames().map(game => cleanOnGameEnd(game));
 }
 
 function stats(message){
@@ -516,10 +492,9 @@ function stats(message){
 // Start trivia game, sent from trivia when questions are fetched. 
 exports.triviaStart = function(questions, message, author){
 	// Start game in text channel with these questions
-	savedTriviaQuestions = questions;
 	var voiceChannel = message.guild.member(message.author).voiceChannel;
 	if(voiceChannel !== null && !f.isUndefined(voiceChannel)){ // Sets initial player array to user in disc channel if available
-		var players = findPlayersStart(message, voiceChannel, false); // TODO: Make sure this doesn't replace activeMembers
+		var players = findPlayersStart(message, voiceChannel);
 		db_sequelize.initializePlayers(players, function(playerList){
 			trivia.startGame(message, questions, playerList); 
 		});
@@ -547,9 +522,49 @@ function roll(message, start, end){
 
 // Here follows starting balanced game methods
 
+// Command used for starting a new game
+function balanceCommand(message){
+	var gameObjectExist = game_js.getGame(message.author);
+	if(f.isUndefined(gameObjectExist)){ // User is not already in a game
+		var voiceChannel = message.guild.member(message.author).voiceChannel; // Voice channel for user				
+		if(voiceChannel !== null && !f.isUndefined(voiceChannel)){ // Makes sure user is in a voice channel
+			// Initialize Game object
+			var gameObject = game_js.createGame(message.id, message);
+			var players = findPlayersStart(message, voiceChannel, gameObject); // initalize players objects with playerInformation
+			var numPlayers = players.length;
+			// Initialize balancing, Result is printed and stage = 1 when done
+			if(numPlayers > 2 && numPlayers <= maxPlayers && numPlayers % 2 === 0){ // TODO: Allow uneven games? Requires testing to see if it works
+				let game = getModeChosen(message, player_js.getGameModes());
+				db_sequelize.initializePlayers(players, function(playerList){
+					balance.balanceTeams(playerList, game, gameObject);
+				});
+			} else if(numPlayers === 2){
+				let game = getModeChosen(message, player_js.getGameModes1v1());
+				db_sequelize.initializePlayers(players, function(playerList){
+					balance.balanceTeams(playerList, game, gameObject);
+				});
+			} else if((numPlayers === 1) && (adminUids.includes(message.author.id))){
+				testBalanceGeneric(player_js.getGameModes()[0], gameObject);
+			} else{
+				f.print(message, 'Currently support games <= ' + maxPlayers + ' players', callbackInvalidCommand);
+				game_js.deleteGame(gameObject);
+			}
+		} else {
+			console.log('DEBUG: Remove the one that is false from if: ' + (voiceChannel !== null) + ', ' + (!f.isUndefined(voiceChannel)));
+			f.print(message, 'Invalid command: Author of message must be in voiceChannel', callbackInvalidCommand); 
+		}
+		f.deleteDiscMessage(message, 10000, 'channelMessage (callback adding "<removed>")', function(msg){ // Remove the message, but let is remain in memory?
+			msg.content += '<removed>';
+		});
+	} else{
+		f.print(message, 'Invalid command: ' + message.author + ' is already in a game (' + gameObjectExist.getGameID() + ')', callbackInvalidCommand); 
+		f.deleteDiscMessage(message, 10000, 'matchupMessage');
+	}
+}
+
 // Initialize players array from given voice channel
 // activeGame set to true => for phases where you should prevent others from overwriting (not trivia)
-function findPlayersStart(message, channel, activeGame){
+function findPlayersStart(message, channel, gameObject){
 	console.log('VoiceChannel', channel.name, ' (id =',channel.id,') active users: (Total: ', channel.members.size ,')');
 	var players = [];
 	var members = Array.from(channel.members.values());
@@ -560,14 +575,15 @@ function findPlayersStart(message, channel, activeGame){
 			players.push(tempPlayer);
 		}
 	});
-	if(activeGame){
-		activeMembers = members;
+	if(!f.isUndefined(gameObject)){
+		gameObject.setActiveMembers(members); // TODO Game
+		//activeMembers = members;
 	}
 	return players;
 }
 
-// A Test for balancing and getting to stage 1 without players available
-function testBalanceGeneric(game){
+// A Test for balancing and getting an active game without players available
+function testBalanceGeneric(game, gameObject){
 	console.log('\t<-- Testing Environment: 10 player game, res in console -->');
 	var players = [];
 	for(var i = 0; i < 10; i++){
@@ -575,23 +591,24 @@ function testBalanceGeneric(game){
 		players.push(tempPlayer);
 	}
 	db_sequelize.initializePlayers(players, function(playerList){
-		balance.balanceTeams(playerList, game);
+		balance.balanceTeams(playerList, game, gameObject);
 	})
 }
 
 // Handling of voteMessageReactions
 // TODO: Refactor the following three methods
-function voteMessageReaction(messageReaction){
+// TODO Game: check for old variable usage, use from gameobject instead
+function voteMessageReaction(messageReaction, gameObject){
 	// Check if majority number contain enough players playing
 	if(messageReaction.emoji.toString() === emoji_agree){
 		voteMessageTextUpdate(messageReaction)
 		.then(result => {
-			handleRelevantEmoji(true, teamWon, messageReaction, result.amountRelevant, result.totalNeeded);	
+			handleRelevantEmoji(true, teamWon, messageReaction, result.amountRelevant, result.totalNeeded, gameObject);	
 		});
 	}else if(messageReaction.emoji.toString() === emoji_disagree){
 		var amountRelevant = countAmountUsersPlaying(balanceInfo.team1, messageReaction.users) + countAmountUsersPlaying(balanceInfo.team2, messageReaction.users);
 		var totalNeeded = (balanceInfo.team1.length + 1);
-		handleRelevantEmoji(false, teamWon, messageReaction, amountRelevant, totalNeeded);
+		handleRelevantEmoji(false, teamWon, messageReaction, amountRelevant, totalNeeded, gameObject);
 	}
 }
 
@@ -610,12 +627,16 @@ async function voteMessageTextUpdate(messageReaction){
 }
 
 // Handle relevant emoji
-function handleRelevantEmoji(emojiConfirm, winner, messageReaction, amountRelevant, totalNeeded){
+function handleRelevantEmoji(emojiConfirm, winner, messageReaction, amountRelevant, totalNeeded, gameObject){
 	//console.log('DEBUG: @handleRelevantEmoji', amountRelevant, totalNeeded, emojiConfirm);
 	if(amountRelevant >= totalNeeded){
 		if(emojiConfirm){
 			console.log(emoji_agree + ' CONFIRMED! ' + ' (' + amountRelevant + '/' + totalNeeded + ') Removing voteText msg and team#Won msg');
-			mmr_js.updateMMR(winner, balanceInfo, callbackGameFinished); // Update mmr for both teams
+			mmr_js.updateMMR(winner, gameObject, function(message){
+				console.log('DEBUG @callbackGameFinished - Calls on exit after delete on this message');
+				f.deleteDiscMessage(message, removeBotMessageDefaultTime * 2, 'gameFinished');
+				cleanOnGameEnd(gameObject);
+			}); // Update mmr for both teams
 			console.log('DEBUG CHECK ME: ARE THE TWO FOLLOWING THE SAME: ', messageReaction.message.content, voteMessage.content); // TODO Check: are these the same
 			f.deleteDiscMessage(messageReaction.message, 3000, 'voteMessage');
 			f.deleteDiscMessage(teamWonMessage, 3000, 'teamWonMessage');
@@ -749,9 +770,10 @@ function buildHelpString(userID, messageNum){
 	}
 }
 
-// Used to delete messages if interrupts occur
-// TODO Change name to represent more of the cleaning aspect instead of exiting
-function onExit(){
+// Used to delete messages if game ended
+// Takes GameObject to clean
+function cleanOnGameEnd(gameObject){
+	var mapMessages = gameObject.getMapMessages();
 	if(!f.isUndefined(mapMessages)){
 		for(var i = mapMessages.length - 1; i >= 0; i--){
 			f.deleteDiscMessage(mapMessages[i], 0, 'mapMessages['+i+']', function(msg){
@@ -762,21 +784,22 @@ function onExit(){
 			});	
 		}
 	}
-	if(!f.isUndefined(mapStatusMessage)){
-		f.deleteDiscMessage(mapStatusMessage, 0, 'mapStatusMessage');	
+	if(!f.isUndefined(gameObject.getMapStatusMessage())){
+		f.deleteDiscMessage(gameObject.getMapStatusMessage(), 0, 'mapStatusMessage');	
 	}
-	if(!f.isUndefined(voteMessage)){
-		f.deleteDiscMessage(voteMessage, 0, 'voteMessage');
+	if(!f.isUndefined(gameObject.getVoteMessage())){
+		f.deleteDiscMessage(gameObject.getVoteMessage(), 0, 'voteMessage');
 	}
-	if(!f.isUndefined(teamWonMessage)){
-		f.deleteDiscMessage(teamWonMessage, 0, 'teamWonMessage');
+	if(!f.isUndefined(gameObject.getTeamWonMessage())){
+		f.deleteDiscMessage(gameObject.getTeamWonMessage(), 0, 'teamWonMessage');
 	}
-	if(!f.isUndefined(matchupServerMsg)){
-		f.deleteDiscMessage(matchupServerMsg, 0, 'matchupServerMsg');
+	if(!f.isUndefined(gameObject.getMatchupServerMsg())){
+		//console.log('DEBUG getMatchupServerMsg cleanOnGameEnd', gameObject.getMatchupServerMsg().content);
+		f.deleteDiscMessage(gameObject.getMatchupServerMsg(), 0, 'matchupServerMsg');
 	}
-	if(!f.isUndefined(matchupMessage)){
-		//console.log('DEBUG matchupMessage onExit', matchupMessage.content);
-		f.deleteDiscMessage(matchupMessage, 0, 'matchupMessage');
+	if(!f.isUndefined(gameObject.getMatchupMessage())){
+		//console.log('DEBUG matchupMessage cleanOnGameEnd', gameObject.getMatchupMessage().content);
+		f.deleteDiscMessage(gameObject.getMatchupMessage(), 0, 'matchupMessage');
 	}
 }
 
@@ -793,52 +816,12 @@ async function callbackVoteText(message){
 	message.react(emoji_disagree);
 }
 
-function callbackGameCanceled(message){
-	f.deleteDiscMessage(message, 15000, 'gameCanceled');
-	onExit();
-}
-
-function callbackGameFinished(message){ 
-	console.log('DEBUG @callbackGameFinished - Calls on exit after delete on this message');
-	f.deleteDiscMessage(message, removeBotMessageDefaultTime * 2, 'gameFinished');
-	onExit();
-}
-
 function noop(message){ // callback used when no operation is wanted
 	// Doesn't delete the message
 }
 
-// Should contain all reset logic to get back to stage 0
-function setStage(value){
-	stage = value;
-	if(value === 0){
-		map_js.bannedMaps = [];
-	}
-}
-
-exports.setStage = function(value){
-	setStage(value);
-}
-
-exports.printMessage = function(message, callback = noop){ // Default: NOT removing message
-	f.print(matchupMessage, message, callback);
-}
-
-// TODO: guildSnowFlake for all setters
-exports.setBalanceInfo = function(obj){
-	balanceInfo = obj;
-}
-
-exports.setMatchupMsg = function(matchupMsg){
-	matchupServerMsg = matchupMsg;
-}
-
-exports.getMapStatusMessage = function(){
-	return mapStatusMessage;
-}
-
-exports.setMapStatusMessage = function(variable){
-	mapStatusMessage = variable;
+exports.printMessage = function(message, channelMessage, callback = noop){ // Default: NOT removing message
+	f.print(channelMessage, message, callback);
 }
 
 exports.getPrefix = function(){
