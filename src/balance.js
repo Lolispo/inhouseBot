@@ -58,8 +58,8 @@ function recursiveFor(startIndex, indexes, len, forloopindex, teamCombs, uniqueC
 // Store combinations for the given player indexes (players) and stores it in teamcombs
 // uniqueCombs holds a number that represent equal combinations of players, as well as their reverseComb
 function combinationAdder(teamCombs, uniqueCombs, players){
-	const reducer = (accumulator, currentValue) => accumulator + currentValue;
-	var uniqueSum = players.map(uniVal).reduce(reducer);  // Sum over uniVal for each player index, creating unique sum
+	const adder = (accumulator, currentValue) => accumulator + currentValue;
+	var uniqueSum = players.map(uniVal).reduce(adder);  // Sum over uniVal for each player index, creating unique sum
 	if(!uniqueCombs.has(uniqueSum)){	
 		var teamComb = players;
 		teamCombs.push(teamComb); // Add new combination to teamCombs
