@@ -2,6 +2,7 @@
 // Author: Petter Andersson
 
 const bot = require('./bot');
+const game_js = require('./game');
 
 /*
 	Handles getting the most balanced team matchup for the given 10 players
@@ -13,13 +14,13 @@ const bot = require('./bot');
 */
 
 // @param players should contain Array of initialized Players of people playing
-exports.balanceTeams = function(players, game){
+exports.balanceTeams = function(players, game, gameObject){
 	// Generate team combs, all possibilities of the 10 players
 	var teamCombs = generateTeamCombs(players);
 	var result = findBestTeamComb(players, teamCombs, game);
 
 	// Return string to message to clients
-	buildReturnString(result, callbackBalanceInfo); // callbackBalanceInfo = method 
+	buildReturnString(result, gameObject, callbackBalanceInfo); // callbackBalanceInfo = method 
 }
 
 // Generates the combinations for different team sizes
@@ -170,10 +171,9 @@ function addTeamMMR(team, game){ // Function to be used in summing over players
 }
 
 // Build a string to return to print as message
-function buildReturnString(obj, callback){ // TODO: Print``
-	//console.log('DEBUG: @buildReturnString', obj);
+function buildReturnString(obj, gameObject, callback){ // TODO: Print``
 	var s = '';
-	console.log('@buildReturnString', obj)
+	//console.log('@buildReturnString', obj)
 	s += '**New Game!** Playing **' + obj.game + '**. ';
 	if(obj.team1.length === 1){ // No average for 2 player matchup
 		s += 'MMR diff: ' + obj.difference + ' mmr. ';
@@ -192,15 +192,12 @@ function buildReturnString(obj, callback){ // TODO: Print``
 	}
 	s += '*\n\n';
 	s += '*Connect:* \n**' + bot.getLukasIP() + '**'; // Lukas' server on datHost, requires Petter/Lukas/Martin ingame to use
-	callback(1, s, obj); // Should send the message back to the bot
+	callback(gameObject, s, obj); // Should send the message back to the bot
 }
 
-function callbackBalanceInfo(stage, message, obj){
-	bot.setStage(stage);
-	bot.printMessage(message, callbackSetMatchupGameMessage);
-	bot.setBalanceInfo(obj);
-}
-
-function callbackSetMatchupGameMessage(message){
-	bot.setMatchupMsg(message);
+function callbackBalanceInfo(gameObject, message, obj){	
+	gameObject.setBalanceInfo(obj);
+	bot.printMessage(message, gameObject.getChannelMessage(), function(message){
+		gameObject.setMatchupServerMessage(message);
+	});
 }

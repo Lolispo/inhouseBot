@@ -11,12 +11,13 @@ const db_sequelize = require('./db-sequelize');
 */
 
 // Update mmr for all players and returns result to clients
-exports.updateMMR = function(winner, balanceInfo, callbackUpdate){ // winner = 0 -> draw, 1 -> team 1, 2 -> team 2
+exports.updateMMR = function(winner, gameObject, callbackUpdate){ // winner = 0 -> draw, 1 -> team 1, 2 -> team 2
+	var balanceInfo = gameObject.getBalanceInfo();
 	var mmrChange = eloUpdate(balanceInfo.avgT1, balanceInfo.avgT2, winner); 
 	updateTeamMMR(balanceInfo.team1, mmrChange.t1, balanceInfo.game);
 	updateTeamMMR(balanceInfo.team2, mmrChange.t2, balanceInfo.game);
 
-	buildMMRUpdateString(winner, callbackResult, balanceInfo.team1, balanceInfo.team2, callbackUpdate, balanceInfo.game);
+	buildMMRUpdateString(winner, callbackResult, balanceInfo.team1, balanceInfo.team2, callbackUpdate, balanceInfo.game, gameObject);
 }
 
 // Calculates the mmr change for two teams with given average team mmr and winner
@@ -72,7 +73,7 @@ function updateTeamMMR(team, change, game){
 
 // After a finished game, prints out new updated mmr
 // TODO: Print``
-function buildMMRUpdateString(team1Won, callback, T1, T2, callbackkUpdate, game){
+function buildMMRUpdateString(team1Won, callback, T1, T2, callbackUpdate, game, gameObject){
 	var s = ''; 
 	s += '**Team ' + (team1Won ? '1' : '2') + ' won!** Played game: **' + game + '**. Updated mmr is: \n';
 	s += '**Team 1**: \n\t*' + T1[0].userName + ' (' + T1[0].getMMR(game) + ' mmr, ' + T1[0].getGame(game).prevMMR + ' ' + T1[0].getGame(game).latestUpdatePrefix + T1[0].getGame(game).latestUpdate + ')';
@@ -85,12 +86,12 @@ function buildMMRUpdateString(team1Won, callback, T1, T2, callbackkUpdate, game)
 		s += '\n\t' + T2[i].userName + ' (' + T2[i].getMMR(game) + ' mmr, ' + T2[i].getGame(game).prevMMR + ' ' + T2[i].getGame(game).latestUpdatePrefix + T2[i].getGame(game).latestUpdate + ')';
 	}
 	s += '*\n';
-	callback(0, s, callbackUpdate);
+	callback(gameObject, s, callbackUpdate);
 }
 
-function callbackResult(stage, message, callback){
-	bot.setStage(stage);
-	bot.printMessage(message, callback);
+function callbackResult(gameObject, message, callback){
+	// TODO Game: Get Game instead, have printMessage
+	bot.printMessage(message, gameObject.getChannelMessage(), callback);
 }
 
 
