@@ -326,7 +326,7 @@ function handleQuestions(questions, callback){
 		var charCounter = cen_obj.charCounter;
 		var indexes = [];
 		var current_question = thisQuestion.question.toLowerCase();
-		if(current_question.includes('following') || current_question.includes('which of these')){
+		if(current_question.includes('following') || current_question.includes('which of these') || current_question.includes('which one of these')){
 			// Filter out bad questions for this format
 			console.log('Skipping a question, Question: ' + parseMessage(thisQuestion.question));
 			thisQuestion.used = false;
