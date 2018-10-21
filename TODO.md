@@ -1,9 +1,7 @@
 # TODO:
-#### Need to check all functionality, since so much is changed
+## Need to check all functionality, since so much is changed, refactored and untested!
 
 ## Features:
-
-### Reduce amount of necessary fields
 
 ## Unite all exploit dodge
     
@@ -11,37 +9,27 @@
         Then, possible to unUniteAll to revert exploit 
     Should everyone be allowed to uniteall?
 
-## Support starting multiple games at the same time
-
-### Create Game object when starting game holding activeMembers, gameid etc
-### Potentially save this to file to solve following
+### Pickup games from crash from file
     "activeGames.txt"
     Support restarting bot and realizing game is going
         Potentially -pickupGame [disc message ID] or something
         Requires to pickupGame on startup of bot
     Iterate through file and recreate game object from this
         Remove messages, delete all on startup aswell, so bot doesn't clog unnecessarily
-        Update all uses of activeMembers
-        Store gameid on players when starting game
-        For every command currently requiring stage 1, check gameID => check if player is inGame => effect for that game. Else nothing ("not in a game")
-        Should remove phase 0 and 1 from code
-            Don't allow to start a game when you already are in a game
 ### Add log for all data, all prints should also write to logfile so dumps are saved to be analyzed
     Currently pipes >> OUTPUT.log 2>ERROR.log
 ## Trivia
-    NaN results fixed? Might still exist on -exit command + user that didn't start the trivia
-    If spam bot, it can print new questions result with last responses answer
-        Check to make sure it prints the newest questions repsonse at all time
-    Something about caps in ans
+    Check Bug:
+        NaN results fixed? Might still exist on -exit command + user that didn't start the trivia
+        If spam bot, it can print new questions result with last responses answer
+            Check to make sure it prints the newest questions repsonse at all time
+        Something about caps in ans
+        Prevent starting 2 games at once
+            Move so faster block to prevent more than one trivia trying to start
     Report Question button, saves question for analysis
         If question is uninteresting (which of the following, should be filtered) or buggy
         Update Text on start trivia with this feature when implemented
-    Prevent starting 2 games at once
-        Move so faster block to prevent more than one trivia trying to start
-    Decrease point for all players (some rule to not increase if you have below a certain value through this) on hint reveals as well
-        Only decrease the people with highest potential point earnings (Down to 3?)
     If noone answered anything 5 questions (attempted) in a row, end questions
-    Make it known that prefix commands wont work in trivia channel
 ### Check to see if optional prefix can be used elsewhere (used in trivia)
         Move functional call to f, so only requires array of commands, f handles prefix check
 ### Split command check for empty available channels if Team1 & Team2 isn't available
@@ -67,8 +55,8 @@
             If challenged: message that user where user can react to response in dm. Update in channel that match is on
             Reference TODO: Challenge
 ### Save every field as a Collection{GuildSnowflake -> field variable} to make sure bot works on many servers at once
-#### Put on hold until Game Object is made
-        Change bot to be instances instead of file methods, reach everything from guildSnowflake then (same logic as player but for bot)
+    Normal game should work on many channels at once, trivia will not atm. Game object trivia?
+    Change bot to be instances instead of file methods, reach everything from guildSnowflake then (same logic as player but for bot)
         Reference: TODO: guildSnowFlake
 ### Alternative map veto system (faster). Ban message and pick message, maps through emotes. Add all for picks, remove for ban. Highest sum after time => chosen
 ## Refactor:
@@ -106,7 +94,7 @@
         Add feature for user to remove themself from databse (should not be used as a reset) = ban from system
 ## Big ideas:
 ### Add tournament mode, ladders, brackets etc
-### Twitter deathmatch
-### Add music functionality
-### Family Feud
-### Pick-em CS (Check on progames, choose stuff, hltv)
+### Twitter deathmatch - notification on pro cs dm sessions
+### Add music functionality - should be a lot available to look at
+### Family Feud - alternative trivia
+### Pick-em CS (Check on progames, choose stuff, hltv) (low prio)
