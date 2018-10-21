@@ -1,5 +1,11 @@
 { 
 	"prefix": "!",
 	"token": "Replace-me-with-a-real-token",
-	"dbpw": "database-pw-insert"
+	"db": {
+		"database": "database-name",
+		"user": "database-userName",
+		"dbpw": "database-pw-insert",
+		"host": "database-hostAdress",
+		"dialect": "mysql/postgresql, example 'mysql'"
+	}
 }

@@ -18,12 +18,12 @@ const db_sequelize = require('./db-sequelize');			// Handles communication with 
 const trivia = require('./trivia')						// Trivia
 const game_js = require('./game')
 
-const { prefix, token, dbpw } = require('../conf.json'); // Load config data from file
+const { prefix, token, db } = require('../conf.json'); // Load config data from file
 
 // will only do stuff after it's ready
 client.on('ready', () => {
 	console.log('ready to rumble');
-	db_sequelize.initDb(dbpw); // Initialize db-sequelize database on startup of bot
+	db_sequelize.initDb(db.database, db.user, db.dbpw, db.host, db.dialect); // Initialize db-sequelize database on startup of bot
 });
 
 // Login

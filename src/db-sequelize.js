@@ -48,10 +48,10 @@ function addMissingUsers(players, data, callback){
 }
 
 // Initializes sequelize variables for further usage
-var initDb = function(dbpw){
-	sequelize = new Sequelize('pettea', 'pettea_admin', dbpw, {
-		host: 'mysql-vt2016.csc.kth.se',
-		dialect: 'mysql',
+var initDb = function(database, user, dbpw, hostAddress, dialectDB){
+	sequelize = new Sequelize(database, user, dbpw, {
+		host: hostAddress,
+		dialect: dialectDB,
 		operatorsAliases: false
 	});
 
