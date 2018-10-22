@@ -44,11 +44,15 @@ var deleteDiscMessage = function(messageVar, time = bot.getRemoveTime(), message
 	setTimeout(function(){
 		console.log('----- @Delete Message --- for ' + messageName + ':', listToDeleteFrom.has(messageName), time);
 		if(listToDeleteFrom.has(messageName)){ // Makes sure it isn't already deleted
+			console.log('DEBUG @f.deleteDiscMessage', messageName, listToDeleteFrom.has(messageName));
 			listToDeleteFrom.delete(messageName);
 			messageVar.delete()
 			.then(res => {
 				callback(res); // Use optional callback (Default noop)
-			}).catch(err => console.log('@delete for ' + messageName + ' (' + time + '): \n' + err));
+			}).catch(err => {
+				console.log('@delete for ' + messageName + ' (' + time + '): \n' + err);
+				callback(messageVar);	// Call callback anyway, even if print isn't made
+			});
 		}
 	}, time);
 }
