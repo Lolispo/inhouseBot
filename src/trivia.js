@@ -41,7 +41,7 @@ const lengthForEvenFaster = 16;
 const maxPossiblePoints = 5;
 const maxAllowedAnswerLength = 30;
 const waitTimeStartQuestion = 3000;
-const invalidInput = bot.getPrefix() + '<INVALID INPUT>';
+const invalidInput = '<INVALID INPUT>';
 const exitCommands = ['exit', 'exitgame', 'exittrivia', 'quit', 'quitTrivia'];
 
 // Checks logic for message, matches with current answer
