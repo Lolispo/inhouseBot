@@ -3,7 +3,7 @@
 var request = require('request');
 const Entities = require('html-entities').XmlEntities;
  
-const entities = new Entities();
+const entities = new Entities(); // Used to fix html chars
 
 /* 
 	Handles a trivia gamemode
@@ -41,6 +41,7 @@ const lengthForEvenFaster = 16;
 const maxPossiblePoints = 5;
 const maxAllowedAnswerLength = 30;
 const waitTimeStartQuestion = 3000;
+const invalidInput = bot.getPrefix() + '<INVALID INPUT>';
 const exitCommands = ['exit', 'exitgame', 'exittrivia', 'quit', 'quitTrivia'];
 
 // Checks logic for message, matches with current answer
@@ -54,7 +55,7 @@ exports.isCorrect = function(message){
 		f.print(message, 'Exit command used. This is the final question!');
 		lastQuestionIndex = questionIndex;
 	}
-	if(message.content.toLowerCase() === ans.toLowerCase()){
+	if(message.content.toLowerCase() === ans.toLowerCase() && message.content.toLowerCase() !== invalidInput){
 		var player = player_js.getPlayer(activePlayers, message.author.id);
 		if(f.isUndefined(player)){
 			var tempPlayer = player_js.createPlayer(message.author.username, message.author.id);
@@ -103,6 +104,7 @@ function updateTriviaMMR(message, player){
 }
 
 function callbackFinishMessage(message, messageString){
+	console.log('DEBUG @callbackFinishMessage ' + messageString);
 	f.print(message, messageString , function(msg){
 		finishMessage = msg;
 		finishedQuestion();
@@ -157,6 +159,7 @@ function startQuestion(){
 	} else{
 		if(!activeQuestion){
 			activeQuestion = true;
+			ans = invalidInput;
 			setTimeout(function(){
 				console.log('Starting new Question[' + questionIndex + '], done = ' + done[questionIndex]);
 				var q = questionsArray[questionIndex];

@@ -20,6 +20,8 @@
     Currently pipes >> OUTPUT.log 2>ERROR.log
 ## Trivia
     Check Bug:
+        If you answer question -> between questions => 2 questions, since ans var is still active
+            Check
         NaN results fixed? Might still exist on -exit command + user that didn't start the trivia
         If spam bot, it can print new questions result with last responses answer
             Check to make sure it prints the newest questions repsonse at all time
