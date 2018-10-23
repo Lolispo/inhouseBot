@@ -44,13 +44,24 @@ const waitTimeStartQuestion = 3000;
 const invalidInput = '<INVALID INPUT>';
 const exitCommands = ['exit', 'exitgame', 'exittrivia', 'quit', 'quitTrivia'];
 
+// Valid user doing the command
+function isAuthorized(message){
+	return author === message.author || bot.getAdminUids().includes(message.author.id);
+}
+
+// Valid command, either matches a exitcommand or is a exitcommand with prefix before
+function isExitCommand(message){
+	return (exitCommands.includes(message.content.toLowerCase()) || 
+		(
+			exitCommands.includes(message.content.toLowerCase().slice(bot.getPrefix().length)) && 
+			(bot.getPrefix() === message.content.toLowerCase().slice(0, bot.getPrefix().length)) 
+		) 
+	) 
+}
+
 // Checks logic for message, matches with current answer
 exports.isCorrect = function(message){
-	if((author === message.author || bot.getAdminUids().includes(message.author.id)) // Valid user doing the command
-		&& 	(exitCommands.includes(message.content.toLowerCase()) || 
-				(exitCommands.includes(message.content.toLowerCase().slice(bot.getPrefix().length)) && (bot.getPrefix() === message.content.toLowerCase().slice(0, bot.getPrefix().length)) ) 
-			) // Valid command, either matches a exitcommand or is a exitcommand with prefix before
-		){
+	if(isAuthorized(message) && isExitCommand(message)){
 		// Makes this the final question
 		f.print(message, 'Exit command used. This is the final question!');
 		lastQuestionIndex = questionIndex;
