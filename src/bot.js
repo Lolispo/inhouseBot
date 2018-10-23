@@ -280,7 +280,7 @@ function handleMessage(message) {
 							difficulty = 'easy';			
 						}
 				}
-				console.log('Modes: category = ' + category + ', difficulty = ' + difficulty);
+				console.log('Modes: category = ' + category + ', difficulty = ' + difficulty); // TODO: Print me somewhere (on Trivia start)
 				trivia.getDataQuestions(message, amount, category, difficulty);
 			} else{ // No mode chosen, use default
 				console.log('No mode chosen, use default (mode.length = ' + mode.length + ')');

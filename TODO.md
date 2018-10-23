@@ -19,7 +19,10 @@
 ### Add log for all data, all prints should also write to logfile so dumps are saved to be analyzed
     Currently pipes >> OUTPUT.log 2>ERROR.log
 ## Trivia
-        Print Game Mode that is chosen
+    Refactor:
+        when user starts -> send on startGame
+        startGame sends on buildString, getDataQuestions and bot.getPlayers()
+        then print 'start game of trivia' and buildString => same as before
     Check Bug:
         If you answer question -> between questions => 2 questions, since ans var is still active
             Check
