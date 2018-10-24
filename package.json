@@ -4,7 +4,7 @@
   "description": "inhouse matchmaking",
   "main": "bot.js",
   "scripts": {
-    "test": "check-node-version --node \">= 8\" && node src/bot.js",
+    "test": "check-node-version --node \">= 8\" && mocha",
     "start": "check-node-version --node \">= 8\" && node src/bot.js"
   },
   "repository": {
@@ -22,6 +22,7 @@
     "discord.js": "^11.3.2",
     "fs": "0.0.1-security",
     "html-entities": "^1.2.1",
+    "mocha": "^5.2.0",
     "moment": "^2.22.1",
     "mysql2": "^1.5.3",
     "node-cleanup": "^2.1.2",

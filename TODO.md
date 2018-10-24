@@ -3,6 +3,8 @@
 
 ## Features:
 
+## Add run.sh to git
+
 ## Unite all exploit dodge
     
     Before uniting all players, should save their current voiceChannel
