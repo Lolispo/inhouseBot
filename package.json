@@ -28,6 +28,7 @@
     "node-cleanup": "^2.1.2",
     "npm": "^6.4.1",
     "request": "^2.87.0",
+    "rewire": "^4.0.1",
     "sequelize": "^4.37.6"
   }
 }
