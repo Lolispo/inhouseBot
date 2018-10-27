@@ -208,13 +208,8 @@ function handleMessage(message) {
 		});;
 		f.deleteDiscMessage(message, 10000, 'helpAll');
 	}
-	// Start game
-	else if(startsWith(message, balanceCommands)){
-		balanceCommand(message);
-	}
-
-	// Duel, balance for 2 players
-	else if(startsWith(message, duelCommands)){
+	// Start game, through balance or Duel, balance for 2 players
+	else if(startsWith(message, balanceCommands) || startsWith(message, duelCommands)){
 		balanceCommand(message);
 	}
 	
