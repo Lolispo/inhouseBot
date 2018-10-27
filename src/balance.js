@@ -79,14 +79,10 @@ function reverseUniqueSum(list, len){
 	//console.log('DEBUG: @reverseUniqueSum', list, len);
 	var sum = 0;
 	for(var i = 0; i < len; i++){
-		var exists = false;
-		for(var j = 0; j < list.length; j++){
-			if(list[j] === i){
-				exists = true;
-				break;
-			}
-		}
-		if(!exists){
+		var found = list.some(function(el){
+			return el === i;
+		});
+		if(!found){
 			sum += uniVal(i);
 		}
 	}
