@@ -37,7 +37,7 @@ function generateTeamCombs(players){
 	}
 
 	recursiveFor(0, [], len, 0, teamCombs, uniqueCombs);
-
+	
 	//console.log('DEBUG: @generateTeamCombs, teamCombs = ', teamCombs, teamCombs.length, uniqueCombs, uniqueCombs.size);
 	return teamCombs;
 }
@@ -45,10 +45,10 @@ function generateTeamCombs(players){
 // Fills teamCombs with the teamcombination given amount of players
 function recursiveFor(startIndex, indexes, len, forloopindex, teamCombs, uniqueCombs){
 	for(var i = startIndex; i < len; i++){
-		var indexesArray = indexes.slice();
-		indexesArray.push(i);
+		var indexesArray = indexes.slice(); // Copy of array
 		if(forloopindex < len/2){
-			recursiveFor(startIndex + 1, indexesArray, len, forloopindex + 1, teamCombs, uniqueCombs);
+			indexesArray.push(i);		 	// Add current index to indexes
+			recursiveFor(i + 1, indexesArray, len, forloopindex + 1, teamCombs, uniqueCombs);
 		} else {
 			combinationAdder(teamCombs, uniqueCombs, indexesArray);
 		}
