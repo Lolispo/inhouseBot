@@ -2,7 +2,7 @@
 // Author: Petter Andersson and Robert Wörlund
 
 const bot = require('./bot');
-const db_sequelize = require('./db-sequelize');
+const db_sequelize = require('./db_sequelize');
 
 /*
 	Handles MMR calculations and updates

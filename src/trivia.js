@@ -7,13 +7,13 @@ const entities = new Entities(); // Used to fix html chars
 
 /* 
 	Handles a trivia gamemode
-	Uses player and db-sequelize to update rating
+	Uses player and db_sequelize to update rating
 */
 
 const f = require('./f');
 const player_js = require('./player');
 const bot = require('./bot');
-const db_sequelize = require('./db-sequelize');
+const db_sequelize = require('./db_sequelize');
 
 var gameOnGoing = false;
 var author;

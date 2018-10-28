@@ -152,7 +152,7 @@ var getTabsForName = function(nameLength, longestName){
 	return s;
 }
 
-// TODO: Redo all public functions like this? Atleast in file that requires usage on methods from both inside and outside (currently f and db-sequelize)
+// TODO: Redo all public functions like this? Atleast in file that requires usage on methods from both inside and outside (currently f and db_sequelize)
 module.exports = {
 	isUndefined : isUndefined,
 	print : print,

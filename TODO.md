@@ -82,7 +82,7 @@ Add integration tests for main functionalities
 ## Tests:
 ### Add test method so system can test balance / matchmaking without updating db on every match (-balance test or something)
 ## Deluxe Features (Ideas):
-### Remake db-sequelize with mysql lib instead of sequelize
+### Remake db_sequelize with mysql lib instead of sequelize
 ### (Different System for Starting MMR)
         Start MMR chosen as either 2400, 2500 or 2600 depending on own skill, for better distribution in first games, better matchup
         OR

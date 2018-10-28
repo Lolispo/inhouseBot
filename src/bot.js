@@ -14,7 +14,7 @@ const mmr_js = require('./mmr');						// Handles balanced mmr update
 const player_js = require('./player');					// Handles player storage in session, the database in action
 const map_js = require('./mapVeto');					// MapVeto system
 const voiceMove_js = require('./voiceMove'); 			// Handles moving of users between voiceChannels
-const db_sequelize = require('./db-sequelize');			// Handles communication with db
+const db_sequelize = require('./db_sequelize');			// Handles communication with db
 const trivia = require('./trivia')						// Trivia
 const game_js = require('./game')
 
@@ -23,7 +23,7 @@ const { prefix, token, db } = require('../conf.json'); // Load config data from 
 // will only do stuff after it's ready
 client.on('ready', () => {
 	console.log('ready to rumble');
-	db_sequelize.initDb(db.database, db.user, db.dbpw, db.host, db.dialect); // Initialize db-sequelize database on startup of bot
+	db_sequelize.initDb(db.database, db.user, db.dbpw, db.host, db.dialect); // Initialize db_sequelize database on startup of bot
 });
 
 // Login
