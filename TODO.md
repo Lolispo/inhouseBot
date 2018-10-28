@@ -1,11 +1,17 @@
 # TODO:
 ## Need to check all functionality, since so much is changed, refactored and untested!
 
+## Tests
+
+Add unit tests for all files
+
+Add integration tests for main functionalities
+
 ## Features:
 
-## Add run.sh to git
+### Rewrite print game modes to use Map of trivia game modes
 
-## Unite all exploit dodge
+### Unite all exploit dodge
     
     Before uniting all players, should save their current voiceChannel
         Then, possible to unUniteAll to revert exploit 
@@ -19,12 +25,8 @@
     Iterate through file and recreate game object from this
         Remove messages, delete all on startup aswell, so bot doesn't clog unnecessarily
 ### Add log for all data, all prints should also write to logfile so dumps are saved to be analyzed
-    Currently pipes >> OUTPUT.log 2>ERROR.log
+    Currently pipes >> OUTPUT.log 2>ERROR.log in shell script
 ## Trivia
-    Refactor:
-        when user starts -> send on startGame
-        startGame sends on buildString, getDataQuestions and bot.getPlayers()
-        then print 'start game of trivia' and buildString => same as before
     Check Bug:
         If you answer question -> between questions => 2 questions, since ans var is still active
             Check
