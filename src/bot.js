@@ -275,11 +275,11 @@ function handleMessage(message) {
 							difficulty = 'easy';			
 						}
 				}
-				console.log('Modes: category = ' + category + ', difficulty = ' + difficulty); // TODO: Print me somewhere (on Trivia start)
+				console.log('Modes: category = ' + category + ', difficulty = ' + difficulty);
 				trivia.getDataQuestions(message, amount, category, difficulty);
 			} else{ // No mode chosen, use default
 				console.log('No mode chosen, use default (mode.length = ' + mode.length + ')');
-				trivia.getDataQuestions(message, amount, 0, 'easy'); // allsubjectseasy
+				trivia.getDataQuestions(message, amount); // allsubjectseasy
 			}
 		} else { // Game currently on, don't start another one
 			console.log('Duplicate Trivia starts, ignoring ' + message.content + ' ...');

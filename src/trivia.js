@@ -43,6 +43,35 @@ const maxAllowedAnswerLength = 30;
 const waitTimeStartQuestion = 3000;
 const invalidInput = '<INVALID INPUT>';
 const exitCommands = ['exit', 'exitgame', 'exittrivia', 'quit', 'quitTrivia'];
+const trivia_gamemodes = new Map([
+	[0, 'All subjects'],
+	[1, 'Games'],
+	[2, 'General Knowledge'],
+	[9, 'General Knowledge'],
+	[10, 'Entertainment: Books'],
+	[11, 'Entertainment: Film'],
+	[12, 'Entertainment: Music'],
+	[13, 'Entertainment: Musicals & Theatres'],
+	[14, 'Entertainment: Television'],
+	[15, 'Entertainment: Video Games'],
+	[16, 'Entertainment: Board Games'],
+	[17, 'Science & Nature'],
+	[18, 'Science: Computers'],
+	[19, 'Science: Mathematics'],
+	[20, 'Mythology'],
+	[21, 'Sports'],
+	[22, 'Geography'],
+	[23, 'History'],
+	[24, 'Politics'],
+	[25, 'Art'],
+	[26, 'Celebrities'],
+	[27, 'Animals'],
+	[28, 'Vehicles'],
+	[29, 'Entertainment: Comics'],
+	[30, 'Science: Gadgets'],
+	[31, 'Entertainment: Japanese Anime & Manga'],
+	[32, 'Entertainment: Cartoons & Animations'],
+]);
 
 // Valid user doing the command
 function isAuthorized(message){
@@ -240,8 +269,9 @@ function nextLessCensored(array, index, message, qIndex, waitTime){
 
 // Start getting questions from db
 // https://opentdb.com/api_config.php
-exports.getDataQuestions = function(message, amount = 15, category = 0, difficulty = 0){
+exports.getDataQuestions = function(message, amount = 15, category = 0, difficulty = 'easy'){
 	console.log('@getDataQuestions', amount, category, difficulty);
+	f.print(message, 'Trivia Mode: ' + trivia_gamemodes.get(category) + ', difficulty: ' + difficulty);
 	author = message.author;
 	messageVar = message;
 	var categories = '&category=';
