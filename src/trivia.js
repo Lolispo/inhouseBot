@@ -252,13 +252,15 @@ function nextLessCensored(array, index, message, qIndex, waitTime){
 					nextLessCensored(array, index + 1, msg, qIndex, waitTime);		
 				});
 			} else if(index === array.length){ // Out of hints, Fail -> next question
-				var noone_answered = 'Noone answered in time! Answer was: **' + ans + '**';
-				if(!f.isUndefined(finishMessage)){
-					f.deleteDiscMessage(finishMessage, 0, 'finishMessage', function(msg){
+				if(!lock){
+					var noone_answered = 'Noone answered in time! Answer was: **' + ans + '**';
+					if(!f.isUndefined(finishMessage)){
+						f.deleteDiscMessage(finishMessage, 0, 'finishMessage', function(msg){
+							callbackFinishMessage(message, noone_answered);
+						});	
+					} else {
 						callbackFinishMessage(message, noone_answered);
-					});	
-				} else {
-					callbackFinishMessage(message, noone_answered);
+					}					
 				}
 			} else{
 				censoredMessage.edit('`' + array[index] + '`')
