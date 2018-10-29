@@ -360,7 +360,9 @@ function getToken(a, c, d){
 function parseMessage(msg){
 	//console.log('Parsing Ans: ' + msg);
 	msg = entities.decode(msg);
-	msg = msg.replace(/&shy;/g,''); // '-\n' for linebreak (used to allow line breaks with - for big words)
+	msg = msg.replace(/&shy;/g, ''); // '-\n' for linebreak (used to allow line breaks with - for big words)
+	msg = msg.replace(/&prime;/g, "'");
+	msg = msg.replace(/&Prime;/g, '"');
 	return msg;
 }
 
@@ -375,7 +377,8 @@ function handleQuestions(questions, callback){
 		var charCounter = cen_obj.charCounter;
 		var indexes = [];
 		var current_question = thisQuestion.question.toLowerCase();
-		if(current_question.includes('following') || current_question.includes('which of these') || current_question.includes('which one of these')){
+		if(current_question.includes('following') || current_question.includes('which of these') || current_question.includes('which one of these') 
+				|| current_question.includes("who out of these")){
 			// Filter out bad questions for this format
 			console.log('Skipping a question, Question: ' + parseMessage(thisQuestion.question));
 			thisQuestion.used = false;
