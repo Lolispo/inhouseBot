@@ -32,6 +32,7 @@ var censoredMessage;
 var shuffledMessage;
 var finishMessage;
 var allMessages = [];
+var lock = false;
 
 const channelName = 'trivia-channel';
 const token_fileName = 'trivia.token'; // TODO: Change to ../tmp/trivia.token (process.cwd())
@@ -95,8 +96,8 @@ exports.isCorrect = function(message){
 		f.print(message, 'Exit command used. This is the final question!');
 		lastQuestionIndex = questionIndex;
 	}
-	if(message.content.toLowerCase() === ans.toLowerCase() && message.content.toLowerCase() !== invalidInput){
-		ans = invalidInput;
+	if(message.content.toLowerCase() === ans.toLowerCase() && message.content.toLowerCase() !== invalidInput && !lock){
+		lock = true;
 		var player = player_js.getPlayer(activePlayers, message.author.id);
 		if(f.isUndefined(player)){
 			var tempPlayer = player_js.createPlayer(message.author.username, message.author.id);
@@ -203,6 +204,7 @@ function startQuestion(){
 			ans = invalidInput;
 			setTimeout(function(){
 				console.log('Starting new Question[' + questionIndex + '], done = ' + done[questionIndex]);
+				lock = false;
 				var q = questionsArray[questionIndex];
 				for(var i = questionIndex; i < lastQuestionIndex; i++){
 					if(!q.used){
