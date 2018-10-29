@@ -96,6 +96,7 @@ exports.isCorrect = function(message){
 		lastQuestionIndex = questionIndex;
 	}
 	if(message.content.toLowerCase() === ans.toLowerCase() && message.content.toLowerCase() !== invalidInput){
+		ans = invalidInput;
 		var player = player_js.getPlayer(activePlayers, message.author.id);
 		if(f.isUndefined(player)){
 			var tempPlayer = player_js.createPlayer(message.author.username, message.author.id);
