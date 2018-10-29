@@ -72,6 +72,7 @@ const trivia_gamemodes = new Map([
 	[31, 'Entertainment: Japanese Anime & Manga'],
 	[32, 'Entertainment: Cartoons & Animations'],
 ]);
+const trivia_difficulties = new Map([['easy', 'easy'], ['medium', 'medium'], []])
 
 // Valid user doing the command
 function isAuthorized(message){
@@ -271,7 +272,7 @@ function nextLessCensored(array, index, message, qIndex, waitTime){
 // https://opentdb.com/api_config.php
 exports.getDataQuestions = function(message, amount = 15, category = 0, difficulty = 'easy'){
 	console.log('@getDataQuestions', amount, category, difficulty);
-	f.print(message, 'Trivia Mode: ' + trivia_gamemodes.get(category) + ', difficulty: ' + difficulty);
+	f.print(message, 'Trivia Mode: ' + trivia_gamemodes.get(category) + ', difficulty: ' + (difficulty === 0 ? 'all': difficulty));
 	author = message.author;
 	messageVar = message;
 	var categories = '&category=';
