@@ -72,7 +72,6 @@ const trivia_gamemodes = new Map([
 	[31, 'Entertainment: Japanese Anime & Manga'],
 	[32, 'Entertainment: Cartoons & Animations'],
 ]);
-const trivia_difficulties = new Map([['easy', 'easy'], ['medium', 'medium'], []])
 
 // Valid user doing the command
 function isAuthorized(message){
