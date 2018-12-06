@@ -9,6 +9,10 @@ Add integration tests for main functionalities
 
 ## Features:
 
+### Cancel game after 24 h duration, to not have active games clog up for users
+
+### Add all cs maps emojis to git repo
+
 ### Rewrite print game modes to use Map of trivia game modes
 
 ### Unite all exploit dodge

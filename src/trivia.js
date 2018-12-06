@@ -359,6 +359,7 @@ function getToken(a, c, d){
 
 function parseMessage(msg){
 	//console.log('Parsing Ans: ' + msg);
+	// &Ouml; = ö, not handled by entities?
 	msg = entities.decode(msg);
 	msg = msg.replace(/&shy;/g, ''); // '-\n' for linebreak (used to allow line breaks with - for big words)
 	msg = msg.replace(/&prime;/g, "'");
