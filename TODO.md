@@ -9,6 +9,8 @@ Add integration tests for main functionalities
 
 ## Features:
 
+### eslint add
+
 ### Cancel game after 24 h duration, to not have active games clog up for users
 
 ### Add all cs maps emojis to git repo

@@ -26,9 +26,14 @@
     "moment": "^2.22.1",
     "mysql2": "^1.5.3",
     "node-cleanup": "^2.1.2",
-    "npm": "^6.4.1",
+    "npm": "^6.7.0",
     "request": "^2.87.0",
     "rewire": "^4.0.1",
     "sequelize": "^4.37.6"
+  },
+  "devDependencies": {
+    "eslint": "^5.12.1",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.16.0"
   }
 }
