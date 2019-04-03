@@ -16,7 +16,7 @@ const longLine = '\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\n
 
 var captainVote = function(messageReaction, user, mapMessage, gameObject){
 	console.log('DEBUG: CaptainVote', user.username, 'turn = ', gameObject.getMapVetoTurn());
-	if(user.id === gameObject.getCaptain1().uid && gameObject.getMapVetoTurn() === 0){ // Check to see if author is a captain and his turn
+	if(user.id === gameObject.getCaptain1().uid && gameObject.getMapVetoTurn() === 0){ // Check to see if author is a captain and his turn // Crash
 		handleCaptainMessage(user, mapMessage, gameObject);
 	} else if(user.id === gameObject.getCaptain2().uid && gameObject.getMapVetoTurn() === 1){
 		handleCaptainMessage(user, mapMessage, gameObject);

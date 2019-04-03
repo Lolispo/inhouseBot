@@ -147,7 +147,8 @@ exports.createGame = function(gameID, channelMessage){
 // Returns the game where the author is
 exports.getGame = function(author){
     return activeGames.find(function(game){
-        return game.containsPlayer(author.id)
+        console.log('@getGame', game, author.id, game.containsPlayer(author.id));
+        return game.containsPlayer(author.id);
     });
 }
 

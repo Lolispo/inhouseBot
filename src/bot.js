@@ -335,7 +335,7 @@ function handleMessage(message) {
 		var gameObject = game_js.getGame(message.author);
 		if(!f.isUndefined(gameObject)){
 			if(team1wonCommands.includes(message.content)){
-				var activeResultVote = gameObject.getTeamWon();
+				var activeResultVote = gameObject.getTeamWon(); // team1Won crash
 				if(activeResultVote === 2 || activeResultVote === 1 || activeResultVote === 0){
 					if(activeResultVote != 0){
 						f.print(message, 'Invalid command: Active result vote for this game already ongoing, for team ' + activeResultVote, callbackInvalidCommand);
@@ -349,7 +349,7 @@ function handleMessage(message) {
 				}
 			}
 			else if(team2wonCommands.includes(message.content)){
-				var activeResultVote = gameObject.getTeamWon();
+				var activeResultVote = gameObject.getTeamWon(); // not a function
 				if(activeResultVote === 2 || activeResultVote === 1 || activeResultVote === 0){
 					if(activeResultVote != 0){
 						f.print(message, 'Invalid command: Active result vote for this game already ongoing, for team ' + activeResultVote, callbackInvalidCommand);
