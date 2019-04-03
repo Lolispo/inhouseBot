@@ -51,6 +51,10 @@ function Game(gameID, channelMessage){
         return this.teamWonMessage;
     }
 
+    this.getTeamWon = function(value){
+        return this.teamWon;
+    }
+
     this.getMatchupServerMsg = function(){
         return this.matchupServerMsg;
     }
