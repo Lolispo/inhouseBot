@@ -96,6 +96,7 @@ var getHighestMMR = function(team, game){
 			index = i;
 		}
 	}
+	console.log('Highest mmr for team', highestMMR, team[index].userName);
 	return team[index];
 }
 
