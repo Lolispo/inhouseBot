@@ -78,13 +78,13 @@ async function mapVetoStart(message, gameObject, clientEmojis){
 
 // Create map messages, add default reactions and add them to mapMessageBuilder
 async function getMapMessages(message, clientEmojis){ // TODO Check Should run asynchrounsly, try setTimeout , 0 otherwise
-	initMap('Dust2', clientEmojis, message, callbackMapMessage);
-	initMap('Inferno', clientEmojis, message, callbackMapMessage);
-	initMap('Mirage', clientEmojis, message, callbackMapMessage);
-	initMap('Nuke', clientEmojis, message, callbackMapMessage);
-	initMap('Cache', clientEmojis, message, callbackMapMessage);
-	initMap('Overpass', clientEmojis, message, callbackMapMessage);
-	initMap('Train', clientEmojis, message, callbackMapMessage);
+	await initMap('Dust2', clientEmojis, message, callbackMapMessage);
+	await initMap('Inferno', clientEmojis, message, callbackMapMessage);
+	await initMap('Mirage', clientEmojis, message, callbackMapMessage);
+	await initMap('Nuke', clientEmojis, message, callbackMapMessage);
+	await initMap('Cache', clientEmojis, message, callbackMapMessage);
+	await initMap('Overpass', clientEmojis, message, callbackMapMessage);
+	await initMap('Train', clientEmojis, message, callbackMapMessage);
 }	
 
 

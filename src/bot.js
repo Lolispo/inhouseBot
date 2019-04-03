@@ -145,7 +145,7 @@ client.on('messageReactionRemove', (messageReaction, user) => {
 			var gameObject = game_js.getGame(user);
 			// Check if emojiReaction is on voteMessage, voteMessage != undefined
 			if(!f.isUndefined(gameObject) && !f.isUndefined(gameObject.getVoteMessage()) && messageReaction.message.id === gameObject.getVoteMessage().id){
-				voteMessageTextUpdate(messageReaction);
+				voteMessageTextUpdate(messageReaction, gameObject);
 			}
 			// React removed on something else
 		}
@@ -155,7 +155,7 @@ client.on('messageReactionRemove', (messageReaction, user) => {
 client.on('error', console.error);
 
 // Create more events to do fancy stuff with discord API
-
+let currentTeamWonGameObject;
 // Main message handling function 
 function handleMessage(message) { 
 	console.log('< MSG (' + message.channel.guild.name + '.' + message.channel.name + ') ' + message.author.username + ':', message.content); 
@@ -345,6 +345,7 @@ function handleMessage(message) {
 				} else {
 					gameObject.setTeamWonMessage(message);
 					gameObject.setTeamWon(1);
+					currentTeamWonGameObject = gameObject;
 					f.print(message, voteText + ' (0/' + (gameObject.getBalanceInfo().team1.length + 1)+ ')', callbackVoteText);
 				}
 			}
@@ -359,6 +360,7 @@ function handleMessage(message) {
 				} else {
 					gameObject.setTeamWonMessage(message);
 					gameObject.setTeamWon(2);
+					currentTeamWonGameObject = gameObject;
 					f.print(message, voteText + ' (0/' + (gameObject.getBalanceInfo().team2.length + 1)+ ')', callbackVoteText);
 				}
 			}
@@ -373,6 +375,7 @@ function handleMessage(message) {
 				} else {
 					gameObject.setTeamWonMessage(message);
 					gameObject.setTeamWon(0);
+					currentTeamWonGameObject = gameObject;
 					f.print(message, voteText + ' (0/' + (gameObject.getBalanceInfo().team1.length + 1)+ ')', callbackVoteText);
 				}
 			}
@@ -596,28 +599,31 @@ function testBalanceGeneric(game, gameObject){
 function voteMessageReaction(messageReaction, gameObject){
 	// Check if majority number contain enough players playing
 	if(messageReaction.emoji.toString() === emoji_agree){
-		voteMessageTextUpdate(messageReaction)
+		voteMessageTextUpdate(messageReaction, gameObject)
 		.then(result => {
-			handleRelevantEmoji(true, teamWon, messageReaction, result.amountRelevant, result.totalNeeded, gameObject);	
+			handleRelevantEmoji(true, gameObject.getTeamWon(), messageReaction, result.amountRelevant, result.totalNeeded, gameObject);	
 		});
-	}else if(messageReaction.emoji.toString() === emoji_disagree){
-		var amountRelevant = countAmountUsersPlaying(balanceInfo.team1, messageReaction.users) + countAmountUsersPlaying(balanceInfo.team2, messageReaction.users);
-		var totalNeeded = (balanceInfo.team1.length + 1);
-		handleRelevantEmoji(false, teamWon, messageReaction, amountRelevant, totalNeeded, gameObject);
+	} else if(messageReaction.emoji.toString() === emoji_disagree){
+		var amountRelevant = countAmountUsersPlaying(gameObject.getBalanceInfo().team1, messageReaction.users) + countAmountUsersPlaying(gameObject.getBalanceInfo().team2, messageReaction.users);
+		var totalNeeded = (gameObject.getBalanceInfo().team1.length + 1);
+		handleRelevantEmoji(false, gameObject.getTeamWon(), messageReaction, amountRelevant, totalNeeded, gameObject);
 	}
 }
 
 // Updates voteMessage on like / unlike the agree emoji
 // Is async to await the voteMessage.edit promise
 // TODO: Check if works still after refactor
-async function voteMessageTextUpdate(messageReaction){
-	var amountRel = await countAmountUsersPlaying(balanceInfo.team1, messageReaction.users) + countAmountUsersPlaying(balanceInfo.team2, messageReaction.users);
-	var totalNeed = await (balanceInfo.team1.length + 1);
+async function voteMessageTextUpdate(messageReaction, gameObject){
+	var amountRel = await countAmountUsersPlaying(gameObject.getBalanceInfo().team1, messageReaction.users) + countAmountUsersPlaying(gameObject.getBalanceInfo().team2, messageReaction.users);
+	var totalNeed = await (gameObject.getBalanceInfo().team1.length + 1);
 	//console.log('DEBUG: @messageReactionAdd, count =', amountRelevant, ', Majority number is =', totalNeeded);
 	var voteAmountString = ' (' + amountRel + '/' + totalNeed + ')';
 	var newVoteMessage = (voteText + voteAmountString);
-	voteMessage.content = newVoteMessage; // Not needed if await on edit? TODO: Check
-	await voteMessage.edit(newVoteMessage);
+	let newVoteMessageVar = gameObject.getVoteMessage()
+	newVoteMessageVar.content = newVoteMessage; 
+	await newVoteMessageVar.edit(newVoteMessage);
+	// await voteMessage.edit(newVoteMessage);
+	gameObject.setVoteMessage(newVoteMessageVar); // Not needed if await on edit? TODO: Check
 	return {amountRelevant: amountRel, totalNeeded: totalNeed}
 }
 
@@ -632,7 +638,7 @@ function handleRelevantEmoji(emojiConfirm, winner, messageReaction, amountReleva
 				f.deleteDiscMessage(message, removeBotMessageDefaultTime * 2, 'gameFinished');
 				cleanOnGameEnd(gameObject);
 			}); // Update mmr for both teams
-			console.log('DEBUG CHECK ME: ARE THE TWO FOLLOWING THE SAME: ', messageReaction.message.content, voteMessage.content); // TODO Check: are these the same
+			//console.log('DEBUG CHECK ME: ARE THE TWO FOLLOWING THE SAME: ', messageReaction.message.content, voteMessage.content); // TODO Check: are these the same
 			f.deleteDiscMessage(messageReaction.message, 3000, 'voteMessage');
 			f.deleteDiscMessage(teamWonMessage, 3000, 'teamWonMessage');
 		}else{
@@ -806,7 +812,7 @@ function callbackInvalidCommand(message){
 }
 
 async function callbackVoteText(message){
-	voteMessage = message;
+	currentTeamWonGameObject.setVoteMessage(message);
 	await message.react(emoji_agree);
 	message.react(emoji_disagree);
 }

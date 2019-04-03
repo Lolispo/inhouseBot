@@ -71,6 +71,10 @@ function Game(gameID, channelMessage){
         return this.voteMessage;
     }
 
+    this.setVoteMessage = function(value){
+        this.voteMessage = value;
+    }
+
     this.getGameID = function(){
         return this.gameID;
     }
