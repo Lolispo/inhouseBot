@@ -55,8 +55,11 @@ var otherMapVote = function(messageReaction, user, activeMembers){
 	}
 }
 
+let currentMapVetoGameObject;
+
 async function mapVetoStart(message, gameObject, clientEmojis){
 	// Get captain from both teams
+	currentMapVetoGameObject = gameObject;
 	var balanceInfo = gameObject.getBalanceInfo();
 	gameObject.setCaptain1(player_js.getHighestMMR(balanceInfo.team1, 'cs'));
 	gameObject.setCaptain2(player_js.getHighestMMR(balanceInfo.team2, 'cs'));
@@ -70,7 +73,7 @@ async function mapVetoStart(message, gameObject, clientEmojis){
 	// Get maps. Temp solution:
 	// TODO: Database on Map texts, map emojis and presets of maps, 5v5, 2v2 etc)
 	await getMapMessages(message, clientEmojis);
-	return mapMessagesBuilder;
+	// return mapMessagesBuilder;
 }
 
 // Create map messages, add default reactions and add them to mapMessageBuilder
@@ -93,6 +96,9 @@ function initMap(mapName, clientEmojis, message, callback){
 function callbackMapMessage(mapObj){
 	mapMessageReact(mapObj);
 	mapMessagesBuilder.push(mapObj);
+	if(mapMessagesBuilder.length === 7){
+		currentMapVetoGameObject.setMapMessages(mapMessagesBuilder);
+	}
 }
 
 async function mapMessageReact(message){
@@ -129,7 +135,7 @@ var getMapString = function(finished, gameObject, startingCaptainUsername){ // A
 var changeTurn = function(gameObject){
 	gameObject.setMapVetoTurn(1 - gameObject.getMapVetoTurn()); // Flips between 1 and 0
 	var startingCaptainUsername = (gameObject.getMapVetoTurn() === 0 ? gameObject.getCaptain1().userName : gameObject.getCaptain2().userName); 
-	gameObject.getMapStatusMessage().edit(getMapString(false, startingCaptainUsername, gameObject))
+	gameObject.getMapStatusMessage().edit(getMapString(false, gameObject, startingCaptainUsername))
 }
 
 module.exports.mapVetoStart = mapVetoStart;

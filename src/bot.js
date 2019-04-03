@@ -406,10 +406,10 @@ function handleMessage(message) {
 	
 			// mapVeto made between one captain from each team
 			else if(mapvetostartCommands.includes(message.content)){
-				map_js.mapVetoStart(message, gameObject, client.emojis)
-				.then(result => {
+				map_js.mapVetoStart(message, gameObject, client.emojis);
+				/*.then(result => {
 					gameObject.setMapMessages(result);
-				});
+				});*/
 				f.deleteDiscMessage(message, 15000, 'mapveto'); // Remove mapVeto text
 			}
 		} else {
