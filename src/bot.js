@@ -36,7 +36,7 @@ const emoji_error = '❌'; 		// Error / Ban emoji. Alt: '🤚';
 const bot_name = 'inhouse-bot';
 const voteText = '**Majority of players that played the game need to confirm this result (Press ' + emoji_agree + ' or ' + emoji_disagree + ')**';
 const adminUids = ['96293765001519104', '107882667894124544']; // Admin ids, get access to specific admin rights
-const lukasIP = 'connect tywin.dathost.net:28795; password secret';
+const lukasIP = 'connect jaqen.dathost.net:28781; password secret';
 const removeBotMessageDefaultTime = 60000; // 300000
 const maxPlayers = 14;
 
@@ -640,11 +640,11 @@ function handleRelevantEmoji(emojiConfirm, winner, messageReaction, amountReleva
 			}); // Update mmr for both teams
 			//console.log('DEBUG CHECK ME: ARE THE TWO FOLLOWING THE SAME: ', messageReaction.message.content, voteMessage.content); // TODO Check: are these the same
 			f.deleteDiscMessage(messageReaction.message, 3000, 'voteMessage');
-			f.deleteDiscMessage(teamWonMessage, 3000, 'teamWonMessage');
+			f.deleteDiscMessage(gameObject.getTeamWonMessage(), 3000, 'teamWonMessage');
 		}else{
 			console.log(emoji_disagree + ' CONFIRMED! ' + ' (' + amountRelevant + '/' + totalNeeded + ') Removing voteText msg and team#Won msg');
 			f.deleteDiscMessage(messageReaction.message, 3000, 'voteMessage');
-			f.deleteDiscMessage(teamWonMessage, 3000, 'teamWonMessage');
+			f.deleteDiscMessage(gameObject.getTeamWonMessage(), 3000, 'teamWonMessage');
 		}
 	}
 }
