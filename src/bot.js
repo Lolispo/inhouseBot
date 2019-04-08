@@ -105,33 +105,33 @@ client.on('message', message => {
 
 // Listener on reactions added to messages
 client.on('messageReactionAdd', (messageReaction, user) => {
-	if(!user.bot){ // Bot adding reacts doesn't require our care
-		if(game_js.hasActiveGames()){
-			// Reacted on voteMessage
-			//console.log('DEBUG: @messageReactionAdd by', user.username, 'on', messageReaction.message.author.username + ': ' + messageReaction.message.content, messageReaction.count);
-			var gameObject = game_js.getGame(user);
-			// Check if emojiReaction is on voteMessage, voteMessage != undefined
-			if(!f.isUndefined(gameObject) && !f.isUndefined(gameObject.getVoteMessage()) && messageReaction.message.id === gameObject.getVoteMessage().id){
-				voteMessageReaction(messageReaction, gameObject);
-			} else { // TODO Game: Check 
-				console.log('@messageReactionAdd', messageReaction.emoji.name);
-				var gameObjectMapMessage = game_js.getGameMapMessages(messageReaction);
-				if(!f.isUndefined(gameObjectMapMessage)){ // Reacted on a messageReaction
-					
-					var mapMessage = gameObject.getMapMessages().find(function(mapMsg){
-						return messageReaction.message.id === mapMsg.id
-					});
-
-					if(messageReaction.emoji.toString() === emoji_error){
-						map_js.captainVote(messageReaction, user, mapMessage, gameObject);
-					} else if(messageReaction.emoji.toString() === emoji_agree){ // If not captains, can only react with emoji_agree or emoji_disagree
-						map_js.otherMapVote(messageReaction, user, gameObjectMapMessage.getActiveMembers());
-					} else if(messageReaction.emoji.toString() === emoji_disagree){ // If not captains, can only react with emoji_agree or emoji_disagree
-						map_js.otherMapVote(messageReaction, user, gameObjectMapMessage.getActiveMembers());
-					}
+	if(!user.bot && game_js.hasActiveGames()){ // Bot adding reacts doesn't require our care
+		// Reacted on voteMessage
+		//console.log('DEBUG: @messageReactionAdd by', user.username, 'on', messageReaction.message.author.username + ': ' + messageReaction.message.content, messageReaction.count);
+		const gameObject = game_js.getGame(user);
+		// Check if emojiReaction is on voteMessage, voteMessage != undefined
+		if(!f.isUndefined(gameObject) && !f.isUndefined(gameObject.getVoteMessage()) && messageReaction.message.id === gameObject.getVoteMessage().id){
+			voteMessageReaction(messageReaction, gameObject);
+		} else { // TODO Game: Check 
+			console.log('@messageReactionAdd', messageReaction.emoji.name);
+			//const gameObjectMapMessage = game_js.getGameMapMessages(messageReaction);
+			//if(!f.isUndefined(gameObjectMapMessage)){ // Reacted on a messageReaction
+			if(!f.isUndefined(gameObject)) {
+				const mapMessage = gameObject.getMapMessages().find(function(mapMsg){
+					return messageReaction.message.id === mapMsg.id
+				});
+				console.log('@messageReactionAdd Found message.id', mapMessage.message.id)
+				if(messageReaction.emoji.toString() === emoji_error){
+					map_js.captainVote(messageReaction, user, mapMessage, gameObject);
+				} else if(messageReaction.emoji.toString() === emoji_agree){ // If not captains, can only react with emoji_agree or emoji_disagree
+					map_js.otherMapVote(messageReaction, user, gameObjectMapMessage.getActiveMembers());
+				} else if(messageReaction.emoji.toString() === emoji_disagree){ // If not captains, can only react with emoji_agree or emoji_disagree
+					map_js.otherMapVote(messageReaction, user, gameObjectMapMessage.getActiveMembers());
 				}
-				// React on something on an active game
+			} else {
+				console.log('ERROR: Map messages are undefined')
 			}
+			// React on something on an active game
 		}
 		// React on something not connected to activeGames
 	}

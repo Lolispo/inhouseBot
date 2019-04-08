@@ -32,6 +32,7 @@ function handleCaptainMessage(user, mapMessage, gameObject){
 	gameObject.getBannedMaps().push(user.username + ' banned ' + presentableName); // Maybe should add bold on second to last one
 	var gameMapMessages = gameObject.getMapMessages();
 	gameMapMessages.splice(mapMessage, 1); // splice(index, howMany)
+	console.log('@handleCaptainMessage size = ', gameMapMessages.length);
 	tempMessage.delete(400); // Delete message in 400ms
 	changeTurn(gameObject);
 	if(gameMapMessages.length === 1){ // We are done and have only one map left
