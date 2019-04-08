@@ -619,7 +619,7 @@ async function voteMessageTextUpdate(messageReaction, gameObject){
 	//console.log('DEBUG: @messageReactionAdd, count =', amountRelevant, ', Majority number is =', totalNeeded);
 	var voteAmountString = ' (' + amountRel + '/' + totalNeed + ')';
 	var newVoteMessage = (voteText + voteAmountString);
-	let newVoteMessageVar = gameObject.getVoteMessage()
+	let newVoteMessageVar = gameObject.getVoteMessage();
 	newVoteMessageVar.content = newVoteMessage; 
 	await newVoteMessageVar.edit(newVoteMessage);
 	// await voteMessage.edit(newVoteMessage);
@@ -802,6 +802,7 @@ function cleanOnGameEnd(gameObject){
 		//console.log('DEBUG matchupMessage cleanOnGameEnd', gameObject.getMatchupMessage().content);
 		f.deleteDiscMessage(gameObject.getMatchupMessage(), 0, 'matchupMessage');
 	}
+	game_js.deleteGame(gameObject);
 }
 
 // Here follows callbackFunctions for handling bot sent messages
