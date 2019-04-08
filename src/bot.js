@@ -114,6 +114,7 @@ client.on('messageReactionAdd', (messageReaction, user) => {
 			if(!f.isUndefined(gameObject) && !f.isUndefined(gameObject.getVoteMessage()) && messageReaction.message.id === gameObject.getVoteMessage().id){
 				voteMessageReaction(messageReaction, gameObject);
 			} else { // TODO Game: Check 
+				console.log('@messageReactionAdd', messageReaction.emoji.name);
 				var gameObjectMapMessage = game_js.getGameMapMessages(messageReaction);
 				if(!f.isUndefined(gameObjectMapMessage)){ // Reacted on a messageReaction
 					

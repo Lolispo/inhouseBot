@@ -7,9 +7,9 @@ const bot = require('./bot');
 const player_js = require('./player');
 const f = require('./f');
 
-var mapMessagesBuilder;
+let mapMessagesBuilder = [];
 
-const emoji_agree = '👌'; 		// Agree emoji. Alt: 👍, Om custom Emojis: Borde vara seemsgood emoji
+const emoji_agree = '👍'; 		// Agree emoji. Alt: 👍👌, Om custom Emojis: Borde vara seemsgood emoji
 const emoji_disagree = '👎';	// Disagree emoji. 
 const emoji_error = '❌'; 		// Error / Ban emoji. Alt: '🤚';
 const longLine = '\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\n';
@@ -44,10 +44,10 @@ function handleCaptainMessage(user, mapMessage, gameObject){
 }
 
 var otherMapVote = function(messageReaction, user, activeMembers){
-	console.log('DEBUG: not captain vote', user.username);
+	console.log('DEBUG: Upvote/Downvote Reaction by', user.username);
 	var allowed = false;
 	allowed = activeMembers.some(function(guildMember){
-		console.log('DEBUG: Added reaction of', messageReaction.emoji.id, 'from', user.username, 'on msg :', messageReaction.message.id);
+		console.log('DEBUG: Added reaction of', messageReaction.emoji.name, 'from', user.username, 'on msg :', messageReaction.message.id);
 		return user.id === guildMember.id;
 	});
 	if(!allowed){
@@ -98,6 +98,7 @@ function callbackMapMessage(mapObj){
 	mapMessagesBuilder.push(mapObj);
 	if(mapMessagesBuilder.length === 7){
 		currentMapVetoGameObject.setMapMessages(mapMessagesBuilder);
+		console.log('HELLO Initialized 7 messages', mapMessagesBuilder[6]);
 	}
 }
 

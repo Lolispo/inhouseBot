@@ -15,6 +15,7 @@ Fix mapveto system
 Cant start new game because already in a game
         Team won should cancel game
 
+Store only message id instead of entire messages
 
 ## Features:
 
