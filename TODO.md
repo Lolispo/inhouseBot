@@ -7,6 +7,15 @@ Add unit tests for all files
 
 Add integration tests for main functionalities
 
+## Prio
+
+Fix mapveto system
+        Dust 2 not guaranteed work
+
+Cant start new game because already in a game
+        Team won should cancel game
+
+
 ## Features:
 
 ### eslint add
