@@ -113,20 +113,23 @@ client.on('messageReactionAdd', (messageReaction, user) => {
 		if(!f.isUndefined(gameObject) && !f.isUndefined(gameObject.getVoteMessage()) && messageReaction.message.id === gameObject.getVoteMessage().id){
 			voteMessageReaction(messageReaction, gameObject);
 		} else { // TODO Game: Check 
-			console.log('@messageReactionAdd', messageReaction.emoji.name);
+			// console.log('@messageReactionAdd', messageReaction.emoji.name);
 			//const gameObjectMapMessage = game_js.getGameMapMessages(messageReaction);
 			//if(!f.isUndefined(gameObjectMapMessage)){ // Reacted on a messageReaction
 			if(!f.isUndefined(gameObject)) {
+				// const gameMapMessages = gameObject.getMapMessages();
 				const mapMessage = gameObject.getMapMessages().find(function(mapMsg){
 					return messageReaction.message.id === mapMsg.id
 				});
-				console.log('@messageReactionAdd Found message.id', mapMessage.message.id)
-				if(messageReaction.emoji.toString() === emoji_error){
-					map_js.captainVote(messageReaction, user, mapMessage, gameObject);
-				} else if(messageReaction.emoji.toString() === emoji_agree){ // If not captains, can only react with emoji_agree or emoji_disagree
-					map_js.otherMapVote(messageReaction, user, gameObjectMapMessage.getActiveMembers());
-				} else if(messageReaction.emoji.toString() === emoji_disagree){ // If not captains, can only react with emoji_agree or emoji_disagree
-					map_js.otherMapVote(messageReaction, user, gameObjectMapMessage.getActiveMembers());
+				if(!f.isUndefined(mapMessage)) {
+					console.log('@messageReactionAdd Found message.id', mapMessage.id, user.username)
+					if(messageReaction.emoji.toString() === emoji_error){
+						map_js.captainVote(messageReaction, user, mapMessage, gameObject);
+					} else if(messageReaction.emoji.toString() === emoji_agree){ // If not captains, can only react with emoji_agree or emoji_disagree
+						map_js.otherMapVote(messageReaction, user, gameObject.getActiveMembers());
+					} else if(messageReaction.emoji.toString() === emoji_disagree){ // If not captains, can only react with emoji_agree or emoji_disagree
+						map_js.otherMapVote(messageReaction, user, gameObject.getActiveMembers());
+					}
 				}
 			} else {
 				console.log('ERROR: Map messages are undefined')

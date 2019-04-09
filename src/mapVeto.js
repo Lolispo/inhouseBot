@@ -31,16 +31,31 @@ function handleCaptainMessage(user, mapMessage, gameObject){
 	var presentableName = String(tempMessage).split('\n')[1];
 	gameObject.getBannedMaps().push(user.username + ' banned ' + presentableName); // Maybe should add bold on second to last one
 	var gameMapMessages = gameObject.getMapMessages();
-	gameMapMessages.splice(mapMessage, 1); // splice(index, howMany)
-	console.log('@handleCaptainMessage size = ', gameMapMessages.length);
-	tempMessage.delete(400); // Delete message in 400ms
-	changeTurn(gameObject);
-	if(gameMapMessages.length === 1){ // We are done and have only one map left
-		var chosenMap = gameMapMessages[0];
-		gameMapMessages = []; // TODO: Alternative way of init mapMessages? undefined = ugly
-		chosenMap.delete();
-		gameObject.getBannedMaps().push('\nChosen map is ' + String(chosenMap).split('\n')[1]);
-		gameObject.getMapStatusMessage().edit(getMapString(true, gameObject)); // TODO Check
+	const index = gameMapMessages.indexOf(mapMessage);
+	console.log('Removing', index, mapMessage.content)
+	if (index > -1) {
+  		gameMapMessages.splice(index, 1);
+		/*
+		console.log('@handleCaptainMessage size = ', gameMapMessages.length);
+		console.log('Updated Maps: ')
+		for(let i = 0; i < mapMessagesBuilder.length; i++) {
+			console.log('\t',i,mapMessagesBuilder[i].content);
+		}*/
+		// gameMapMessages.splice(mapMessage, 1); // splice(index, howMany)
+		tempMessage.delete(400); // Delete message in 400ms
+		changeTurn(gameObject);
+		if(gameMapMessages.length === 1){ // We are done and have only one map left
+			var chosenMap = gameMapMessages[0];
+			gameMapMessages = []; // TODO: Alternative way of init mapMessages? undefined = ugly
+			chosenMap.delete();
+			gameObject.getBannedMaps().push('\nChosen map is ' + String(chosenMap).split('\n')[1]);
+			gameObject.getMapStatusMessage().edit(getMapString(true, gameObject)); // TODO Check
+		}
+	} else {
+		console.log('MESSAGE NOT FOUND');
+		for(let i = 0; i < mapMessagesBuilder.length; i++) {
+			console.log('\t',i,mapMessagesBuilder[i].content);
+		}
 	}
 }
 
@@ -99,7 +114,13 @@ function callbackMapMessage(mapObj){
 	mapMessagesBuilder.push(mapObj);
 	if(mapMessagesBuilder.length === 7){
 		currentMapVetoGameObject.setMapMessages(mapMessagesBuilder);
-		console.log('HELLO Initialized 7 messages', mapMessagesBuilder[6]);
+		/*
+		console.log('MapMessages');
+		for(let i = 0; i < mapMessagesBuilder.length; i++) {
+			console.log('\t',i,mapMessagesBuilder[i].content);
+		}
+		console.log('HELLO Initialized messages: ', mapMessagesBuilder.length);
+		*/
 	}
 }
 
