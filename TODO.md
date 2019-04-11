@@ -9,11 +9,14 @@ Add integration tests for main functionalities
 
 ## Prio
 
+Only the host can cancel game
+    -c message not dissapeareing
+
 Fix mapveto system
-        Dust 2 not guaranteed work
+    Test
 
 Cant start new game because already in a game
-        Team won should cancel game
+    Team won should cancel game
 
 Store only message id instead of entire messages
 
