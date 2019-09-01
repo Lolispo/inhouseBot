@@ -8,6 +8,8 @@ const Discord = require('discord.js');
 // Get Instance of discord client
 const client = new Discord.Client();
 
+require('dotenv').config()
+
 const pool = require('./database');
 const { prefix, token, db } = require('../conf.json'); // Load config data from file
 
