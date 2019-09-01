@@ -29,12 +29,7 @@ const getBirthdays = async () => {
     console.log('@getBirthdays Records:', result);
     return result;
   } catch (error) {
-    console.error('Error getBirthdays', error);
-    const result = [{
-		uid: '157967049694380032',
-		userName: 'Lukas',
-		birthday: '2019-09-01',
-	}]
+    console.error('@getBirthdays Error:', error);
     return error;
   }
 }
@@ -43,14 +38,13 @@ const generalId = '102097104322711552'; // General
 const testId = '424309421519142913';  	// robot-playground
 
 const findTextChannel = () => {
-	const channel = client.channels.get(testId); // generalId
+	const channel = client.channels.get(generalId); // generalId
 	console.log('@findTextChannel', channel.name);
 	if(channel) {
 		return channel;
 	}
 	for(let i = 0; i < client.channels.length; i++) {
 		const channel = client.channels[i];
-		console.log('name:', channel.name)
 		if(channel.name === 'kanal_general') {
 			console.log('RETURNING GENERAL')
 			return channel;
@@ -60,11 +54,11 @@ const findTextChannel = () => {
 
 const main = async () => {
 	const channel = findTextChannel();
-	console.log('@main', channel);
+	console.log('@main TextChannel:', channel.name);
 	const result = await getBirthdays() || [];
 	for(let i = 0; i < result.length; i++) {
 		const entry = result[i];
-		console.log('Entry', i, ':', entry);
+		console.log('Entry', i, ':', entry.userName);
 		const { uid, userName, birthday } = entry;
 		// console.log('List:', channel.guild.members);
 		const members = channel.guild.members;
