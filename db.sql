@@ -32,6 +32,7 @@ INSERT INTO birthdays (uid, userName, birthday) VALUES (?, ?, CURDATE());
 INSERT INTO birthdays (uid, userName, birthday) VALUES ("96293765001519104", "Petter", DATE("2019-09-28"));
 INSERT INTO birthdays (uid, userName, birthday) VALUES ("157967049694380032", "Lukas", CURDATE());
 
+DELETE FROM birthdays WHERE uid = "157967049694380032";
 
 SELECT * FROM birthdays WHERE DATE(birthday) = CURDATE();
 
