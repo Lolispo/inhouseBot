@@ -9,6 +9,10 @@ Add integration tests for main functionalities
 
 ## Prio
 
+Remove lukas ip
+
+Average team rating round to less decimals
+
 Only the host can cancel game
     -c message not dissapeareing
 
