@@ -11,7 +11,7 @@ const printVars = () => {
   console.log(process.env.DB_TABLE);
 }
 
-printVars();
+// printVars();
 
 const pool = mysql.createPool({
   connectionLimit: 10,
