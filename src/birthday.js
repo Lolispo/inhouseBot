@@ -16,7 +16,7 @@ const { prefix, token, db } = require('../conf.json'); // Load config data from 
 // will only do stuff after it's ready
 client.on('ready', () => {
 	console.log('ready to rumble');
-	// main();
+	main();
 });
 
 // Login
