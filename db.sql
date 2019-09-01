@@ -36,6 +36,9 @@ DELETE FROM birthdays WHERE uid = "157967049694380032";
 
 SELECT * FROM birthdays WHERE DATE(birthday) = CURDATE();
 
+/* Fix compare on month and day, not year */
+SELECT * FROM birthdays WHERE DATE(birthday) = CURDATE();
+
 CREATE INDEX birthdayIndex ON birthdays (birthday);
 
 /*

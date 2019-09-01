@@ -24,6 +24,16 @@ Cant start new game because already in a game
 
 Store only message id instead of entire messages
 
+Fix bug when spamming emote to get 2 results
+
+#### birthday:
+    
+    Feature: Set own birthday
+
+    Every year addition
+
+    Feature: See next persons birthday
+
 ## Features:
 
 ### eslint add
