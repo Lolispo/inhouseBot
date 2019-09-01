@@ -2,6 +2,7 @@
 *.in
 !package.json
 !package-lock.json
+*.env
 
 tmp/
 node_modules/

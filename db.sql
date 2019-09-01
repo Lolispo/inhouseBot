@@ -20,6 +20,23 @@ CREATE TABLE users(
 	PRIMARY KEY (uid)
 );
 
+CREATE TABLE birthdays(
+	uid VARCHAR(64) NOT NULL,
+	userName VARCHAR(64), 
+	birthday DATE,
+	PRIMARY KEY (uid)
+);
+
+INSERT INTO birthdays (uid, userName, birthday) VALUES (?, ?, CURDATE());
+
+INSERT INTO birthdays (uid, userName, birthday) VALUES ("96293765001519104", "Petter", DATE("2019-09-28"));
+INSERT INTO birthdays (uid, userName, birthday) VALUES ("157967049694380032", "Lukas", CURDATE());
+
+
+SELECT * FROM birthdays WHERE DATE(birthday) = CURDATE();
+
+CREATE INDEX birthdayIndex ON birthdays (birthday);
+
 /*
 UPDATE users SET cs = mmr, cs1v1 = 2500, dota = 2500, dota1v1 = 2500, trivia = 0;
 UPDATE users SET cs = 2500, cs1v1 = 2500, dota = 2500, dota1v1 = 2500, trivia = 0, gamesPlayed = 0;
