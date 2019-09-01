@@ -8,7 +8,7 @@ const Discord = require('discord.js');
 // Get Instance of discord client
 const client = new Discord.Client();
 
-require('dotenv').config()
+require('dotenv').config({ path: __dirname+'/./../.env' });
 
 const pool = require('./database');
 const { prefix, token, db } = require('../conf.json'); // Load config data from file
@@ -16,8 +16,7 @@ const { prefix, token, db } = require('../conf.json'); // Load config data from 
 // will only do stuff after it's ready
 client.on('ready', () => {
 	console.log('ready to rumble');
-	main();
-	// db_sequelize.initDb(db.database, db.user, db.dbpw, db.host, db.dialect); // Initialize db_sequelize database on startup of bot
+	// main();
 });
 
 // Login
