@@ -44,7 +44,7 @@ const testId = '424309421519142913';  	// robot-playground
 
 const findTextChannel = () => {
 	const channel = client.channels.get(testId); // generalId
-	console.log('@findTextChannel', channel);
+	console.log('@findTextChannel', channel.name);
 	if(channel) {
 		return channel;
 	}

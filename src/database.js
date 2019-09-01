@@ -4,6 +4,15 @@
 const util = require('util');
 const mysql = require('mysql');
 
+const printVars = () => {
+  console.log(process.env.DB_HOST);
+  console.log(process.env.DB_USER);
+  console.log(process.env.DB_PW);
+  console.log(process.env.DB_TABLE);
+}
+
+printVars();
+
 const pool = mysql.createPool({
   connectionLimit: 10,
   host: process.env.DB_HOST,
