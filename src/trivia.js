@@ -355,6 +355,10 @@ function getToken(a, c, d){
 	console.log('@getToken');
 	request('https://opentdb.com/api_token.php?command=request', function (error, response, body) {
 		//console.log('body:', body);
+		if(error) {
+			console.error('API token error');
+			return;
+		}
 		body = JSON.parse(body);
 		console.log('@getToken request new', body.token);
 		f.writeToFile(token_fileName, body.token, 'Success! Wrote token to file for trivia');
