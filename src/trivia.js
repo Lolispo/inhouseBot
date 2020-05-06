@@ -319,8 +319,8 @@ function urlGenerate(a, c, d, t){
 		}else{
 			try{
 				body = JSON.parse(body);
-			} catch (Exception e) {
-				console.error('API down');
+			} catch (e) {
+				console.error('API down', e);
 				return;
 			}
 			if(body.response_code === 3 || body.response_code === 4){ // Token not found
