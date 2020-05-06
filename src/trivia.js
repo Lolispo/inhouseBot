@@ -317,7 +317,12 @@ function urlGenerate(a, c, d, t){
 		if(error !== null){
 			console.log('error:', error);
 		}else{
-			body = JSON.parse(body);
+			try{
+				body = JSON.parse(body);
+			} catch (Exception e) {
+				console.error('API down');
+				return;
+			}
 			if(body.response_code === 3 || body.response_code === 4){ // Token not found
 				console.log('DEBUG: response_code =', body.response_code);
 				if(f.isUndefined(t) || body.response_code === 3){ // Either we dont have a token, tried to send something invalid, or old token
