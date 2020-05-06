@@ -359,7 +359,11 @@ function getToken(a, c, d){
 			console.error('API token error');
 			return;
 		}
-		body = JSON.parse(body);
+		try {
+			body = JSON.parse(body);
+		} catch (e) {
+			return;
+		}
 		console.log('@getToken request new', body.token);
 		f.writeToFile(token_fileName, body.token, 'Success! Wrote token to file for trivia');
 		urlGenerate(a, c, d, body.token);
