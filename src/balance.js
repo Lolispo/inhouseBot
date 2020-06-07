@@ -177,12 +177,14 @@ function buildReturnString(obj, gameObject, callback){ // TODO: Print``
 		s += 'MMR Avg diff: ' + parseFloat(obj.avgDiff).toFixed(2) + ' mmr (Total: ' + obj.difference + ' mmr). ';	
 	}
 	s += '\n';
-	s += '**Team 1** \t(Avg: ' + obj.avgT1 + ' mmr): \n*' + obj.team1[0].userName + ' (' + obj.team1[0].getMMR(obj.game) + ')';
+	const teamCT = (obj.game === 'cs' ? '**(CT)**' : '');
+	const teamT = (obj.game === 'cs' ? '**(T)**' : '');
+	s += '**Team 1** ' + teamCT + '\t(Avg: ' + obj.avgT1 + ' mmr): \n*' + obj.team1[0].userName + ' (' + obj.team1[0].getMMR(obj.game) + ')';
 	for(var i = 1; i < obj.team1.length; i++){
 		s += ',\t' + obj.team1[i].userName + ' (' + obj.team1[i].getMMR(obj.game) + ')';
 	}
 	s += '*\n';
-	s += '**Team 2** \t(Avg: ' + obj.avgT2 + ' mmr): \n*' + obj.team2[0].userName + ' (' + obj.team2[0].getMMR(obj.game) + ')';
+	s += '**Team 2** ' + teamT + '\t(Avg: ' + obj.avgT2 + ' mmr): \n*' + obj.team2[0].userName + ' (' + obj.team2[0].getMMR(obj.game) + ')';
 	for(var i = 1; i < obj.team2.length; i++){
 		s += ',\t' + obj.team2[i].userName + ' (' + obj.team2[i].getMMR(obj.game) + ')';
 	}
