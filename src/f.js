@@ -24,10 +24,37 @@ var isUndefined = function(obj){
 // Returns promise for use in async functions
 var print = function(messageVar, message, callback = callbackPrintDefault){
 	console.log('> ' + message);
-	messageVar.channel.send(message)
-	.then(result => {
-		callback(result);
-	}).catch(err => console.log('@print for ' + message + ' :\n' + err));
+	if (message.length >= 2000) {
+		let sent = false;
+		for(let i = 2000; i >= 0; i--) {
+			if(message.charAt(i) === '\n') {
+				const firstMessage = message.substring(0, i);
+				const restMessage = message.substring(i);
+				messageVar.channel.send(firstMessage)
+				.then(result => {
+					callback(result);
+				}).catch(err => console.log('@print (splitted) for ' + message + ' :\n' + err));
+				print(messageVar, restMessage, callback);
+				sent = true;
+				break;
+			}
+		}
+		if (!sent) { // No newline in message, split content on max size
+			const maxIndex = 1900;
+			const firstMessage = message.substring(0, maxIndex); // Margin
+			const restMessage = message.substring(maxIndex);
+			messageVar.channel.send(firstMessage)
+			.then(result => {
+				callback(result);
+			}).catch(err => console.log('@print (splitted) for ' + message + ' :\n' + err));
+			print(messageVar, restMessage, callback);
+		}
+	} else {
+		messageVar.channel.send(message)
+		.then(result => {
+			callback(result);
+		}).catch(err => console.log('@print for ' + message + ' :\n' + err));
+	}
 }
 
 var listToDeleteFrom = new Map();

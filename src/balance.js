@@ -168,7 +168,7 @@ function addTeamMMR(team, game){ // Function to be used in summing over players
 
 // Build a string to return to print as message
 function buildReturnString(obj, gameObject, callback){ // TODO: Print``
-	var s = '';
+	let s = '';
 	//console.log('@buildReturnString', obj)
 	s += '**New Game!** Playing **' + obj.game + '**. ';
 	if(obj.team1.length === 1){ // No average for 2 player matchup
@@ -187,7 +187,24 @@ function buildReturnString(obj, gameObject, callback){ // TODO: Print``
 		s += ',\t' + obj.team2[i].userName + ' (' + obj.team2[i].getMMR(obj.game) + ')';
 	}
 	s += '*\n\n';
-	s += '*Connect:* \n**' + bot.getLukasIP() + '**'; // Lukas' server on datHost, requires Petter/Lukas/Martin ingame to use
+	if (obj.game === 'cs' || obj.game === 'cs1v1') {
+		s += '*Connect:* \n**' + bot.getCsIp() + '**';
+	}
+	else if(obj.game === 'dota' || obj.game === 'dota1v1') {
+		// s += '*Password: 123*\n[Instruction](https://gyazo.com/668d091b3d3eed728bd09865542acf06)';
+		// const gif = '../res/dotaConnect.mp4';
+		/*
+		// Lacking discord permissions
+		s = {
+			content: 'Content: ' + s,
+			embed: {
+				title: 'Instruction',
+				image: {
+					url: 'https://gyazo.com/668d091b3d3eed728bd09865542acf06'
+				}
+			}
+		}*/
+	}
 	callback(gameObject, s, obj); // Should send the message back to the bot
 }
 

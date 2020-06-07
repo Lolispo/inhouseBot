@@ -9,7 +9,11 @@ Add integration tests for main functionalities
 
 ## Prio
 
-Remove lukas ip
+Link dota instruction connect
+
+Fix race when multiple people upvote - initial fix
+
+revisit prints on emote adds
 
 Average team rating round to less decimals
 
@@ -19,12 +23,10 @@ Only the host can cancel game
 Fix mapveto system
     Test
 
-Cant start new game because already in a game
+Bug: Cant start new game because already in a game
     Team won should cancel game
 
 Store only message id instead of entire messages
-
-Fix bug when spamming emote to get 2 results
 
 #### birthday:
     

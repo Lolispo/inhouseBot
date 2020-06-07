@@ -81,6 +81,43 @@ var initDb = function(database, user, dbpw, hostAddress, dialectDB){
 	}, {
 		timestamps: false
 	}); 
+
+	/**
+	 * CREATE TABLE matches (
+	 *  mid VARCHAR(64) NOT NULL AUTO INCREMENT, PRIMARY KEY (mid)
+			game VARCHAR(64),
+			date DATE, 
+
+
+		CREATE TABLE match_players (
+			mid VARCHAR(64),
+			uid VARCHAR(64),
+			winner BOOLEAN, 
+			FOREIGN KEY (mid) REFERENCES matches,
+			FOREIGN KEY (uid) REFERENECES users,
+		)
+
+	const getBirthdays = async () => {
+		const sql = 'SELECT * FROM birthdays WHERE DATE(birthday) = CURDATE();';
+		try {
+			const result = await pool.query(sql);
+			console.log('@getBirthdays Records:', result);
+			return result;
+		} catch (error) {
+			console.error('@getBirthdays Error:', error);
+			return error;
+		}
+	}
+
+	*/
+	/*
+	Users = sequelize.define('matches', {
+		mid: {type: Sequelize.STRING, primaryKey: true},
+		game: Sequelize.STRING,
+	}, {
+		timestamps: false
+	});
+	*/ 
 /*
 	CREATE TABLE ratings(
 		uid VARCHAR(64) NOT NULL,
@@ -120,9 +157,9 @@ var getTable = function(callback){
 }; 
 
 // Gets Top 5 users ordered by mmr
-var getHighScore = function(game, callback){
+var getHighScore = function(game, size, callback){
 	Users.findAll({ // TODO: RefactorDB Where gameName = game
-		limit: 5,
+		limit: size,
 		order: [
 			[game, 'DESC'],
 			['gamesPlayed', 'DESC'],

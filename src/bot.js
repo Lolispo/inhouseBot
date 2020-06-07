@@ -36,13 +36,13 @@ const emoji_error = '❌'; 		// Error / Ban emoji. Alt: '🤚';
 const bot_name = 'inhouse-bot';
 const voteText = '**Majority of players that played the game need to confirm this result (Press ' + emoji_agree + ' or ' + emoji_disagree + ')**';
 const adminUids = ['96293765001519104', '107882667894124544']; // Admin ids, get access to specific admin rights
-const lukasIP = 'connect jaqen.dathost.net:28781; password secret';
+const csIp = 'connect kosatupp.datho.st:27207; password get';
 const removeBotMessageDefaultTime = 60000; // 300000
 const maxPlayers = 14;
 
 const helpCommands = [prefix + 'h', prefix + 'help'];
 const helpAllCommands = [prefix + 'ha', prefix + 'helpall'];
-const balanceCommands = [prefix + 'b', prefix + 'balance', prefix + 'balancegame', prefix + 'inhousebalance'];
+const balanceCommands = [prefix + 'go', prefix + 'game', prefix + 'b', prefix + 'balance', prefix + 'balancegame', prefix + 'inhousebalance'];
 const team1wonCommands = [prefix + 'team1won'];
 const team2wonCommands = [prefix + 'team2won'];
 const tieCommands = [prefix + 'tie', prefix + 'draw'];
@@ -60,7 +60,7 @@ const duelCommands = [prefix + 'duel'];
 const challengeCommands = [prefix + 'challenge'];
 const queueCommands = [prefix + 'soloqueue', prefix + 'queue'];
 const lennyCommands = ['lenny', 'lennyface', prefix + 'lenny', prefix + 'lennyface'];
-const lukasServerCommands = [prefix + 'lukasserver', prefix + 'praccserver', prefix + 'server'];
+const csServerCommands = [prefix + 'praccserver', prefix + 'server', prefix + 'csserver'];
 
 // Listener on message
 client.on('message', message => {
@@ -189,8 +189,8 @@ function handleMessage(message) {
 			roll(message, 0, 100);
 		}
 	}
-	else if(lukasServerCommands.includes(message.content)){
-		f.print(message, '**' + lukasIP + '**');
+	else if(csServerCommands.includes(message.content)){
+		f.print(message, '**' + csIp + '**');
 		f.deleteDiscMessage(message, 15000, 'lukasServer');
 	}
 	// Sends available commands privately to the user
@@ -300,15 +300,23 @@ function handleMessage(message) {
 		f.deleteDiscMessage(message, 10000, 'triviaModes');
 	}
 
-	// Show top 5 MMR 
+	// Show top X MMR, default 5 
 	// TODO Games played only for cs, rating for otherRatings instead of mmr (as in player.js)
 	else if(startsWith(message, leaderboardCommands)){
 		var game = getModeChosen(message, player_js.getAllModes());
-		db_sequelize.getHighScore(game, function(data){
-			var s = '**Leaderboard Top 5 for ' + game + ':**\n';
+		const messages = message.content.split(' '); 
+		let size = 5; 
+		if(messages.length >= 2) {
+			let num = parseInt(messages[1]);
+			size = messages[1] > 0 && messages[1] <= 100 ? num : 5;
+		}
+		db_sequelize.getHighScore(game, size, function(data){
+			var s = '**Leaderboard Top ' + size + ' for ' + game + ':**\n';
 			// TODO: Print``
 			data.forEach(function(oneData){ // TODO: RefactorDB
-				s += oneData.userName + ': \t**' + oneData[game] + ' ' + player_js.ratingOrMMR(game) + '**' + (game === player_js.getGameModes()[0] ? '\t(Games Played: ' + oneData.gamesPlayed + ')\n' : '\n');
+				if(oneData[game] != 2500 || oneData.gamesPlayed > 0) {
+					s += oneData.userName.replace('_', '\\_') + ': \t**' + oneData[game] + ' ' + player_js.ratingOrMMR(game) + '**' + (game === player_js.getGameModes()[0] ? '\t(Games Played: ' + oneData.gamesPlayed + ')\n' : '\n');
+				}
 			});
 			f.print(message, s);
 		});
@@ -616,7 +624,6 @@ function voteMessageReaction(messageReaction, gameObject){
 
 // Updates voteMessage on like / unlike the agree emoji
 // Is async to await the voteMessage.edit promise
-// TODO: Check if works still after refactor
 async function voteMessageTextUpdate(messageReaction, gameObject){
 	var amountRel = await countAmountUsersPlaying(gameObject.getBalanceInfo().team1, messageReaction.users) + countAmountUsersPlaying(gameObject.getBalanceInfo().team2, messageReaction.users);
 	var totalNeed = await (gameObject.getBalanceInfo().team1.length + 1);
@@ -634,7 +641,7 @@ async function voteMessageTextUpdate(messageReaction, gameObject){
 // Handle relevant emoji
 function handleRelevantEmoji(emojiConfirm, winner, messageReaction, amountRelevant, totalNeeded, gameObject){
 	//console.log('DEBUG: @handleRelevantEmoji', amountRelevant, totalNeeded, emojiConfirm);
-	if(amountRelevant >= totalNeeded){
+	if(amountRelevant === totalNeeded){
 		if(emojiConfirm){
 			console.log(emoji_agree + ' CONFIRMED! ' + ' (' + amountRelevant + '/' + totalNeeded + ') Removing voteText msg and team#Won msg');
 			mmr_js.updateMMR(winner, gameObject, function(message){
@@ -834,8 +841,8 @@ exports.getPrefix = function(){
 	return prefix;
 }
 
-exports.getLukasIP = function(){
-	return lukasIP;
+exports.getCsIp = function(){
+	return csIp;
 }
 
 exports.getRemoveTime = function(){
