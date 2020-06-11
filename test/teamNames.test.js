@@ -53,5 +53,22 @@ describe('teamNames', () => {
       assert.notEqual(res, '');
       assert.ok(res.includes('Uppsala'))
     });
+    it('getTeamName cs random 5', () => {
+      const game = 'cs';
+      const team = [
+          createPlayer('Robert', '123'),
+          createPlayer('Michael', '123'),
+          createPlayer('Pippin', '123'),
+      ];
+      team.forEach((player) => player.setMMR('cs', 2500 + (10 * Math.floor(Math.random() * 20) - 10 )));
+      const s = team.map((player) => player.userName + ': ' + player.getMMR(game));
+      console.log(s.join(', '));
+      for(let i = 0; i < 20; i++) {
+          const res = getTeamName(team, game);
+          console.log('Team Name:', res);
+          assert.notEqual(res, '');
+          team.forEach((player) => player.setMMR('cs', 2500 + (10 * Math.floor(Math.random() * 20) - 10 )));
+      }
+  });
   });
 });

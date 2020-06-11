@@ -1,10 +1,10 @@
 const teamNameCombination = [
-	"$player1$'s $plural-lul$",
-	"$player1$ + 4 $plural-lul$",
-  "4 $plural-lul$ and $adjective$ $playerlast$",
+  "$player1$'s $plural-lul$",
+  "$player1$ + $num-1$ $plural-lul$",
+  "$num-1$ $plural-lul$ and $adjective$ $playerlast$",
   // "$player1$ & $player2$'s $plural-lul$",
   "The $adjectiveC$ $plural-lul$",
-  "5 $adjectiveC$ $plural-lul$"
+  "$num$ $adjectiveC$ $plural-lul$"
 ];
 
 const adjective = [
@@ -13,7 +13,7 @@ const adjective = [
   'tiny',
   'edgy',
   'spawn camping',
-  '',
+  // '', // Need to handle space to work
   //'ugly',
   //'filthy',
 ]
@@ -95,7 +95,7 @@ const stringReplace = (s, pattern, collection, capital = true) => {
   const randomNumber = Math.floor(Math.random() * collection.length);
   let selectedOption = collection[randomNumber];
   if (capital) {
-    selectedOption = capitalize(selectedOption)
+    selectedOption = typeof selectedOption === 'string' ? capitalize(selectedOption) : selectedOption;
   }
   // console.log('Option chosen:', selectedOption, randomNumber)
   return s.replace(pattern, selectedOption);
@@ -203,6 +203,14 @@ exports.getTeamName = (team, game) => {
   
   if (randomTeamOption.includes('$adjectiveC$')) {
     randomTeamOption = stringReplace(randomTeamOption, '$adjectiveC$', adjective, true);
+  }
+
+  if (randomTeamOption.includes('$num-1$')) {
+    randomTeamOption = randomTeamOption.replace('$num-1$', sortedTeam.length - 1);
+  }
+
+  if (randomTeamOption.includes('$num$')) {
+    randomTeamOption = randomTeamOption.replace('$num$', sortedTeam.length);
   }
   return randomTeamOption;
 }
