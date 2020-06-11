@@ -12,7 +12,8 @@ const adjective = [
   'confused',
   'tiny',
   'edgy',
-  'spawn camping'
+  'spawn camping',
+  '',
   //'ugly',
   //'filthy',
 ]
@@ -35,61 +36,38 @@ const pluralLuls = [
   'weebs',
   'trainwrecks',
   'mamacitas',
-  // 'pool noodles',
+  'pool noodles',
   'villians',
   'trash cans',
   'kiddos',
   'ducks',
   'avocados',
   'queens',
+  '1337 h4xx0rz',
+  'goblins',
+  'pp-bizons',
+  'spicy meatballs',
+  'grillz',
+  'cornflakes',
+  'coconuts',
+  'coffin fillers',
+  'alpacas',
+  'helicopters',
+  'gunners',
+  'boys on the edge',
+  'chicken sandwiches',
+  'gatekeepers',
+  'paddle players',
+  'stealth assassins',
+  'npcs',
+  'hot men',
+  'b-site rushers',
+  'pandas',
+  'foxes',
+  'dogs',
+  'doggos'
 ];
 
-/*
-1337 h4xx0rz
-books
-epic maneuvers
-goblins
-pp-bizons
-pps
-spicy meatballs
-grilz
-cornflakes
-coconuts
-coffin fillers
-himbos
-heads
-wackos
-alpacas
-llamas
-tiddies
-addenatorn
-carwash
-kappas
-shoppers
-helicopters
-gunners
-boys on the edge
-chicken sandwiches
-gatekeepers
-arapaimas
-paddle players
-stealth archers
-npcs
-pings
-blips
-radar couples
-hot men
-backflips
-b-site rushers
-bad tactics
-pandas
-foxes
-dogs
-doggos
-cats
-noun in plural
-hellos
-*/
 
 const specialNames = [
 	'Petter',
