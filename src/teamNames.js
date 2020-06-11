@@ -1,7 +1,7 @@
 const teamNameCombination = [
 	"$player1$'s $plural-lul$",
 	"$player1$ + 4 $plural-lul$",
-  "4 $plural-lul$ and $adjective$ $player5$",
+  "4 $plural-lul$ and $adjective$ $playerlast$",
   // "$player1$ & $player2$'s $plural-lul$",
   "The $adjectiveC$ $plural-lul$",
   "5 $adjectiveC$ $plural-lul$"
@@ -191,6 +191,7 @@ exports.getTeamName = (team, game) => {
   // console.log('Option chosen:', randomTeamOption, randomNumber)
   for(let i = 0; i < sortedTeam.length; i++){
     randomTeamOption = randomTeamOption.replace(`$player${(i+1)}$`, sortedTeam[i].userName);
+    if (i === sortedTeam.length - 1) randomTeamOption = randomTeamOption.replace(`$playerlast$`, sortedTeam[i].userName);
   }
   if (randomTeamOption.includes('$plural-lul$')) {
     randomTeamOption = stringReplace(randomTeamOption, '$plural-lul$', pluralLuls);
