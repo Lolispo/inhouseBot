@@ -202,6 +202,6 @@ exports.getTeamName = (team, game) => {
   
   if (randomTeamOption.includes('$adjectiveC$')) {
     randomTeamOption = stringReplace(randomTeamOption, '$adjectiveC$', adjective, true);
-	}
-	return randomTeamOption;
+  }
+  return randomTeamOption;
 }
