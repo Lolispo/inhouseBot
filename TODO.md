@@ -22,8 +22,6 @@ Fix datarace when multiple people upvote - semaphore
 
 Bug: revisit prints on emote adds (seems not to work fully on removing (does it remove upvote if you press downvote?))
 
-Average team rating round to less decimals
-
 Bug: Cant start new game because already in a game
     Team won should cancel game
 
