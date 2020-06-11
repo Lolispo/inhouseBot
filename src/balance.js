@@ -168,7 +168,7 @@ function addTeamMMR(team, game){ // Function to be used in summing over players
 }
 
 const roundValue = (num) => {
-	console.log('@roundValue:', num);
+	// console.log('@roundValue:', num);
 	if (num % 1 === 0) return num;
 	return parseFloat(num).toFixed(2)
 }
