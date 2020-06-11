@@ -112,7 +112,7 @@ const specialTeams = [
     'Lester',
     'Obtained',
     'CATKNIFE',
-    'Ciffe'
+    'ciffelindholm'
   ]), 
   new Team(stringReplace('$plural-lul$ of Uppsala', '$plural-lul$', pluralLuls, true), [
     'Petter',
@@ -153,13 +153,13 @@ const almostSpecial5Squad = (team, specialgroup) => {
 
 // Generate a team name based on the teamnames
 exports.getTeamName = (team, game) => {
-	const sortedTeam = team.sort((el1, el2) => el1.getMMR(game) < el2.getMMR(game));
-	if (sortedTeam.length === 1) {
-		return 'Team ' + sortedTeam[0].userName;
-	}
-	if (sortedTeam.length === 2) {
-		return sortedTeam[0].userName + ' and ' + sortedTeam[1].userName; 
-	}
+  const sortedTeam = team.sort((el1, el2) => el1.getMMR(game) < el2.getMMR(game));
+  if (sortedTeam.length === 1) {
+    return 'Team ' + sortedTeam[0].userName;
+  }
+  if (sortedTeam.length === 2) {
+    return sortedTeam[0].userName + ' and ' + sortedTeam[1].userName; 
+  }
 
   // Decide either random combination or based on special person
   const matching = specialTeams.map((specTeam) => {
@@ -178,24 +178,24 @@ exports.getTeamName = (team, game) => {
   // If special person exist, 25% chance it is used
   const specialRnd = Math.random();
   const specialExists = team.some((player) => specialNames.includes(player.userName));
-	if (specialExists && specialRnd <= 0.12) {
+  if (specialExists && specialRnd <= 0.12) {
     // console.log('Special Time:', specialExists, specialRnd);
     let specialOptions = [];
     if(team.some((player) => player.userName === 'Petter')) specialOptions.push('Petter och hans fyra getter');
-		if(team.some((player) => player.userName === 'Pippin')) specialOptions.push('El Banditos');
+    if(team.some((player) => player.userName === 'Pippin')) specialOptions.push('El Banditos');
     if(team.some((player) => player.userName === 'Robin')) specialOptions.push('Knife Squad');
     return specialOptions.length === 1 ? specialOptions[0] : specialOptions[getRndInt(specialOptions.length)];
-	}
+  }
 
-	let randomTeamOption = teamNameCombination[getRndInt(teamNameCombination.length)];
-	// console.log('Option chosen:', randomTeamOption, randomNumber)
-	for(let i = 0; i < sortedTeam.length; i++){
-		randomTeamOption = randomTeamOption.replace(`$player${(i+1)}$`, sortedTeam[i].userName);
-	}
-	if (randomTeamOption.includes('$plural-lul$')) {
+  let randomTeamOption = teamNameCombination[getRndInt(teamNameCombination.length)];
+  // console.log('Option chosen:', randomTeamOption, randomNumber)
+  for(let i = 0; i < sortedTeam.length; i++){
+    randomTeamOption = randomTeamOption.replace(`$player${(i+1)}$`, sortedTeam[i].userName);
+  }
+  if (randomTeamOption.includes('$plural-lul$')) {
     randomTeamOption = stringReplace(randomTeamOption, '$plural-lul$', pluralLuls);
   }
-  
+
   if (randomTeamOption.includes('$adjective$')) {
     randomTeamOption = stringReplace(randomTeamOption, '$adjective$', adjective, false);
   }
