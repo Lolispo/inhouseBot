@@ -3,6 +3,7 @@
 
 const bot = require('./bot');
 const game_js = require('./game');
+const { getTeamName } = require('./teamNames');
 
 /*
 	Handles getting the most balanced team matchup for the given 10 players
@@ -124,7 +125,7 @@ function findBestTeamComb(players, teamCombs, game){
 	}
 
 	// Retrieved most fair teamComb
-	return {team1 : t1, team2 : t2, difference : bestPossibleTeamComb, avgT1 : avgTeam1, avgT2 : avgTeam2, avgDiff : Math.abs(avgTeam1 - avgTeam2).toFixed(2), game: game}; 
+	return {team1 : t1, team2 : t2, difference : bestPossibleTeamComb, avgT1 : avgTeam1, avgT2 : avgTeam2, avgDiff : Math.abs(avgTeam1 - avgTeam2), game: game}; 
 }
 
 // Get the two teams of players from the teamComb
@@ -166,6 +167,12 @@ function addTeamMMR(team, game){ // Function to be used in summing over players
 	return sum;
 }
 
+const roundValue = (num) => {
+	console.log('@roundValue:', num);
+	if (num % 1 === 0) return num;
+	return parseFloat(num).toFixed(2)
+}
+
 // Build a string to return to print as message
 function buildReturnString(obj, gameObject, callback){ // TODO: Print``
 	let s = '';
@@ -174,17 +181,21 @@ function buildReturnString(obj, gameObject, callback){ // TODO: Print``
 	if(obj.team1.length === 1){ // No average for 2 player matchup
 		s += 'MMR diff: ' + obj.difference + ' mmr. ';
 	} else{
-		s += 'MMR Avg diff: ' + parseFloat(obj.avgDiff).toFixed(2) + ' mmr (Total: ' + obj.difference + ' mmr). ';	
+		s += 'MMR Avg diff: ' + roundValue(obj.avgDiff) + ' mmr (Total: ' + obj.difference + ' mmr). ';	
 	}
 	s += '\n';
+	const team1Name = getTeamName(obj.team1, obj.game) || 'Team 1';
+	const team2Name = getTeamName(obj.team2, obj.game) || 'Team 2';
+	obj.team1Name = team1Name;
+	obj.team2Name = team2Name;
 	const teamCT = (obj.game === 'cs' ? '**(CT)**' : '');
 	const teamT = (obj.game === 'cs' ? '**(T)**' : '');
-	s += '**Team 1** ' + teamCT + '\t(Avg: ' + obj.avgT1 + ' mmr): \n*' + obj.team1[0].userName + ' (' + obj.team1[0].getMMR(obj.game) + ')';
+	s += `**${team1Name}** ${teamCT}\t(Avg: ${roundValue(obj.avgT1)} mmr): \n*${obj.team1[0].userName} (${obj.team1[0].getMMR(obj.game)})`;
 	for(var i = 1; i < obj.team1.length; i++){
 		s += ',\t' + obj.team1[i].userName + ' (' + obj.team1[i].getMMR(obj.game) + ')';
 	}
 	s += '*\n';
-	s += '**Team 2** ' + teamT + '\t(Avg: ' + obj.avgT2 + ' mmr): \n*' + obj.team2[0].userName + ' (' + obj.team2[0].getMMR(obj.game) + ')';
+	s += `**${team2Name}** ${teamT}\t(Avg: ${roundValue(obj.avgT2)} mmr): \n*${obj.team2[0].userName} (${obj.team2[0].getMMR(obj.game)})`;
 	for(var i = 1; i < obj.team2.length; i++){
 		s += ',\t' + obj.team2[i].userName + ' (' + obj.team2[i].getMMR(obj.game) + ')';
 	}

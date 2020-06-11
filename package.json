@@ -5,7 +5,9 @@
   "main": "bot.js",
   "scripts": {
     "test": "check-node-version --node \">= 8\" && mocha --exit",
-    "start": "check-node-version --node \">= 8\" && node src/bot.js"
+    "start": "check-node-version --node \">= 8\" && node src/bot.js",
+    "start-remote": "check-node-version --node \">= 8\" && node src/bot.js >> OUTPUT.log 2>ERROR.log",
+    "mocha": "mocha -g"
   },
   "repository": {
     "type": "git",

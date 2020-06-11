@@ -187,7 +187,7 @@ var getPersonalStats = function(uid, game, callback){
 // TODO	Find a better way to choose column from variable, instead of hard code
 //  	mmr -> [game] or something
 var updateMMR = function(uid, newMmr, game){
-	Users.findById(uid).then(function(user) {
+	Users.findByPk(uid).then(function(user) {
 		switch(game){ 
 			case 'dota':
 				user.update({

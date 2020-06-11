@@ -17,7 +17,7 @@ exports.updateMMR = function(winner, gameObject, callbackUpdate){ // winner = 0 
 	updateTeamMMR(balanceInfo.team1, mmrChange.t1, balanceInfo.game);
 	updateTeamMMR(balanceInfo.team2, mmrChange.t2, balanceInfo.game);
 
-	buildMMRUpdateString(winner, callbackResult, balanceInfo.team1, balanceInfo.team2, callbackUpdate, balanceInfo.game, gameObject);
+	buildMMRUpdateString(winner, callbackResult, balanceInfo, callbackUpdate, gameObject);
 }
 
 // Calculates the mmr change for two teams with given average team mmr and winner
@@ -73,17 +73,19 @@ function updateTeamMMR(team, change, game){
 
 // After a finished game, prints out new updated mmr
 // TODO: Print``
-function buildMMRUpdateString(team1Won, callback, T1, T2, callbackUpdate, game, gameObject){
+function buildMMRUpdateString(winningTeam, callback, balanceInfo, callbackUpdate, gameObject){
+	const { team1, team2, game, team1Name, team2Name } = balanceInfo;
+	const winningTeamMessage = '**' + (winningTeam === 1 ?  team1Name + ' won!' : (winningTeam === 2 ? team2Name + ' won!' : 'Tie!')) + '**';
 	var s = ''; 
-	s += '**Team ' + (team1Won ? '1' : '2') + ' won!** Played game: **' + game + '**. Updated mmr is: \n';
-	s += '**Team 1**: \n\t*' + T1[0].userName + ' (' + T1[0].getMMR(game) + ' mmr, ' + T1[0].getGame(game).prevMMR + ' ' + T1[0].getGame(game).latestUpdatePrefix + T1[0].getGame(game).latestUpdate + ')';
-	for(var i = 1; i < T1.length; i++){
-		s += '\n\t' + T1[i].userName + ' (' + T1[i].getMMR(game) + ' mmr, ' + T1[i].getGame(game).prevMMR + ' ' + T1[i].getGame(game).latestUpdatePrefix + T1[i].getGame(game).latestUpdate + ')';
+	s += winningTeamMessage + ' Played game: **' + game + '**. Updated mmr is: \n';
+	s += `**${team1Name}**: \n\t*` + team1[0].userName + ' (' + team1[0].getMMR(game) + ' mmr, ' + team1[0].getGame(game).prevMMR + ' ' + team1[0].getGame(game).latestUpdatePrefix + team1[0].getGame(game).latestUpdate + ')';
+	for(var i = 1; i < team1.length; i++){
+		s += '\n\t' + team1[i].userName + ' (' + team1[i].getMMR(game) + ' mmr, ' + team1[i].getGame(game).prevMMR + ' ' + team1[i].getGame(game).latestUpdatePrefix + team1[i].getGame(game).latestUpdate + ')';
 	}
 	s += '*\n';
-	s += '**Team 2**: \n\t*' + T2[0].userName + ' (' + T2[0].getMMR(game) + ' mmr, ' + T2[0].getGame(game).prevMMR + ' ' + T2[0].getGame(game).latestUpdatePrefix + T2[0].getGame(game).latestUpdate + ')';
-	for(var i = 1; i < T2.length; i++){
-		s += '\n\t' + T2[i].userName + ' (' + T2[i].getMMR(game) + ' mmr, ' + T2[i].getGame(game).prevMMR + ' ' + T2[i].getGame(game).latestUpdatePrefix + T2[i].getGame(game).latestUpdate + ')';
+	s += `**${team2Name}**: \n\t*` + team2[0].userName + ' (' + team2[0].getMMR(game) + ' mmr, ' + team2[0].getGame(game).prevMMR + ' ' + team2[0].getGame(game).latestUpdatePrefix + team2[0].getGame(game).latestUpdate + ')';
+	for(var i = 1; i < team2.length; i++){
+		s += '\n\t' + team2[i].userName + ' (' + team2[i].getMMR(game) + ' mmr, ' + team2[i].getGame(game).prevMMR + ' ' + team2[i].getGame(game).latestUpdatePrefix + team2[i].getGame(game).latestUpdate + ')';
 	}
 	s += '*\n';
 	callback(gameObject, s, callbackUpdate);

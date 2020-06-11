@@ -36,7 +36,10 @@ const emoji_error = '❌'; 		// Error / Ban emoji. Alt: '🤚';
 const bot_name = 'inhouse-bot';
 const voteText = '**Majority of players that played the game need to confirm this result (Press ' + emoji_agree + ' or ' + emoji_disagree + ')**';
 const adminUids = ['96293765001519104', '107882667894124544']; // Admin ids, get access to specific admin rights
-const csIp = 'connect kosatupp.datho.st:27207; password get';
+const csIp = 'kosatupp.datho.st:27207';
+const csPw = 'get';
+const csConnectConsole = `connect ${csIp}; password ${csPw}`; // connect kosatupp.datho.st:27207; password get
+const csConnectUrl = `steam://connect/${csIp}/${csPw}`; 			// steam://connect/kosatupp.datho.st:27207/get
 const removeBotMessageDefaultTime = 60000; // 300000
 const maxPlayers = 14;
 
@@ -190,7 +193,7 @@ function handleMessage(message) {
 		}
 	}
 	else if(csServerCommands.includes(message.content)){
-		f.print(message, '**' + csIp + '**');
+		f.print(message, '**' + csConnectConsole + '**');
 		f.deleteDiscMessage(message, 15000, 'lukasServer');
 	}
 	// Sends available commands privately to the user
@@ -394,10 +397,10 @@ function handleMessage(message) {
 			else if(cancelCommands.includes(message.content)){
 				// Only creator of game can cancel it
 				var matchupMessage = gameObject.getMatchupMessage();
-				if(message.author.id === matchupMessage.author.id){
+				if(message.author.id === matchupMessage.author.id || adminUids.includes(message.author.id)){
 					// TODO Game: Remove game from game.js
 					game_js.deleteGame(gameObject);
-					f.print(message, 'Game canceled', function(message){
+					f.print(message, 'Game cancelled', (message) => {
 						f.deleteDiscMessage(message, 15000, 'gameCanceled');
 						cleanOnGameEnd(gameObject);
 					});
@@ -842,7 +845,11 @@ exports.getPrefix = function(){
 }
 
 exports.getCsIp = function(){
-	return csIp;
+	return csConnectConsole;
+}
+
+exports.getCsUrl = function(){
+	return csConnectUrl;
 }
 
 exports.getRemoveTime = function(){

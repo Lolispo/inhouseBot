@@ -101,6 +101,7 @@ async function getMapMessages(message, clientEmojis){ // TODO Check Should run a
 	await initMap('Cache', clientEmojis, message, callbackMapMessage);
 	await initMap('Overpass', clientEmojis, message, callbackMapMessage);
 	await initMap('Train', clientEmojis, message, callbackMapMessage);
+	await initMap('Vertigo', clientEmojis, message, callbackMapMessage);
 }	
 
 
