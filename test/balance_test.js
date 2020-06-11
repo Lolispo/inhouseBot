@@ -1,14 +1,13 @@
 'use strict';
 // Author: Petter Andersson
 
-var assert = require('assert');
-var rewire = require('rewire');
-
-var fileModule = rewire('../src/balance.js');
-
-var recursiveFor = fileModule.__get__('recursiveFor');
-var unival = fileModule.__get__('uniVal');
-var reverseUniqueSum = fileModule.__get__('reverseUniqueSum');
+const assert = require('assert');
+const rewire = require('rewire');
+const balanceModule = rewire('../src/balance.js');
+const recursiveFor = balanceModule.__get__('recursiveFor');
+const unival = balanceModule.__get__('uniVal');
+const reverseUniqueSum = balanceModule.__get__('reverseUniqueSum');
+const roundValue = balanceModule.__get__('roundValue');
 
 
 describe('balance', function(){
@@ -69,4 +68,21 @@ describe('balance', function(){
             assert.equal(70, set.size);
         });
     });
+    describe('roundValue', () => {
+        it('roundValue', () => {
+            const num = 5.2342;
+            const res = roundValue(num);
+            assert.equal(res, '5.23');
+        });
+        it('roundValue', () => {
+            const num = 5;
+            const res = roundValue(num);
+            assert.equal(res, '5');
+        });
+        it('roundValue', () => {
+            const num = 5.29;
+            const res = roundValue(num);
+            assert.equal(res, '5.29');
+        });
+    })
 });
