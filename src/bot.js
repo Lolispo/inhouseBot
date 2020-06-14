@@ -26,7 +26,6 @@ const { prefix, token, db } = getConfig(); // Load config data from env
 client.on('ready', () => {
 	console.log('ready to rumble');
 	db_sequelize.initDb(db.database, db.user, db.dbpw, db.host, db.dialect); // Initialize db_sequelize database on startup of bot
-	birthdayStart(client);
 });
 
 // Login
@@ -67,6 +66,9 @@ const challengeCommands = [prefix + 'challenge'];
 const queueCommands = [prefix + 'soloqueue', prefix + 'queue'];
 const lennyCommands = ['lenny', 'lennyface', prefix + 'lenny', prefix + 'lennyface'];
 const csServerCommands = [prefix + 'praccserver', prefix + 'server', prefix + 'csserver'];
+const pingCommands = [prefix + 'ping'];
+const rollCommands = [prefix + 'roll'];
+const connectsteam = [prefix + 'connectsteam'];
 
 // Listener on message
 client.on('message', message => {
@@ -180,12 +182,13 @@ function handleMessage(message) {
 	else if(!startsWith(message, prefix)){ // Every command after here need to start with prefix
 		return;
 	}
-	else if(message.content === prefix + 'ping'){ // Good for testing prefix and connection to bot
+	else if(pingCommands.includes(message.content)){ // Good for testing prefix and connection to bot
 		console.log('PingAlert, user had !ping as command', client.pings);
 		f.print(message, 'Time of response ' + client.pings[0] + ' ms');
 		f.deleteDiscMessage(message, removeBotMessageDefaultTime, 'ping');
 	}
-	else if(startsWith(message, prefix + 'roll')){ // Roll command for luls
+	else if(startsWith(message, rollCommands)){ // Roll command for luls
+		console.log('RollCommand');
 		var messages = message.content.split(' ');
 		if(messages.length === 2 && !isNaN(parseInt(messages[1]))){ // Valid input
 			roll(message, 0, messages[1])
@@ -196,8 +199,9 @@ function handleMessage(message) {
 		}
 	}
 	else if(csServerCommands.includes(message.content)){
+		console.log('CSServer Command');
 		f.print(message, '**' + csConnectConsole + '**');
-		f.deleteDiscMessage(message, 15000, 'lukasServer');
+		f.deleteDiscMessage(message, 15000, 'csserver');
 	}
 	// Sends available commands privately to the user
 	else if(helpCommands.includes(message.content)){
@@ -437,7 +441,7 @@ function handleMessage(message) {
 			f.print(message, 'Invalid command: User ' + message.author + ' not currently in a game', callbackInvalidCommand);
 		}
 	}
-	else if(startsWith(message,prefix)){ // Message start with prefix
+	else if(startsWith(message, prefix)){ // Message start with prefix
 		f.print(message, 'Invalid command: List of available commands at **' + prefix + 'help**', callbackInvalidCommand);
 		f.deleteDiscMessage(message, 3000, 'invalidCommand'); // Overlaps delete call from callbackInvalidCommand above^
 	}
@@ -835,7 +839,7 @@ async function callbackVoteText(message){
 	message.react(emoji_disagree);
 }
 
-function noop(message){ // callback used when no operation is wanted
+const noop = (message) => { // callback used when no operation is wanted
 	// Doesn't delete the message
 }
 

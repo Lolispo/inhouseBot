@@ -1,46 +1,20 @@
-// Author: Petter Andersson
-'use strict';
+const mysqlPromisify = require('mysql-promisify-pool');
 
-const util = require('util');
-const mysql = require('mysql');
-
-const printVars = () => {
-  console.log(process.env.DB_HOST);
-  console.log(process.env.DB_USER);
-  console.log(process.env.DB_PW);
-  console.log(process.env.DB_TABLE);
+exports.initializeMySQL = (config) => {
+  mysqlPromisify.initialize(config.host, config.user, config.password, config.name);
 }
 
-// printVars();
-
-const pool = mysql.createPool({
-  connectionLimit: 10,
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PW,
-  database: process.env.DB_TABLE
-})
-
-// Ping database to check for common exception errors.
-pool.getConnection((err, connection) => {
-  if (err) {
-    if (err.code === 'PROTOCOL_CONNECTION_LOST') {
-      console.error('Database connection was closed.')
+exports.getPool = async (config = null) => {
+  let pool = mysqlPromisify.getPool();
+  if (pool === null) {
+		console.log('null pool');
+    if (!config) {
+      console.error('Error: MySQL connection not set');
+      return null;
     }
-    if (err.code === 'ER_CON_COUNT_ERROR') {
-      console.error('Database has too many connections.')
-    }
-    if (err.code === 'ECONNREFUSED') {
-      console.error('Database connection was refused.')
-    }
+    pool = mysqlPromisify.initialize(config.host, config.user, config.password, config.name);
+    return pool;
+  } else {
+    return pool;
   }
-
-  if (connection) connection.release()
-
-  return
-})
-
-// Promisify for Node.js async/await.
-pool.query = util.promisify(pool.query)
-
-module.exports = pool
+}

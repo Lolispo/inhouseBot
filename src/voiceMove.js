@@ -71,16 +71,17 @@ function getVoiceChannel(message){
 	var res = message.content.split(' ');
 	var channel1 = undefined;
 
-	if(res.length == 2){ // TODO: Doesn't support channel names with name with spaces, fix
-		var channelName = res[1];
+	if (res.length > 1) {
+		var channelName = res.length > 2 ? res.slice(1).join(' ') : res[1];
+		console.log('channelName:', channelName);
 		channel1 = message.guild.channels.find(function(channel) {
 			console.log(channel.name, channel.type, channelName, channel.type === 'voice' && channel.name === channelName);
-			return channel.type === 'voice' && channel.name === channelName && channel.id !== message.guild.afkChannelID;
+			return channel.type === 'voice' && channel.name.toLowerCase() === channelName && channel.id !== message.guild.afkChannelID;
 		});
 	}
 	if(!f.isUndefined(channel1)){ // If param is given use that
 		return channel1;
-	}else if(f.isUndefined(channel1) && !f.isUndefined(splitChannel)){ // Otherwise use same voiceChannel as we split in
+	} else if(f.isUndefined(channel1) && !f.isUndefined(splitChannel)){ // Otherwise use same voiceChannel as we split in
 		return splitChannel;
 	}
 	// If this is not defined, take own own voiceChannel or an available one
