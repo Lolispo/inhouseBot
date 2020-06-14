@@ -2,12 +2,13 @@
   "name": "inhouse-disc-bot",
   "version": "1.0.0",
   "description": "inhouse matchmaking",
-  "main": "bot.js",
+  "main": "migration.js",
   "scripts": {
     "test": "check-node-version --node \">= 8\" && mocha --exit",
     "start": "check-node-version --node \">= 8\" && node src/bot.js",
     "start-remote": "check-node-version --node \">= 8\" && node src/bot.js >> OUTPUT.log 2>ERROR.log",
-    "mocha": "mocha -g"
+    "mocha": "mocha -g",
+    "migration": "node src/database/migration.js"
   },
   "repository": {
     "type": "git",

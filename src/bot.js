@@ -15,17 +15,18 @@ const player_js = require('./game/player');					// Handles player storage in ses
 const map_js = require('./mapVeto');					// MapVeto system
 const voiceMove_js = require('./voiceMove'); 			// Handles moving of users between voiceChannels
 const db_sequelize = require('./database/db_sequelize');			// Handles communication with db
+const { initializeDBSequelize } = require('./database/db_sequelize');	
 const trivia = require('./trivia');						// Trivia
 const game_js = require('./game/game');
 const { getConfig } = require('./tools/load-environment');
-const { birthdayStart } = require('./birthday');
+const birthday = require('./birthday');
 
 const { prefix, token, db } = getConfig(); // Load config data from env
 
 // will only do stuff after it's ready
 client.on('ready', () => {
 	console.log('ready to rumble');
-	db_sequelize.initDb(db.database, db.user, db.dbpw, db.host, db.dialect); // Initialize db_sequelize database on startup of bot
+	initializeDBSequelize(db); // Initialize db_sequelize database on startup of bot
 });
 
 // Login
@@ -169,7 +170,7 @@ client.on('error', console.error);
 // Create more events to do fancy stuff with discord API
 let currentTeamWonGameObject;
 // Main message handling function 
-function handleMessage(message) { 
+const handleMessage = async (message) => { 
 	console.log('< MSG (' + message.channel.guild.name + '.' + message.channel.name + ') ' + message.author.username + ':', message.content); 
 	// All stages commands, Commands that should always work, from every stage
 	if(startsWith(message, 'hej')){
@@ -313,23 +314,25 @@ function handleMessage(message) {
 	// Show top X MMR, default 5 
 	// TODO Games played only for cs, rating for otherRatings instead of mmr (as in player.js)
 	else if(startsWith(message, leaderboardCommands)){
-		var game = getModeChosen(message, player_js.getAllModes());
+		const allModes = player_js.getAllModes();
+		var game = getModeChosen(message, allModes, allModes[0]);
 		const messages = message.content.split(' '); 
 		let size = 5; 
 		if(messages.length >= 2) {
 			let num = parseInt(messages[1]);
 			size = messages[1] > 0 && messages[1] <= 100 ? num : 5;
 		}
-		db_sequelize.getHighScore(game, size, function(data){
-			var s = '**Leaderboard Top ' + size + ' for ' + game + ':**\n';
-			// TODO: Print``
-			data.forEach(function(oneData){ // TODO: RefactorDB
-				if(oneData[game] != 2500 || oneData.gamesPlayed > 0) {
-					s += oneData.userName.replace('_', '\\_') + ': \t**' + oneData[game] + ' ' + player_js.ratingOrMMR(game) + '**' + (game === player_js.getGameModes()[0] ? '\t(Games Played: ' + oneData.gamesPlayed + ')\n' : '\n');
-				}
-			});
-			f.print(message, s);
+		const data = await db_sequelize.getHighScore(game, size);
+		// TODO: Print``
+		let s2 = '';
+		let counter = 0;
+		data.forEach((oneData) => {
+			counter++;
+			s2 += `${oneData.userName.replace('_', '\\_')}: \t**${oneData.mmr} ${player_js.ratingOrMMR(oneData.gameName)}**${oneData.gamesPlayed > 0 ? `\t(Games Played: ${oneData.gamesPlayed})` : ''}\n`;
 		});
+		let s = '**Leaderboard Top ' + size + (size !== counter ? ` (${counter})` : '') + ' for ' + game + ':**\n';
+		s += s2;
+		f.print(message, s);
 		f.deleteDiscMessage(message, 15000, 'leaderboard');
 	}
 	// Sends private information about your statistics
@@ -471,10 +474,10 @@ function startsWith(message, command){
 
 // Returns first valid gamemode from arguments
 // TODO: A way to set cs1v1 if cs is given or dota if dota1v1 is given (instead of default)
-function getModeChosen(message, modeCategory){
+function getModeChosen(message, modeCategory, defaultGame = null){
 	var options = message.content.split(' '); // Message input, [0] is command, after is potential arguments
-	var game = modeCategory[0]; // default command (Either cs or cs1v1)
-	for(var i = 1; i < options.length; i++){
+	var game = defaultGame // default command (Either cs or cs1v1)
+	for(let i = 1; i < options.length; i++){
 		if(modeCategory.includes(options[i])){
 			console.log('DEBUG @b Game chosen as: ' + options[i]);
 			game = options[i];
@@ -489,24 +492,35 @@ async function cleanupExit(){
 	await game_js.getActiveGames().map(game => cleanOnGameEnd(game));
 }
 
-function stats(message){
+const stats = async (message) => {
 	var game = getModeChosen(message, player_js.getAllModes());
-	db_sequelize.getPersonalStats(message.author.id, game, function(data, game){
-		var s = '';
-		if(data.length === 0){
+	const data = await db_sequelize.getPersonalStats(message.author.id, game);
+	var s = '';
+	if(data.length === 0){
+		if (!game || game === '') {
 			s += "**User doesn't have any games played**";
+		} else {
+			s += `**User doesn't have any ${game} games played**`;
 		}
-		else {
+	}
+	else {
+		if(!game) {
+			s += `**Your stats (${data[0].userName}):**\n`;
+			data.forEach((oneData) => {
+				s += `$${oneData.gameName}: \t**${oneData.mmr} ${player_js.ratingOrMMR(oneData.gameName)}**\t(Games Played: ${oneData.gamesPlayed})\n`;
+			});
+		} else {
 			s += '**Your stats for ' + game + ':**\n';
-			data.forEach(function(oneData){ // TODO: RefactorDB Either choose options OR show all stats that have gamesPlayed > 0
-				s += oneData.userName + ': \t**' + oneData[game] + ' ' + player_js.ratingOrMMR(game) + '**' + (game === player_js.getGameModes()[0] ? '\t(Games Played: ' + oneData.gamesPlayed + ')\n' : '\n');
+			const filteredData = data.filter((entry) => entry.gameName === game);
+			filteredData.forEach((oneData) => {
+				s += `${oneData.userName}(**${oneData.gameName}**): \t**${oneData.mmr} ${player_js.ratingOrMMR(gameName)}**\t(Games Played: ${oneData.gamesPlayed})\n`;
 			});
 		}
-		message.author.send(s)  // Private message
-		.then(result => {
-			f.deleteDiscMessage(result, removeBotMessageDefaultTime * 2);
-		}); 
-	});
+	}
+	message.author.send(s)  // Private message
+	.then(result => {
+		f.deleteDiscMessage(result, removeBotMessageDefaultTime * 2);
+	}); 
 }
 
 // Start trivia game, sent from trivia when questions are fetched. 
@@ -515,11 +529,11 @@ exports.triviaStart = function(questions, message, author){
 	var voiceChannel = message.guild.member(message.author).voiceChannel;
 	if(voiceChannel !== null && !f.isUndefined(voiceChannel)){ // Sets initial player array to user in disc channel if available
 		var players = findPlayersStart(message, voiceChannel);
-		db_sequelize.initializePlayers(players, function(playerList){
+		db_sequelize.initializePlayers(players, 'trivia', (playerList) => {
 			trivia.startGame(message, questions, playerList); 
 		});
 	} else{ // No users in voice channel who wrote trivia
-		db_sequelize.initializePlayers([player_js.createPlayer(author.username, author.id)], function(playerList){
+		db_sequelize.initializePlayers([player_js.createPlayer(author.username, author.id)], 'trivia', (playerList) => {
 			trivia.startGame(message, questions, playerList); // Initialize players as one who wrote message
 		});
 	}
@@ -542,6 +556,19 @@ function roll(message, start, end){
 
 // Here follows starting balanced game methods
 
+const getModeAndPlayers = (players, gameObject, options) => {
+	const { message, allModes } = options;
+	let game;
+	if (!message && !allModes) {
+		game = options.game;
+	} else {
+		game = getModeChosen(message, allModes, allModes[0]);
+	}
+	db_sequelize.initializePlayers(players, game, (playerList) => {
+		balance.balanceTeams(playerList, game, gameObject);
+	});
+}
+
 // Command used for starting a new game
 function balanceCommand(message){
 	var gameObjectExist = game_js.getGame(message.author);
@@ -553,18 +580,14 @@ function balanceCommand(message){
 			var players = findPlayersStart(message, voiceChannel, gameObject); // initalize players objects with playerInformation
 			var numPlayers = players.length;
 			// Initialize balancing, Result is printed and stage = 1 when done
+			let allModes = player_js.getGameModes();
 			if(numPlayers > 2 && numPlayers <= maxPlayers && numPlayers % 2 === 0){ // TODO: Allow uneven games? Requires testing to see if it works
-				let game = getModeChosen(message, player_js.getGameModes());
-				db_sequelize.initializePlayers(players, function(playerList){
-					balance.balanceTeams(playerList, game, gameObject);
-				});
+				getModeAndPlayers(players, gameObject, { message, allModes });
 			} else if(numPlayers === 2){
-				let game = getModeChosen(message, player_js.getGameModes1v1());
-				db_sequelize.initializePlayers(players, function(playerList){
-					balance.balanceTeams(playerList, game, gameObject);
-				});
+				allModes = player_js.getGameModes1v1();
+				getModeAndPlayers(players, gameObject, { message, allModes });
 			} else if((numPlayers === 1) && (adminUids.includes(message.author.id))){
-				testBalanceGeneric(player_js.getGameModes()[0], gameObject);
+				testBalanceGeneric(allModes[0], gameObject);
 			} else{
 				f.print(message, 'Currently support games <= ' + maxPlayers + ' players', callbackInvalidCommand);
 				game_js.deleteGame(gameObject);
@@ -605,14 +628,12 @@ function findPlayersStart(message, channel, gameObject){
 // A Test for balancing and getting an active game without players available
 function testBalanceGeneric(game, gameObject){
 	console.log('\t<-- Testing Environment: 10 player game, res in console -->');
-	var players = [];
-	for(var i = 0; i < 10; i++){
-		var tempPlayer = player_js.createPlayer('Player ' + i, i.toString());
+	let players = [];
+	for(let i = 0; i < 10; i++){
+		let tempPlayer = player_js.createPlayer('Player ' + i, i.toString());
 		players.push(tempPlayer);
 	}
-	db_sequelize.initializePlayers(players, function(playerList){
-		balance.balanceTeams(playerList, game, gameObject);
-	})
+	getModeAndPlayers(players, gameObject, { game });
 }
 
 // Handling of voteMessageReactions

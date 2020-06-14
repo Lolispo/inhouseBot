@@ -14,8 +14,8 @@ const db_sequelize = require('../database/db_sequelize');
 exports.updateMMR = function(winner, gameObject, callbackUpdate){ // winner = 0 -> draw, 1 -> team 1, 2 -> team 2
 	var balanceInfo = gameObject.getBalanceInfo();
 	var mmrChange = eloUpdate(balanceInfo.avgT1, balanceInfo.avgT2, winner); 
-	updateTeamMMR(balanceInfo.team1, mmrChange.t1, balanceInfo.game);
-	updateTeamMMR(balanceInfo.team2, mmrChange.t2, balanceInfo.game);
+	updateTeamMMR(balanceInfo.team1, mmrChange.t1, balanceInfo.game, winner === 1);
+	updateTeamMMR(balanceInfo.team2, mmrChange.t2, balanceInfo.game, winner === 2);
 
 	buildMMRUpdateString(winner, callbackResult, balanceInfo, callbackUpdate, gameObject);
 }
@@ -61,13 +61,13 @@ function eloUpdate(t1mmr, t2mmr, winner){
 }
 
 // Update team mmr for the given team locally and in database
-function updateTeamMMR(team, change, game){
+function updateTeamMMR(team, change, game, winner){
 	for(var i = 0; i < team.length; i++){
-		var newMMR = team[i].getMMR(game) + change;
+		const newMMR = team[i].getMMR(game) + change;
 		team[i].setMMRChange(game, change);
 		team[i].setMMR(game, newMMR);
 		team[i].setPlusMinus(game, (change > 0 ? '+' : ''));
-		db_sequelize.updateMMR(team[i].uid, newMMR, game);
+		db_sequelize.updateDbMMR(team[i].uid, newMMR, game, winner);
 	}
 }
 

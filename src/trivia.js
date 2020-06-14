@@ -103,7 +103,7 @@ exports.isCorrect = function(message){
 			var tempPlayer = player_js.createPlayer(message.author.username, message.author.id);
 			var tempPlayers = [tempPlayer];
 			activePlayers.push(tempPlayer);
-			db_sequelize.initializePlayers(tempPlayers, function(playerList){
+			db_sequelize.initializePlayers(tempPlayers, 'trivia', (playerList) => {
 				updateTriviaMMR(message, playerList[0]); // Only one player used here, since this user wasn't initialized
 			});
 		} else{

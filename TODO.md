@@ -13,7 +13,7 @@ Steam account integration
 
     -connectsteam - save in column on user
 
-discord embed messages - 
+discord embed messages - access and links embedded
 
 ## CS Integration
 
@@ -51,6 +51,8 @@ Store only message id instead of entire messages
     ?
 
 ## Features:
+
+Stats for all games (not only chosen game)
 
 ### Cancel game after 24 h duration, to not have active games clog up for users
 
@@ -132,10 +134,6 @@ Store only message id instead of entire messages
 ## Refactor:
 ### Come up with better system for choosing winner of games
     Allow super upvote - admin upvote instant results
-### Store MMR for more games
-        Change into new created tables, ratings etc to have gamesPlayed for all games instead of sharing (only relevant for cs)
-        Stats: Show all stats where stats are available (gamesPlayed > 0)
-        Reference: TODO: RefactorDB
 ### Fix async/await works
         Recheck every instace returning promises to use async/await instead https://javascript.info/async-await
             Double check places returning promises, to see if they are .then correctly
