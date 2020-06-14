@@ -136,7 +136,7 @@ var getMapString = function(finished, gameObject, startingCaptainUsername){ // A
 	// TODO: Store long message as some field to create it more easily. First => better name and field
 	//console.log('DEBUG: @getMapString', finished, bannedMaps[bannedMaps.length-1]);
 	var s = '**Map Veto**\nThe captains **' + gameObject.getCaptain1().userName + '** and **' + gameObject.getCaptain2().userName + '** can now vote on which maps to play. \n';
-	s += 'Keep banning maps by pressing ' + bot.emoji_error + ' on your turn until there is only one map left. \n\n';
+	s += 'Keep banning maps by pressing ' + emoji_error + ' on your turn until there is only one map left. \n\n';
 	var bannedMaps = gameObject.getBannedMaps();
 	for(var i = 0; i < bannedMaps.length; i++){
 		if(i === bannedMaps.length - 1){

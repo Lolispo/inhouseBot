@@ -9,6 +9,8 @@ Add integration tests for main functionalities
 
 ## Prio
 
+"ps by pressing undefined on your turn until"
+
 Steam account integration
 
     -connectsteam - save in column on user
