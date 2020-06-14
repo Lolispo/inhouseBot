@@ -1,9 +1,9 @@
 'use strict';
 // Author: Petter Andersson
 
-const bot = require('./bot');
+const bot = require('../bot');
 const game_js = require('./game');
-const { getTeamName } = require('./teamNames');
+const { getTeamName } = require('../teamNames');
 
 /*
 	Handles getting the most balanced team matchup for the given 10 players

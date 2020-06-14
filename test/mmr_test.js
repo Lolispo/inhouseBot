@@ -4,7 +4,7 @@
 var assert = require('assert');
 var rewire = require('rewire');
 
-var fileModule = rewire('../src/mmr.js');
+var fileModule = rewire('../src/game/mmr.js');
 
 var eloUpdate = fileModule.__get__('eloUpdate');
 

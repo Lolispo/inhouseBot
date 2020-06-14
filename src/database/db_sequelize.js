@@ -1,8 +1,8 @@
 'use strict';
 // Author: Petter Andersson
 
-const player_js = require('./player')
-const f = require('./f')
+const player_js = require('../game/player')
+const f = require('../tools/f')
 
 const Sequelize = require('sequelize');
 var sequelize = {};

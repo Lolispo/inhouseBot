@@ -4,8 +4,8 @@
 // Handles map veto system, to choose maps between teams
 
 const bot = require('./bot');
-const player_js = require('./player');
-const f = require('./f');
+const player_js = require('./game/player');
+const f = require('./tools/f');
 
 let mapMessagesBuilder = [];
 

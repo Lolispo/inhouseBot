@@ -4,8 +4,8 @@
 var assert = require('assert');
 var rewire = require('rewire');
 
-var player_js = require('../src/player.js');
-var fileModule = rewire('../src/player.js');
+var player_js = require('../src/game/player.js');
+var fileModule = rewire('../src/game/player.js');
 
 // TODO
 describe('player', function(){

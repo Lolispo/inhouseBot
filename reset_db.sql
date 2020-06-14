@@ -1,4 +1,4 @@
-use pettea;
+/* use pettea; // TODO Read name from env variable: process.env.DB_DATABASE */
 
 /*
 	Author: Petter Andersson

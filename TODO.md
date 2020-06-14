@@ -9,6 +9,28 @@ Add integration tests for main functionalities
 
 ## Prio
 
+Steam account integration
+
+    -connectsteam - save in column on user
+
+discord embed messages - 
+
+## CS Integration
+
+POST /api/0.1/game-servers/{server_id}/files/{path}
+POST - upload path
+{
+    path: ./<>.cfg
+}
+
+POST /api/0.1/game-servers/{server_id}/console
+{
+    get5_loadmatch <file>
+}
+POST - load a match config file
+
+MySQL - (Anton access)
+
 ### eslint add
 
 ### Mapveto

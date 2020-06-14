@@ -8,22 +8,25 @@ const Discord = require('discord.js');
 // Get Instance of discord client
 const client = new Discord.Client();
 
-const f = require('./f');								// Function class used by many classes, ex. isUndefined, messagesDeletion
-const balance = require('./balance');					// Balances and starts game between 2 teams
-const mmr_js = require('./mmr');						// Handles balanced mmr update
-const player_js = require('./player');					// Handles player storage in session, the database in action
+const f = require('./tools/f');								// Function class used by many classes, ex. isUndefined, messagesDeletion
+const balance = require('./game/balance');					// Balances and starts game between 2 teams
+const mmr_js = require('./game/mmr');						// Handles balanced mmr update
+const player_js = require('./game/player');					// Handles player storage in session, the database in action
 const map_js = require('./mapVeto');					// MapVeto system
 const voiceMove_js = require('./voiceMove'); 			// Handles moving of users between voiceChannels
-const db_sequelize = require('./db_sequelize');			// Handles communication with db
-const trivia = require('./trivia')						// Trivia
-const game_js = require('./game')
+const db_sequelize = require('./database/db_sequelize');			// Handles communication with db
+const trivia = require('./trivia');						// Trivia
+const game_js = require('./game/game');
+const { getConfig } = require('./tools/load-environment');
+const { birthdayStart } = require('./birthday');
 
-const { prefix, token, db } = require('../conf.json'); // Load config data from file
+const { prefix, token, db } = getConfig(); // Load config data from env
 
 // will only do stuff after it's ready
 client.on('ready', () => {
 	console.log('ready to rumble');
 	db_sequelize.initDb(db.database, db.user, db.dbpw, db.host, db.dialect); // Initialize db_sequelize database on startup of bot
+	birthdayStart(client);
 });
 
 // Login
@@ -36,7 +39,7 @@ const emoji_error = '❌'; 		// Error / Ban emoji. Alt: '🤚';
 const bot_name = 'inhouse-bot';
 const voteText = '**Majority of players that played the game need to confirm this result (Press ' + emoji_agree + ' or ' + emoji_disagree + ')**';
 const adminUids = ['96293765001519104', '107882667894124544']; // Admin ids, get access to specific admin rights
-const csIp = 'kosatupp.datho.st:27207';
+const csIp = 'kosatupp.datho.st:27365';
 const csPw = 'get';
 const csConnectConsole = `connect ${csIp}; password ${csPw}`; // connect kosatupp.datho.st:27207; password get
 const csConnectUrl = `steam://connect/${csIp}/${csPw}`; 			// steam://connect/kosatupp.datho.st:27207/get

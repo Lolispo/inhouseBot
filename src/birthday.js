@@ -1,26 +1,10 @@
 'use strict';
 // Author: Petter Andersson
 
-// Main File for discord bot: Handles event for messages
-
-const Discord = require('discord.js');
-
-// Get Instance of discord client
-const client = new Discord.Client();
-
 require('dotenv').config({ path: __dirname+'/./../.env' });
 
-const pool = require('./database');
-const { prefix, token, db } = require('../conf.json'); // Load config data from file
-
-// will only do stuff after it's ready
-client.on('ready', () => {
-	console.log('ready to rumble');
-	main();
-});
-
-// Login
-client.login(token);
+const pool = require('mysql-promisify-pool');
+let client;
 
 const getBirthdays = async () => {
   const sql = 'SELECT * FROM birthdays WHERE DATE(birthday) = CURDATE();';
@@ -52,10 +36,17 @@ const findTextChannel = () => {
 	}
 }
 
-const main = async () => {
+exports.birthdayStart = async (client) => {
+	client = client;
+	setInterval(() => {
+		dailyCheck();
+	}, 24 * 1000 * 3600);
+}
+
+const dailyCheck = (date) => {
 	const channel = findTextChannel();
 	console.log('@main TextChannel:', channel.name);
-	const result = await getBirthdays() || [];
+	const result = await getBirthdays(date) || [];
 	for(let i = 0; i < result.length; i++) {
 		const entry = result[i];
 		console.log('Entry', i, ':', entry.userName);

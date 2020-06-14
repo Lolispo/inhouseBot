@@ -3,7 +3,7 @@
 
 // Handles changing voice channel logic for users: unite and split methods
 
-const f = require('./f')
+const f = require('./tools/f')
 
 var splitChannel;		// Channel we split in latest
 

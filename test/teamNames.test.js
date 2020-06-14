@@ -3,7 +3,7 @@
 
 const assert = require('assert');
 const rewire = require('rewire');
-const { createPlayer } = require('../src/player');
+const { createPlayer } = require('../src/game/player');
 const { getTeamName } = require('../src/teamNames');
 const teamNameModule = rewire('../src/teamNames.js');
 const capitalize = teamNameModule.__get__('capitalize');

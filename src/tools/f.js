@@ -2,7 +2,7 @@
 // Author: Petter Andersson
 
 // Should handle general help functions
-const bot = require('./bot')
+const bot = require('../bot');
 var fs = require('fs');
 
 /*

@@ -72,7 +72,8 @@ const pluralLuls = [
 const specialNames = [
 	'Petter',
 	'Pippin',
-	'Robin'
+  'Robin',
+  'Lacktjo'
 ]
 
 class Team {
@@ -184,6 +185,7 @@ exports.getTeamName = (team, game) => {
     if(team.some((player) => player.userName === 'Petter')) specialOptions.push('Petter och hans fyra getter');
     if(team.some((player) => player.userName === 'Pippin')) specialOptions.push('El Banditos');
     if(team.some((player) => player.userName === 'Robin')) specialOptions.push('Knife Squad');
+    // if(team.some((player) => player.userName === 'Lacktjo')) specialOptions.push(''); // Axel meme
     return specialOptions.length === 1 ? specialOptions[0] : specialOptions[getRndInt(specialOptions.length)];
   }
 

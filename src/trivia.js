@@ -10,10 +10,10 @@ const entities = new Entities(); // Used to fix html chars
 	Uses player and db_sequelize to update rating
 */
 
-const f = require('./f');
-const player_js = require('./player');
+const f = require('./tools/f');
+const player_js = require('./game/player');
 const bot = require('./bot');
-const db_sequelize = require('./db_sequelize');
+const db_sequelize = require('./database/db_sequelize');
 
 var gameOnGoing = false;
 var author;
