@@ -371,7 +371,9 @@ const handleMessage = async (message) => {
 					gameObject.setTeamWonMessage(message);
 					gameObject.setTeamWon(1);
 					currentTeamWonGameObject = gameObject;
-					f.print(message, voteText + ' (0/' + (gameObject.getBalanceInfo().team1.length + 1)+ ')', callbackVoteText);
+					const teamName = gameObject.getBalanceInfo().team1Name;
+					const totalNeeded = (gameObject.getBalanceInfo().team1.length + 1);
+					f.print(message, `**${teamName} won!** ` + voteText + ' (0/' + totalNeeded + ')', callbackVoteText);
 				}
 			}
 			else if(team2wonCommands.includes(message.content)){
@@ -386,7 +388,9 @@ const handleMessage = async (message) => {
 					gameObject.setTeamWonMessage(message);
 					gameObject.setTeamWon(2);
 					currentTeamWonGameObject = gameObject;
-					f.print(message, voteText + ' (0/' + (gameObject.getBalanceInfo().team2.length + 1)+ ')', callbackVoteText);
+					const teamName = gameObject.getBalanceInfo().team2Name;
+					const totalNeeded = (gameObject.getBalanceInfo().team2.length + 1);
+					f.print(message, `**${teamName} won!** ` + voteText + ' (0/' + totalNeeded + ')', callbackVoteText);
 				}
 			}
 			else if(tieCommands.includes(message.content)){
@@ -401,7 +405,8 @@ const handleMessage = async (message) => {
 					gameObject.setTeamWonMessage(message);
 					gameObject.setTeamWon(0);
 					currentTeamWonGameObject = gameObject;
-					f.print(message, voteText + ' (0/' + (gameObject.getBalanceInfo().team1.length + 1)+ ')', callbackVoteText);
+					const totalNeeded = (gameObject.getBalanceInfo().team1.length + 1);
+					f.print(message, `**Tie!** ` + voteText + ' (0/' + totalNeeded + ')', callbackVoteText);
 				}
 			}
 			else if(cancelCommands.includes(message.content)){
@@ -564,6 +569,7 @@ const getModeAndPlayers = (players, gameObject, options) => {
 	} else {
 		game = getModeChosen(message, allModes, allModes[0]);
 	}
+	// console.log('getModeAndPlayers', game);
 	db_sequelize.initializePlayers(players, game, (playerList) => {
 		balance.balanceTeams(playerList, game, gameObject);
 	});
@@ -660,7 +666,10 @@ async function voteMessageTextUpdate(messageReaction, gameObject){
 	var totalNeed = await (gameObject.getBalanceInfo().team1.length + 1);
 	//console.log('DEBUG: @messageReactionAdd, count =', amountRelevant, ', Majority number is =', totalNeeded);
 	var voteAmountString = ' (' + amountRel + '/' + totalNeed + ')';
-	var newVoteMessage = (voteText + voteAmountString);
+	const winner = gameObject.getTeamWon();
+	const teamNameWon = winner === 1 ? gameObject.getBalanceInfo().team1Name : winner === 2 ? gameObject.getBalanceInfo().team2Name : '';
+	const teamWonMessage = winner === 0 ? '**Tie!** ' : `**${teamNameWon} won!** `;
+	var newVoteMessage = (teamWonMessage + voteText + voteAmountString);
 	let newVoteMessageVar = gameObject.getVoteMessage();
 	newVoteMessageVar.content = newVoteMessage; 
 	await newVoteMessageVar.edit(newVoteMessage);

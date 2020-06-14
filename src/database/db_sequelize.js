@@ -53,56 +53,9 @@ class DatabaseSequelize {
 // Initializes sequelize variables for further usage
 const initDb = (database, user, dbpw, hostAddress, dialectDB) => {
 	return new DatabaseSequelize(database, user, dbpw, hostAddress, dialectDB);
-	sequelize = new Sequelize(database, user, dbpw, {
-		host: hostAddress,
-		dialect: dialectDB,
-		operatorsAliases: false
-	});
+}
 
-	/* 		
-		db: The databse in sql code (For reference)
-			Table: 'users': 
-			uid VARCHAR(64) NOT NULL, PRIMARY KEY (uid)
-			userName VARCHAR(64), 
-			cs int,
-			cs1v1 int,
-			dota int,
-			dota1v1 int,
-			trivia int,
-			mmr int, 
-			gamesPlayed int,
-	*/
-	Users = sequelize.define('users', {
-		uid: {type: Sequelize.STRING, primaryKey: true},
-		userName: Sequelize.STRING,
-		steamid: Sequelize.STRING,
-		cs: Sequelize.INTEGER,
-		cs1v1: Sequelize.INTEGER,
-		dota: Sequelize.INTEGER,
-		dota1v1: Sequelize.INTEGER,
-		trivia: Sequelize.INTEGER,
-		gamesPlayed: Sequelize.INTEGER
-	}, {
-		timestamps: false
-	}); 
-
-
-	Ratings = sequelize.define('ratings', {
-		uid: { type: Sequelize.STRING, primaryKey: true },
-		gameName: {type: Sequelize.STRING, primaryKey: true},
-		userName: Sequelize.STRING,
-		mmr: Sequelize.INTEGER,
-		gamesPlayed: Sequelize.INTEGER,
-		wins: Sequelize.INTEGER,
-		losses: Sequelize.INTEGER,
-	}, {
-		timestamps: false
-	}); 
-	console.log('@initdb', Users, Ratings);
-
-	return { Users, Ratings}; 
-
-	// User.hasMany(Ratings, { foreignKey: 'uid' });
+	// User.hasMany(Ratings, { foreignKey: 'uid' }); // TODO: Fix Foreign key of Rating to user
 
 	/**
 	 * CREATE TABLE matches (
@@ -119,37 +72,23 @@ const initDb = (database, user, dbpw, hostAddress, dialectDB) => {
 			FOREIGN KEY (uid) REFERENECES users,
 		)
 
-	/*
-	Matches = sequelize.define('matches', {
+	
+	Matches = DatabaseSequelize.instance.sequelize.define('matches', {
 		mid: {type: Sequelize.STRING, primaryKey: true},
 		game: Sequelize.STRING,
 	});
-	*/ 
-/*
-	CREATE TABLE ratings(
-		uid VARCHAR(64) NOT NULL,
-		gameName VARCHAR(64) NOT NULL,
-		userName VARCHAR(64),
-		mmr int,
-		gamesPlayed int,
-		wins int,
-		losses int,  
-		PRIMARY KEY (uid, gameName),
-		FOREIGN KEY (uid) REFERENCES users(uid),
-		FOREIGN KEY (gameName) REFERENCES game(gameName),
-		FOREIGN KEY (userName) REFERENCES users(userName)
-	);
 	*/
-}
 
+// Sync tables after update
 const syncTables = () => {
-	Ratings.sync({ alter: true });
-	Users.sync({ alter: true });
+	DatabaseSequelize.instance.Ratings.sync({ alter: true });
+	DatabaseSequelize.instance.Users.sync({ alter: true });
 }
 
 const initializeDBSequelize = (config) => {
 	const dbconn = initDb(config.name, config.user, config.password, config.host, config.dialect);
 	DatabaseSequelize.instance = dbconn;
+	// syncTables(); // Run this when updating database structure
 	return dbconn;
 }
 
@@ -173,7 +112,7 @@ const addMissingUsers = async (players, specificUsers, game, callback) => {
 			createUserWithGame(player.uid, player.userName, player.defaultMMR, game);
 		} else { // Update local player mmr to the correct value
 			const userRating = await getRatingUser(player.uid, game);
-			console.log('UserRating:', player.userName, game, userRating);
+			// console.log('UserRating:', player.userName, game, userRating);
 			if (userRating.length === 0) { // Check if Rating entry exist for user
 				createRatingForUser(player.uid, player.userName, player.defaultMMR, game);
 			} else {
@@ -293,8 +232,8 @@ const updateDbMMR = async (uid, newMmr, game, won) => {
 	if (rating) {
 		const result = await rating.update({
 				mmr: newMmr,
-				gamesPlayed: sequelize.literal('gamesPlayed +1'),
-				...(won && { wins: sequelize.literal('wins +1') }),
+				gamesPlayed: DatabaseSequelize.instance.sequelize.literal('gamesPlayed +1'),
+				...(won && { wins: DatabaseSequelize.instance.sequelize.literal('wins +1') }),
 			}
 		)
 		return result;
@@ -335,7 +274,6 @@ const createUser = async (uid, userName, mmr) => {
 }
 
 const createRatingForUser = async (uid, userName, mmr, game, gamesPlayed = 0) => {
-	/*
 	const result = await DatabaseSequelize.instance.Ratings.create({
 		uid: uid,
 		userName: userName,
@@ -344,18 +282,6 @@ const createRatingForUser = async (uid, userName, mmr, game, gamesPlayed = 0) =>
 		gamesPlayed: gamesPlayed,
 		wins: 0,
 		losses: 0,
-	})
-	*/
-	const result = await DatabaseSequelize.instance.Ratings.findOrCreate({
-		where: {
-			uid: uid,
-			userName: userName,
-			gameName: game,
-			mmr: mmr,
-			gamesPlayed: gamesPlayed,
-			wins: 0,
-			losses: 0,
-		}
 	})
 	console.log('@createRatingForUser:', userName, game, result.get({ plain: true }));
 	return result;
