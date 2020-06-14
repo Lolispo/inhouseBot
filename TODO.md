@@ -7,9 +7,11 @@ Add unit tests for all files
 
 Add integration tests for main functionalities
 
-## Prio
+# Error message
 
-"ps by pressing undefined on your turn until"
+(node:6580) DeprecationWarning: Collection#find: pass a function instead
+
+## Prio
 
 Steam account integration
 
@@ -42,7 +44,7 @@ MySQL - (Anton access)
 
     Add all cs maps emojis to git repo
 
-Fix datarace when multiple people upvote - semaphore
+Fix datarace when multiple people upvote - lock
 
 Bug: revisit prints on emote adds (seems not to work fully on removing (does it remove upvote if you press downvote?))
 

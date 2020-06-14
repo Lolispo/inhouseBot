@@ -73,7 +73,6 @@ const specialNames = [
 	'Petter',
 	'Pippin',
   'Robin',
-  'Lacktjo'
 ]
 
 class Team {

@@ -129,7 +129,7 @@ function updateTriviaMMR(message, player){
 	player.setMMR('trivia', newMmr);
 	var newMmrSession = player.getMMR('trivia_temp') + pointsToIncrease;
 	player.setMMR('trivia_temp', newMmrSession);
-	db_sequelize.updateMMR(message.author.id, newMmr, 'trivia');
+	db_sequelize.updateDbMMR(message.author.id, newMmr, 'trivia');
 	var answer_correct = message.author.username + ' answered correctly! Answer was: **' + ans + '**. Trivia Rating: ' + newMmrSession + 
 		' (+' + pointsToIncrease + ', Total: ' + newMmr + ')';
 	if(isNaN(player.getMMR('trivia'))){
