@@ -37,7 +37,14 @@ class DatabaseSequelize {
 		});
 	
 		this.Ratings = this.sequelize.define('ratings', {
-			uid: { type: Sequelize.STRING, primaryKey: true },
+			uid: { 
+				type: Sequelize.STRING, 
+				primaryKey: true,
+				references: {
+					model: 'users',
+					key: 'uid',
+				}
+			},
 			gameName: {type: Sequelize.STRING, primaryKey: true},
 			userName: Sequelize.STRING,
 			mmr: Sequelize.INTEGER,
@@ -46,7 +53,40 @@ class DatabaseSequelize {
 		}, {
 			timestamps: false
 		});
+
+		// User.hasMany(Ratings, { foreignKey: 'uid' }); // TODO: Fix Foreign key of Rating to user
 		// console.log('@DatabaseSequelize.constructor', this.Users, this.Ratings);
+
+		this.Matches = DatabaseSequelize.instance.sequelize.define('matches', {
+			mid: { type: Sequelize.STRING, primaryKey: true, autoIncrement: true },
+			game: Sequelize.STRING,
+			date: Sequelize.Date,
+			result: Sequelize.INTEGER,
+			team1Name: Sequelize.STRING,
+			team2Name: Sequelize.STRING,
+		});
+	
+		this.PlayerMatches = DatabaseSequelize.instance.sequelize.define('playerMatches', {
+			mid: { 
+				type: Sequelize.STRING, 
+				primaryKey: true,
+				references: {
+					model: 'matches',
+					key: 'mid',
+				}
+			},
+			uid: { 
+				type: Sequelize.STRING, 
+				primaryKey: true,
+				references: {
+					model: 'users',
+					key: 'uid',
+				}
+			},
+			team: Sequelize.INTEGER
+		}, {
+			timestamps: false
+		});
 	}
 }
 
@@ -55,40 +95,20 @@ const initDb = (database, user, dbpw, hostAddress, dialectDB) => {
 	return new DatabaseSequelize(database, user, dbpw, hostAddress, dialectDB);
 }
 
-	// User.hasMany(Ratings, { foreignKey: 'uid' }); // TODO: Fix Foreign key of Rating to user
-
-	/**
-	 * CREATE TABLE matches (
-	 *  mid VARCHAR(64) NOT NULL AUTO INCREMENT, PRIMARY KEY (mid)
-			game VARCHAR(64),
-			date DATE, 
-
-
-		CREATE TABLE match_players (
-			mid VARCHAR(64),
-			uid VARCHAR(64),
-			winner BOOLEAN, 
-			FOREIGN KEY (mid) REFERENCES matches,
-			FOREIGN KEY (uid) REFERENECES users,
-		)
-
 	
-	Matches = DatabaseSequelize.instance.sequelize.define('matches', {
-		mid: {type: Sequelize.STRING, primaryKey: true},
-		game: Sequelize.STRING,
-	});
-	*/
 
 // Sync tables after update
 const syncTables = () => {
 	DatabaseSequelize.instance.Ratings.sync({ alter: true });
 	DatabaseSequelize.instance.Users.sync({ alter: true });
+	DatabaseSequelize.instance.Matches.sync({ alter: true });
+	DatabaseSequelize.instance.PlayerMatches.sync({ alter: true });
 }
 
 const initializeDBSequelize = (config) => {
 	const dbconn = initDb(config.name, config.user, config.password, config.host, config.dialect);
 	DatabaseSequelize.instance = dbconn;
-	// syncTables(); // Run this when updating database structure
+	syncTables(); // Run this when updating database structure
 	return dbconn;
 }
 
@@ -102,9 +122,7 @@ const initializePlayers = async (players, game, callback) => {
 // Adds missing users to database 
 // Updates players mmr entry correctly
 const addMissingUsers = async (players, specificUsers, game, callback) => {
-	//console.log('DEBUG: @addMissingUsers, Insert the mmr from data: ', players);
-	// var allGameModes = player_js.getAllModes();
-	players = await Promise.all(players.map(async (player) => {
+	const adjustedPlayers = await Promise.all(players.map(async (player) => {
 		const existingUser = specificUsers.find((oneData) => { 
 			return player.uid === oneData.uid;
 		});
@@ -119,38 +137,13 @@ const addMissingUsers = async (players, specificUsers, game, callback) => {
 				console.log('Set (local) mmr:', player.userName, game, userRating[0].dataValues.mmr);
 				player.setMMR(game, userRating[0].dataValues.mmr);
 			}
-			/*
-			for(var j = 0; j < allGameModes.length; j++){ // Initialize all gameMode ratings
-				if(!allGameModes[j].includes('_temp')){ // Don't try to load temp ratings from Database
-					//console.log('Setting ' + allGameModes[j] + ' rating to ' + existingUser.dataValues[allGameModes[j]]);
-					player.setMMR(allGameModes[j], existingUser.dataValues[allGameModes[j]]);				
-				}
-			}*/
 		}
 		return player;
 	}));
-	callback(players);
-	/*
-	for(var i = 0; i < players.length; i++){
-		// Check database for this data
-		var existingUser = data.find(function(oneData){ 
-			return players[i].uid === oneData.uid;
-		});
-		if(f.isUndefined(existingUser)){ // Make new entry in database since entry doesn't exist
-			createUser(players[i].uid, players[i].userName, players[i].defaultMMR);
-			createRatingForUser(players[i].uid, players[i].userName, players[i].defaultMMR, game);
-		} else{ // Update players[i] mmr to the correct value
-			for(var j = 0; j < allGameModes.length; j++){ // Initialize all gameMode ratings
-				if(!allGameModes[j].includes('_temp')){ // Don't try to load temp ratings from Database
-					//console.log('Setting ' + allGameModes[j] + ' rating to ' + existingUser.dataValues[allGameModes[j]]);
-					players[i].setMMR(allGameModes[j], existingUser.dataValues[allGameModes[j]]);				
-				}
-			}
-		}
-	}*/
+	callback(adjustedPlayers);
 }
 
-// Returns table of users
+// Returns table of all users
 const getAllUsers = async () => {
 	const result = await DatabaseSequelize.instance.Users.findAll({})
 	return result;
@@ -179,7 +172,7 @@ const getHighScore = async (game, size) => {
 		],
 		where: {
 			[Sequelize.Op.and]: [
-				/*{
+				/*{ // TODO: RankReset
 					gamesPlayed: {
 						[Sequelize.Op.gt]: 0
 					}
@@ -220,8 +213,6 @@ var getPersonalStats = async (uid) => {
 }; 
 
 // Used to update a player in database, increasing matches and changing mmr
-// TODO	Find a better way to choose column from variable, instead of hard code
-//  	mmr -> [game] or something
 const updateDbMMR = async (uid, newMmr, game, won) => {
 	const rating = await DatabaseSequelize.instance.Ratings.findOne({
 		where: {
@@ -320,6 +311,30 @@ const removeUser = async (uid) => {
 	return true;
 }
 
+// Used to createMatch
+const createMatch = async (game, players, result, team1Name, team2Name) => {
+	// Prepare insertions
+	transaction = await DatabaseSequelize.instance.sequelize.transaction();
+	// Do insertions
+	const result = await DatabaseSequelize.instance.Matches.create({
+		game: game,
+		date: Sequelize.fn('CURRDATE'),
+		result: result,
+		team1Name: team1Name,
+		team2Name: team2Name
+	})
+	const mid = result.mid;
+	players.forEach((player) => {
+		console.log('Player:', player);
+		await DatabaseSequelize.instance.PlayerMatches.create({
+			mid: mid,
+			uid: player.uid,
+			team: player.team // TODO Check
+		})
+	})
+	transaction.commit();
+}
+
 module.exports = {
 	initializePlayers : initializePlayers,
 	initializeDBSequelize : initializeDBSequelize,
@@ -329,5 +344,6 @@ module.exports = {
 	getPersonalStats : getPersonalStats,
 	updateDbMMR : updateDbMMR,
 	createUser : createUser,
-	createRatingForUser : createRatingForUser
+	createRatingForUser : createRatingForUser,
+	createMatch : createMatch
 }

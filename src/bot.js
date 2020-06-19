@@ -684,11 +684,15 @@ function handleRelevantEmoji(emojiConfirm, winner, messageReaction, amountReleva
 	if(amountRelevant === totalNeeded){
 		if(emojiConfirm){
 			console.log(emoji_agree + ' CONFIRMED! ' + ' (' + amountRelevant + '/' + totalNeeded + ') Removing voteText msg and team#Won msg');
-			mmr_js.updateMMR(winner, gameObject, function(message){
+			// Update mmr for both teams
+			mmr_js.updateMMR(winner, gameObject, (message) => {
 				console.log('DEBUG @callbackGameFinished - Calls on exit after delete on this message');
 				f.deleteDiscMessage(message, removeBotMessageDefaultTime * 2, 'gameFinished');
 				cleanOnGameEnd(gameObject);
-			}); // Update mmr for both teams
+			});
+			const createMatchResults = db_sequelize.createMatch(gameObject.game, gameObject.playerList, 
+				gameObject.getTeamWon(), gameObject.getBalanceInfo().team1Name, 
+				gameObject.getBalanceInfo().team2Name);
 			//console.log('DEBUG CHECK ME: ARE THE TWO FOLLOWING THE SAME: ', messageReaction.message.content, voteMessage.content); // TODO Check: are these the same
 			f.deleteDiscMessage(messageReaction.message, 3000, 'voteMessage');
 			f.deleteDiscMessage(gameObject.getTeamWonMessage(), 3000, 'teamWonMessage');
