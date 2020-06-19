@@ -4,7 +4,7 @@
 	Class handles player objects which take care of player data
 */
 // Default choices is the first indexed mode
-const modesGame = ['cs','dota', 'valorant'];
+const modesGame = ['cs','dota', 'valorant', 'test'];
 const modes1v1 = ['cs1v1', 'dota1v1'];
 const modesRatings = ['trivia', 'trivia_temp'];
 const startMMR = 2500;

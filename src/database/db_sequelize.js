@@ -51,24 +51,26 @@ class DatabaseSequelize {
 			gamesPlayed: Sequelize.INTEGER,
 			wins: Sequelize.INTEGER
 		}, {
+			associate: (models) => {
+				models.Users.hasMany(this.Ratings, { onDelete: 'cascade' });
+			},
 			timestamps: false
 		});
 
 		// User.hasMany(Ratings, { foreignKey: 'uid' }); // TODO: Fix Foreign key of Rating to user
 		// console.log('@DatabaseSequelize.constructor', this.Users, this.Ratings);
 
-		this.Matches = DatabaseSequelize.instance.sequelize.define('matches', {
-			mid: { type: Sequelize.STRING, primaryKey: true, autoIncrement: true },
-			game: Sequelize.STRING,
-			date: Sequelize.Date,
+		this.Matches = this.sequelize.define('matches', {
+			mid: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
+			gameName: Sequelize.STRING,
 			result: Sequelize.INTEGER,
 			team1Name: Sequelize.STRING,
 			team2Name: Sequelize.STRING,
 		});
 	
-		this.PlayerMatches = DatabaseSequelize.instance.sequelize.define('playerMatches', {
+		this.PlayerMatches = this.sequelize.define('playerMatches', {
 			mid: { 
-				type: Sequelize.STRING, 
+				type: Sequelize.INTEGER, 
 				primaryKey: true,
 				references: {
 					model: 'matches',
@@ -291,11 +293,13 @@ const removeUser = async (uid) => {
 	let transaction;    
 	try {
 		transaction = await DatabaseSequelize.instance.sequelize.transaction();
-		await DatabaseSequelize.instance.Ratings.destroy({ // use foreign keys todo
+		/*
+		await DatabaseSequelize.instance.Ratings.destroy({
 			where: {
 				uid
 			}
-		})
+		})*/ 
+		// On delete cascade should remove Ratings aswell
 		await DatabaseSequelize.instance.Users.destroy({
 			where: {
 				uid
@@ -312,27 +316,101 @@ const removeUser = async (uid) => {
 }
 
 // Used to createMatch
-const createMatch = async (game, players, result, team1Name, team2Name) => {
+// Note: Requires players in database
+const createMatch = async (result, balanceInfo) => {
+	// console.log('@createMatch - input:', result, balanceInfo);
 	// Prepare insertions
-	transaction = await DatabaseSequelize.instance.sequelize.transaction();
+	const { game, team1, team2, team1Name, team2Name } = balanceInfo;
+	const transaction = await DatabaseSequelize.instance.sequelize.transaction();
 	// Do insertions
-	const result = await DatabaseSequelize.instance.Matches.create({
-		game: game,
-		date: Sequelize.fn('CURRDATE'),
+	const resultDB = await DatabaseSequelize.instance.Matches.create({
+		gameName: game,
 		result: result,
 		team1Name: team1Name,
 		team2Name: team2Name
 	})
-	const mid = result.mid;
-	players.forEach((player) => {
-		console.log('Player:', player);
+	console.log('Res:', resultDB);
+	const mid = resultDB.dataValues.mid;
+	team1.forEach(async (player) => {
+		console.log('Player: (Team1)', player);
 		await DatabaseSequelize.instance.PlayerMatches.create({
 			mid: mid,
 			uid: player.uid,
-			team: player.team // TODO Check
+			team: 1
+		})
+	})
+	team2.forEach(async (player) => {
+		console.log('Player: (Team2)', player);
+		await DatabaseSequelize.instance.PlayerMatches.create({
+			mid: mid,
+			uid: player.uid,
+			team: 2
 		})
 	})
 	transaction.commit();
+	return resultDB;
+}
+
+// Get Winrate playing with other players
+const bestTeammates = async (uid, game) => {
+	// Fetch all games you have played
+	// TODO: Create views to help query speeds
+	const matchQuery = 'SELECT * FROM matches WHERE mid IN (SELECT mid FROM playerMatches WHERE uid = ?) AND gameName = ?;'
+	const matches = await DatabaseSequelize.instance.sequelize.query(matchQuery, 
+	{ 
+		replacements: [uid, game],
+		type: Sequelize.QueryTypes.SELECT 
+	});
+	console.log('@bestTeammates: matches:', matches.dataValues);
+	const mids = matches.dataValues.map(entry => entry.mid);
+	const playersSameMatchQuery = 'SELECT * FROM playerMatches WHERE mid IN (?);';
+	const playersSameMatch = await DatabaseSequelize.instance.sequelize.query(playersSameMatchQuery, 
+	{ 
+		replacements: [mids],
+		type: Sequelize.QueryTypes.SELECT 
+	});
+	console.log('@bestTeammates: players same match:', playersSameMatch.dataValues);
+	const map = {}; // track of winrates
+	matches.dataValues.forEach((match) => {
+		const playerTeamQuery = 'SELECT team FROM playerMatches WHERE mid = ? AND uid = ?;'
+		const playerTeam = await DatabaseSequelize.instance.sequelize.query(playerTeamQuery, 
+		{ 
+			replacements: [match.mid, uid],
+			type: Sequelize.QueryTypes.SELECT 
+		});
+		const team = playerTeam.dataValues.team;
+		const teammateQuery = 'SELECT uid FROM playerMatches WHERE mid = ? AND uid != ? AND team = ?';
+		const teammates = await DatabaseSequelize.instance.sequelize.query(teammateQuery, 
+		{ 
+			replacements: [match.mid, uid, team],
+			type: Sequelize.QueryTypes.SELECT 
+		});
+		teammates.dataValues.map(teammate => teammate.uid).forEach((teammateUid) => {
+			if(!map[teammateUid]) {
+				map[teammateUid] = {
+					wins: 0,
+					losses: 0,
+					ties: 0,
+					totalMatches: 0,
+				}
+			}
+			const matchResult = match.result;
+			if ((matchResult === 1 && team === 1) || (matchResult === 2 && team === 2)) {
+				// Win
+			} else if ((matchResult === 1 && team === 2) || (matchResult === 2 && team === 1)) {
+				// Loss
+				
+			} else { // Tie
+
+			}
+			// Update map[teammateUid] with results
+		});
+	})
+}
+
+// TODO: Returns last played game
+const lastGame = async (game = null) => {
+	return null;
 }
 
 module.exports = {

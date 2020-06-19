@@ -17,14 +17,8 @@ exports.updateMMR = (winner, gameObject, callbackUpdate) => { // winner = 0 -> d
 	updateTeamMMR(balanceInfo.team1, mmrChange.t1, balanceInfo.game, winner === 1);
 	updateTeamMMR(balanceInfo.team2, mmrChange.t2, balanceInfo.game, winner === 2);
 	
-	createMatch(winner, gameObject);
+	db_sequelize.createMatch(winner, balanceInfo);
 	buildMMRUpdateString(winner, callbackResult, balanceInfo, callbackUpdate, gameObject);
-}
-
-const createMatch = async (winner, gameObject) => {
-	return db_sequelize.createMatch(gameObject.game, gameObject.playerList, 
-		winner, gameObject.getBalanceInfo().team1Name, 
-		gameObject.getBalanceInfo().team2Name);
 }
 
 // Calculates the mmr change for two teams with given average team mmr and winner
