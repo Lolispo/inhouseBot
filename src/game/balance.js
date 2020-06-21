@@ -1,10 +1,12 @@
 'use strict';
 // Author: Petter Andersson
 
+const Discord = require('discord.js');
 const bot = require('../bot');
 const game_js = require('./game');
 const { getTeamName } = require('../teamNames');
 const { configureServer } = require('../csserver/csserver');
+const { getCsIp, getCsUrl } = require('../csserver/server_info');
 
 /*
 	Handles getting the most balanced team matchup for the given 10 players
@@ -16,20 +18,29 @@ const { configureServer } = require('../csserver/csserver');
 */
 
 // @param players should contain Array of initialized Players of people playing
-exports.balanceTeams = function(players, game, gameObject){
+exports.balanceTeams = (players, game, gameObject) => {
 	// Generate team combs, all possibilities of the 10 players
 	var teamCombs = generateTeamCombs(players);
 	var result = findBestTeamComb(players, teamCombs, game);
 
 	// Return string to message to clients
-	const { message, balanceInfo } = buildReturnString(result, gameObject); // callbackBalanceInfo = method 
-	gameObject.setBalanceInfo(balanceInfo);
-	
-	// Should send the message back to the bot
+	let message;
+	let balanceInfo;
+	try {
+		const object = buildReturnStringEmbed(result, gameObject);
+		message = object.message;
+		balanceInfo = object.balanceInfo;
+		gameObject.setBalanceInfo(balanceInfo);
+	} catch (e) {
+		console.error('Embed failed', e);
+		const object = buildReturnString(result, gameObject);
+		message = object.message;
+		balanceInfo = object.balanceInfo;
+		gameObject.setBalanceInfo(balanceInfo);
+	}
 	bot.printMessage(message, gameObject.getChannelMessage(), (message) => {
 		gameObject.setMatchupServerMessage(message);
 	});
-	
 	configureServer(gameObject);
 }
 
@@ -182,6 +193,59 @@ const roundValue = (num) => {
 	return parseFloat(num).toFixed(2)
 }
 
+const buildReturnStringEmbed = (obj) => {
+	let title = '**New Game!** Playing **' + obj.game + '**. ';
+	if(obj.team1.length === 1){ // No average for 2 player matchup
+		title += 'MMR diff: ' + obj.difference + ' mmr. ';
+	} else{
+		title += 'MMR Avg diff: ' + roundValue(obj.avgDiff) + ' mmr (Total: ' + obj.difference + ' mmr). ';	
+	}
+	
+	let s = '';
+	//console.log('@buildReturnString', obj)
+	
+	const team1Name = getTeamName(obj.team1, obj.game) || 'Team 1';
+	const team2Name = getTeamName(obj.team2, obj.game) || 'Team 2';
+	obj.team1Name = team1Name;
+	obj.team2Name = team2Name;
+	const teamCT = (obj.game === 'cs' ? '**(CT)**' : '');
+	const teamT = (obj.game === 'cs' ? '**(T)**' : '');
+	s += `**${team1Name}** ${teamCT}\t(Avg: ${roundValue(obj.avgT1)} mmr): \n*${obj.team1[0].userName} (${obj.team1[0].getMMR(obj.game)})`;
+	for(var i = 1; i < obj.team1.length; i++){
+		s += ',\t' + obj.team1[i].userName + ' (' + obj.team1[i].getMMR(obj.game) + ')';
+	}
+	s += '*\n';
+	s += `**${team2Name}** ${teamT}\t(Avg: ${roundValue(obj.avgT2)} mmr): \n*${obj.team2[0].userName} (${obj.team2[0].getMMR(obj.game)})`;
+	for(var i = 1; i < obj.team2.length; i++){
+		s += ',\t' + obj.team2[i].userName + ' (' + obj.team2[i].getMMR(obj.game) + ')';
+	}
+	s += '*\n\n';
+	if (obj.game === 'cs' || obj.game === 'cs1v1') {
+		s += '*Connect:* \n**' + getCsIp() + '**';
+		s += `[Connect](${getCsUrl})`;
+	}
+	else if(obj.game === 'dota' || obj.game === 'dota1v1') {
+		// s += '*Password: 123*\n[Instruction](https://gyazo.com/668d091b3d3eed728bd09865542acf06)';
+		// const gif = '../res/dotaConnect.mp4';
+		/*
+		// Lacking discord permissions
+		s = {
+			content: 'Content: ' + s,
+			embed: {
+				title: 'Instruction',
+				image: {
+					url: 'https://gyazo.com/668d091b3d3eed728bd09865542acf06'
+				}
+			}
+		}*/
+	}
+	const messageEmbedded = new Discord.MessageEmbed()
+		.setTitle(title)
+		.setDescription(s);
+
+	return { message: messageEmbedded, balanceInfo: obj };
+}
+
 // Build a string to return to print as message
 const buildReturnString = (obj) => { // TODO: Print``
 	let s = '';
@@ -210,22 +274,10 @@ const buildReturnString = (obj) => { // TODO: Print``
 	}
 	s += '*\n\n';
 	if (obj.game === 'cs' || obj.game === 'cs1v1') {
-		s += '*Connect:* \n**' + bot.getCsIp() + '**';
+		s += '*Connect:* \n**' + getCsIp() + '**';
 	}
 	else if(obj.game === 'dota' || obj.game === 'dota1v1') {
-		// s += '*Password: 123*\n[Instruction](https://gyazo.com/668d091b3d3eed728bd09865542acf06)';
-		// const gif = '../res/dotaConnect.mp4';
-		/*
-		// Lacking discord permissions
-		s = {
-			content: 'Content: ' + s,
-			embed: {
-				title: 'Instruction',
-				image: {
-					url: 'https://gyazo.com/668d091b3d3eed728bd09865542acf06'
-				}
-			}
-		}*/
+		// TODO Embed
 	}
 	return { message: s, balanceInfo: obj };
 }

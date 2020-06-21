@@ -18,9 +18,11 @@ exports.getClient = async (name, callbackReady = noop, callbackLogin = noop) => 
 
   // Call Callback
   await callbackReady();
-  callbackLogin();
+  callbackLogin(client);
   // console.log('@getClient Return Promise<Client>')
   return client;
 }
 
-exports.noop = () => {};
+exports.getClientReference = () => client;
+
+const noop = () => {};

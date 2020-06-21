@@ -3,11 +3,6 @@
 
 // Main File for discord bot: Handles event for messages
 
-const Discord = require('discord.js');
-
-// Get Instance of discord client
-const client = new Discord.Client();
-
 const f = require('./tools/f');								// Function class used by many classes, ex. isUndefined, messagesDeletion
 const balance = require('./game/balance');					// Balances and starts game between 2 teams
 const mmr_js = require('./game/mmr');						// Handles balanced mmr update
@@ -19,20 +14,13 @@ const { initializeDBSequelize } = require('./database/db_sequelize');
 const trivia = require('./trivia');						// Trivia
 const game_js = require('./game/game');
 const { getConfig } = require('./tools/load-environment');
+const { getClient, getClientReference } = require('./client');
 const birthday = require('./birthday');
 const { ValidationError } = require('sequelize');
 const { connectSteamEntry, validateSteamID, storeSteamId, sendSteamId } = require('./steamid');
+const { getCsIp } = require('./csserver/server_info');
 
 const { prefix, token, db } = getConfig(); // Load config data from env
-
-// will only do stuff after it's ready
-client.on('ready', () => {
-	console.log('ready to rumble');
-	initializeDBSequelize(db); // Initialize db_sequelize database on startup of bot
-});
-
-// Login
-client.login(token);
 
 const emoji_agree = '👌'; 		// Agree emoji. Alt: 👍, Om custom Emojis: Borde vara seemsgood emoji
 const emoji_disagree = '👎';	// Disagree emoji. 
@@ -41,10 +29,6 @@ const emoji_error = '❌'; 		// Error / Ban emoji. Alt: '🤚';
 const bot_name = 'inhouse-bot';
 const voteText = '**Majority of players that played the game need to confirm this result (Press ' + emoji_agree + ' or ' + emoji_disagree + ')**';
 const adminUids = ['96293765001519104', '107882667894124544']; // Admin ids, get access to specific admin rights
-const csIp = 'kosatupp.datho.st:28967';
-const csPw = 'get';
-const csConnectConsole = `connect ${csIp}; password ${csPw}`; // connect kosatupp.datho.st:27207; password get
-const csConnectUrl = `steam://connect/${csIp}/${csPw}`; 			// steam://connect/kosatupp.datho.st:27207/get
 const removeBotMessageDefaultTime = 60000; // 300000
 const maxPlayers = 14;
 
@@ -74,8 +58,23 @@ const rollCommands = [prefix + 'roll'];
 const connectSteamCommands = [prefix + 'connectsteam', prefix+'connectsteamid'];
 const steamidCommands = [prefix + 'getsteamid', prefix + 'steamid'];
 
-// Listener on message
-client.on('message', message => {
+
+// Initialize Client
+getClient('bot', async () => initializeDBSequelize(getConfig().db), (client) => {
+	// Listener on message
+	client.on('message', message => discordEventMessage(message));
+
+	// Listener on reactions added to messages
+	client.on('messageReactionAdd', (messageReaction, user) => discordEventReactionAdd(messageReaction, user));
+
+	// Listener on reactions removed from messages
+	client.on('messageReactionRemove', (messageReaction, user) => discordEventReactionRemove(messageReaction, user));
+
+	client.on('error', console.error);
+});
+
+// Handle Discord Event Message
+const discordEventMessage = (message) => {
 	if(!message.author.bot && message.author.username !== bot_name){ // Message sent from user
 		if(!f.isUndefined(message.channel.guild)){
 			message.content = message.content.toLowerCase(); // Allows command to not care about case
@@ -119,10 +118,10 @@ client.on('message', message => {
 			}
 		}
 	} // Should handle every message except bot messages
-});
+}
 
-// Listener on reactions added to messages
-client.on('messageReactionAdd', (messageReaction, user) => {
+// Handle Discord Event Reaction Add
+const discordEventReactionAdd = (messageReaction, user) => {
 	if(!user.bot && game_js.hasActiveGames()){ // Bot adding reacts doesn't require our care
 		// Reacted on voteMessage
 		//console.log('DEBUG: @messageReactionAdd by', user.username, 'on', messageReaction.message.author.username + ': ' + messageReaction.message.content, messageReaction.count);
@@ -156,10 +155,10 @@ client.on('messageReactionAdd', (messageReaction, user) => {
 		}
 		// React on something not connected to activeGames
 	}
-});
+}
 
-// Listener on reactions removed from messages
-client.on('messageReactionRemove', (messageReaction, user) => {
+// Handle Discord Event Reaction Remove
+const discordEventReactionRemove = (messageReaction, user) => {
 	if(!user.bot){
 		if(game_js.hasActiveGames()){
 			// React removed on voteMessage
@@ -172,12 +171,11 @@ client.on('messageReactionRemove', (messageReaction, user) => {
 			// React removed on something else
 		}
 	}
-});
-
-client.on('error', console.error);
+}
 
 // Create more events to do fancy stuff with discord API
-let currentTeamWonGameObject;
+let currentTeamWonGameObject; // TODO: Refactor usage to use global scope in better way
+
 // Main message handling function 
 const handleMessage = async (message) => { 
 	console.log('< MSG (' + message.channel.guild.name + '.' + message.channel.name + ') ' + message.author.username + ':', message.content); 
@@ -193,6 +191,7 @@ const handleMessage = async (message) => {
 		return;
 	}
 	else if(pingCommands.includes(message.content)){ // Good for testing prefix and connection to bot
+		const client = await getClientReference();
 		console.log('PingAlert, user had !ping as command', client.pings);
 		f.print(message, 'Time of response ' + client.pings[0] + ' ms');
 		f.deleteDiscMessage(message, removeBotMessageDefaultTime, 'ping');
@@ -210,7 +209,7 @@ const handleMessage = async (message) => {
 	}
 	else if (csServerCommands.includes(message.content)) {
 		console.log('CSServer Command');
-		f.print(message, '**' + csConnectConsole + '**');
+		f.print(message, '**' + getCsIp() + '**');
 		f.deleteDiscMessage(message, 15000, 'csserver');
 	}
 	else if (connectSteamCommands.includes(message.content)) {
@@ -454,6 +453,8 @@ const handleMessage = async (message) => {
 	
 			// mapVeto made between one captain from each team
 			else if(mapvetostartCommands.includes(message.content)){
+				const client = await getClientReference();
+				console.log('mapvetoStart: Emojis:', client.emojis, client);
 				map_js.mapVetoStart(message, gameObject, client.emojis);
 				/*.then(result => {
 					gameObject.setMapMessages(result);
@@ -895,14 +896,6 @@ exports.printMessage = function(message, channelMessage, callback = noop){ // De
 
 exports.getPrefix = function(){
 	return prefix;
-}
-
-exports.getCsIp = function(){
-	return csConnectConsole;
-}
-
-exports.getCsUrl = function(){
-	return csConnectUrl;
 }
 
 exports.getRemoveTime = function(){

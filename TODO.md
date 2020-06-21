@@ -13,17 +13,12 @@ Add integration tests for main functionalities
 
 ## Prio
 
-Steam account integration
-
-    -connectsteam - save in column on user
-
 discord embed messages - access and links embedded
 
 ## CS Integration
 
-'Cannot load a match when a match is already loaded'
-
-MySQL - (Anton access)
+MySQL - (Anton access) - initialized
+    check format and initialize connection
 
 ### eslint add
 
@@ -33,6 +28,8 @@ MySQL - (Anton access)
     Test - sometimes captain not able to vote?
 
     Add all cs maps emojis to git repo
+
+    Fix: Unhandled promise rejection if message is removed when you try to add reaction (fast interaction with mapveto)
 
 Fix datarace when multiple people upvote - lock
 

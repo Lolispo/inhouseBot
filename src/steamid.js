@@ -12,16 +12,16 @@ const validateSteamID = (msgContent) => {
 
 const storeSteamId = async (uid, message) => {
   const msgContent = message.content;
-	console.log('DEBUG Storing steamID ' +  + ' for user with ID', uid);
+	console.log('DEBUG Storing SteamID ' + msgContent + ' for user with ID', uid);
   const res = await storeSteamIdDb(uid, msgContent);
-  console.log('Store steam ID result:', res);
+  console.log('Store SteamID result:', res); // undefined - res.dataValues);
   message.author.send("Successfully set your SteamID to: " + msgContent)
   .then(result => {
 		f.deleteDiscMessage(result, 20000);
 	});
 }
 
-const enterSteamIdString = "Enter your SteamID (format: STEAM\_1:0:XXXXXXXX)\nLink: https://steamidfinder.com/";
+const enterSteamIdString = "Enter your SteamID (format: STEAM\_1:0:XXXXXXXX)\nLink: https://steamidfinder.com/ or https://steamid.io/";
 
 const connectSteamEntry = (message) => {
 	message.author.send(enterSteamIdString)
@@ -32,8 +32,8 @@ const connectSteamEntry = (message) => {
 }
 
 const sendSteamId = async (message) => {
-  const user = await getUser([message.author.id]);
-  const steamid = user.steamid;
+  const users = await getUser([message.author.id]);
+  const steamid = users[0].dataValues.steamid;
   if (steamid) {
     message.author.send("Your SteamID: " + steamid)
     .then(result => {

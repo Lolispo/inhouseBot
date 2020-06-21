@@ -3,7 +3,6 @@ const { getToken, getActiveToken } = require('./csserver_auth');
 const fs = require('fs');
 const util = require('util');
 const FormData = require('form-data');
-const concat = require('concat-stream');
 
 // const querystring = require('querystring'); // querystring.stringify({ foo: 'bar' })
 
@@ -81,8 +80,28 @@ const datHostEndpoint = async (endpoint, options = null, printInfo = '') => {
 const gameServers = async () => {
   const response = await datHostEndpoint('game-servers', { method: 'GET' });
   if (response.statusCode === 200) {
-    return response.data.map((x) => {
-      return { name: x.name, ip: x.ip, id: x.id };
+    return response.data.map((server) => {
+      const 
+      {
+        id,
+        ip, // SQL
+        name,
+        mysql_username,
+        mysql_password,
+        csgo_settings, // password
+        ports, // game
+        custom_domain,
+      } = server;
+      return { 
+        name,
+        ip,
+        id,
+        mysql_username,
+        mysql_password,
+        csgo_settings,
+        ports,
+        custom_domain
+      };
     });
   }
   return response;
@@ -105,7 +124,7 @@ const generateConfigFile = async (replacements, filePath, version = '-gen', file
     console.log(result);
     const wholePath = filePath + version + fileType;
     const writeFileRes = await writeFile(wholePath, result, 'utf8');
-    console.log('Wrote to file:', writeFileRes);
+    console.log('Wrote to file:', writeFileRes); // TODO: Fix print - undefined
     return wholePath;
   } catch (e) {
     console.error('IO Error:', e);
@@ -153,7 +172,7 @@ const getLatestConsoleLines = async (serverId) => {
 
 const generateTeamPlayersBody = (team, players) => {
   let s = '';
-  console.log('@generateTeamPlayersBody:', players);
+  console.log('@generateTeamPlayersBody:', players.map((player) => (player.steamId).join(', ')));
   players.map((player, index) => {
     if (!player.steamId) return null;
     s += `"${player.steamId}" \t""\n`
@@ -246,7 +265,7 @@ const configureServer = async (gameObject) => {
   const filePathRemote = 'cfg%2Fget5%2Fkosatupp_inhouse_coordinator_match.cfg';
   const uploadedFileRes = await uploadFile(serverId, filePathRemote, wholeFilePath);
   const cmdResetRunningGames = await writeConsole(serverId, `get5_endmatch;`); // TODO: Only run if gameongoing
-  const cmdCheckAuths = await writeConsole(serverId, `get5_check_auths ${team1Players && team2Players ? 1 : 0}; say All users require a linked Steam ID for automatic team placement`);
+  const cmdCheckAuths = await writeConsole(serverId, `get5_check_auths ${team1Players && team2Players ? 1 : '0; say All users require a linked Steam ID for automatic team placement;'}`);
   const writeConsoleRes = await loadConfigFile(serverId);
   const latestConsoleLines = getLatestConsoleLines(serverId);
   return latestConsoleLines;

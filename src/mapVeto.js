@@ -7,6 +7,7 @@ const bot = require('./bot');
 const player_js = require('./game/player');
 const f = require('./tools/f');
 const { configureServer } = require('./csserver/csserver');
+const { promises } = require('fs');
 
 let mapMessagesBuilder = [];
 
@@ -97,15 +98,17 @@ async function mapVetoStart(message, gameObject, clientEmojis){
 }
 
 // Create map messages, add default reactions and add them to mapMessageBuilder
-async function getMapMessages(message, clientEmojis){ // TODO Check Should run asynchrounsly, try setTimeout , 0 otherwise
-	await initMap('Dust2', clientEmojis, message, callbackMapMessage);
-	await initMap('Inferno', clientEmojis, message, callbackMapMessage);
-	await initMap('Mirage', clientEmojis, message, callbackMapMessage);
-	await initMap('Nuke', clientEmojis, message, callbackMapMessage);
-	await initMap('Cache', clientEmojis, message, callbackMapMessage);
-	await initMap('Overpass', clientEmojis, message, callbackMapMessage);
-	await initMap('Train', clientEmojis, message, callbackMapMessage);
-	await initMap('Vertigo', clientEmojis, message, callbackMapMessage);
+const getMapMessages = async (message, clientEmojis) => { // TODO Check Should run asynchrounsly, try setTimeout , 0 otherwise
+	const mapvetoMessages = [];
+	mapvetoMessages.push(initMap('Dust2', clientEmojis, message, callbackMapMessage));
+	mapvetoMessages.push(initMap('Inferno', clientEmojis, message, callbackMapMessage));
+	mapvetoMessages.push(initMap('Mirage', clientEmojis, message, callbackMapMessage));
+	mapvetoMessages.push(initMap('Nuke', clientEmojis, message, callbackMapMessage));
+	mapvetoMessages.push(initMap('Cache', clientEmojis, message, callbackMapMessage));
+	mapvetoMessages.push(initMap('Overpass', clientEmojis, message, callbackMapMessage));
+	mapvetoMessages.push(initMap('Train', clientEmojis, message, callbackMapMessage));
+	mapvetoMessages.push(initMap('Vertigo', clientEmojis, message, callbackMapMessage));
+	await Promise.all(mapvetoMessages);
 }	
 
 
