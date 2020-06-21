@@ -20,6 +20,8 @@ discord embed messages - access and links embedded
 MySQL - (Anton access) - initialized
     check format and initialize connection
 
+Make sure to not allow updating server if discord game is ongoing on cs
+
 ### eslint add
 
 ### Mapveto
@@ -50,9 +52,6 @@ Store only message id instead of entire messages
 ### Unite all exploit dodge
 
 ### Match history
-
-save mmr change results in match data to allow revert matches from score
-    playerMatches add new field of mmrChange
 
 # More
     

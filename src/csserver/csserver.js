@@ -172,7 +172,7 @@ const getLatestConsoleLines = async (serverId) => {
 
 const generateTeamPlayersBody = (team, players) => {
   let s = '';
-  console.log('@generateTeamPlayersBody:', players.map((player) => (player.steamId).join(', ')));
+  console.log('@generateTeamPlayersBody:', players.map((player) => player.steamId).join(', '));
   players.map((player, index) => {
     if (!player.steamId) return null;
     s += `"${player.steamId}" \t""\n`

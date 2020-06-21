@@ -239,6 +239,15 @@ const buildReturnStringEmbed = (obj) => {
 			}
 		}*/
 	}
+	/*
+	Embed failed TypeError: Cannot read property 'client' of undefined
+    at new MessageEmbed (C:\Users\Petter\Documents\GitHub\inhouseBot\node_modules\discord.js\src\structures\MessageEmbed.js:13:60)
+    at buildReturnStringEmbed (C:\Users\Petter\Documents\GitHub\inhouseBot\src\game\balance.js:242:26)
+    at Object.exports.balanceTeams (C:\Users\Petter\Documents\GitHub\inhouseBot\src\game\balance.js:30:18)
+    at db_sequelize.initializePlayers (C:\Users\Petter\Documents\GitHub\inhouseBot\src\bot.js:590:11)
+    at addMissingUsers (C:\Users\Petter\Documents\GitHub\inhouseBot\src\database\db_sequelize.js:121:3)
+    at addMissingUsers (C:\Users\Petter\Documents\GitHub\inhouseBot\src\database\db_sequelize.js:151:2)
+	*/
 	const messageEmbedded = new Discord.MessageEmbed()
 		.setTitle(title)
 		.setDescription(s);
