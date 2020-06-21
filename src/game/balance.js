@@ -21,7 +21,15 @@ exports.balanceTeams = function(players, game, gameObject){
 	var result = findBestTeamComb(players, teamCombs, game);
 
 	// Return string to message to clients
-	buildReturnString(result, gameObject, callbackBalanceInfo); // callbackBalanceInfo = method 
+	const { message, balanceInfo } = buildReturnString(result, gameObject, callbackBalanceInfo); // callbackBalanceInfo = method 
+	gameObject.setBalanceInfo(balanceInfo);
+	
+	// Should send the message back to the bot
+	bot.printMessage(message, gameObject.getChannelMessage(), (message) => {
+		gameObject.setMatchupServerMessage(message);
+	});
+	
+	configureServer(gameObject);
 }
 
 // Generates the combinations for different team sizes
@@ -218,12 +226,5 @@ function buildReturnString(obj, gameObject, callback){ // TODO: Print``
 			}
 		}*/
 	}
-	callback(gameObject, s, obj); // Should send the message back to the bot
-}
-
-function callbackBalanceInfo(gameObject, message, obj){	
-	gameObject.setBalanceInfo(obj);
-	bot.printMessage(message, gameObject.getChannelMessage(), function(message){
-		gameObject.setMatchupServerMessage(message);
-	});
+	return { message: s, balanceInfo: obj };
 }

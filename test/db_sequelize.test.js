@@ -24,7 +24,7 @@ const test_mmr = 2500;
 
 describe('db_sequelize', () => {
   let databaseConnection;
-  // TODO: Move player dependent tests into on describe
+  // TODO: Move player dependent tests into one describe
   before(async () => {
     databaseConnection = await initializeDBSequelize(getConfig().db);
     DatabaseSequelize.instance = databaseConnection;

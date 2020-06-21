@@ -85,7 +85,8 @@ class DatabaseSequelize {
 					key: 'uid',
 				}
 			},
-			team: Sequelize.INTEGER
+			team: Sequelize.INTEGER,
+			mmrChange: Sequelize.INTEGER
 		}, {
 			timestamps: false
 		});
@@ -317,7 +318,7 @@ const removeUser = async (uid) => {
 
 // Used to createMatch
 // Note: Requires players in database
-const createMatch = async (result, balanceInfo) => {
+const createMatch = async (result, balanceInfo, mmrChange) => {
 	// console.log('@createMatch - input:', result, balanceInfo);
 	// Prepare insertions
 	const { game, team1, team2, team1Name, team2Name } = balanceInfo;
@@ -336,7 +337,8 @@ const createMatch = async (result, balanceInfo) => {
 		await DatabaseSequelize.instance.PlayerMatches.create({
 			mid: mid,
 			uid: player.uid,
-			team: 1
+			team: 1,
+			mmrChange: mmrChange.t1
 		})
 	})
 	team2.forEach(async (player) => {
@@ -344,7 +346,8 @@ const createMatch = async (result, balanceInfo) => {
 		await DatabaseSequelize.instance.PlayerMatches.create({
 			mid: mid,
 			uid: player.uid,
-			team: 2
+			team: 2,
+			mmrChange: mmrChange.t2
 		})
 	})
 	transaction.commit();
@@ -355,6 +358,8 @@ const createMatch = async (result, balanceInfo) => {
 const bestTeammates = async (uid, game) => {
 	// Fetch all games you have played
 	// TODO: Create views to help query speeds
+	// Use joins?
+	// Use mmrChange field on playerMatches
 	const matchQuery = 'SELECT * FROM matches WHERE mid IN (SELECT mid FROM playerMatches WHERE uid = ?) AND gameName = ?;'
 	const matches = await DatabaseSequelize.instance.sequelize.query(matchQuery, 
 	{ 
@@ -371,7 +376,7 @@ const bestTeammates = async (uid, game) => {
 	});
 	console.log('@bestTeammates: players same match:', playersSameMatch.dataValues);
 	const map = {}; // track of winrates
-	matches.dataValues.forEach((match) => {
+	matches.dataValues.forEach(async (match) => {
 		const playerTeamQuery = 'SELECT team FROM playerMatches WHERE mid = ? AND uid = ?;'
 		const playerTeam = await DatabaseSequelize.instance.sequelize.query(playerTeamQuery, 
 		{ 

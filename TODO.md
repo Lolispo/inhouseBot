@@ -21,17 +21,7 @@ discord embed messages - access and links embedded
 
 ## CS Integration
 
-POST /api/0.1/game-servers/{server_id}/files/{path}
-POST - upload path
-{
-    path: ./<>.cfg
-}
-
-POST /api/0.1/game-servers/{server_id}/console
-{
-    get5_loadmatch <file>
-}
-POST - load a match config file
+'Cannot load a match when a match is already loaded'
 
 MySQL - (Anton access)
 
@@ -56,13 +46,18 @@ Store only message id instead of entire messages
 
 ## Features:
 
-Stats for all games (not only chosen game)
-
 ### Cancel game after 24 h duration, to not have active games clog up for users
 
 ### Rollback latest games functionality
 
 ### Unite all exploit dodge
+
+### Match history
+
+save mmr change results in match data to allow revert matches from score
+    playerMatches add new field of mmrChange
+
+# More
     
     Before uniting all players, should save their current voiceChannel
         Then, possible to unUniteAll to revert exploit 

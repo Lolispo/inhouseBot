@@ -12,7 +12,8 @@ const startMMR = 2500;
 function Player(username, discId){
 	this.userName = username;
 	this.uid = discId;
-	this.defaultMMR = startMMR; 	
+	this.defaultMMR = startMMR;
+	this.steamId = '';
 	this.mmrs = new Map();
 	// Initializes mmr values to defaults. Ran instantly on creation
 	this.initializeDefaultMMR = function(){
@@ -53,6 +54,15 @@ function Player(username, discId){
 		var struct = this.mmrs.get(game);
 		struct.latestUpdatePrefix = value;
 	}
+
+	this.setSteamId = (steamid) => {
+		this.steamId = steamid;
+	}
+
+	this.getSteamId = () => {
+		return this.steamId;
+	}
+
 	this.initializeDefaultMMR();
 }
 

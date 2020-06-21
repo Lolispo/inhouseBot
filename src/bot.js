@@ -512,13 +512,13 @@ const stats = async (message) => {
 		if(!game) {
 			s += `**Your stats (${data[0].userName}):**\n`;
 			data.forEach((oneData) => {
-				s += `$${oneData.gameName}: \t**${oneData.mmr} ${player_js.ratingOrMMR(oneData.gameName)}**\t(Games Played: ${oneData.gamesPlayed})\n`;
+				s += `${oneData.gameName}: \t**${oneData.mmr} ${player_js.ratingOrMMR(oneData.gameName)}**\t(Games Played: ${oneData.gamesPlayed})\n`;
 			});
 		} else {
 			s += '**Your stats for ' + game + ':**\n';
 			const filteredData = data.filter((entry) => entry.gameName === game);
 			filteredData.forEach((oneData) => {
-				s += `${oneData.userName}(**${oneData.gameName}**): \t**${oneData.mmr} ${player_js.ratingOrMMR(gameName)}**\t(Games Played: ${oneData.gamesPlayed})\n`;
+				s += `${oneData.userName}(**${oneData.gameName}**): \t**${oneData.mmr} ${player_js.ratingOrMMR(game)}**\t(Games Played: ${oneData.gamesPlayed})\n`;
 			});
 		}
 	}
@@ -690,9 +690,6 @@ function handleRelevantEmoji(emojiConfirm, winner, messageReaction, amountReleva
 				f.deleteDiscMessage(message, removeBotMessageDefaultTime * 2, 'gameFinished');
 				cleanOnGameEnd(gameObject);
 			});
-			const createMatchResults = db_sequelize.createMatch(gameObject.game, gameObject.playerList, 
-				gameObject.getTeamWon(), gameObject.getBalanceInfo().team1Name, 
-				gameObject.getBalanceInfo().team2Name);
 			//console.log('DEBUG CHECK ME: ARE THE TWO FOLLOWING THE SAME: ', messageReaction.message.content, voteMessage.content); // TODO Check: are these the same
 			f.deleteDiscMessage(messageReaction.message, 3000, 'voteMessage');
 			f.deleteDiscMessage(gameObject.getTeamWonMessage(), 3000, 'teamWonMessage');
