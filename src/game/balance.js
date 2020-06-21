@@ -4,6 +4,7 @@
 const bot = require('../bot');
 const game_js = require('./game');
 const { getTeamName } = require('../teamNames');
+const { configureServer } = require('../csserver/csserver');
 
 /*
 	Handles getting the most balanced team matchup for the given 10 players
@@ -21,7 +22,7 @@ exports.balanceTeams = function(players, game, gameObject){
 	var result = findBestTeamComb(players, teamCombs, game);
 
 	// Return string to message to clients
-	const { message, balanceInfo } = buildReturnString(result, gameObject, callbackBalanceInfo); // callbackBalanceInfo = method 
+	const { message, balanceInfo } = buildReturnString(result, gameObject); // callbackBalanceInfo = method 
 	gameObject.setBalanceInfo(balanceInfo);
 	
 	// Should send the message back to the bot
@@ -182,7 +183,7 @@ const roundValue = (num) => {
 }
 
 // Build a string to return to print as message
-function buildReturnString(obj, gameObject, callback){ // TODO: Print``
+const buildReturnString = (obj) => { // TODO: Print``
 	let s = '';
 	//console.log('@buildReturnString', obj)
 	s += '**New Game!** Playing **' + obj.game + '**. ';

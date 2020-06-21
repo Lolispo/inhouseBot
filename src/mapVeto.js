@@ -6,6 +6,7 @@
 const bot = require('./bot');
 const player_js = require('./game/player');
 const f = require('./tools/f');
+const { configureServer } = require('./csserver/csserver');
 
 let mapMessagesBuilder = [];
 
@@ -48,8 +49,11 @@ function handleCaptainMessage(user, mapMessage, gameObject){
 			var chosenMap = gameMapMessages[0];
 			gameMapMessages = []; // TODO: Alternative way of init mapMessages? undefined = ugly
 			chosenMap.delete();
-			gameObject.getBannedMaps().push('\nChosen map is ' + String(chosenMap).split('\n')[1]);
+			const chosenMapString = String(chosenMap).split('\n')[1];
+			gameObject.getBannedMaps().push('\nChosen map is ' + chosenMapString);
 			gameObject.getMapStatusMessage().edit(getMapString(true, gameObject)); // TODO Check
+			gameObject.chosenMap = chosenMapString;
+			configureServer(gameObject); // Start in
 		}
 	} else {
 		console.log('MESSAGE NOT FOUND');

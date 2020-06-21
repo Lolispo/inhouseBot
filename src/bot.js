@@ -20,6 +20,8 @@ const trivia = require('./trivia');						// Trivia
 const game_js = require('./game/game');
 const { getConfig } = require('./tools/load-environment');
 const birthday = require('./birthday');
+const { ValidationError } = require('sequelize');
+const { connectSteamEntry, validateSteamID, storeSteamId, sendSteamId } = require('./steamid');
 
 const { prefix, token, db } = getConfig(); // Load config data from env
 
@@ -69,7 +71,8 @@ const lennyCommands = ['lenny', 'lennyface', prefix + 'lenny', prefix + 'lennyfa
 const csServerCommands = [prefix + 'praccserver', prefix + 'server', prefix + 'csserver'];
 const pingCommands = [prefix + 'ping'];
 const rollCommands = [prefix + 'roll'];
-const connectsteam = [prefix + 'connectsteam'];
+const connectSteamCommands = [prefix + 'connectsteam', prefix+'connectsteamid'];
+const steamidCommands = [prefix + 'getsteamid', prefix + 'steamid'];
 
 // Listener on message
 client.on('message', message => {
@@ -101,7 +104,13 @@ client.on('message', message => {
 					f.deleteDiscMessage(result, removeBotMessageDefaultTime * 4);
 				});
 			} else if(startsWith(message, statsCommands)){
-				stats(message);		
+				stats(message);
+			} else if (connectSteamCommands.includes(message.content)) {
+				connectSteamEntry(message);
+			} else if (validateSteamID(message.content)) {
+				storeSteamId(message.author.id, message);
+			} else if (steamidCommands.includes(message.content)) {
+				sendSteamId(message);
 			} else{
 				message.author.send('Send commands in a server - not to me!\nAllowed command here are: **[' + helpCommands + ',' + helpAllCommands + ',' + statsCommands + ']**\n')
 				.then(result => {
@@ -199,13 +208,19 @@ const handleMessage = async (message) => {
 			roll(message, 0, 100);
 		}
 	}
-	else if(csServerCommands.includes(message.content)){
+	else if (csServerCommands.includes(message.content)) {
 		console.log('CSServer Command');
 		f.print(message, '**' + csConnectConsole + '**');
 		f.deleteDiscMessage(message, 15000, 'csserver');
 	}
+	else if (connectSteamCommands.includes(message.content)) {
+		connectSteamEntry(message);
+	}
+	else if (steamidCommands.includes(message.content)) {
+		sendSteamId(message);
+	}
 	// Sends available commands privately to the user
-	else if(helpCommands.includes(message.content)){
+	else if (helpCommands.includes(message.content)) {
 		message.author.send(buildHelpString(message.author.id, 0))
 		.then(result => {
 			f.deleteDiscMessage(result, removeBotMessageDefaultTime * 2);

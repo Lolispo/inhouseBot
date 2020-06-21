@@ -111,7 +111,7 @@ const syncTables = () => {
 const initializeDBSequelize = (config) => {
 	const dbconn = initDb(config.name, config.user, config.password, config.host, config.dialect);
 	DatabaseSequelize.instance = dbconn;
-	syncTables(); // Run this when updating database structure
+	// syncTables(); // Run this when updating database structure
 	return dbconn;
 }
 
@@ -140,28 +140,54 @@ const addMissingUsers = async (players, specificUsers, game, callback) => {
 				console.log('Set (local) mmr:', player.userName, game, userRating[0].dataValues.mmr);
 				player.setMMR(game, userRating[0].dataValues.mmr);
 			}
+
+			// Load Steam ID
+			if (existingUser.steamid) {
+				player.setSteamId(existingUser.steamid);
+			}
 		}
 		return player;
 	}));
 	callback(adjustedPlayers);
 }
 
+const storeSteamIdDb = (uid, steamid) => {
+	return DatabaseSequelize.instance.Users.update(
+		{ steamid: steamid },
+		{ where: { uid: uid } }
+	)
+}
+
 // Returns table of all users
 const getAllUsers = async () => {
 	const result = await DatabaseSequelize.instance.Users.findAll({})
 	return result;
-}; 
+};
 
-// Method to only get users with uid in uids (received error when attempted) instead of every user
-const getUsers = async (listOfUsers) => {
-	const users = await DatabaseSequelize.instance.Users.findAll({
+const getUser = async (uid) => {
+	return DatabaseSequelize.instance.Users.findAll({
 		where: {
 			uid: {
-				[Sequelize.Op.in]: listOfUsers.map(user => user.uid)
+				[Sequelize.Op.eq]: uid
 			}
 		}
 	})
-	return users;
+}
+
+const getUsersUids = async (uidList) => {
+	return DatabaseSequelize.instance.Users.findAll({
+		where: {
+			uid: {
+				[Sequelize.Op.in]: uidList
+			}
+		}
+	})
+}
+
+// Method to only get users with uid in uids (received error when attempted) instead of every user
+const getUsers = async (listOfUsers) => {
+	const uidList = listOfUsers.map(user => user.uid);
+	return getUsersUids(uidList);
 }
 
 // Gets Top 5 users ordered by mmr
@@ -422,11 +448,15 @@ module.exports = {
 	initializePlayers : initializePlayers,
 	initializeDBSequelize : initializeDBSequelize,
 	initDb : initDb,
-	getAllUsers : getAllUsers,
+	getUser : getUser,
+	getUsers : getUsers,
+	getUsersUids : getUsersUids,
+	// getAllUsers : getAllUsers,
 	getHighScore : getHighScore,
 	getPersonalStats : getPersonalStats,
 	updateDbMMR : updateDbMMR,
 	createUser : createUser,
 	createRatingForUser : createRatingForUser,
-	createMatch : createMatch
+	createMatch : createMatch,
+	storeSteamIdDb : storeSteamIdDb
 }

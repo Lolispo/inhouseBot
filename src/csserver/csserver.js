@@ -161,15 +161,79 @@ const generateTeamPlayersBody = (team, players) => {
   return s;
 }
 
+// TODO: Use same list as in mapveto file
+const mapList = [
+  'inferno',
+  'dust2',
+  'mirage',
+  'nuke',
+  'overpass',
+  'train',
+  'vertigo',
+  'cache'
+]
+
+const getTranslatedMap = (map) => {
+  for (let i = 0; i < mapList.length; i++) {
+    const mapName = map.toLowerCase();
+    if (mapName.includes(mapList[i])) {
+      return 'de_' + mapList[i];
+    }
+  }
+}
+
+const getChosenMap = (chosenMap) => {
+  if (chosenMap) {
+    console.log('Map chosen!')
+    const map = chosenMap || 'de_inferno';
+    const translatedMap = getTranslatedMap(map); 
+    return `"${translatedMap}" \t""`
+  } else {
+    console.log('No map chosen');
+    return `
+      "de_dust2" \t""
+      "de_inferno" \t""
+      "de_mirage"	\t""
+      "de_nuke" \t""
+      "de_overpass" \t""
+      "de_train" \t""
+      "de_vertigo" \t""
+      "de_cache" \t""
+    `
+  }
+}
+
+// Fix prediction
+const getPredictionTeam1 = (balanceInfo) => {
+  /*
+    difference: 31,
+    avgT1: 2572,
+    avgT2: 2587.5,
+    avgDiff: 15.5,
+
+    Output: 1 - 9950: <no favorite> = avgT1 = avgT2
+    > 50: team1 higher avg< 50: team 2 higher avg
+    20% = 25 mmr
+
+  */
+  const { difference, avgT1, avgT2, avgDiff } = balanceInfo;
+  if (avgDiff < 1 && avgDiff >= 0) return 50;
+  const diff = avgDiff * (10 / 25);
+  return 50 + (avgT1 > avgT2 ? diff : -diff);
+}
+
 const configureServer = async (gameObject) => {
-  console.log('@configureServer:', gameObject);
+  console.log('@configureServer:', gameObject.chosenMap, gameObject.getBalanceInfo());
   const gameServersList = await gameServers();
   const serverId = gameServersList[0].id;
-  const team1Players = generateTeamPlayersBody(1, gameObject.team1),
-  const team2Players = generateTeamPlayersBody(2, gameObject.team2)
+  const team1Players = generateTeamPlayersBody(1, gameObject.getBalanceInfo().team1);
+  const team2Players = generateTeamPlayersBody(2, gameObject.getBalanceInfo().team2);
+  const mapVetoChosenMap = gameObject.chosenMap;
+  const chosenMap = getChosenMap(mapVetoChosenMap);
+  const predictionTeam1 = getPredictionTeam1(gameObject.getBalanceInfo());
   const replacements = {
-    chosen_map: 'de_inferno', // TODO Map
-    coordinator_prediction_team1: 75, // TODO Prediction score
+    chosen_map: chosenMap, // TODO Map
+    coordinator_prediction_team1: predictionTeam1 || 50, // TODO Prediction score
     team1_name: gameObject.getBalanceInfo().team1Name || 'Team 1',
     team2_name: gameObject.getBalanceInfo().team2Name || 'Team 2',
     match_id: '1', // TODO match id

@@ -6,6 +6,8 @@ const rewire = require('rewire');
 const { getConfig } = require('../src/tools/load-environment');
 const { gameServers, configureServer } = require('../src/csserver/csserver');
 const { createPlayer } = require('../src/game/player');
+const csserverModule = rewire('../src/csserver/csserver.js');
+const getPredictionTeam1 = csserverModule.__get__('getPredictionTeam1');
 
 describe('dathost', () => {
   describe('gameServers', () => {
@@ -36,6 +38,31 @@ describe('dathost', () => {
       }
       const res = await configureServer(gameObject);
       console.log('@test.configureServer:', res);
+    })
+  })
+  describe('getPredictionTeam1', () => {
+    it('getPredictionTeam1', async () => {
+      const balanceInfo = {
+        avgDiff: 0
+      }
+      const res = await getPredictionTeam1(balanceInfo);
+      assert.equal(res, 50);
+    }),
+    it('getPredictionTeam1 diff', async () => {
+      const balanceInfo = {
+        avgDiff: 25,
+        avgT1: 2475,
+        avgT2: 2525,
+      }
+      let res = await getPredictionTeam1(balanceInfo);
+      assert.equal(res, 40);
+      const balanceInfo2 = {
+        avgDiff: 25,
+        avgT1: 2525,
+        avgT2: 2475,
+      }
+      res = await getPredictionTeam1(balanceInfo2);
+      assert.equal(res, 60);
     })
   })
 });
