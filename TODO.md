@@ -19,6 +19,16 @@ discord embed messages - access and links embedded
 
 ## CS Integration
 
+Force teams working as expected
+
+Jun 22 14:41:10: L 06/22/2020 - 14:41:10: "Banza1<2><STEAM_1:0:9391834><CT>" say "allchat"
+
+"
+hm, har en idé för att minska lite på mängden api spam. Man lär ju egentligen bara vilja skicka meddelanden till discord mellan matcher. Typ för att starta en ny. Det finns ett kommando som heter get5_status som kan berätta om en match är loaded eller inte. Man skulle kunna skicka det typ varje minut och om ingen match är loaded och det är >3 spelare på servern så börjar den polla för att se om nån skriver i chatten. Kasnke till och med skickar en "say" när den börjar lyssna
+bonus är att man kan använda det så att den vet när den ska kolla databasen för att se matchresultatet
+den kommer fortfarande att tugga väldigt mycket lines när den väl är aktiv, men då sitter den iaf inte konstant och läser en massa useless shit
+"
+
 MySQL - (Anton access) - initialized
     check format and initialize connection
 

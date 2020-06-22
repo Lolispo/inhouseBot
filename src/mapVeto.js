@@ -53,6 +53,7 @@ function handleCaptainMessage(user, mapMessage, gameObject){
 			const chosenMapString = String(chosenMap).split('\n')[1];
 			gameObject.getBannedMaps().push('\nChosen map is ' + chosenMapString);
 			gameObject.getMapStatusMessage().edit(getMapString(true, gameObject)); // TODO Check
+			// TODO: Only if no other games are active
 			gameObject.chosenMap = chosenMapString;
 			configureServer(gameObject); // Start in
 		}

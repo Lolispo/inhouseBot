@@ -41,7 +41,10 @@ exports.balanceTeams = (players, game, gameObject) => {
 	bot.printMessage(message, gameObject.getChannelMessage(), (message) => {
 		gameObject.setMatchupServerMessage(message);
 	});
-	configureServer(gameObject);
+	// TODO: Only if no other active games using server
+	if (game === 'cs' || game === 'cs1v1') {
+		configureServer(gameObject);
+	}
 }
 
 // Generates the combinations for different team sizes

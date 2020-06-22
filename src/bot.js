@@ -210,7 +210,7 @@ const handleMessage = async (message) => {
 	else if (csServerCommands.includes(message.content)) {
 		console.log('CSServer Command');
 		f.print(message, '**' + getCsIp() + '**');
-		f.deleteDiscMessage(message, 15000, 'csserver');
+		f.deleteDiscMessage(message, 40000, 'csserver');
 	}
 	else if (connectSteamCommands.includes(message.content)) {
 		connectSteamEntry(message);

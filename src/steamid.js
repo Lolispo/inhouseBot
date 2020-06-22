@@ -26,7 +26,7 @@ const enterSteamIdString = "Enter your SteamID (format: STEAM\_1:0:XXXXXXXX)\nLi
 const connectSteamEntry = (message) => {
 	message.author.send(enterSteamIdString)
 	.then(result => {
-		f.deleteDiscMessage(result, 20000);
+		f.deleteDiscMessage(result, 120000);
 	});
 	f.deleteDiscMessage(message, 10000, 'connectsteam');
 }
