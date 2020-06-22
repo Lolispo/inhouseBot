@@ -21,7 +21,7 @@ const storeSteamId = async (uid, message) => {
 	});
 }
 
-const enterSteamIdString = "Enter your SteamID (format: STEAM\_1:0:XXXXXXXX)\nLink: https://steamidfinder.com/ or https://steamid.io/";
+const enterSteamIdString = "Enter your SteamID (format: STEAM\_1:0:XXXXXXXX)\nLink: https://steamid.io/"; // https://steamidfinder.com/
 
 const connectSteamEntry = (message) => {
 	message.author.send(enterSteamIdString)

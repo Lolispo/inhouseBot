@@ -9,6 +9,8 @@ Add integration tests for main functionalities
 
 # Error message
 
+FIX BUG: New players added foreign key constraint
+
 (node:6580) DeprecationWarning: Collection#find: pass a function instead
 
 ## Prio
