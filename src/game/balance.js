@@ -25,7 +25,7 @@ exports.balanceTeams = (players, game, gameObject) => {
 	// Return string to message to clients
 	let message;
 	let balanceInfo;
-	/*
+	
 	try {
 		const object = buildReturnStringEmbed(result, gameObject);
 		message = object.message;
@@ -34,12 +34,11 @@ exports.balanceTeams = (players, game, gameObject) => {
 		gameObject.setBalanceInfo(balanceInfo);
 	} catch (e) {
 		console.error('Embed failed', e);
-	*/
-	const object = buildReturnString(result);
-	message = object.message;
-	balanceInfo = object.balanceInfo;
-	gameObject.setBalanceInfo(balanceInfo);
-	// }
+		const object = buildReturnString(result);
+		message = object.message;
+		balanceInfo = object.balanceInfo;
+		gameObject.setBalanceInfo(balanceInfo);
+	}
 
 	bot.printMessage(message, gameObject.getChannelMessage(), (message) => {
 		gameObject.setMatchupServerMessage(message);
@@ -237,7 +236,7 @@ const buildReturnStringEmbed = (obj) => {
 	s += '*\n\n';
 	if (obj.game === 'cs' || obj.game === 'cs1v1') {
 		s += '*Connect:* \n**' + getCsIp() + '**';
-		s += `\nLink: [Connect](${getCsUrl()}) [named links](https://discordapp.com)`;
+		s += `\nLink: ${getCsUrl()}`; // TODO: Embedded links or something [Named Link](<link>) (Steam link no work)
 	}
 	else if(obj.game === 'dota' || obj.game === 'dota1v1') {
 		// s += '*Password: 123*\n[Instruction](https://gyazo.com/668d091b3d3eed728bd09865542acf06)';
@@ -254,15 +253,6 @@ const buildReturnStringEmbed = (obj) => {
 			}
 		}*/
 	}
-	/*
-	Embed failed TypeError: Cannot read property 'client' of undefined
-    at new MessageEmbed (C:\Users\Petter\Documents\GitHub\inhouseBot\node_modules\discord.js\src\structures\MessageEmbed.js:13:60)
-    at buildReturnStringEmbed (C:\Users\Petter\Documents\GitHub\inhouseBot\src\game\balance.js:242:26)
-    at Object.exports.balanceTeams (C:\Users\Petter\Documents\GitHub\inhouseBot\src\game\balance.js:30:18)
-    at db_sequelize.initializePlayers (C:\Users\Petter\Documents\GitHub\inhouseBot\src\bot.js:590:11)
-    at addMissingUsers (C:\Users\Petter\Documents\GitHub\inhouseBot\src\database\db_sequelize.js:121:3)
-    at addMissingUsers (C:\Users\Petter\Documents\GitHub\inhouseBot\src\database\db_sequelize.js:151:2)
-	*/
 	const messageEmbedded = {
 		embed: {
 			title: title,

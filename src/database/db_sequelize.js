@@ -129,8 +129,9 @@ const addMissingUsers = async (players, specificUsers, game, callback) => {
 		const existingUser = specificUsers.find((oneData) => { 
 			return player.uid === oneData.uid;
 		});
-		if(f.isUndefined(existingUser)){ // Make new entry in database since entry doesn't exist
-			createUserWithGame(player.uid, player.userName, player.defaultMMR, game);
+		if (f.isUndefined(existingUser)){ // Make new entry in database since entry doesn't exist
+			const createRes = createUserWithGame(player.uid, player.userName, player.defaultMMR, game);
+			console.log('@addMissingUsers: Created New Users:', createRes);
 		} else { // Update local player mmr to the correct value
 			const userRating = await getRatingUser(player.uid, game);
 			// console.log('UserRating:', player.userName, game, userRating);
@@ -261,12 +262,12 @@ const updateDbMMR = async (uid, newMmr, game, won) => {
 }
 
 // Create user and ratings entry in transaction
-const createUserWithGame = async () => {
+const createUserWithGame = async (uid, userName, defaultMMR, game) => {
 	let transaction;    
 	try {
 		transaction = await DatabaseSequelize.instance.sequelize.transaction();
-		await createUser(player.uid, player.userName, player.defaultMMR);
-		await createRatingForUser(player.uid, player.userName, player.defaultMMR, game);
+		await createUser(uid, userName, defaultMMR);
+		await createRatingForUser(uid, userName, defaultMMR, game);
 		await transaction.commit();
 	} catch (err) {
 		// Rollback transaction only if the transaction object is defined

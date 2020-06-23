@@ -10,18 +10,24 @@ Add integration tests for main functionalities
 # Error message
 
 FIX BUG: New players added foreign key constraint
+    Fixed?
 
 (node:6580) DeprecationWarning: Collection#find: pass a function instead
 
 ## Prio
 
 discord embed messages - access and links embedded
+    Steam links might not work in disc, only normal links (weird)
+    https://support.discord.com/hc/en-us/community/posts/360042960292-Steam-connect-integration
+
+emailSign.belongsTo(models.user_number, {
+     foreignKey: 'user_number_id',
+     onDelete: 'CASCADE'
+});
 
 ## CS Integration
 
 -gen file to .gitignore
-
-Jun 22 14:41:10: L 06/22/2020 - 14:41:10: "Banza1<2><STEAM_1:0:9391834><CT>" say "allchat"
 
 "
 hm, har en idé för att minska lite på mängden api spam. Man lär ju egentligen bara vilja skicka meddelanden till discord mellan matcher. Typ för att starta en ny. Det finns ett kommando som heter get5_status som kan berätta om en match är loaded eller inte. Man skulle kunna skicka det typ varje minut och om ingen match är loaded och det är >3 spelare på servern så börjar den polla för att se om nån skriver i chatten. Kasnke till och med skickar en "say" när den börjar lyssna

@@ -135,8 +135,8 @@ function callbackMapMessage(mapObj){
 
 async function mapMessageReact(message){
 	await message.react(emoji_error);
-	await message.react(emoji_agree);
-	message.react(emoji_disagree);
+	// await message.react(emoji_agree);
+	// message.react(emoji_disagree);
 }
 
 var getMapString = function(finished, gameObject, startingCaptainUsername){ // Allows to be called without third parameter if finished = false

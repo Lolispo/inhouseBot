@@ -16,6 +16,7 @@ const DatabaseSequelize = db_sequelize.__get__('DatabaseSequelize');
 const removeUser = db_sequelize.__get__('removeUser');
 const createMatch = db_sequelize.__get__('createMatch');
 const bestTeammates = db_sequelize.__get__('bestTeammates');
+const addMissingUsers = db_sequelize.__get__('addMissingUsers');
 
 const test_username = 'Test';
 const test_id = '1';
@@ -45,6 +46,15 @@ describe('db_sequelize', () => {
       const res = await getHighScore(test_game, 5, () => {});
       res.forEach((entry) => console.log('highscore ' + entry.dataValues.userName + ' ' + entry.dataValues[test_game]));
       assert.equal(res.length, 5);
+    })
+  }),
+  describe('addMissingUsers', () => {
+    it('addMissingUsers', async () => {
+      const players = [
+        createPlayer('Test1', '6'),
+        createPlayer('Test2', '7'),
+      ]
+      const res = await addMissingUsers(players, [], test_game, () => console.log('Test Callback'));
     })
   }),
   describe('createUser', () => {
