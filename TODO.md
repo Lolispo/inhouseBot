@@ -16,9 +16,7 @@ FIX BUG: New players added foreign key constraint
 
 ## Prio
 
-discord embed messages - access and links embedded
-    Steam links might not work in disc, only normal links (weird)
-    https://support.discord.com/hc/en-us/community/posts/360042960292-Steam-connect-integration
+Position of dota gif to below instead of above
 
 emailSign.belongsTo(models.user_number, {
      foreignKey: 'user_number_id',

@@ -216,6 +216,8 @@ const buildReturnStringEmbed = (obj) => {
 	}
 	
 	let s = '';
+	let gif;
+	let fields = [];
 	//console.log('@buildReturnString', obj)
 	
 	const team1Name = getTeamName(obj.team1, obj.game) || 'Team 1';
@@ -224,40 +226,47 @@ const buildReturnStringEmbed = (obj) => {
 	obj.team2Name = team2Name;
 	const teamCT = (obj.game === 'cs' ? '**(CT)**' : '');
 	const teamT = (obj.game === 'cs' ? '**(T)**' : '');
-	s += `**${team1Name}** ${teamCT}\t(Avg: ${roundValue(obj.avgT1)} mmr): \n*${obj.team1[0].userName} (${obj.team1[0].getMMR(obj.game)})`;
+	// s +=
+	let name = `**${team1Name}** ${teamCT}\t(Avg: ${roundValue(obj.avgT1)} mmr): `;
+	let value = `\n${obj.team1[0].userName} (${obj.team1[0].getMMR(obj.game)})`;
 	for(var i = 1; i < obj.team1.length; i++){
-		s += ',\t' + obj.team1[i].userName + ' (' + obj.team1[i].getMMR(obj.game) + ')';
+		value += ',\t' + obj.team1[i].userName + ' (' + obj.team1[i].getMMR(obj.game) + ')';
 	}
-	s += '*\n';
-	s += `**${team2Name}** ${teamT}\t(Avg: ${roundValue(obj.avgT2)} mmr): \n*${obj.team2[0].userName} (${obj.team2[0].getMMR(obj.game)})`;
+	fields.push({ name, value });
+	// s += '*\n';
+	// Removed *
+	name = `**${team2Name}** ${teamT}\t(Avg: ${roundValue(obj.avgT2)} mmr): `; 
+	value = `${obj.team2[0].userName} (${obj.team2[0].getMMR(obj.game)})`;
 	for(var i = 1; i < obj.team2.length; i++){
-		s += ',\t' + obj.team2[i].userName + ' (' + obj.team2[i].getMMR(obj.game) + ')';
+		value += ',\t' + obj.team2[i].userName + ' (' + obj.team2[i].getMMR(obj.game) + ')';
 	}
-	s += '*\n\n';
-	if (obj.game === 'cs' || obj.game === 'cs1v1') {
-		s += '*Connect:* \n**' + getCsIp() + '**';
-		s += `\nLink: ${getCsUrl()}`; // TODO: Embedded links or something [Named Link](<link>) (Steam link no work)
+	fields.push({ name, value });
+	// s += '*\n\n';
+	const isCs = obj.game === 'cs' || obj.game === 'cs1v1';
+	if (isCs) {
+		//s += '*Connect:* \n';
+		s += `Link: ${getCsUrl()}`; // TODO: Embedded links or something [Named Link](<link>) (Steam link no work)
+		s += '\n**' + getCsIp() + '**';
 	}
 	else if(obj.game === 'dota' || obj.game === 'dota1v1') {
-		// s += '*Password: 123*\n[Instruction](https://gyazo.com/668d091b3d3eed728bd09865542acf06)';
-		// const gif = '../res/dotaConnect.mp4';
-		/*
-		// Lacking discord permissions
-		s = {
-			content: 'Content: ' + s,
-			embed: {
-				title: 'Instruction',
-				image: {
-					url: 'https://gyazo.com/668d091b3d3eed728bd09865542acf06'
-				}
-			}
-		}*/
+		const gifLink = 'res/dotaConnect.gif';
+		gif = [{
+			attachment: gifLink,
+			name: 'DotaConnect.gif'
+		}]
+		s  += 'Lobby Name: Dank\nPassword: 123';
 	}
 	const messageEmbedded = {
+		// content: title,
 		embed: {
 			title: title,
-			description: s,
-		}
+			...(isCs ? { description: s } : { footer: { text: s }}),
+			fields: fields,
+			// TODO: Make Work https://stackoverflow.com/questions/45622168/sending-attachments-in-embed-field
+		  ...(gif && { image: { url: "attachment://" + gif.name + ".gif" } }), 
+			// ...(gif && { files: [gif.attachment] }), 
+		}, 
+		...(gif && { files: gif }),
 	}
 
 	return { message: messageEmbedded, balanceInfo: obj };
