@@ -11,11 +11,12 @@ exports.getActiveGames = function(){
     return activeGames;
 }
 
-function Game(gameID, channelMessage){
+function Game(gameID, channelMessage) {
     this.gameID = gameID;   // Unique id for game, set as the balance message id in the discord channel
     this.channelMessage = channelMessage; // Controls which channel to make prints in
     this.activeMembers;     // Active members playing (team1 players + team2 players)
     this.balanceInfo;       // Object: {team1, team2, difference, avgT1, avgT2, avgDiff, game} Initialized on creation of game object
+    this.serverId;          // ServerId
 
     this.matchupMessage = channelMessage;    // One who started game's balance's message (-b)
     this.matchupServerMsg; 	// Discord message for showing matchup, members in both teams and mmr difference
@@ -39,113 +40,63 @@ function Game(gameID, channelMessage){
         });
     }
 
-    this.getBalanceInfo = function(){
-        return this.balanceInfo;
-    }
+    this.getBalanceInfo = () => this.balanceInfo;
 
-    this.getMatchupMessage = function(){
-        return this.matchupMessage;
-    }
+    this.getMatchupMessage = () => this.matchupMessage;
 
-    this.getTeamWonMessage = function(){
-        return this.teamWonMessage;
-    }
+    this.getTeamWonMessage = () => this.teamWonMessage;
 
-    this.getTeamWon = function(value){
-        return this.teamWon;
-    }
+    this.getTeamWon = (value) => this.teamWon;
 
-    this.getMatchupServerMsg = function(){
-        return this.matchupServerMsg;
-    }
+    this.getMatchupServerMsg = () => this.matchupServerMsg;
 
-    this.getActiveMembers = function(){
-        return this.activeMembers;
-    }
+    this.getActiveMembers = () => this.activeMembers;
 
-    this.getChannelMessage= function(){
-        return this.channelMessage;
-    }
+    this.getChannelMessage= () => this.channelMessage;
 
-    this.getVoteMessage = function(){
-        return this.voteMessage;
-    }
+    this.getVoteMessage = () => this.voteMessage;
 
-    this.setVoteMessage = function(value){
-        this.voteMessage = value;
-    }
+    this.setVoteMessage = (value) => this.voteMessage = value;
 
-    this.getGameID = function(){
-        return this.gameID;
-    }
+    this.getGameID = () => this.gameID;
 
-    this.getMapMessages = function(){
-        return this.mapMessages;
-    }
+    this.getMapMessages = () => this.mapMessages;
 
-    this.getMapVetoTurn = function(){
-        return this.mapVetoTurn;
-    }
+    this.getMapVetoTurn = () => this.mapVetoTurn;
 
-    this.setMapVetoTurn = function(value){
-        this.mapVetoTurn = value;
-    }
+    this.setMapVetoTurn = (value) => this.mapVetoTurn = value;
 
-    this.getCaptain1 = function(){
-        return this.captain1;
-    }
+    this.getCaptain1 = () => this.captain1;
 
-    this.getCaptain2 = function(){
-        return this.captain2;
-    }
+    this.getCaptain2 = () => this.captain2;
 
-    this.setCaptain1 = function(value){
-        this.captain1 = value;
-    }
+    this.setCaptain1 = (value) => this.captain1 = value;
 
-    this.setCaptain2 = function(value){
-        this.captain2 = value;
-    }
+    this.setCaptain2 = (value) => this.captain2 = value;
 
-    this.getBannedMaps = function(){
-        return this.bannedMaps;
-    }
+    this.getBannedMaps = () => this.bannedMaps;
     
-    this.getMapStatusMessage = function(){
-        return this.mapStatusMessage;
-    }
+    this.getMapStatusMessage = () => this.mapStatusMessage;
     
-    this.setMapStatusMessage = function(variable){
-        this.mapStatusMessage = variable;
-    }
+    this.setMapStatusMessage = (variable) => this.mapStatusMessage = variable;
 
-    this.setTeamWon = function(value){
-        this.teamWon = value;
-    }
+    this.setTeamWon = (value) => this.teamWon = value;
 
-    this.setTeamWonMessage = function(message){
-        this.teamWonMessage = message;
-    }
+    this.setTeamWonMessage = (message) => this.teamWonMessage = message;
 
-    this.setMatchupServerMessage = function(message){
-        this.matchupServerMsg = message;
-    }
+    this.setMatchupServerMessage = (message) => this.matchupServerMsg = message;
  
-    this.setMapMessages = function(result){
-        this.mapMessages = result;
-    }
+    this.setMapMessages = (result) => this.mapMessages = result;
 
-    this.setActiveMembers = function(members){
-        this.activeMembers = members;
-    }
+    this.setActiveMembers = (members) => this.activeMembers = members;
 
-    this.setBalanceInfo = function(value){
-        this.balanceInfo = value;
-    }
+    this.setBalanceInfo = (value) => this.balanceInfo = value;
 
-    this.setMatchupMessage = function(message){
-        this.matchupMessage = message;
-    }
+    this.setMatchupMessage = (message) => this.matchupMessage = message;
+
+    this.setServerId = (value) => this.serverId = value;
+
+    this.getServerId = () => this.serverId;
 }
 
 exports.createGame = function(gameID, channelMessage){
@@ -153,29 +104,26 @@ exports.createGame = function(gameID, channelMessage){
 }
 
 // Returns the game where the author is
-exports.getGame = function(author){
-    return activeGames.find(function(game){
-        return game.containsPlayer(author.id);
-    });
-    // console.log('@getGame', gameToReturn, author.id, (gameToReturn ? gameToReturn.containsPlayer(author.id) : '')) ;
-    // return gameToReturn;
+exports.getGame = (author) => {
+    return activeGames.find((game) => game.containsPlayer(author.id));
 }
 
-exports.hasActiveGames = function(){
-    if(activeGames.length === 0){
-        return false;
+exports.hasActiveGames = () => activeGames.length !== 0;
+
+// Finds the game with the mapMessage reacted to or null
+exports.getGameMapMessages = (messageReaction) => {
+    return activeGames.find((game) => {
+        return game.getMapMessages().some((mapMsg) => messageReaction.message.id === mapMsg.id);
+    });
+}
+
+// Deletes the gameobject, returns the list afterwards
+exports.deleteGame = (gameObject) => {
+    const index = activeGames.indexOf(gameObject);
+    if (index > -1) {
+        activeGames.splice(index, 1);
+    } else {
+        console.error('Failed to delete gameObject', gameObject);
     }
-    return true;
-}
-
-exports.getGameMapMessages = function(messageReaction){
-    return activeGames.find(function(game){
-        return game.getMapMessages().some(function(mapMsg){
-            return messageReaction.message.id === mapMsg.id
-        });
-    });
-}
-
-exports.deleteGame = function(gameObject){
-    activeGames.splice(gameObject, 1)
+    return activeGames;
 }

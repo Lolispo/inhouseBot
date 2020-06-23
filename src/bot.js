@@ -16,9 +16,10 @@ const game_js = require('./game/game');
 const { getConfig } = require('./tools/load-environment');
 const { getClient, getClientReference } = require('./client');
 const birthday = require('./birthday');
-const { ValidationError } = require('sequelize');
 const { connectSteamEntry, validateSteamID, storeSteamId, sendSteamId } = require('./steamid');
 const { getCsIp } = require('./csserver/server_info');
+const { cancelGameCSServer } = require('./csserver/cs_console');
+const { clearIntervals } = require('./csserver/cs_readConsoleStream');
 
 const { prefix, token, db } = getConfig(); // Load config data from env
 
@@ -175,6 +176,8 @@ const discordEventReactionRemove = (messageReaction, user) => {
 
 // Create more events to do fancy stuff with discord API
 let currentTeamWonGameObject; // TODO: Refactor usage to use global scope in better way
+
+exports.handleMessageExported = async (message) => handleMessage(message);
 
 // Main message handling function 
 const handleMessage = async (message) => { 
@@ -424,11 +427,9 @@ const handleMessage = async (message) => {
 				}
 			}
 			else if(cancelCommands.includes(message.content)){
-				// Only creator of game can cancel it
+				// Only creator of game or admin can cancel it
 				var matchupMessage = gameObject.getMatchupMessage();
 				if(message.author.id === matchupMessage.author.id || adminUids.includes(message.author.id)){
-					// TODO Game: Remove game from game.js
-					game_js.deleteGame(gameObject);
 					f.print(message, 'Game cancelled', (message) => {
 						f.deleteDiscMessage(message, 15000, 'gameCanceled');
 						cleanOnGameEnd(gameObject);
@@ -545,7 +546,7 @@ const stats = async (message) => {
 }
 
 // Start trivia game, sent from trivia when questions are fetched. 
-exports.triviaStart = function(questions, message, author){
+exports.triviaStart = (questions, message, author) => {
 	// Start game in text channel with these questions
 	var voiceChannel = message.guild.member(message.author).voiceChannel;
 	if(voiceChannel !== null && !f.isUndefined(voiceChannel)){ // Sets initial player array to user in disc channel if available
@@ -870,7 +871,14 @@ function cleanOnGameEnd(gameObject){
 		//console.log('DEBUG matchupMessage cleanOnGameEnd', gameObject.getMatchupMessage().content);
 		f.deleteDiscMessage(gameObject.getMatchupMessage(), 0, 'matchupMessage');
 	}
+	// Remove game from ongoing games
 	game_js.deleteGame(gameObject);
+	const gameName = gameObject.getBalanceInfo().game;
+	if (gameName === 'cs' || gameName === 'cs1v1') {
+		cancelGameCSServer(gameObject);
+	}
+	// Clear csserver interval listeners
+	clearIntervals();
 }
 
 // Here follows callbackFunctions for handling bot sent messages
@@ -890,15 +898,15 @@ const noop = (message) => { // callback used when no operation is wanted
 	// Doesn't delete the message
 }
 
-exports.printMessage = function(message, channelMessage, callback = noop){ // Default: NOT removing message
+exports.printMessage = (message, channelMessage, callback = noop) => { // Default: NOT removing message
 	f.print(channelMessage, message, callback);
 }
 
-exports.getPrefix = function(){
+exports.getPrefix = () => {
 	return prefix;
 }
 
-exports.getRemoveTime = function(){
+exports.getRemoveTime = () => {
 	return removeBotMessageDefaultTime;
 }
 

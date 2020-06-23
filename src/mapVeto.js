@@ -6,7 +6,7 @@
 const bot = require('./bot');
 const player_js = require('./game/player');
 const f = require('./tools/f');
-const { configureServer } = require('./csserver/csserver');
+const { configureServer } = require('./csserver/cs_server');
 const { promises } = require('fs');
 
 let mapMessagesBuilder = [];

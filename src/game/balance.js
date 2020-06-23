@@ -1,12 +1,11 @@
 'use strict';
 // Author: Petter Andersson
 
-const Discord = require('discord.js');
 const bot = require('../bot');
-const game_js = require('./game');
 const { getTeamName } = require('../teamNames');
-const { configureServer } = require('../csserver/csserver');
+const { configureServer } = require('../csserver/cs_server');
 const { getCsIp, getCsUrl } = require('../csserver/server_info');
+const { checkMissingSteamIds, notifyPlayersMissingSteamId } = require('../steamid');
 
 /*
 	Handles getting the most balanced team matchup for the given 10 players
@@ -29,22 +28,26 @@ exports.balanceTeams = (players, game, gameObject) => {
 	try {
 		const object = buildReturnStringEmbed(result, gameObject);
 		message = object.message;
+		console.log(message);
 		balanceInfo = object.balanceInfo;
 		gameObject.setBalanceInfo(balanceInfo);
 	} catch (e) {
 		console.error('Embed failed', e);
-		const object = buildReturnString(result, gameObject);
+		const object = buildReturnString(result);
 		message = object.message;
 		balanceInfo = object.balanceInfo;
 		gameObject.setBalanceInfo(balanceInfo);
 	}
+
 	bot.printMessage(message, gameObject.getChannelMessage(), (message) => {
 		gameObject.setMatchupServerMessage(message);
 	});
+
 	// TODO: Only if no other active games using server
 	if (game === 'cs' || game === 'cs1v1') {
 		const playersMissingSteamIds = checkMissingSteamIds(players);
-		if (missingSteamIds.length > 0) {
+		// console.log('Check missing steam ids:', players, players.map(player => player.steamid).join(", "), playersMissingSteamIds.map(player => player.steamid).join(", "));
+		if (playersMissingSteamIds.length > 0) {
 			// People are missing steamids
 			notifyPlayersMissingSteamId(playersMissingSteamIds);
 			const playersString = playersMissingSteamIds.map((player) => player.userName).join(', ');
@@ -232,7 +235,7 @@ const buildReturnStringEmbed = (obj) => {
 	s += '*\n\n';
 	if (obj.game === 'cs' || obj.game === 'cs1v1') {
 		s += '*Connect:* \n**' + getCsIp() + '**';
-		s += `[Connect](${getCsUrl})`;
+		s += `\nLink: [Connect](${getCsUrl()}) [named links](https://discordapp.com)`;
 	}
 	else if(obj.game === 'dota' || obj.game === 'dota1v1') {
 		// s += '*Password: 123*\n[Instruction](https://gyazo.com/668d091b3d3eed728bd09865542acf06)';
@@ -258,9 +261,12 @@ const buildReturnStringEmbed = (obj) => {
     at addMissingUsers (C:\Users\Petter\Documents\GitHub\inhouseBot\src\database\db_sequelize.js:121:3)
     at addMissingUsers (C:\Users\Petter\Documents\GitHub\inhouseBot\src\database\db_sequelize.js:151:2)
 	*/
-	const messageEmbedded = new Discord.MessageEmbed()
-		.setTitle(title)
-		.setDescription(s);
+	const messageEmbedded = {
+		embed: {
+			title: title,
+			description: s,
+		}
+	}
 
 	return { message: messageEmbedded, balanceInfo: obj };
 }

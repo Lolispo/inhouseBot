@@ -1,84 +1,19 @@
-const axios = require('axios');
-const { getToken, getActiveToken } = require('./csserver_auth');
+const { getChosenMap } = require('./cs_map');
 const fs = require('fs');
 const util = require('util');
 const FormData = require('form-data');
+const { writeConsole, loadConfigFile, getLatestConsoleLines } = require('./cs_console');
+const { datHostEndpoint } = require('./cs_server_http');
+const { readCSConsoleInput } = require('./cs_readConsoleStream');
+const { assert } = require('console');
 
 // const querystring = require('querystring'); // querystring.stringify({ foo: 'bar' })
 
 const readFile = util.promisify(fs.readFile);
 const writeFile = util.promisify(fs.writeFile);
 
-axios.defaults.timeout = 30000; // Timeout 10 mins
-
-const DATHOST_URL = process.env.DATHOST_URL || 'https://dathost.net/api/0.1/';
-
-const handleResponse = (response, message, rules = {allow: [200]}) => {
-  if(message) console.log(message, response.status, response.data);
-  if (rules.allow.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      data: response.data
-    }
-  } else {
-    console.error('Invalid statusCode:', response.status, response.data);
-    return {
-      statusCode: response.status,
-      data: response.data
-    }
-  }
-}
-
-const handleError = (error, message) => {
-  if(message) console.error(message, 'Error:', error.message, error);
-  if (error && error.response && error.response.status) {
-    return {
-      statusCode: error.response.status,
-      data: error
-    }
-  } else {
-    return {
-      statusCode: 400,
-      data: error
-    }
-  }
-}
-
-const datHostEndpoint = async (endpoint, options = null, printInfo = '') => {
-  let token = getActiveToken();
-  if (!token || token === '') {
-    token = await getToken();
-  }
-  
-  const headers = {
-    'Authorization': token,
-  };
-
-  const url = DATHOST_URL + endpoint;
-  const params = {
-    method: (options && options.method ? options.method : (options && options.data ? 'POST' : 'GET')),
-    url: url,
-    headers: {
-      ...headers,
-      ...(options && options.headers ? options.headers : { 'Content-Type': 'application/json' }),
-    },
-    ...(options && options.data && { data: options.data }),
-  }
-
-  console.log('Params:', params);
-  try {
-    const response = await axios(params);
-    console.log('Response:', endpoint, (options && options.data ? JSON.stringify(options.data) : ''));
-    return handleResponse(response, printInfo, { 
-      allow: [200],
-    });
-  } catch (error) {
-    return handleError(error, 'Failed Response: ' + params.url + ', ' + JSON.stringify(params.data));
-  }
-}
-
 const gameServers = async () => {
-  const response = await datHostEndpoint('game-servers', { method: 'GET' }, 'Game Servers');
+  const response = await datHostEndpoint('game-servers', { method: 'GET' });
   if (response.statusCode === 200) {
     return response.data.map((server) => {
       const 
@@ -181,9 +116,12 @@ const getPredictionTeam1 = (balanceInfo) => {
 }
 
 const configureServer = async (gameObject) => {
-  console.log('@configureServer:', gameObject.chosenMap, gameObject.getBalanceInfo());
+  console.log('@configureServer: Map =', gameObject.chosenMap); // , gameObject.getBalanceInfo());
   const gameServersList = await gameServers();
   const serverId = gameServersList[0].id;
+  // Update gameObject with serverId
+  gameObject.setServerId(serverId);
+  assert(gameObject.getServerId(), serverId);
   const team1Players = generateTeamPlayersBody(1, gameObject.getBalanceInfo().team1);
   const team2Players = generateTeamPlayersBody(2, gameObject.getBalanceInfo().team2);
   const mapVetoChosenMap = gameObject.chosenMap;
@@ -199,7 +137,7 @@ const configureServer = async (gameObject) => {
     ...(team1Players && { team1Players }),
     ...(team2Players && { team2Players }),
   }
-  console.log('@configureServer - server/placements:', serverId, replacements)
+  console.log('@configureServer ServerId:', serverId, gameObject.getServerId())
   const wholeFilePath = await generateConfigFile(replacements, 'cfg/kosatupp_inhouse_coordinator_match');
   console.log('@configureServer.filePath:', wholeFilePath);
   const filePathRemote = 'cfg%2Fget5%2Fkosatupp_inhouse_coordinator_match.cfg';
@@ -211,16 +149,16 @@ const configureServer = async (gameObject) => {
   const writeConsoleRes = await loadConfigFile(serverId);
 
   // Start reading input from server
-  // readCSConsoleInput();
+  readCSConsoleInput(serverId, gameObject);
   const latestConsoleLines = getLatestConsoleLines(serverId);
   return latestConsoleLines;
 }
 
+// exports.datHostEndpoint = (...args) => datHostEndpoint(...args);
 
 module.exports = {
   uploadFile : uploadFile,
   gameServers : gameServers,
   generateConfigFile : generateConfigFile,
   configureServer : configureServer,
-  datHostEndpoint : datHostEndpoint,
 }

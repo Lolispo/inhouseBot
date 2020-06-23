@@ -6,7 +6,7 @@ const csConnectUrl = `steam://connect/${csDomain}:${csPort}/${csPw}`; 			// stea
 
 exports.updateCsServer = (port = csPort, pw = csPw, domain = csDomain) => {
   csConnectConsole = `connect ${csDomain}:${csPort}; password ${csPw}`;
-  csConnectUrl = `steam://connect/${csDomain}:${csPort}/${csPw}`; 
+  csConnectUrl = `https://steam://connect/${csDomain}:${csPort}/${csPw}`; 
 }
 
 exports.getCsIp = () => {

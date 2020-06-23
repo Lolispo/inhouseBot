@@ -1,4 +1,7 @@
 
+const { handleMessageExported } = require("../bot");
+const { writeConsole, getLatestConsoleLines } = require("./cs_console");
+
 /*
 hm, har en idé för att minska lite på mängden api spam. Man lär ju egentligen bara vilja skicka meddelanden till discord mellan matcher. 
 Typ för att starta en ny. Det finns ett kommando som heter get5_status som kan berätta om en match är loaded eller inte. 
@@ -8,111 +11,115 @@ bonus är att man kan använda det så att den vet när den ska kolla databasen 
 den kommer fortfarande att tugga väldigt mycket lines när den väl är aktiv, men då sitter den iaf inte konstant och läser en massa useless shit
 */
 
-const { datHostEndpoint } = require("./csserver")
+
+const consoleMessages = [];
+let lastSeen = '';
+let refreshInterval;
+let ingameInterval;
 
 // Called when game is loaded on bot
-const readCSConsoleInput = (serverId) => {
+const readCSConsoleInput = async (serverId, gameObject) => {
   // Check status on server every minute
-  const refreshInterval = setInterval(() => {
-    const getStatusRes = writeConsole(serverId, 'get5_status');
+  refreshInterval = setInterval(async () => {
+    const getStatusRes = await writeConsole(serverId, 'get5_status');
     console.log('@readCSConsoleInput', getStatusRes);
-    const latestLines = getLatestConsoleLines(serverId)
+    const latestLines = await getLatestConsoleLines(serverId)
     console.log('@readCSConsoleInput Latest Lines', latestLines);
     // TODO: Check if res can be used here or if we need to read from console
 
     if (true) { // TODO: If status changed to ongoing -> change mode OR >3 players
       clearInterval(refreshInterval);
-      writeConsole(serverId, 'say Started listening on discord commands ingame!');
-      readConsoleSayLines();
+      await writeConsole(serverId, 'say Started listening on discord commands ingame!');
+      await readConsoleSayLines(serverId, gameObject);
     }
   }, 60000);
 };
 
-const consoleMessages = [];
+
+
+const clearIntervals = () => {
+  clearInterval(refreshInterval);
+  clearInterval(ingameInterval);
+}
 
 // Read console for "say" lines every 5 seconds
-const readConsoleSayLines = () => {
+const readConsoleSayLines = async (serverId, gameObject) => {
   let counter = 0;
-  let interval = setInterval(() => {
-    const latestLines = getLatestConsoleLines(serverId);
+  ingameInterval = setInterval(async () => {
+    const latestLines = await getLatestConsoleLines(serverId);
     const newMessages = [];
     // TODO: Split on console messages
 
     // TODO: Update local storage of messages to prevent multiple ones appearing
-    latestLines.forEach(message => {
-      if (!consoleMessages.includes(message)) {
-        newMessages.push(message);
+    for(let i = latestLines.length - 1; i >= 0; i--) {
+      if (latestLines[i] === lastSeen) {
+        if (i === latestLines.length - 1) {
+          newMessages = [];
+        } else {
+          newMessages = latestLines.slice(i + 1);
+        }
       }
-    })
+    }
     
-    // TODO: Loop over ONLY new messages
+    // Loop over ONLY new messages
 
     newMessages.forEach(message => {
       // TODO: Check for correct format of message
       // Jun 22 14:41:10: L 06/22/2020 - 14:41:10: "Banza1<2><STEAM_1:0:9391834><CT>" say "allchat"
   
-      // If message is found
-      // TODO: Find author of message from given steamID in message
-      const player = findAuthorFromMessage(message);
-
-      // TODO Discord handle message content
-      // handleMessage(player);
-
+      if (message.match(/<STEAM_\d:\d:\d+><(CT|T)>" say/g)) {    
+        // If message is found
+        // TODO: Find author of message from given steamID in message
+        const player = findAuthorFromMessage(message, gameObject);
+  
+        // TODO Discord handle message content
+        if(player) {
+          const messageObject = {
+            ...gameObject.getChannelMessage(),
+            author: { 
+              uid: player.uid
+            },
+            content: message
+          }
+          handleMessageExported(messageObject);
+        }
+      }
     })
     
     // Update content with new messages
     consoleMessages.concat(newMessages);
+    lastSeen = newMessages[newMessages.length - 1];
 
     // TODO: Exit condition when it should stop
     counter++;
     if (counter > 1440) {
       // Var 5:e sekund i 2h
-      clearInterval(interval);
+      clearInterval(ingameInterval);
     }
   }, 5000);
 }
 
 // Find player instance from message
-const findAuthorFromMessage = (message) => {
+const findAuthorFromMessage = (message, gameObject) => {
   // TODO Regex match SteamID
   // Jun 22 14:41:10: L 06/22/2020 - 14:41:10: "Banza1<2><STEAM_1:0:9391834><CT>" say "allchat"
-  let steamid = '';
+  // No regex solution test
+  let tempString = message.substring(message.indexOf('<STEAM'));
+  let steamid = tempString.substring(0, tempString.indexOf('>'));
 
   // TODO: Reference existing loading players to find correct one
+  console.log('@findAuthorFromMessage: Gameobject', gameObject);
   let players = [];
   const player = players.find((player) => player.steamid === steamid);
   if (player) {
     // Valid player provided message
     return player;    
   }
-}
-
-const loadConfigFile = async (serverId, filePath='cfg%2Fget5%2Fkosatupp_inhouse_coordinator_match.cfg') => {
-  // game-servers/5ee3fe74d451b92ec776d519/files/cfg%2Fget5%2Fkosatupp_inhouse_coordinator_match.cfg
-  return datHostEndpoint(`game-servers/${serverId}/console`, {
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' } ,
-    data: 'line=get5_loadmatch%20' + filePath 
-      //'get5_loadmatch%20cfg%2Fget5%2Fkosatupp_inhouse_coordinator_match.cfg' // application/x-www-form-urlencoded'
-      // line: `get5_loadmatch ${filePath}`
-  })
-}
-
-// Write line in cs server console
-const writeConsole = async (serverId, line) => {
-  return datHostEndpoint(`game-servers/${serverId}/console`, {
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' } ,
-    data: 'line=' + line
-  })
-}
-
-const getLatestConsoleLines = async (serverId, amount = 100) => {
-  return datHostEndpoint(`game-servers/${serverId}/console?max_lines=${amount}`);
+  return null;
 }
 
 
 module.exports = {
   readCSConsoleInput: readCSConsoleInput,
-  loadConfigFile : loadConfigFile,
-  writeConsole : writeConsole,
-  getLatestConsoleLines : getLatestConsoleLines,
+  clearIntervals : clearIntervals,
 }

@@ -49,14 +49,18 @@ const sendSteamId = async (message) => {
 
 // Returns users with missing steamids
 const checkMissingSteamIds = (players) => {
-  return players.filter((player) => !player.steamid);
+  return players.filter((player) => !player.steamId);
 }
 
 const notifyPlayersMissingSteamId = async (players) => {
   const client = getClientReference();
   players.forEach((player) => {
     const uid = player.uid;
-    client.users.get(uid).send(enterSteamIdString);
+    try {
+      client.users.get(uid).send(enterSteamIdString);
+    } catch (e) {
+      console.error('Unable to send steamid fetch to user with uid' + uid + ':', e);
+    }
   });
 }
 

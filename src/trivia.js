@@ -503,7 +503,7 @@ function finishedQuestion(){
 	if(!f.isUndefined(allMessages)){
 		for(var i = allMessages.length - 1; i >= 0; i--){
 			f.deleteDiscMessage(allMessages[i], 0, 'allMessages['+i+']', function(msg){
-				var index = allMessages.indexOf(msg);
+				const index = allMessages.indexOf(msg);
 				if (index > -1) {
 					allMessages.splice(index, 1);
 				}

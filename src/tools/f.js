@@ -23,7 +23,7 @@ var isUndefined = function(obj){
 // Used to print message in channel, use for every use of channel.send for consistency
 // Returns promise for use in async functions
 var print = function(messageVar, message, callback = callbackPrintDefault){
-	console.log('> ' + message);
+	console.log('> ' + (message.embed ? '(Embed)' + message.embed.title + '\t' + message.embed.description : message));
 	if (message.length >= 2000) {
 		let sent = false;
 		for(let i = 2000; i >= 0; i--) {
