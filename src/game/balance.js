@@ -25,6 +25,7 @@ exports.balanceTeams = (players, game, gameObject) => {
 	// Return string to message to clients
 	let message;
 	let balanceInfo;
+	/*
 	try {
 		const object = buildReturnStringEmbed(result, gameObject);
 		message = object.message;
@@ -33,11 +34,12 @@ exports.balanceTeams = (players, game, gameObject) => {
 		gameObject.setBalanceInfo(balanceInfo);
 	} catch (e) {
 		console.error('Embed failed', e);
-		const object = buildReturnString(result);
-		message = object.message;
-		balanceInfo = object.balanceInfo;
-		gameObject.setBalanceInfo(balanceInfo);
-	}
+	*/
+	const object = buildReturnString(result);
+	message = object.message;
+	balanceInfo = object.balanceInfo;
+	gameObject.setBalanceInfo(balanceInfo);
+	// }
 
 	bot.printMessage(message, gameObject.getChannelMessage(), (message) => {
 		gameObject.setMatchupServerMessage(message);
