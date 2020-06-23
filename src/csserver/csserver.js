@@ -69,7 +69,7 @@ const datHostEndpoint = async (endpoint, options = null, printInfo = '') => {
   try {
     const response = await axios(params);
     console.log('Response:', endpoint, (options && options.data ? JSON.stringify(options.data) : ''));
-    return handleResponse(response, 'Success Response:', { 
+    return handleResponse(response, printInfo, { 
       allow: [200],
     });
   } catch (error) {
@@ -78,7 +78,7 @@ const datHostEndpoint = async (endpoint, options = null, printInfo = '') => {
 }
 
 const gameServers = async () => {
-  const response = await datHostEndpoint('game-servers', { method: 'GET' });
+  const response = await datHostEndpoint('game-servers', { method: 'GET' }, 'Game Servers');
   if (response.statusCode === 200) {
     return response.data.map((server) => {
       const 
@@ -114,6 +114,7 @@ const generateConfigFile = async (replacements, filePath, version = '-gen', file
     data = await readFile(filePath + fileType, 'utf8');
     const result = data
       .replace(/\$\$chosen\_map\$\$/g, replacements.chosen_map)
+      .replace(/\$\$skipVeto\$\$/g, replacements.skipVeto)
       .replace(/\$\$coordinator\_prediction\_team1\$\$/g, replacements.coordinator_prediction_team1)
       .replace(/\$\$team1\_name\$\$/g, replacements.team1_name)
       .replace(/\$\$team2\_name\$\$/g, replacements.team2_name)
@@ -121,10 +122,10 @@ const generateConfigFile = async (replacements, filePath, version = '-gen', file
       .replace(/\$\$team1Players\$\$/g, replacements.team1Players)
       .replace(/\$\$team2Players\$\$/g, replacements.team2Players);
   
-    console.log(result);
+    // console.log(result);
     const wholePath = filePath + version + fileType;
     const writeFileRes = await writeFile(wholePath, result, 'utf8');
-    console.log('Wrote to file:', writeFileRes); // TODO: Fix print - undefined
+    // console.log('Wrote to file:', writeFileRes); // TODO: Fix print - undefined
     return wholePath;
   } catch (e) {
     console.error('IO Error:', e);
@@ -146,28 +147,7 @@ const uploadFile = async (serverId, filePath, localPath) => {
       'Accept': 'application/json',
       ...formData.getHeaders()
     }
-  });
-}
-
-const loadConfigFile = async (serverId, filePath='cfg%2Fget5%2Fkosatupp_inhouse_coordinator_match.cfg') => {
-  // game-servers/5ee3fe74d451b92ec776d519/files/cfg%2Fget5%2Fkosatupp_inhouse_coordinator_match.cfg
-  return datHostEndpoint(`game-servers/${serverId}/console`, {
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' } ,
-    data: 'line=get5_loadmatch%20' + filePath 
-      //'get5_loadmatch%20cfg%2Fget5%2Fkosatupp_inhouse_coordinator_match.cfg' // application/x-www-form-urlencoded'
-      // line: `get5_loadmatch ${filePath}`
-  })
-}
-
-const writeConsole = async (serverId, line) => {
-  return datHostEndpoint(`game-servers/${serverId}/console`, {
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' } ,
-    data: 'line=' + line
-  })
-}
-
-const getLatestConsoleLines = async (serverId) => {
-  return datHostEndpoint(`game-servers/${serverId}/console?max_lines=100`);
+  }, 'Upload File');
 }
 
 const generateTeamPlayersBody = (team, players) => {
@@ -180,48 +160,6 @@ const generateTeamPlayersBody = (team, players) => {
   return s;
 }
 
-// TODO: Use same list as in mapveto file
-const mapList = [
-  'inferno',
-  'dust2',
-  'mirage',
-  'nuke',
-  'overpass',
-  'train',
-  'vertigo',
-  'cache'
-]
-
-const getTranslatedMap = (map) => {
-  for (let i = 0; i < mapList.length; i++) {
-    const mapName = map.toLowerCase();
-    if (mapName.includes(mapList[i])) {
-      return 'de_' + mapList[i];
-    }
-  }
-}
-
-const getChosenMap = (chosenMap) => {
-  if (chosenMap) {
-    console.log('Map chosen!')
-    const map = chosenMap || 'de_inferno';
-    const translatedMap = getTranslatedMap(map); 
-    return `"${translatedMap}" \t""`
-  } else {
-    console.log('No map chosen');
-    return `
-      "de_dust2" \t""
-      "de_inferno" \t""
-      "de_mirage"	\t""
-      "de_nuke" \t""
-      "de_overpass" \t""
-      "de_train" \t""
-      "de_vertigo" \t""
-      "de_cache" \t""
-    `
-  }
-}
-
 // Fix prediction
 const getPredictionTeam1 = (balanceInfo) => {
   /*
@@ -230,7 +168,8 @@ const getPredictionTeam1 = (balanceInfo) => {
     avgT2: 2587.5,
     avgDiff: 15.5,
 
-    Output: 1 - 9950: <no favorite> = avgT1 = avgT2
+    Output: 1 - 99
+    50: <no favorite> = avgT1 = avgT2
     > 50: team1 higher avg< 50: team 2 higher avg
     20% = 25 mmr
 
@@ -248,10 +187,11 @@ const configureServer = async (gameObject) => {
   const team1Players = generateTeamPlayersBody(1, gameObject.getBalanceInfo().team1);
   const team2Players = generateTeamPlayersBody(2, gameObject.getBalanceInfo().team2);
   const mapVetoChosenMap = gameObject.chosenMap;
-  const chosenMap = getChosenMap(mapVetoChosenMap);
+  const { chosenMap, skipVeto } = getChosenMap(mapVetoChosenMap);
   const predictionTeam1 = getPredictionTeam1(gameObject.getBalanceInfo());
   const replacements = {
-    chosen_map: chosenMap, // TODO Map
+    chosen_map: chosenMap,
+    skipVeto: skipVeto,
     coordinator_prediction_team1: predictionTeam1 || 50, // TODO Prediction score
     team1_name: gameObject.getBalanceInfo().team1Name || 'Team 1',
     team2_name: gameObject.getBalanceInfo().team2Name || 'Team 2',
@@ -265,8 +205,13 @@ const configureServer = async (gameObject) => {
   const filePathRemote = 'cfg%2Fget5%2Fkosatupp_inhouse_coordinator_match.cfg';
   const uploadedFileRes = await uploadFile(serverId, filePathRemote, wholeFilePath);
   const cmdResetRunningGames = await writeConsole(serverId, `get5_endmatch;`); // TODO: Only run if gameongoing
+  // TODO: Currently get5_check_auths is always set on server - check how to switch this
   const cmdCheckAuths = await writeConsole(serverId, `get5_check_auths ${team1Players && team2Players ? 1 : '0; say All users require a linked Steam ID for automatic team placement;'}`);
+  // Load config
   const writeConsoleRes = await loadConfigFile(serverId);
+
+  // Start reading input from server
+  readCSConsoleInput();
   const latestConsoleLines = getLatestConsoleLines(serverId);
   return latestConsoleLines;
 }
@@ -277,4 +222,5 @@ module.exports = {
   gameServers : gameServers,
   generateConfigFile : generateConfigFile,
   configureServer : configureServer,
+  datHostEndpoint : datHostEndpoint,
 }

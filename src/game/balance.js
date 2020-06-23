@@ -20,8 +20,8 @@ const { getCsIp, getCsUrl } = require('../csserver/server_info');
 // @param players should contain Array of initialized Players of people playing
 exports.balanceTeams = (players, game, gameObject) => {
 	// Generate team combs, all possibilities of the 10 players
-	var teamCombs = generateTeamCombs(players);
-	var result = findBestTeamComb(players, teamCombs, game);
+	const teamCombs = generateTeamCombs(players);
+	const result = findBestTeamComb(players, teamCombs, game);
 
 	// Return string to message to clients
 	let message;
@@ -43,6 +43,13 @@ exports.balanceTeams = (players, game, gameObject) => {
 	});
 	// TODO: Only if no other active games using server
 	if (game === 'cs' || game === 'cs1v1') {
+		const playersMissingSteamIds = checkMissingSteamIds(players);
+		if (missingSteamIds.length > 0) {
+			// People are missing steamids
+			notifyPlayersMissingSteamId(playersMissingSteamIds);
+			const playersString = playersMissingSteamIds.map((player) => player.userName).join(', ');
+			bot.printMessage('Note: Players with no SteamIds connected yet: ' + playersString, gameObject.getChannelMessage());
+		}
 		configureServer(gameObject);
 	}
 }

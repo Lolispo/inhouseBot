@@ -19,7 +19,7 @@ discord embed messages - access and links embedded
 
 ## CS Integration
 
-Force teams working as expected
+-gen file to .gitignore
 
 Jun 22 14:41:10: L 06/22/2020 - 14:41:10: "Banza1<2><STEAM_1:0:9391834><CT>" say "allchat"
 
@@ -30,7 +30,11 @@ den kommer fortfarande att tugga väldigt mycket lines när den väl är aktiv, 
 "
 
 MySQL - (Anton access) - initialized
-    check format and initialize connection
+    check format and initialize connection - Not saving any data
+
+
+"You can also set get5_mysql_force_matchid to 1 to make get5 ignore the matchid in match configs, and instead set it based on the id assigned when the plugin inserts into get5_stats_matches" so if u want matchid 100 get5_mysql_force_matchid should be set to 0 and matchid should be set to 100.
+tror våran är satt till 1
 
 Make sure to not allow updating server if discord game is ongoing on cs
 

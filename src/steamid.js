@@ -1,5 +1,6 @@
 const f = require('./tools/f');	
 const { getUser, storeSteamIdDb } = require('./database/db_sequelize');
+const { getClientReference } = require('./client');
 
 // Return boolean if valid steam id format or not
 const validateSteamID = (msgContent) => {
@@ -24,10 +25,7 @@ const storeSteamId = async (uid, message) => {
 const enterSteamIdString = "Enter your SteamID (format: STEAM\_1:0:XXXXXXXX)\nLink: https://steamid.io/"; // https://steamidfinder.com/
 
 const connectSteamEntry = (message) => {
-	message.author.send(enterSteamIdString)
-	.then(result => {
-		f.deleteDiscMessage(result, 120000);
-	});
+	message.author.send(enterSteamIdString);
 	f.deleteDiscMessage(message, 10000, 'connectsteam');
 }
 
@@ -49,9 +47,24 @@ const sendSteamId = async (message) => {
   }
 }
 
+// Returns users with missing steamids
+const checkMissingSteamIds = (players) => {
+  return players.filter((player) => !player.steamid);
+}
+
+const notifyPlayersMissingSteamId = async (players) => {
+  const client = getClientReference();
+  players.forEach((player) => {
+    const uid = player.uid;
+    client.users.get(uid).send(enterSteamIdString);
+  });
+}
+
 module.exports = {
   validateSteamID : validateSteamID,
   storeSteamId : storeSteamId,
   connectSteamEntry : connectSteamEntry,
-  sendSteamId : sendSteamId
+  sendSteamId : sendSteamId,
+  checkMissingSteamIds : checkMissingSteamIds,
+  notifyPlayersMissingSteamId : notifyPlayersMissingSteamId
 }
