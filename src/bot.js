@@ -19,7 +19,7 @@ const birthday = require('./birthday');
 const { connectSteamEntry, validateSteamID, storeSteamId, sendSteamId } = require('./steamid');
 const { getCsIp } = require('./csserver/server_info');
 const { cancelGameCSServer } = require('./csserver/cs_console');
-const { clearIntervals } = require('./csserver/cs_readConsoleStream');
+const { clearIntervals } = require('./csserver/cs_console_stream');
 
 const { prefix, token, db } = getConfig(); // Load config data from env
 
@@ -177,7 +177,7 @@ const discordEventReactionRemove = (messageReaction, user) => {
 // Create more events to do fancy stuff with discord API
 let currentTeamWonGameObject; // TODO: Refactor usage to use global scope in better way
 
-exports.handleMessageExported = async (message) => handleMessage(message);
+exports.handleMessageExported = (message) => handleMessage(message);
 
 // Main message handling function 
 const handleMessage = async (message) => { 
@@ -431,7 +431,7 @@ const handleMessage = async (message) => {
 				var matchupMessage = gameObject.getMatchupMessage();
 				if(message.author.id === matchupMessage.author.id || adminUids.includes(message.author.id)){
 					f.print(message, 'Game cancelled', (message) => {
-						f.deleteDiscMessage(message, 15000, 'gameCanceled');
+						f.deleteDiscMessage(message, 15000, 'gameCancelled');
 						cleanOnGameEnd(gameObject);
 					});
 					f.deleteDiscMessage(message, 15000, 'c'); // prefix+c
@@ -863,9 +863,9 @@ function cleanOnGameEnd(gameObject){
 	if(!f.isUndefined(gameObject.getTeamWonMessage())){
 		f.deleteDiscMessage(gameObject.getTeamWonMessage(), 0, 'teamWonMessage');
 	}
-	if(!f.isUndefined(gameObject.getMatchupServerMsg())){
-		//console.log('DEBUG getMatchupServerMsg cleanOnGameEnd', gameObject.getMatchupServerMsg().content);
-		f.deleteDiscMessage(gameObject.getMatchupServerMsg(), 0, 'matchupServerMsg');
+	if(!f.isUndefined(gameObject.getMatchupServerMessage())){
+		//console.log('DEBUG getMatchupServerMessage cleanOnGameEnd', gameObject.getMatchupServerMessage().content);
+		f.deleteDiscMessage(gameObject.getMatchupServerMessage(), 0, 'matchupServerMsg');
 	}
 	if(!f.isUndefined(gameObject.getMatchupMessage())){
 		//console.log('DEBUG matchupMessage cleanOnGameEnd', gameObject.getMatchupMessage().content);

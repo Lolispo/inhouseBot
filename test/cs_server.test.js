@@ -7,8 +7,10 @@ const { getConfig } = require('../src/tools/load-environment');
 const { gameServers, configureServer } = require('../src/csserver/cs_server');
 const { createPlayer } = require('../src/game/player');
 const csserverModule = rewire('../src/csserver/cs_server.js');
+const cs_console_stream = rewire('../src/csserver/cs_console_stream.js');
 const getPredictionTeam1 = csserverModule.__get__('getPredictionTeam1');
 const { readCSConsoleInput } = require('../src/csserver/cs_console');
+const isSayMessage = cs_console_stream.__get__('isSayMessage'); 
 
 let serverId;
 let gameObject;
@@ -40,6 +42,15 @@ describe('dathost', () => {
       }
     }
   })
+  describe('isSayMessage', () => {
+    it('isSayMessage', async () => {
+      let s = 'Jun 22 14:41:10: L 06/22/2020 - 14:41:10: "Banza1<2><STEAM_1:0:9391834><CT>" say "allchat"'
+      const res = await isSayMessage(s);
+      assert.equal(res, 'allchat');
+      const res2 = await isSayMessage('not a steam id in this');
+      assert.ok(!res2)
+    });
+  });
   describe('readCSConsoleInput', () => {
     it('readCSConsoleInput', async () => {
       const res = await readCSConsoleInput(serverId, gameObject);

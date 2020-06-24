@@ -2,10 +2,12 @@
 // Author: Petter Andersson
 
 const bot = require('../bot');
+const f = require('../tools/f');
 const { getTeamName } = require('../teamNames');
 const { configureServer } = require('../csserver/cs_server');
 const { getCsIp, getCsUrl } = require('../csserver/server_info');
 const { checkMissingSteamIds, notifyPlayersMissingSteamId } = require('../steamid');
+const { WebhookClient } = require('discord.js');
 
 /*
 	Handles getting the most balanced team matchup for the given 10 players
@@ -52,7 +54,9 @@ exports.balanceTeams = (players, game, gameObject) => {
 			// People are missing steamids
 			notifyPlayersMissingSteamId(playersMissingSteamIds);
 			const playersString = playersMissingSteamIds.map((player) => player.userName).join(', ');
-			bot.printMessage('Note: Players with no SteamIds connected yet: ' + playersString, gameObject.getChannelMessage());
+			bot.printMessage('Note: Missing SteamIds for: ' + playersString, gameObject.getChannelMessage(), () => {
+				f.deleteDiscMessage(message, 120000, 'missingSteamIds');
+			});
 		}
 		configureServer(gameObject);
 	}
@@ -210,9 +214,9 @@ const roundValue = (num) => {
 const buildReturnStringEmbed = (obj) => {
 	let title = '**New Game!** Playing **' + obj.game + '**. ';
 	if(obj.team1.length === 1){ // No average for 2 player matchup
-		title += 'MMR diff: ' + obj.difference + ' mmr. ';
-	} else{
-		title += 'MMR Avg diff: ' + roundValue(obj.avgDiff) + ' mmr (Total: ' + obj.difference + ' mmr). ';	
+		title += 'MMR diff: ' + obj.difference + ' mmr';
+	} else {
+		title += 'MMR Avg diff: ' + roundValue(obj.avgDiff) + ' mmr (Total: ' + obj.difference + ' mmr)';	
 	}
 	
 	let s = '';
@@ -228,18 +232,19 @@ const buildReturnStringEmbed = (obj) => {
 	const teamT = (obj.game === 'cs' ? '**(T)**' : '');
 	// s +=
 	let name = `**${team1Name}** ${teamCT}\t(Avg: ${roundValue(obj.avgT1)} mmr): `;
-	let value = `\n${obj.team1[0].userName} (${obj.team1[0].getMMR(obj.game)})`;
+	let value = `*${obj.team1[0].userName} (${obj.team1[0].getMMR(obj.game)})*`;
 	for(var i = 1; i < obj.team1.length; i++){
-		value += ',\t' + obj.team1[i].userName + ' (' + obj.team1[i].getMMR(obj.game) + ')';
+		value += `,\t*${obj.team1[i].userName} (${obj.team1[i].getMMR(obj.game)})*`;
 	}
+	// value += '*';
 	fields.push({ name, value });
 	// s += '*\n';
-	// Removed *
 	name = `**${team2Name}** ${teamT}\t(Avg: ${roundValue(obj.avgT2)} mmr): `; 
-	value = `${obj.team2[0].userName} (${obj.team2[0].getMMR(obj.game)})`;
+	value = `*${obj.team2[0].userName} (${obj.team2[0].getMMR(obj.game)})*`;
 	for(var i = 1; i < obj.team2.length; i++){
-		value += ',\t' + obj.team2[i].userName + ' (' + obj.team2[i].getMMR(obj.game) + ')';
+		value += `,\t*${obj.team2[i].userName} (${obj.team2[i].getMMR(obj.game)})*`;
 	}
+	// value += '*';
 	fields.push({ name, value });
 	// s += '*\n\n';
 	const isCs = obj.game === 'cs' || obj.game === 'cs1v1';
@@ -258,14 +263,15 @@ const buildReturnStringEmbed = (obj) => {
 	}
 	const messageEmbedded = {
 		// content: title,
+		content: '',
+		// TODO: Check embeds instead of embed
 		embed: {
 			title: title,
 			...(isCs ? { description: s } : { footer: { text: s }}),
 			fields: fields,
-			// TODO: Make Work https://stackoverflow.com/questions/45622168/sending-attachments-in-embed-field
-		  ...(gif && { image: { url: "attachment://" + gif.name + ".gif" } }), 
-			// ...(gif && { files: [gif.attachment] }), 
-		}, 
+			color: 0x251ac1,
+			...(gif && { image: { url: "attachment://" + gif[0].name } }), 
+		},
 		...(gif && { files: gif }),
 	}
 

@@ -4,7 +4,7 @@ const util = require('util');
 const FormData = require('form-data');
 const { writeConsole, loadConfigFile, getLatestConsoleLines } = require('./cs_console');
 const { datHostEndpoint } = require('./cs_server_http');
-const { readCSConsoleInput } = require('./cs_readConsoleStream');
+const { readCSConsoleInput } = require('./cs_console_stream');
 const { assert } = require('console');
 
 // const querystring = require('querystring'); // querystring.stringify({ foo: 'bar' })

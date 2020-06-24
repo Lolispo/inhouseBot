@@ -48,7 +48,7 @@ function Game(gameID, channelMessage) {
 
     this.getTeamWon = (value) => this.teamWon;
 
-    this.getMatchupServerMsg = () => this.matchupServerMsg;
+    this.getMatchupServerMessage = () => this.matchupServerMsg;
 
     this.getActiveMembers = () => this.activeMembers;
 

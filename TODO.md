@@ -16,7 +16,15 @@ FIX BUG: New players added foreign key constraint
 
 ## Prio
 
+Remove embedded message
+
+P4G name only when 5
+
 Position of dota gif to below instead of above
+
+Design of team names change (Bold if possible)
+
+Stäng av read console tills testad
 
 emailSign.belongsTo(models.user_number, {
      foreignKey: 'user_number_id',
@@ -24,6 +32,9 @@ emailSign.belongsTo(models.user_number, {
 });
 
 ## CS Integration
+
+Stream
+    newMessages aren't entered - debug
 
 -gen file to .gitignore
 
