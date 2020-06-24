@@ -23,6 +23,7 @@ Fetch Winner (check console when game ends to see who won)
     (Trigger score change? -> Should be done after score file)
 
 Fetch match stats from CFG file
+    get5_dumpstats (creates the file)
     csgo -> get5stats -> get5_matchstats_<MATCHID>.cfg
 
 P4G name only when 5

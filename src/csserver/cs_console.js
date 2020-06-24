@@ -11,6 +11,23 @@ const loadConfigFile = async (serverId, filePath='cfg%2Fget5%2Fkosatupp_inhouse_
   })
 }
 
+const fetchFile = async (serverId, filePath='cfg%2Fget5%2Fget5_matchstats_1.cfg') => {
+  // game-servers/5ee3fe74d451b92ec776d519/files/cfg%2Fget5%2Fkosatupp_inhouse_coordinator_match.cfg
+  await datHostEndpoint(`game-servers/${serverId}/sync-files`, {
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+  });
+  return datHostEndpoint(`game-servers/${serverId}/files/${filePath}`, { // as_text
+    method: 'GET',
+    headers: {
+      
+    }
+  });
+}
+
 // Write line in cs server console
 const writeConsole = async (serverId, line) => {
   return datHostEndpoint(`game-servers/${serverId}/console`, {
@@ -36,4 +53,5 @@ module.exports = {
   writeConsole : writeConsole,
   getLatestConsoleLines : getLatestConsoleLines,
   cancelGameCSServer : cancelGameCSServer,
+  fetchFile : fetchFile,
 }

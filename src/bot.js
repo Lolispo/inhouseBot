@@ -82,7 +82,7 @@ const discordEventMessage = (message) => {
 			if(message.channel.name === trivia.getChannelName() && trivia.getGameOnGoing()){
 				trivia.isCorrect(message);
 			} else {
-				handleMessage(message);			
+				handleMessage(message); // Someone wrote in channel
 			}
 		}else{ // Direct Message to Bot
 			console.log('DM msg = ' + message.author.username + ': ' + message.content);

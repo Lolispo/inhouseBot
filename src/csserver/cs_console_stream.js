@@ -1,6 +1,7 @@
 
 const bot = require("../bot");
 const { writeConsole, getLatestConsoleLines } = require("./cs_console");
+const { getGameStats } = require('./cs_server_stats');
 
 /*
 hm, har en idé för att minska lite på mängden api spam. Man lär ju egentligen bara vilja skicka meddelanden till discord mellan matcher. 
@@ -85,6 +86,13 @@ const readConsoleSayLines = async (serverId, gameObject) => {
       // TODO: Check for correct format of message
       // Jun 22 14:41:10: L 06/22/2020 - 14:41:10: "Banza1<2><STEAM_1:0:9391834><CT>" say "allchat"
       // console.log('new msg (spam):', message);
+      
+      // TODO: Check if game has ended 
+      let gameHasEnded = false;
+      if (gameHasEnded) {
+        getGameStats(serverId, gameObject);
+      }
+      
       let spokenWord = isSayMessage(message);
       if (spokenWord) { // ><(CT|T)>
         console.log('NEW SAY!', spokenWord);
@@ -114,6 +122,13 @@ TypeError: Cannot read property 'channels' of undefined
           */
           // TODO: Need to perhaps have alternative way of interacting with discord functions
           // Perhaps implement unite / split and give feedback ingame aswell
+          
+          // TODO: Get fresh message with updated voice info and correct text channel set
+
+          // Send message to get meta information in playground which you can remove immedaitely
+          // Gets updated version of which channel is in BUT is in the wrong text channel
+
+          // Override channelMessage from
           const messageObject = gameObject.getChannelMessage();
           messageObject.author = {
             id: player.uid,
