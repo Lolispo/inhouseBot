@@ -16,13 +16,18 @@ FIX BUG: New players added foreign key constraint
 
 ## Prio
 
-Remove embedded message
+Fetch Winner (check console when game ends to see who won)
+    Syntax of message
+    Trigger Unite
+    Trigger fetch CFG File
+    (Trigger score change? -> Should be done after score file)
+
+Fetch match stats from CFG file
+    csgo -> get5stats -> get5_matchstats_<MATCHID>.cfg
 
 P4G name only when 5
 
-Position of dota gif to below instead of above
-
-Design of team names change (Bold if possible)
+Design of team names change (Change color if possible)
 
 Stäng av read console tills testad
 
