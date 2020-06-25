@@ -39,6 +39,9 @@ describe('server_stats', function(){
           team1Name: 'Team1NameFromFunc',
           team2Name: 'Team2NameFromFunc'
         }
+      },
+      getChannelMessage: () => {
+        
       }
     }
   })

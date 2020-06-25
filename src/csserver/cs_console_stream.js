@@ -52,6 +52,11 @@ const isSayMessage = (message) => {
   return false;
 }
 
+// L 06/23/2020 - 22:25:30: Game Over: competitive mg_active de_inferno score 16:9 after 43 min
+const gameOverMessage = (message) => {
+  return message.match(/L \d\d\/\d\d\/\d\d\d\d - \d\d:\d\d:\d\d: Game Over: competitive mg_active .* score \d+:\d after \d+ min/g);
+}
+
 // Read console for "say" lines every 5 seconds
 const readConsoleSayLines = async (serverId, gameObject) => {
   let counter = 0;
@@ -88,7 +93,7 @@ const readConsoleSayLines = async (serverId, gameObject) => {
       // console.log('new msg (spam):', message);
       
       // TODO: Check if game has ended 
-      let gameHasEnded = false;
+      let gameHasEnded = gameOverMessage(message);
       if (gameHasEnded) {
         getGameStats(serverId, gameObject);
       }
@@ -129,6 +134,7 @@ TypeError: Cannot read property 'channels' of undefined
           // Gets updated version of which channel is in BUT is in the wrong text channel
 
           // Override channelMessage from
+          // TODO: Not a function in test
           const messageObject = gameObject.getChannelMessage();
           messageObject.author = {
             id: player.uid,

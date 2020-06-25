@@ -7,7 +7,6 @@ const { getTeamName } = require('../teamNames');
 const { configureServer } = require('../csserver/cs_server');
 const { getCsIp, getCsUrl } = require('../csserver/server_info');
 const { checkMissingSteamIds, notifyPlayersMissingSteamId } = require('../steamid');
-const { WebhookClient } = require('discord.js');
 
 /*
 	Handles getting the most balanced team matchup for the given 10 players

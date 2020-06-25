@@ -16,6 +16,10 @@ FIX BUG: New players added foreign key constraint
 
 ## Prio
 
+Note: Missing SteamIds for: Senpai, Von Dobblen NOT REMOVED
+
+Player 0 -> 10 remove stats and remove that command
+
 Fetch Winner (check console when game ends to see who won)
     Syntax of message
     Trigger Unite
@@ -25,6 +29,8 @@ Fetch Winner (check console when game ends to see who won)
 Fetch match stats from CFG file
     get5_dumpstats (creates the file)
     csgo -> get5stats -> get5_matchstats_<MATCHID>.cfg
+
+randoma om namn om över ett visst antal chars: Morgans Stealth Assasins e för långt
 
 P4G name only when 5
 

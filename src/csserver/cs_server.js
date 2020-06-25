@@ -49,7 +49,7 @@ const generateConfigFile = async (replacements, filePath, version = '-gen', file
     data = await readFile(filePath + fileType, 'utf8');
     const result = data
       .replace(/\$\$chosen\_map\$\$/g, replacements.chosen_map)
-      .replace(/\$\$skipVeto\$\$/g, replacements.skipVeto)
+      .replace(/\$\$skip_veto\$\$/g, replacements.skipVeto)
       .replace(/\$\$coordinator\_prediction\_team1\$\$/g, replacements.coordinator_prediction_team1)
       .replace(/\$\$team1\_name\$\$/g, replacements.team1_name)
       .replace(/\$\$team2\_name\$\$/g, replacements.team2_name)

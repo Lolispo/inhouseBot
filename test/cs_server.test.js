@@ -11,6 +11,7 @@ const cs_console_stream = rewire('../src/csserver/cs_console_stream.js');
 const getPredictionTeam1 = csserverModule.__get__('getPredictionTeam1');
 const { readCSConsoleInput } = require('../src/csserver/cs_console');
 const isSayMessage = cs_console_stream.__get__('isSayMessage'); 
+const gameOverMessage = cs_console_stream.__get__('gameOverMessage');
 
 let serverId;
 let gameObject;
@@ -49,6 +50,16 @@ describe('dathost', () => {
       assert.equal(res, 'allchat');
       const res2 = await isSayMessage('not a steam id in this');
       assert.ok(!res2)
+    });
+  });
+  describe('gameOverMessage', () => {
+    it('gameOverMessage', async () => {
+      let s = 'L 06/23/2020 - 22:25:30: Game Over: competitive mg_active de_inferno score 16:9 after 43 min';
+      const res = await gameOverMessage(s);
+      assert.ok(res);
+      let s2 = 'Jun 22 14:41:10: L 06/22/2020 - 14:41:10: "Banza1<2><STEAM_1:0:9391834><CT>" say "Game Over: competitive mg_active de_inferno score 16:9 after 43 min"';
+      const res2 = await gameOverMessage(s2);
+      assert.ok(!res2);
     });
   });
   describe('readCSConsoleInput', () => {
