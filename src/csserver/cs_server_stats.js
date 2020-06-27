@@ -33,7 +33,7 @@ const genSpaces = (num) => {
 }
 
 const tableTitleArray = [
-  'Name    ',
+  'Name       ',
   'Kills',
   'Deaths',
   'Assists',
@@ -79,7 +79,7 @@ const padColumn = (index, value) => {
   }
 }
 
-const shortenName = (name, maxsize = 7) => {
+const shortenName = (name, maxsize = 10) => {
   if(name.length > maxsize) {
     return name.substring(0, maxsize) + '.';
   }
