@@ -79,7 +79,7 @@ const padColumn = (index, value) => {
   }
 }
 
-const shortenName = (name, maxsize = 6) => {
+const shortenName = (name, maxsize = 7) => {
   if(name.length > maxsize) {
     return name.substring(0, maxsize) + '.';
   }
