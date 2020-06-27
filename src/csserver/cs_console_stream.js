@@ -2,6 +2,7 @@
 const bot = require("../bot");
 const { writeConsole, getLatestConsoleLines } = require("./cs_console");
 const { getGameStats } = require('./cs_server_stats');
+const { split } = require("../voiceMove");
 
 /*
 hm, har en idé för att minska lite på mängden api spam. Man lär ju egentligen bara vilja skicka meddelanden till discord mellan matcher. 
@@ -85,6 +86,10 @@ const readConsoleSayLines = async (serverId, gameObject) => {
     // console.log('@ length:', newMessages.length);
     if (newMessages.length < 0) return;
 
+    // Update content with new messages
+    consoleMessages = consoleMessages.concat(newMessages);
+    lastSeen = consoleMessages[consoleMessages.length - 1];
+
     // Loop over ONLY new messages
 
     newMessages.forEach(message => {
@@ -96,6 +101,8 @@ const readConsoleSayLines = async (serverId, gameObject) => {
       let gameHasEnded = gameOverMessage(message);
       if (gameHasEnded) {
         getGameStats(serverId, gameObject);
+        // uniteChannels(); // TODO
+        clearIntervals();
       }
       
       let spokenWord = isSayMessage(message);
@@ -109,49 +116,40 @@ const readConsoleSayLines = async (serverId, gameObject) => {
 
         if (player) {
           /*
-TypeError: Cannot read property 'channels' of undefined
-    at Object.exports.split (C:\Users\Petter\Documents\GitHub\inhouseBot\src\voiceMove.js:39:47)
-    at handleMessage (C:\Users\Petter\Documents\GitHub\inhouseBot\src\bot.js:445:18)
-    at Object.exports.handleMessageExported (C:\Users\Petter\Documents\GitHub\inhouseBot\src\bot.js:180:46)
-    at newMessages.forEach.message (C:\Users\Petter\Documents\GitHub\inhouseBot\src\csserver\cs_console_stream.js:107:15)
-    at Array.forEach (<anonymous>)
-    at Timeout.setInterval [as _onTimeout] (C:\Users\Petter\Documents\GitHub\inhouseBot\src\csserver\cs_console_stream.js:84:17)
-    at <anonymous>
+          TypeError: Cannot read property 'channels' of undefined
+              at Object.exports.split (C:\Users\Petter\Documents\GitHub\inhouseBot\src\voiceMove.js:39:47)
+              at handleMessage (C:\Users\Petter\Documents\GitHub\inhouseBot\src\bot.js:445:18)
+              at Object.exports.handleMessageExported (C:\Users\Petter\Documents\GitHub\inhouseBot\src\bot.js:180:46)
+              at newMessages.forEach.message (C:\Users\Petter\Documents\GitHub\inhouseBot\src\csserver\cs_console_stream.js:107:15)
+              at Array.forEach (<anonymous>)
+              at Timeout.setInterval [as _onTimeout] (C:\Users\Petter\Documents\GitHub\inhouseBot\src\csserver\cs_console_stream.js:84:17)
+              at <anonymous>
 
 
-     TypeError: Cannot read property 'voiceChannel' of null
-    at Object.exports.split (C:\Users\Petter\Documents\GitHub\inhouseBot\src\voiceMove.js:40:53)
-    at handleMessage (C:\Users\Petter\Documents\GitHub\inhouseBot\src\bot.js:445:18)
-    at Object.exports.handleMessageExported (C:\Users\Petter\Documents\GitHub\inhouseBot\src\bot.js:180:46)
-    // requires: guild.channels
+              TypeError: Cannot read property 'voiceChannel' of null
+              at Object.exports.split (C:\Users\Petter\Documents\GitHub\inhouseBot\src\voiceMove.js:40:53)
+              at handleMessage (C:\Users\Petter\Documents\GitHub\inhouseBot\src\bot.js:445:18)
+              at Object.exports.handleMessageExported (C:\Users\Petter\Documents\GitHub\inhouseBot\src\bot.js:180:46)
+              // requires: guild.channels
           */
-          // TODO: Need to perhaps have alternative way of interacting with discord functions
-          // Perhaps implement unite / split and give feedback ingame aswell
-          
-          // TODO: Get fresh message with updated voice info and correct text channel set
-
-          // Send message to get meta information in playground which you can remove immedaitely
-          // Gets updated version of which channel is in BUT is in the wrong text channel
-
           // Override channelMessage from
-          // TODO: Not a function in test
-          const messageObject = gameObject.getChannelMessage();
-          messageObject.author = {
-            id: player.uid,
-            username: player.userName,
-          }
+          const messageObject = gameObject.getFreshMessage();
+          messageObject.author.id = player.uid;
+          messageObject.author.userName = player.userName;
           messageObject.content = spokenWord;
-          // console.log(' --- discHandleMessage', gameObject.getChannelMessage().guild);
-          bot.handleMessageExported(messageObject);
+          /*
+          if(spokenWord === '-split') {
+            split(messageObject, gameObject.getBalanceInfo(), gameObject.getActiveMembers())
+          }*/
+          // console.log(' --- discHandleMessage', messageObject);
+          bot.handleMessageExported(messageObject); // TODO Not ready yet
         } else {
           console.log('AUTHOR PLAYER NOT FOUND!', message);
         }
       }
     })
     
-    // Update content with new messages
-    consoleMessages = consoleMessages.concat(newMessages);
-    lastSeen = consoleMessages[consoleMessages.length - 1];
+
 
     // TODO: Exit condition when it should stop
     counter++;

@@ -149,7 +149,7 @@ const configureServer = async (gameObject) => {
   const writeConsoleRes = await loadConfigFile(serverId);
 
   // Start reading input from server
-  // readCSConsoleInput(serverId, gameObject);
+  readCSConsoleInput(serverId, gameObject);
   const latestConsoleLines = getLatestConsoleLines(serverId);
   return latestConsoleLines;
 }

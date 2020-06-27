@@ -16,7 +16,22 @@ FIX BUG: New players added foreign key constraint
 
 ## Prio
 
+Updated Fresh
+(node:9780) UnhandledPromiseRejectionWarning: TypeError: Cannot read property 'voiceChannel' of null
+    at Object.exports.split (C:\Users\Petter\Documents\GitHub\inhouseBot\src\voiceMove.js:40:53)
+    at handleMessage (C:\Users\Petter\Documents\GitHub\inhouseBot\src\bot.js:446:18)
+    at Object.exports.handleMessageExported (C:\Users\Petter\Documents\GitHub\inhouseBot\src\bot.js:180:46)
+    at newMessages.forEach.message (C:\Users\Petter\Documents\GitHub\inhouseBot\src\csserver\cs_console_stream.js:145:15)
+    at Array.forEach (<anonymous>)
+    at Timeout.setInterval [as _onTimeout] (C:\Users\Petter\Documents\GitHub\inhouseBot\src\csserver\cs_console_stream.js:90:17)
+    at <anonymous>
+    at process._tickCallback (internal/process/next_tick.js:188:7)
+(node:9780) UnhandledPromiseRejectionWarning: Unhandled promise rejection. This error originated either by throwing inside of an async function without a catch block, or by rejecting a promise which was not handled with .catch(). (rejection id: 1)
+(node:9780) [DEP0018] DeprecationWarning: Unhandled promise rejections are deprecated. In the fut
+
 Note: Missing SteamIds for: Senpai, Von Dobblen NOT REMOVED
+
+Save highest lowest mmr per play (edit rating table)
 
 Player 0 -> 10 remove stats and remove that command
 

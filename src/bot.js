@@ -180,7 +180,7 @@ let currentTeamWonGameObject; // TODO: Refactor usage to use global scope in bet
 exports.handleMessageExported = (message) => handleMessage(message);
 
 // Main message handling function 
-const handleMessage = async (message) => { 
+const handleMessage = async (message) => {
 	console.log('< MSG (' + message.channel.guild.name + '.' + message.channel.name + ') ' + message.author.username + ':', message.content); 
 	// All stages commands, Commands that should always work, from every stage
 	if(startsWith(message, 'hej')){
@@ -375,6 +375,7 @@ const handleMessage = async (message) => {
 	// Active Game commands: (After balance is made)
 	else if(isActiveGameCommand(message)){
 		var gameObject = game_js.getGame(message.author);
+		gameObject.updateFreshMessage(message);
 		if(!f.isUndefined(gameObject)){
 			if(team1wonCommands.includes(message.content)){
 				var activeResultVote = gameObject.getTeamWon(); // team1Won crash
@@ -609,9 +610,11 @@ function balanceCommand(message){
 			} else if(numPlayers === 2){
 				allModes = player_js.getGameModes1v1();
 				getModeAndPlayers(players, gameObject, { message, allModes });
-			} else if((numPlayers === 1) && (adminUids.includes(message.author.id))){
+			} 
+			/*else if((numPlayers === 1) && (adminUids.includes(message.author.id))){
 				testBalanceGeneric(allModes[0], gameObject);
-			} else{
+			} */
+			else{
 				f.print(message, 'Currently support games <= ' + maxPlayers + ' players', callbackInvalidCommand);
 				game_js.deleteGame(gameObject);
 			}

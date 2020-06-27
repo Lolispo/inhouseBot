@@ -6,6 +6,7 @@ var rewire = require('rewire');
 
 var fileModule = rewire('../src/bot.js');
 const bot = require('../src/bot');
+const { getTextChannel } = require('../src/client');
 
 // TODO
 describe('bot', function(){
@@ -17,13 +18,7 @@ describe('bot', function(){
     describe('handleMessageExported', () => {
         it('handleMessageExported', () => {
             const messageObject = {
-                channel: {
-                    id: '424309421519142913',
-                    name: 'robot-playground',
-                    guild: {
-                        name: 'Kosa Tupp'
-                    }
-                },
+                ...getTextChannel(),
                 author: { 
                     uid: '96293765001519104'
                 },

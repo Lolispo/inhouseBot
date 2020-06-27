@@ -23,7 +23,8 @@ function Game(gameID, channelMessage) {
     this.voteMessage;		// When voting on who won, this holds the voteText discord message
     this.teamWonMessage;	// The typed teamWon message, used to vote on agreeing as well as remove on finished vote
     this.teamWon;			// Keeps track on which team won
-    
+    this.freshMessage = channelMessage;      // Fresh message in same channel
+
     this.mapStatusMessage;  // Message that keep track of which maps are banned and whose turn is it
     this.mapMessages = [];  // Keeps track of the discord messages for the different maps 
     this.mapVetoTurn;       // Turn variable, whose turn it is
@@ -43,6 +44,14 @@ function Game(gameID, channelMessage) {
     this.getBalanceInfo = () => this.balanceInfo;
 
     this.getMatchupMessage = () => this.matchupMessage;
+
+    this.getFreshMessage = () => this.freshMessage;
+    this.updateFreshMessage = (message) => {
+        if (message.channel.id === this.matchupMessage.channel.id) {
+            this.freshMessage = message;
+            console.log('Updated Fresh');
+        }
+    }
 
     this.getTeamWonMessage = () => this.teamWonMessage;
 

@@ -9,6 +9,8 @@ const csserverModule = rewire('../src/csserver/cs_server.js');
 const cs_console_stats = rewire('../src/csserver/cs_server_stats.js');
 const getPredictionTeam1 = csserverModule.__get__('getPredictionTeam1');
 const { getGameStats } = require('../src/csserver/cs_server_stats');
+const buildStatsMessage = cs_console_stats.__get__('buildStatsMessage');
+const { getTextChannel, getClient } = require('../src/client');
 
 
 let serverId;
@@ -17,6 +19,7 @@ let gameObject;
 
 describe('server_stats', function(){
   before(async () => {
+    // await getClient('test');
     const res = await gameServers();
     console.log('@dathost.gamesevers:', res);
     serverId = res[0].id;
@@ -27,6 +30,10 @@ describe('server_stats', function(){
     player1.setSteamId('STEAM_1:0:24603593');
     let player2 = createPlayer('Morgan', '2');
     player2.setSteamId('STEAM_0:0:28181825');
+    const textChannel = await getTextChannel();
+    console.log('TEXT', {
+      ...textChannel,
+    });
     gameObject = {
       team1: [
         player1
@@ -40,8 +47,10 @@ describe('server_stats', function(){
           team2Name: 'Team2NameFromFunc'
         }
       },
-      getChannelMessage: () => {
-        
+      getChannelMessage: async () => {
+        return {
+          ...textChannel,
+        }
       }
     }
   })
@@ -51,4 +60,11 @@ describe('server_stats', function(){
       console.log('@test.stats', stats);
     });
   });
+  /*
+  describe('buildStatsMessage', () => {
+    it('buildStatsMessage', async () => {
+      const stats = await buildStatsMessage(serverId, gameObject);
+      console.log('@test.stats', stats);
+    });
+  });*/
 });

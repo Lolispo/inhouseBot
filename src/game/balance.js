@@ -53,8 +53,8 @@ exports.balanceTeams = (players, game, gameObject) => {
 			// People are missing steamids
 			notifyPlayersMissingSteamId(playersMissingSteamIds);
 			const playersString = playersMissingSteamIds.map((player) => player.userName).join(', ');
-			bot.printMessage('Note: Missing SteamIds for: ' + playersString, gameObject.getChannelMessage(), () => {
-				f.deleteDiscMessage(message, 120000, 'missingSteamIds');
+			bot.printMessage('Note: Missing SteamIds for: ' + playersString, gameObject.getChannelMessage(), (messageParam) => {
+				f.deleteDiscMessage(messageParam, 120000, 'missingSteamIds');
 			});
 		}
 		configureServer(gameObject);
