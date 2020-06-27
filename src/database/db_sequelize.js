@@ -343,9 +343,18 @@ const removeUser = async (uid) => {
 	return true;
 }
 
+const createCsResults = (matchId, stats) => {
+	// TODO: Create CS stats results
+	// TODO: Requires db model
+}
+
 // Used to createMatch
 // Note: Requires players in database
 const createMatch = async (result, balanceInfo, mmrChange) => {
+	// TODO: Use stats data
+	//  - get cs stats and save them
+	//  - match id get
+
 	// console.log('@createMatch - input:', result, balanceInfo);
 	// Prepare insertions
 	const { game, team1, team2, team1Name, team2Name } = balanceInfo;

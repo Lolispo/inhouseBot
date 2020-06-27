@@ -11,7 +11,9 @@ const loadConfigFile = async (serverId, filePath='cfg%2Fget5%2Fkosatupp_inhouse_
   })
 }
 
-const fetchFile = async (serverId, filePath='cfg%2Fget5%2Fget5_matchstats_1.cfg') => {
+// Fetch file after synching cache
+// TODO: Should it always require sync? Parameter for not sync
+const fetchFile = async (serverId, filePath='get5stats/get5_matchstats_1.cfg') => {
   // game-servers/5ee3fe74d451b92ec776d519/files/cfg%2Fget5%2Fkosatupp_inhouse_coordinator_match.cfg
   await datHostEndpoint(`game-servers/${serverId}/sync-files`, {
     method: 'POST',

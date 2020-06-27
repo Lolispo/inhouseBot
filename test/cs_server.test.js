@@ -54,10 +54,13 @@ describe('dathost', () => {
   });
   describe('gameOverMessage', () => {
     it('gameOverMessage', async () => {
-      let s = 'L 06/23/2020 - 22:25:30: Game Over: competitive mg_active de_inferno score 16:9 after 43 min';
-      const res = await gameOverMessage(s);
+      let s = 'Jun 22 14:41:10: L 06/23/2020 - 22:25:30: Game Over: competitive mg_active de_inferno score 16:13 after 43 min';
+      let res = await gameOverMessage(s);
       assert.ok(res);
-      let s2 = 'Jun 22 14:41:10: L 06/22/2020 - 14:41:10: "Banza1<2><STEAM_1:0:9391834><CT>" say "Game Over: competitive mg_active de_inferno score 16:9 after 43 min"';
+      s = 'Jun 22 14:41:10: L 06/23/2020 - 22:25:30: Game Over: competitive mg_active de_inferno score 16:2 after 43 min';
+      res = await gameOverMessage(s);
+      assert.ok(res);
+      let s2 = 'Jun 22 14:41:10: L 06/22/2020 - 14:41:10: "Banza1<2><STEAM_1:0:9391834><CT>" say "Game Over: competitive mg_active de_inferno score 16:13 after 43 min"';
       const res2 = await gameOverMessage(s2);
       assert.ok(!res2);
     });

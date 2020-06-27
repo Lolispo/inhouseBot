@@ -9,7 +9,7 @@ const { cleanOnGameEnd } = require('../game/game');
 const fetchStatsFile = async (serverId, matchId = '1') => {
 
   // let filePath = 'cfg%2Fget5%2Fget5_matchstats_$$XXX$$.cfg';
-  let filePath = 'cfg/get5/get5_matchstats_$$XXX$$.cfg';
+  let filePath = 'get5stats/get5_matchstats_$$XXX$$.cfg';
   filePath = filePath.replace('$$XXX$$', matchId);
   return fetchFile(serverId, filePath);
 }
@@ -59,7 +59,7 @@ const tableTitles = () => {
 }
 
 // pad column to fit in table design
-const padColumn = (index, value) => {
+const padColumn = (index, value='-') => {
   console.log('@padColumn', index, value);
   const columnTitle = tableTitleArray[index];
   const titleLength = columnTitle.length;
@@ -151,6 +151,7 @@ const buildStatsMessage = (stats) => {
   for (let i = 0; i < 1; i++) {
     // Check only give results for one game
     let map = stats['map' + i];
+    if (!map) return null;
     const scoreResult = map.team1.score + '-' + map.team2.score;
     s += scoreResult + '\n';
     if (map) {
@@ -174,48 +175,62 @@ const sendStatsDiscord = (gameObject, statsMessage) => {
   // TODO Send in game results chat which do not clear
 }
 
+// Checks if the stats file has the same players in both teams as the gameObject
+const samePlayersInTeams = (gameObject, stats) => {
+  // TODO: Check if same players between file and content
+  /*
+  const team1 = gameObject.getBalanceInfo().team1;
+  const team2 = gameObject.getBalanceInfo().team2;
+  const serverTeam1 = stats.map0.team1;
+  const serverTeam2 = stats.map0.team2;
+  */
+  // Temp: Check same teamnames
+  const team1Name = gameObject.getBalanceInfo().team1Name;
+  const team2Name = gameObject.getBalanceInfo().team2Name;
+  const serverTeam1Name = stats.team1_name;
+  const serverTeam2Name = stats.team2_name;
+  return team1Name === serverTeam1Name && team2Name === serverTeam2Name;
+}
+
 const setResults = (gameObject, stats) => {
-  const winnerTeam = stats.map0.winner;
+  const winnerTeam = stats.winner;
   const winner = winnerTeam === 'team1' ? 1 : (winnerTeam === 'team2' ? 2 : '');
-  if (winner !== '') {
+  if (winner !== '' && samePlayersInTeams(gameObject, stats)) {
     console.log('@getGameStatsDiscord Winning team:', winnerTeam);
     mmr_js.updateMMR(winner, gameObject, (message) => {
       console.log('DEBUG @callbackGameFinished - Calls on exit after delete on this message');
       f.deleteDiscMessage(message, removeBotMessageDefaultTime * 4, 'gameFinished');
       cleanOnGameEnd(gameObject);
     });
+  } else {
+    console.log('Missing Winner - Incomplete Results', winner, samePlayersInTeams(gameObject, stats));
   }
 }
 
 const getGameStatsDiscord = (gameObject, stats) => {
   // Check which team that won and update MMR accordingly
-  // setResults(gameObject, stats);
+  setResults(gameObject, stats);
 
   const discordMessage = buildStatsMessage(stats);
-  sendStatsDiscord(gameObject, discordMessage);
-  // Visualize stats in discord message
+  if (discordMessage) {
+    // Visualize stats in discord message
+    sendStatsDiscord(gameObject, discordMessage);
+  }
 }
 
 const getGameStats = async (serverId, gameObject) => {
   // writeConsole(serverId, 'get5_dumpstats');
 
   // Get match id
-  let matchId = '1'; // TODO: Fix
+  let matchId = gameObject.getMatchId();
   const statsFile = await fetchStatsFile(serverId, matchId);
-  console.log('@getGameStats Raw:', statsFile);
-  const data = vdf.parse(statsFile.data);
-  console.log(data);
-  console.log(data.Stats.map0);
-  getGameStatsDiscord(gameObject, data.Stats);
-
-  cleanStatsFile();
-}
-
-class PlayerStats {
-  // TODO: Should we initialize this data?
-
-  constructor(playerStatsObject) {
-
+  if (statsFile.data && statsFile.statusCode >= 200 && statsFile.statusCode < 400) {
+    console.log('@getGameStats Raw:', statsFile);
+    const data = vdf.parse(statsFile.data);
+    console.log(data);
+    console.log(data.Stats.map0);
+    getGameStatsDiscord(gameObject, data.Stats);
+    cleanStatsFile();
   }
 }
 

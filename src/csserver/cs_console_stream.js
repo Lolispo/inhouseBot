@@ -2,7 +2,6 @@
 const bot = require("../bot");
 const { writeConsole, getLatestConsoleLines } = require("./cs_console");
 const { getGameStats } = require('./cs_server_stats');
-const { split } = require("../voiceMove");
 
 /*
 hm, har en idé för att minska lite på mängden api spam. Man lär ju egentligen bara vilja skicka meddelanden till discord mellan matcher. 
@@ -54,8 +53,9 @@ const isSayMessage = (message) => {
 }
 
 // L 06/23/2020 - 22:25:30: Game Over: competitive mg_active de_inferno score 16:9 after 43 min
+// Jun 27 21:48:07:  L 06/27/2020 - 21:48:07: Game Over: competitive mg_active de_vertigo score 16:13 after 22 min
 const gameOverMessage = (message) => {
-  return message.match(/L \d\d\/\d\d\/\d\d\d\d - \d\d:\d\d:\d\d: Game Over: competitive mg_active .* score \d+:\d after \d+ min/g);
+  return message.match(/(.{3} \d+ \d\d:\d\d:\d\d:)?\s* L \d\d\/\d\d\/\d\d\d\d - \d\d:\d\d:\d\d: Game Over: competitive mg_active .* score \d+:\d+ after \d+ min/g);
 }
 
 // Read console for "say" lines every 5 seconds
@@ -74,7 +74,7 @@ const readConsoleSayLines = async (serverId, gameObject) => {
     // console.log('Last Seen message:', lastSeen);
     for(let i = splittedMessages.length - 1; i >= 0; i--) {
       if (splittedMessages[i] === lastSeen) {
-        // console.log('MATCH Last seen')
+        if( i != splittedMessages.length - 1) console.log('New messages:', (splittedMessages.length - 1 - i));
         if (i === splittedMessages.length - 1) {
           newMessages = [];
         } else { // Should not include lastSeen Message
@@ -84,11 +84,12 @@ const readConsoleSayLines = async (serverId, gameObject) => {
     }
     
     // console.log('@ length:', newMessages.length);
-    if (newMessages.length < 0) return;
+    if (newMessages.length <= 0) return;
 
     // Update content with new messages
     consoleMessages = consoleMessages.concat(newMessages);
     lastSeen = consoleMessages[consoleMessages.length - 1];
+    console.log('Last Seen:', lastSeen);
 
     // Loop over ONLY new messages
 
@@ -115,34 +116,12 @@ const readConsoleSayLines = async (serverId, gameObject) => {
         // Discord handle message content
 
         if (player) {
-          /*
-          TypeError: Cannot read property 'channels' of undefined
-              at Object.exports.split (C:\Users\Petter\Documents\GitHub\inhouseBot\src\voiceMove.js:39:47)
-              at handleMessage (C:\Users\Petter\Documents\GitHub\inhouseBot\src\bot.js:445:18)
-              at Object.exports.handleMessageExported (C:\Users\Petter\Documents\GitHub\inhouseBot\src\bot.js:180:46)
-              at newMessages.forEach.message (C:\Users\Petter\Documents\GitHub\inhouseBot\src\csserver\cs_console_stream.js:107:15)
-              at Array.forEach (<anonymous>)
-              at Timeout.setInterval [as _onTimeout] (C:\Users\Petter\Documents\GitHub\inhouseBot\src\csserver\cs_console_stream.js:84:17)
-              at <anonymous>
-
-
-              TypeError: Cannot read property 'voiceChannel' of null
-              at Object.exports.split (C:\Users\Petter\Documents\GitHub\inhouseBot\src\voiceMove.js:40:53)
-              at handleMessage (C:\Users\Petter\Documents\GitHub\inhouseBot\src\bot.js:445:18)
-              at Object.exports.handleMessageExported (C:\Users\Petter\Documents\GitHub\inhouseBot\src\bot.js:180:46)
-              // requires: guild.channels
-          */
           // Override channelMessage from
           const messageObject = gameObject.getFreshMessage();
           messageObject.author.id = player.uid;
           messageObject.author.userName = player.userName;
           messageObject.content = spokenWord;
-          /*
-          if(spokenWord === '-split') {
-            split(messageObject, gameObject.getBalanceInfo(), gameObject.getActiveMembers())
-          }*/
-          // console.log(' --- discHandleMessage', messageObject);
-          bot.handleMessageExported(messageObject); // TODO Not ready yet
+          bot.handleMessageExported(messageObject);
         } else {
           console.log('AUTHOR PLAYER NOT FOUND!', message);
         }

@@ -18,6 +18,8 @@ const { getClient, getClientReference } = require('./client');
 const birthday = require('./birthday');
 const { connectSteamEntry, validateSteamID, storeSteamId, sendSteamId } = require('./steamid');
 const { getCsIp } = require('./csserver/server_info');
+const { cleanOnGameEnd } = require('./game/game');
+const { getGameStats } = require('./csserver/cs_server_stats');
 
 const { prefix, token, db } = getConfig(); // Load config data from env
 
@@ -56,6 +58,7 @@ const pingCommands = [prefix + 'ping'];
 const rollCommands = [prefix + 'roll'];
 const connectSteamCommands = [prefix + 'connectsteam', prefix+'connectsteamid'];
 const steamidCommands = [prefix + 'getsteamid', prefix + 'steamid'];
+const getMatchResultCommand = [prefix + 'getresult', prefix + 'getmatchresult'];
 
 
 // Initialize Client
@@ -373,8 +376,8 @@ const handleMessage = async (message) => {
 	// Active Game commands: (After balance is made)
 	else if(isActiveGameCommand(message)){
 		var gameObject = game_js.getGame(message.author);
-		gameObject.updateFreshMessage(message);
 		if(!f.isUndefined(gameObject)){
+			gameObject.updateFreshMessage(message);
 			if(team1wonCommands.includes(message.content)){
 				var activeResultVote = gameObject.getTeamWon(); // team1Won crash
 				if(activeResultVote === 2 || activeResultVote === 1 || activeResultVote === 0){
@@ -461,6 +464,14 @@ const handleMessage = async (message) => {
 				});*/
 				f.deleteDiscMessage(message, 15000, 'mapveto'); // Remove mapVeto text
 			}
+			else if(getMatchResultCommand.includes(message.content)) {
+				// If game stats exist but it wasn't detected automatically to check stats, use command
+				const serverId = gameObject.getServerId();
+				if (serverId) {
+					getGameStats(serverId, gameObject);
+				}
+				f.deleteDiscMessage(message, 15000, 'getmatchresult');
+			}
 		} else {
 			f.print(message, 'Invalid command: User ' + message.author + ' not currently in a game', callbackInvalidCommand);
 		}
@@ -474,7 +485,8 @@ const handleMessage = async (message) => {
 // Returns true if message is an active game command
 function isActiveGameCommand(message){
 	return (team1wonCommands.includes(message.content) || team2wonCommands.includes(message.content) || tieCommands.includes(message.content) ||
-			cancelCommands.includes(message.content) || splitCommands.includes(message.content) || startsWith(message, uniteCommands) || mapvetostartCommands.includes(message.content));
+			cancelCommands.includes(message.content) || splitCommands.includes(message.content) || startsWith(message, uniteCommands) 
+			|| mapvetostartCommands.includes(message.content) || getMatchResultCommand.includes(message.content));
 }
 
 // Returns boolean of if message starts with string

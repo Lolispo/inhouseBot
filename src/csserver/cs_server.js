@@ -120,7 +120,9 @@ const configureServer = async (gameObject) => {
   const gameServersList = await gameServers();
   const serverId = gameServersList[0].id;
   // Update gameObject with serverId
+  const matchId = new Date().getTime();
   gameObject.setServerId(serverId);
+  gameObject.setMatchId(matchId);
   assert(gameObject.getServerId(), serverId);
   const team1Players = generateTeamPlayersBody(1, gameObject.getBalanceInfo().team1);
   const team2Players = generateTeamPlayersBody(2, gameObject.getBalanceInfo().team2);
@@ -133,7 +135,7 @@ const configureServer = async (gameObject) => {
     coordinator_prediction_team1: predictionTeam1 || 50, // TODO Prediction score
     team1_name: gameObject.getBalanceInfo().team1Name || 'Team 1',
     team2_name: gameObject.getBalanceInfo().team2Name || 'Team 2',
-    match_id: '1', // TODO match id
+    match_id: matchId,
     ...(team1Players && { team1Players }),
     ...(team2Players && { team2Players }),
   }

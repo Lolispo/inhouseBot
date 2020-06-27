@@ -9,11 +9,9 @@ const f = require('../tools/f');
 const { cancelGameCSServer } = require('../csserver/cs_console');
 const { clearIntervals } = require('../csserver/cs_console_stream');
 
-var activeGames = [];
+let activeGames = [];
 
-exports.getActiveGames = function(){
-    return activeGames;
-}
+const getActiveGames = () => activeGames;
 
 function Game(gameID, channelMessage) {
     this.gameID = gameID;   // Unique id for game, set as the balance message id in the discord channel
@@ -21,6 +19,7 @@ function Game(gameID, channelMessage) {
     this.activeMembers;     // Active members playing (team1 players + team2 players)
     this.balanceInfo;       // Object: {team1, team2, difference, avgT1, avgT2, avgDiff, game} Initialized on creation of game object
     this.serverId;          // ServerId
+    this.matchId;           // MatchId for server
 
     this.matchupMessage = channelMessage;    // One who started game's balance's message (-b)
     this.matchupServerMsg; 	// Discord message for showing matchup, members in both teams and mmr difference
@@ -39,8 +38,8 @@ function Game(gameID, channelMessage) {
     activeGames.push(this);
 
     // Returns true if userid is contained in activeMembers in this game
-    this.containsPlayer = function(uid){
-        return this.activeMembers.some(function(guildMember){
+    this.containsPlayer = (uid) => {
+        return this.activeMembers.some((guildMember) => {
             return guildMember.id === uid
         });
     }
@@ -56,6 +55,9 @@ function Game(gameID, channelMessage) {
             console.log('Updated Fresh');
         }
     }
+
+    this.setMatchId = (value) => this.matchId = value;
+    this.getMatchId = () => this.matchId;
 
     this.getTeamWonMessage = () => this.teamWonMessage;
 
@@ -189,5 +191,6 @@ module.exports = {
     hasActiveGames : hasActiveGames,
     getGameMapMessages : getGameMapMessages,
     deleteGame : deleteGame,
-    cleanOnGameEnd : cleanOnGameEnd
+    cleanOnGameEnd : cleanOnGameEnd,
+    getActiveGames : getActiveGames,
 }
