@@ -5,6 +5,10 @@
 	Class handles active games being played
 */
 
+const f = require('../tools/f');
+const { cancelGameCSServer } = require('../csserver/cs_console');
+const { clearIntervals } = require('../csserver/cs_console_stream');
+
 var activeGames = [];
 
 exports.getActiveGames = function(){
@@ -108,26 +112,26 @@ function Game(gameID, channelMessage) {
     this.getServerId = () => this.serverId;
 }
 
-exports.createGame = function(gameID, channelMessage){
+const createGame = function(gameID, channelMessage){
 	return new Game(gameID, channelMessage);
 }
 
 // Returns the game where the author is
-exports.getGame = (author) => {
+const getGame = (author) => {
     return activeGames.find((game) => game.containsPlayer(author.id));
 }
 
-exports.hasActiveGames = () => activeGames.length !== 0;
+const hasActiveGames = () => activeGames.length !== 0;
 
 // Finds the game with the mapMessage reacted to or null
-exports.getGameMapMessages = (messageReaction) => {
+const getGameMapMessages = (messageReaction) => {
     return activeGames.find((game) => {
         return game.getMapMessages().some((mapMsg) => messageReaction.message.id === mapMsg.id);
     });
 }
 
 // Deletes the gameobject, returns the list afterwards
-exports.deleteGame = (gameObject) => {
+const deleteGame = (gameObject) => {
     const index = activeGames.indexOf(gameObject);
     if (index > -1) {
         activeGames.splice(index, 1);
@@ -135,4 +139,55 @@ exports.deleteGame = (gameObject) => {
         console.error('Failed to delete gameObject', gameObject);
     }
     return activeGames;
+}
+
+// Used to delete messages if game ended
+// Takes GameObject to clean
+const cleanOnGameEnd = (gameObject) => {
+	const mapMessages = gameObject.getMapMessages();
+	if(!f.isUndefined(mapMessages)){
+		for(var i = mapMessages.length - 1; i >= 0; i--){
+			f.deleteDiscMessage(mapMessages[i], 0, 'mapMessages['+i+']', function(msg){
+				var index = mapMessages.indexOf(msg);
+				if (index > -1) {
+					mapMessages.splice(index, 1);
+				}
+			});	
+		}
+	}
+	if(!f.isUndefined(gameObject.getMapStatusMessage())){
+		f.deleteDiscMessage(gameObject.getMapStatusMessage(), 0, 'mapStatusMessage');	
+	}
+	if(!f.isUndefined(gameObject.getVoteMessage())){
+		f.deleteDiscMessage(gameObject.getVoteMessage(), 0, 'voteMessage');
+	}
+	if(!f.isUndefined(gameObject.getTeamWonMessage())){
+		f.deleteDiscMessage(gameObject.getTeamWonMessage(), 0, 'teamWonMessage');
+	}
+	if(!f.isUndefined(gameObject.getMatchupServerMessage())){
+		//console.log('DEBUG getMatchupServerMessage cleanOnGameEnd', gameObject.getMatchupServerMessage().content);
+		f.deleteDiscMessage(gameObject.getMatchupServerMessage(), 0, 'matchupServerMsg');
+	}
+	if(!f.isUndefined(gameObject.getMatchupMessage())){
+		//console.log('DEBUG matchupMessage cleanOnGameEnd', gameObject.getMatchupMessage().content);
+		f.deleteDiscMessage(gameObject.getMatchupMessage(), 0, 'matchupMessage');
+	}
+	// Remove game from ongoing games
+	deleteGame(gameObject);
+	const gameName = gameObject.getBalanceInfo().game;
+	if (gameName === 'cs' || gameName === 'cs1v1') {
+		cancelGameCSServer(gameObject);
+	}
+	// Clear csserver interval listeners
+	clearIntervals();
+}
+
+
+module.exports = {
+    createGame : createGame,
+    getGame : getGame,
+    hasActiveGames : hasActiveGames,
+    getGameMapMessages : getGameMapMessages,
+    deleteGame : deleteGame,
+    cleanOnGameEnd : cleanOnGameEnd
 }

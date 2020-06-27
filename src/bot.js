@@ -18,8 +18,6 @@ const { getClient, getClientReference } = require('./client');
 const birthday = require('./birthday');
 const { connectSteamEntry, validateSteamID, storeSteamId, sendSteamId } = require('./steamid');
 const { getCsIp } = require('./csserver/server_info');
-const { cancelGameCSServer } = require('./csserver/cs_console');
-const { clearIntervals } = require('./csserver/cs_console_stream');
 
 const { prefix, token, db } = getConfig(); // Load config data from env
 
@@ -707,13 +705,13 @@ function handleRelevantEmoji(emojiConfirm, winner, messageReaction, amountReleva
 			// Update mmr for both teams
 			mmr_js.updateMMR(winner, gameObject, (message) => {
 				console.log('DEBUG @callbackGameFinished - Calls on exit after delete on this message');
-				f.deleteDiscMessage(message, removeBotMessageDefaultTime * 2, 'gameFinished');
+				f.deleteDiscMessage(message, removeBotMessageDefaultTime * 4, 'gameFinished');
 				cleanOnGameEnd(gameObject);
 			});
 			//console.log('DEBUG CHECK ME: ARE THE TWO FOLLOWING THE SAME: ', messageReaction.message.content, voteMessage.content); // TODO Check: are these the same
 			f.deleteDiscMessage(messageReaction.message, 3000, 'voteMessage');
 			f.deleteDiscMessage(gameObject.getTeamWonMessage(), 3000, 'teamWonMessage');
-		}else{
+		} else{
 			console.log(emoji_disagree + ' CONFIRMED! ' + ' (' + amountRelevant + '/' + totalNeeded + ') Removing voteText msg and team#Won msg');
 			f.deleteDiscMessage(messageReaction.message, 3000, 'voteMessage');
 			f.deleteDiscMessage(gameObject.getTeamWonMessage(), 3000, 'teamWonMessage');
@@ -841,47 +839,6 @@ function buildHelpString(userID, messageNum){
 			+ '**[game]** Opt. argument: name of the game being played. Available games are [' + player_js.getGameModes1v1() + ']\n\n';*/
 		return s;	
 	}
-}
-
-// Used to delete messages if game ended
-// Takes GameObject to clean
-function cleanOnGameEnd(gameObject){
-	var mapMessages = gameObject.getMapMessages();
-	if(!f.isUndefined(mapMessages)){
-		for(var i = mapMessages.length - 1; i >= 0; i--){
-			f.deleteDiscMessage(mapMessages[i], 0, 'mapMessages['+i+']', function(msg){
-				var index = mapMessages.indexOf(msg);
-				if (index > -1) {
-					mapMessages.splice(index, 1);
-				}
-			});	
-		}
-	}
-	if(!f.isUndefined(gameObject.getMapStatusMessage())){
-		f.deleteDiscMessage(gameObject.getMapStatusMessage(), 0, 'mapStatusMessage');	
-	}
-	if(!f.isUndefined(gameObject.getVoteMessage())){
-		f.deleteDiscMessage(gameObject.getVoteMessage(), 0, 'voteMessage');
-	}
-	if(!f.isUndefined(gameObject.getTeamWonMessage())){
-		f.deleteDiscMessage(gameObject.getTeamWonMessage(), 0, 'teamWonMessage');
-	}
-	if(!f.isUndefined(gameObject.getMatchupServerMessage())){
-		//console.log('DEBUG getMatchupServerMessage cleanOnGameEnd', gameObject.getMatchupServerMessage().content);
-		f.deleteDiscMessage(gameObject.getMatchupServerMessage(), 0, 'matchupServerMsg');
-	}
-	if(!f.isUndefined(gameObject.getMatchupMessage())){
-		//console.log('DEBUG matchupMessage cleanOnGameEnd', gameObject.getMatchupMessage().content);
-		f.deleteDiscMessage(gameObject.getMatchupMessage(), 0, 'matchupMessage');
-	}
-	// Remove game from ongoing games
-	game_js.deleteGame(gameObject);
-	const gameName = gameObject.getBalanceInfo().game;
-	if (gameName === 'cs' || gameName === 'cs1v1') {
-		cancelGameCSServer(gameObject);
-	}
-	// Clear csserver interval listeners
-	clearIntervals();
 }
 
 // Here follows callbackFunctions for handling bot sent messages

@@ -32,7 +32,7 @@ exports.getTextTestChannel = () => testId;
 exports.getTextGeneralChannel = () => generalId;
 
 exports.getTextChannel = (channelId = testId) => {
-  console.log('Client:', client);
+  // console.log('Client:', client);
   return client.channels.fetch(channelId);
 }
 
