@@ -2,6 +2,7 @@
 const bot = require("../bot");
 const { writeConsole, getLatestConsoleLines } = require("./cs_console");
 const { getGameStats } = require('./cs_server_stats');
+const { clearIntervals } = require("../game/game");
 
 /*
 hm, har en idé för att minska lite på mängden api spam. Man lär ju egentligen bara vilja skicka meddelanden till discord mellan matcher. 
@@ -15,13 +16,11 @@ den kommer fortfarande att tugga väldigt mycket lines när den väl är aktiv, 
 
 let consoleMessages = [];
 let lastSeen = '';
-let refreshInterval;
-let ingameInterval;
 
 // Called when game is loaded on bot
 const readCSConsoleInput = async (serverId, gameObject) => {
   // Check status on server every minute
-  refreshInterval = setInterval(async () => {
+  let localInterval = setInterval(async () => {
     const getStatusRes = await writeConsole(serverId, 'get5_status');
     const latestLines = await getLatestConsoleLines(serverId);
     console.log('@readCSConsoleInput Latest Lines', latestLines);
@@ -31,19 +30,13 @@ const readCSConsoleInput = async (serverId, gameObject) => {
     console.log('Last Seen Initial:', lastSeen);
 
     if (true) { // TODO: If status changed to ongoing -> change mode OR >3 players
-      clearInterval(refreshInterval);
+      clearInterval(localInterval);
       await writeConsole(serverId, 'say Started listening to discord commands ingame!');
       await readConsoleSayLines(serverId, gameObject);
     }
   }, 6000); // TODO: 60000
+  gameObject.setIntervalPassive(localInterval);
 };
-
-
-
-const clearIntervals = () => {
-  clearInterval(refreshInterval);
-  clearInterval(ingameInterval);
-}
 
 const isSayMessage = (message) => {
   if (message.match(/.*STEAM_\d:\d:\d+.*" say.*/g)) {
@@ -61,7 +54,7 @@ const gameOverMessage = (message) => {
 // Read console for "say" lines every 5 seconds
 const readConsoleSayLines = async (serverId, gameObject) => {
   let counter = 0;
-  ingameInterval = setInterval(async () => {
+  let localInterval = setInterval(async () => {
     const latestLines = await getLatestConsoleLines(serverId, 50);
     let newMessages = [];
     // console.log('@readConsoleSayLines: latestLines:', latestLines);
@@ -70,6 +63,8 @@ const readConsoleSayLines = async (serverId, gameObject) => {
 
     // console.log('splittedMessages:', splittedMessages);
 
+    // console.log('DEBUG : First and LAST:', splittedMessages.length, splittedMessages[0], splittedMessages[splittedMessages.length - 1]);
+
     // Update local storage of messages to prevent multiple ones appearing
     // console.log('Last Seen message:', lastSeen);
     for(let i = splittedMessages.length - 1; i >= 0; i--) {
@@ -77,19 +72,32 @@ const readConsoleSayLines = async (serverId, gameObject) => {
         if( i != splittedMessages.length - 1) console.log('New messages:', (splittedMessages.length - 1 - i));
         if (i === splittedMessages.length - 1) {
           newMessages = [];
+          break;
         } else { // Should not include lastSeen Message
           newMessages = splittedMessages.slice(i + 1);
+          break;
         }
       }
     }
     
     // console.log('@ length:', newMessages.length);
-    if (newMessages.length <= 0) return;
+    if (newMessages.length === 0) {
+      // TODO: Fix DEBUG mode which enables these prints
+      // console.log('DEBUG No new messages. LastSeen:', lastSeen);
+      return;
+    }
+    lastSeen = newMessages[newMessages.length - 1];
+    console.log('DEBUG New Messages:', newMessages.length, 'New Last:', lastSeen); 
+    /*'\n', {
+      last: splittedMessages[splittedMessages.length - 1],
+      sndlast: splittedMessages[splittedMessages.length - 2],
+      trdlast: splittedMessages[splittedMessages.length - 3],
+    });*/
 
     // Update content with new messages
     consoleMessages = consoleMessages.concat(newMessages);
-    lastSeen = consoleMessages[consoleMessages.length - 1];
-    console.log('Last Seen:', lastSeen);
+    // lastSeen = consoleMessages[consoleMessages.length - 1];
+    // console.log('DEBUG Last Seen:', lastSeen);
 
     // Loop over ONLY new messages
 
@@ -103,7 +111,7 @@ const readConsoleSayLines = async (serverId, gameObject) => {
       if (gameHasEnded) {
         getGameStats(serverId, gameObject);
         // uniteChannels(); // TODO
-        clearIntervals();
+        clearIntervals(gameObject);
       }
       
       let spokenWord = isSayMessage(message);
@@ -134,9 +142,10 @@ const readConsoleSayLines = async (serverId, gameObject) => {
     counter++;
     if (counter > 1440) {
       // Var 5:e sekund i 2h
-      clearInterval(ingameInterval);
+      clearInterval(localInterval);
     }
   }, 5000);
+  gameObject.setIntervalActive(localInterval);
 }
 
 // Find player instance from message
@@ -162,5 +171,4 @@ const findAuthorFromMessage = (message, gameObject) => {
 
 module.exports = {
   readCSConsoleInput: readCSConsoleInput,
-  clearIntervals : clearIntervals,
 }

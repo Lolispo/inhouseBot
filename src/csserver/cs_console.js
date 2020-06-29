@@ -46,6 +46,7 @@ const cancelGameCSServer = async (gameObject) => {
   const serverId = gameObject.getServerId(); // Fetch serverId from gameObject
   if (serverId) 
     return writeConsole(serverId, `get5_endmatch;`);
+  console.error('@cancelgameCSServer Error: Invalid serverId:', serverId, gameObject);
   return null;
 }
 

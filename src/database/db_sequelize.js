@@ -390,6 +390,16 @@ const createMatch = async (result, balanceInfo, mmrChange) => {
 	return resultDB;
 }
 
+// TODO: High priority
+const rollbackMatch = (mid) => {
+	// Transaction
+	// Fetch rating changes from match result with given mid
+	// Revert changes to the players affected
+	// Remove playerMatches with mid
+	// Remove match with mid
+	// Finish transaction
+}
+
 // Get Winrate playing with other players
 const bestTeammates = async (uid, game) => {
 	// Fetch all games you have played

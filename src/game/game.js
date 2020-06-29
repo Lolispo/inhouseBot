@@ -7,7 +7,6 @@
 
 const f = require('../tools/f');
 const { cancelGameCSServer } = require('../csserver/cs_console');
-const { clearIntervals } = require('../csserver/cs_console_stream');
 
 let activeGames = [];
 
@@ -18,8 +17,11 @@ function Game(gameID, channelMessage) {
     this.channelMessage = channelMessage; // Controls which channel to make prints in
     this.activeMembers;     // Active members playing (team1 players + team2 players)
     this.balanceInfo;       // Object: {team1, team2, difference, avgT1, avgT2, avgDiff, game} Initialized on creation of game object
+    
     this.serverId;          // ServerId
     this.matchId;           // MatchId for server
+    this.csConsoleIntervalPassive;   // between games - lower time
+    this.csConsoleIntervalActive;    // active gameInterval
 
     this.matchupMessage = channelMessage;    // One who started game's balance's message (-b)
     this.matchupServerMsg; 	// Discord message for showing matchup, members in both teams and mmr difference
@@ -52,9 +54,14 @@ function Game(gameID, channelMessage) {
     this.updateFreshMessage = (message) => {
         if (message.channel.id === this.matchupMessage.channel.id) {
             this.freshMessage = message;
-            console.log('Updated Fresh');
+            // console.log('Updated Fresh');
         }
     }
+
+    this.setIntervalPassive = (value) => this.csConsoleIntervalPassive = value;
+    this.setIntervalActive = (value) => this.csConsoleIntervalActive = value;
+    this.getIntervalPassive = () => this.csConsoleIntervalPassive;
+    this.getIntervalActive = () => this.csConsoleIntervalActive;
 
     this.setMatchId = (value) => this.matchId = value;
     this.getMatchId = () => this.matchId;
@@ -134,18 +141,31 @@ const getGameMapMessages = (messageReaction) => {
 
 // Deletes the gameobject, returns the list afterwards
 const deleteGame = (gameObject) => {
+    // console.log('DEBUG @deleteGame BEFORE', activeGames);
     const index = activeGames.indexOf(gameObject);
     if (index > -1) {
         activeGames.splice(index, 1);
     } else {
         console.error('Failed to delete gameObject', gameObject);
     }
+    // console.log('DEBUG @deleteGame AFTER', activeGames);
     return activeGames;
+}
+
+const clearIntervals = (gameObject) => {
+    if (gameObject) {
+        // console.log('DEBUG @clearIntervals:', gameObject.getIntervalPassive(), gameObject.getIntervalActive());
+        clearInterval(gameObject.getIntervalPassive());
+        clearInterval(gameObject.getIntervalActive());
+    } else {
+        console.error('@clearIntervals ERROR gameObject not defined', gameObject);
+    }
 }
 
 // Used to delete messages if game ended
 // Takes GameObject to clean
 const cleanOnGameEnd = (gameObject) => {
+    console.log('@cleanOnGameEnd Init');
 	const mapMessages = gameObject.getMapMessages();
 	if(!f.isUndefined(mapMessages)){
 		for(var i = mapMessages.length - 1; i >= 0; i--){
@@ -174,14 +194,15 @@ const cleanOnGameEnd = (gameObject) => {
 		//console.log('DEBUG matchupMessage cleanOnGameEnd', gameObject.getMatchupMessage().content);
 		f.deleteDiscMessage(gameObject.getMatchupMessage(), 0, 'matchupMessage');
 	}
-	// Remove game from ongoing games
-	deleteGame(gameObject);
-	const gameName = gameObject.getBalanceInfo().game;
+    const gameName = gameObject.getBalanceInfo().game;
+    console.log('@cleanOnGameEnd GameName:', gameName);
 	if (gameName === 'cs' || gameName === 'cs1v1') {
 		cancelGameCSServer(gameObject);
 	}
 	// Clear csserver interval listeners
-	clearIntervals();
+	clearIntervals(gameObject);
+	// Remove game from ongoing games
+	deleteGame(gameObject);
 }
 
 
@@ -193,4 +214,5 @@ module.exports = {
     deleteGame : deleteGame,
     cleanOnGameEnd : cleanOnGameEnd,
     getActiveGames : getActiveGames,
+    clearIntervals : clearIntervals,
 }

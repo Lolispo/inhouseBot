@@ -120,7 +120,7 @@ const configureServer = async (gameObject) => {
   const gameServersList = await gameServers();
   const serverId = gameServersList[0].id;
   // Update gameObject with serverId
-  const matchId = new Date().getTime();
+  const matchId = Math.round(new Date().getTime() / 1000); // Epoch seconds
   gameObject.setServerId(serverId);
   gameObject.setMatchId(matchId);
   assert(gameObject.getServerId(), serverId);

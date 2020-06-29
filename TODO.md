@@ -14,20 +14,62 @@ FIX BUG: New players added foreign key constraint
 
 (node:6580) DeprecationWarning: Collection#find: pass a function instead
 
-## Prio
+-server also gives link to press connect
 
-Updated Fresh
-(node:9780) UnhandledPromiseRejectionWarning: TypeError: Cannot read property 'voiceChannel' of null
-    at Object.exports.split (C:\Users\Petter\Documents\GitHub\inhouseBot\src\voiceMove.js:40:53)
-    at handleMessage (C:\Users\Petter\Documents\GitHub\inhouseBot\src\bot.js:446:18)
-    at Object.exports.handleMessageExported (C:\Users\Petter\Documents\GitHub\inhouseBot\src\bot.js:180:46)
-    at newMessages.forEach.message (C:\Users\Petter\Documents\GitHub\inhouseBot\src\csserver\cs_console_stream.js:145:15)
-    at Array.forEach (<anonymous>)
-    at Timeout.setInterval [as _onTimeout] (C:\Users\Petter\Documents\GitHub\inhouseBot\src\csserver\cs_console_stream.js:90:17)
+remove unneccessary prints from console reads
+
+Bug: Petter not counted in discord - didn't work for split/unite etc
+    < MSG (Kosa Tupp.kanal_general) Petter: -cancel
+    > Invalid command: User <@96941150824329216> not currently in a game
+    (Shows Von Dobbeln) when Petter was writer
+    Allow for admin command in discord to get all initialized players, seems to be faulty initialized
+
+Not able to send DM error handling:
+    @configureServer.filePath: cfg/kosatupp_inhouse_coordinator_match-gen.cfg
+(node:15012) UnhandledPromiseRejectionWarning: DiscordAPIError: Cannot send messages to this user
+    at item.request.gen.end (C:\Users\Petter\Documents\GitHub\inhouseBot\node_modules\discord.js\src\client\rest\RequestHandlers\Sequential.js:85:15)
+    at then (C:\Users\Petter\Documents\GitHub\inhouseBot\node_modules\snekfetch\src\index.js:215:21)
     at <anonymous>
     at process._tickCallback (internal/process/next_tick.js:188:7)
-(node:9780) UnhandledPromiseRejectionWarning: Unhandled promise rejection. This error originated either by throwing inside of an async function without a catch block, or by rejecting a promise which was not handled with .catch(). (rejection id: 1)
-(node:9780) [DEP0018] DeprecationWarning: Unhandled promise rejections are deprecated. In the fut
+(node:15012) UnhandledPromiseRejectionWarning: Unhandled promise rejection. This error originated either by throwing inside of an async function without a catch block, or by rejecting a promise which was not handled with .catch(). (rejection id: 2)
+(node:15012) [DEP0018] DeprecationWarning: Unhandled promise rejections are deprecated. In the future, promise rejections that are not handled will terminate the Node.js process with a non-zero exit code.
+
+Fix double mmr 
+    DB_sequelize rollback functionality
+
+Rollback results for match id = 29
+/*
+4 Cats and confused Lacktjo won! Played game: cs. Updated mmr is: 
+5 Edgy Plebs: 
+    Aios (2626 mmr, 2651 -25)
+    Petter (2595 mmr, 2620 -25)
+    Knas (2525 mmr, 2550 -25)
+    CATKNIFE (2423 mmr, 2448 -25)
+    Robin (2305 mmr, 2330 -25)
+4 Cats and confused Lacktjo: 
+    Bambi på hal is (2879 mmr, 2854 +25)
+    PARaflaXet (2574 mmr, 2549 +25)
+    Von Dobblen (2498 mmr, 2473 +25)
+    Banza1 (2452 mmr, 2427 +25)
+    Lacktjo (2325 mmr, 2300 +25)
+4 Cats and confused Lacktjo won! Played game: cs. Updated mmr is: 
+5 Edgy Plebs: 
+    Aios (2601 mmr, 2626 -25)
+    Petter (2570 mmr, 2595 -25)
+    Knas (2500 mmr, 2525 -25)
+    CATKNIFE (2398 mmr, 2423 -25)
+    Robin (2280 mmr, 2305 -25)
+4 Cats and confused Lacktjo: 
+    Bambi på hal is (2904 mmr, 2879 +25)
+    PARaflaXet (2599 mmr, 2574 +25)
+    Von Dobblen (2523 mmr, 2498 +25)
+    Banza1 (2477 mmr, 2452 +25)
+    Lacktjo (2350 mmr, 2325 +25)
+
+    Double mmr fix
+*/
+
+## Prio
 
 Note: Missing SteamIds for: Senpai, Von Dobblen NOT REMOVED
 
