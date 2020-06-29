@@ -71,21 +71,17 @@ Rollback results for match id = 29
 
 ## Prio
 
-Note: Missing SteamIds for: Senpai, Von Dobblen NOT REMOVED
-
 Save highest lowest mmr per play (edit rating table)
 
-Player 0 -> 10 remove stats and remove that command
+Player 0 -> 10 remove stats
+    Command removed
+    cs Leaderboard requires games > 0
 
 Fetch Winner (check console when game ends to see who won)
     Syntax of message
     Trigger Unite
     Trigger fetch CFG File
     (Trigger score change? -> Should be done after score file)
-
-Fetch match stats from CFG file
-    get5_dumpstats (creates the file)
-    csgo -> get5stats -> get5_matchstats_<MATCHID>.cfg
 
 randoma om namn om över ett visst antal chars: Morgans Stealth Assasins e för långt
 

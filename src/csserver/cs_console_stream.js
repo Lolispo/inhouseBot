@@ -17,6 +17,15 @@ den kommer fortfarande att tugga väldigt mycket lines när den väl är aktiv, 
 let consoleMessages = [];
 let lastSeen = '';
 
+const uniteChannels = () => {
+  console.log('@uniteChannels');
+  const messageObject = gameObject.getFreshMessage();
+  const hostMessage = gameObject.getMatchupMessage();
+  messageObject.author = hostMessage.author;
+  messageObject.content = '-unite';
+  bot.handleMessageExported(messageObject);
+}
+
 // Called when game is loaded on bot
 const readCSConsoleInput = async (serverId, gameObject) => {
   // Check status on server every minute
@@ -110,7 +119,7 @@ const readConsoleSayLines = async (serverId, gameObject) => {
       let gameHasEnded = gameOverMessage(message);
       if (gameHasEnded) {
         getGameStats(serverId, gameObject);
-        // uniteChannels(); // TODO
+        uniteChannels();
         clearIntervals(gameObject);
       }
       
