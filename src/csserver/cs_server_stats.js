@@ -171,7 +171,7 @@ const buildStatsMessage = (stats) => {
 const sendStatsDiscord = (gameObject, statsMessage) => {
   // Sends in channel
   bot.printMessage(statsMessage, gameObject.getChannelMessage(), (message) => {
-		f.deleteDiscMessage(message, 600000, 'statsresultsgame');
+		f.deleteDiscMessage(message, 3600000, 'statsresultsgame' + Math.floor(Math.random() * 10));
   });
   // TODO Send in game results chat which do not clear
 }
@@ -202,7 +202,7 @@ const setResults = (gameObject, stats) => {
     console.log('@getGameStatsDiscord Winning team:', winnerTeam);
     mmr_js.updateMMR(winner, gameObject, (message) => {
       console.log('DEBUG @callbackGameFinished - Calls on exit after delete on this message');
-      f.deleteDiscMessage(message, 60000 * 4, 'gameFinished');
+      f.deleteDiscMessage(message, f.getDefaultRemoveTime() * 4, 'gameFinished');
       cleanOnGameEnd(gameObject);
     });
   } else {

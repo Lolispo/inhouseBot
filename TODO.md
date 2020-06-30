@@ -16,7 +16,7 @@ FIX BUG: New players added foreign key constraint
 
 -server also gives link to press connect
 
-Längre duration på stats
+store stats
 
 Check Debug
     Keeps reading after result (-getResult)
@@ -28,10 +28,8 @@ Store stats results in table
     Fix matchid
     Store match results first, get matchid use for cs stats storage
 
-
-FIX GAME STOP LISTENING TO STREAM OF MESSAGES
-
-remove unneccessary prints from console reads
+getResult - Prevent being able to use during a game (fucks the game up)
+    If game is not done (game unfinished) dont run endgame commands etc
 
 Bug: Petter not counted in discord - didn't work for split/unite etc
     < MSG (Kosa Tupp.kanal_general) Petter: -cancel

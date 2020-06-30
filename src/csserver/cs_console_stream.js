@@ -91,6 +91,8 @@ const readConsoleSayLines = async (serverId, gameObject) => {
       }
     }
 
+    // If last message wasn't found, then handle all as new
+    // Can potentially miss commands if too many messages
     if (noLastFound) {
       newMessages = splittedMessages;
     }
@@ -124,6 +126,7 @@ const readConsoleSayLines = async (serverId, gameObject) => {
       // TODO: Check if game has ended 
       let gameHasEnded = gameOverMessage(message);
       if (gameHasEnded) {
+        console.log('@gameHasEnded');
         getGameStats(serverId, gameObject);
         uniteChannels();
         clearIntervals(gameObject);
