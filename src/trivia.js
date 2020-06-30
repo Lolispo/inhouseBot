@@ -189,7 +189,7 @@ function startQuestion(){
 	if(questionIndex >= lastQuestionIndex){
 		setTimeout(function(){
 			if(!f.isUndefined(finishMessage)){
-				f.deleteDiscMessage(finishMessage, bot.getRemoveTime(), 'finishMessage');
+				f.deleteDiscMessage(finishMessage, f.getDefaultRemoveTime(), 'finishMessage');
 			}
 			var resultString = '';
 			if(activePlayers.length > 0){

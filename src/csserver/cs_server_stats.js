@@ -60,7 +60,7 @@ const tableTitles = () => {
 
 // pad column to fit in table design
 const padColumn = (index, value='-') => {
-  console.log('@padColumn', index, value);
+  // console.log('@padColumn', index, value);
   const columnTitle = tableTitleArray[index];
   const titleLength = columnTitle.length;
   const valueLength = value.length;
@@ -97,7 +97,7 @@ const buildMapStatsMessage = (mapTeam) => {
       if (key === 'score') continue;
       const { name, kills, deaths, assists } = player;
       const adr = Math.floor(player.damage / player.roundsplayed) + ''; // + ' DPR';
-      const hsPerc = ((player.headshot_kills / kills).toFixed(2) * 100) + '%';
+      const hsPerc = Math.floor((player.headshot_kills / kills).toFixed(2) * 100) + '%';
       const { firstkill_t, firstdeath_t } = player;
       const entriesT = (parseInt(firstkill_t) || 0) + '/' + ((parseInt(firstdeath_t) || 0)); // (parseInt(firstkill_t) || 0) + 
       const { firstkill_ct, firstdeath_ct } = player;
@@ -145,14 +145,15 @@ const buildMapStatsMessage = (mapTeam) => {
 // Builds the stats string to send in discord
 const buildStatsMessage = (stats) => {
   let s = '';
-  const winner = stats.winner;
-  const teamWonName = stats[winner + '_name'];
-  s += teamWonName + ' won! ';
   for (let i = 0; i < 1; i++) {
     // Check only give results for one game
     let map = stats['map' + i];
     if (!map) return null;
-    const scoreResult = map.team1.score + '-' + map.team2.score;
+    const winner = map.winner;
+    const teamWonName = stats[winner + '_name'];
+    console.log('@buildStatsMessage DEBUG', winner, teamWonName);
+    s += teamWonName + ' won! ';
+      const scoreResult = map.team1.score + '-' + map.team2.score;
     s += scoreResult + '\n';
     if (map) {
       s += stats.team1_name + ':\n';
@@ -189,17 +190,19 @@ const samePlayersInTeams = (gameObject, stats) => {
   const team2Name = gameObject.getBalanceInfo().team2Name;
   const serverTeam1Name = stats.team1_name;
   const serverTeam2Name = stats.team2_name;
+  console.log('@samePlayersInTeam:', team1Name === serverTeam1Name && team2Name === serverTeam2Name);
   return team1Name === serverTeam1Name && team2Name === serverTeam2Name;
 }
 
 const setResults = (gameObject, stats) => {
-  const winnerTeam = stats.winner;
+  const winnerTeam = stats.map0.winner;
   const winner = winnerTeam === 'team1' ? 1 : (winnerTeam === 'team2' ? 2 : '');
+  // console.log('@setResults DEBUG:', winnerTeam, '"' + winner + '"');
   if (winner !== '' && samePlayersInTeams(gameObject, stats)) {
     console.log('@getGameStatsDiscord Winning team:', winnerTeam);
     mmr_js.updateMMR(winner, gameObject, (message) => {
       console.log('DEBUG @callbackGameFinished - Calls on exit after delete on this message');
-      f.deleteDiscMessage(message, removeBotMessageDefaultTime * 4, 'gameFinished');
+      f.deleteDiscMessage(message, 60000 * 4, 'gameFinished');
       cleanOnGameEnd(gameObject);
     });
   } else {

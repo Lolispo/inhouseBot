@@ -5,6 +5,10 @@
 const bot = require('../bot');
 const fs = require('fs');
 
+const getDefaultRemoveTime = () => {
+	return 60000;
+}
+
 /*
 const nodeCleanup = require('node-cleanup');
 // TODO Cleanup on exit, can't control SIGINT (ctrl+c) Correctly, requires synchronous code
@@ -60,7 +64,7 @@ const print = function(messageVar, message, callback = callbackPrintDefault){
 const listToDeleteFrom = new Map();
 const deleteIntervals = [];
 
-const deleteDiscMessage = (messageVar, time = bot.getRemoveTime(), messageName = 'defaultName', callback = (msg) => {}) => {
+const deleteDiscMessage = (messageVar, time = getDefaultRemoveTime(), messageName = 'defaultName', callback = (msg) => {}) => {
 	// Alt. (Somehow) Compare freshest time, delete other timeout
 	//console.log('DEBUG @delete1 for ' + messageName + ', addDelete(' + time + ') = ' + (!listToDeleteFrom.has(messageName) && !isUndefined(messageVar) && messageVar.content !== ''), listToDeleteFrom.has(messageName));
 	messageName = messageName + '.id=' + messageVar.id;
@@ -193,5 +197,6 @@ module.exports = {
 	getLongestNameLength : getLongestNameLength,
 	getTabsForName : getTabsForName,
 	writeToFile : writeToFile,
-	readFromFile : readFromFile
+	readFromFile : readFromFile,
+	getDefaultRemoveTime : getDefaultRemoveTime,
 }

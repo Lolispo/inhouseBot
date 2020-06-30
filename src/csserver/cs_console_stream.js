@@ -64,7 +64,7 @@ const gameOverMessage = (message) => {
 const readConsoleSayLines = async (serverId, gameObject) => {
   let counter = 0;
   let localInterval = setInterval(async () => {
-    const latestLines = await getLatestConsoleLines(serverId, 50);
+    const latestLines = await getLatestConsoleLines(serverId, 125);
     let newMessages = [];
     // console.log('@readConsoleSayLines: latestLines:', latestLines);
     // TODO: Split on console messages
@@ -76,8 +76,10 @@ const readConsoleSayLines = async (serverId, gameObject) => {
 
     // Update local storage of messages to prevent multiple ones appearing
     // console.log('Last Seen message:', lastSeen);
+    let noLastFound = true;
     for(let i = splittedMessages.length - 1; i >= 0; i--) {
       if (splittedMessages[i] === lastSeen) {
+        noLastFound = false;
         if( i != splittedMessages.length - 1) console.log('New messages:', (splittedMessages.length - 1 - i));
         if (i === splittedMessages.length - 1) {
           newMessages = [];
@@ -87,6 +89,10 @@ const readConsoleSayLines = async (serverId, gameObject) => {
           break;
         }
       }
+    }
+
+    if (noLastFound) {
+      newMessages = splittedMessages;
     }
     
     // console.log('@ length:', newMessages.length);

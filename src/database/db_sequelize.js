@@ -5,6 +5,7 @@ const player_js = require('../game/player')
 const f = require('../tools/f')
 
 const Sequelize = require('sequelize');
+const player = require('../game/player');
 
 
 /*
@@ -391,13 +392,58 @@ const createMatch = async (result, balanceInfo, mmrChange) => {
 }
 
 // TODO: High priority
-const rollbackMatch = (mid) => {
-	// Transaction
-	// Fetch rating changes from match result with given mid
-	// Revert changes to the players affected
-	// Remove playerMatches with mid
-	// Remove match with mid
-	// Finish transaction
+const rollbackMatch = async (mid) => {
+	let transaction;    
+	try {
+		transaction = await DatabaseSequelize.instance.sequelize.transaction();
+		
+		// Fetch rating changes from match result with given mid
+		const playerRatingForGame = await DatabaseSequelize.instance.PlayerMatches.findAll({
+			where: {
+				mid: {
+					[Sequelize.Op.eq]: mid
+				}
+			}
+		});
+
+		console.log('Res:', playerRatingForGame);
+
+		// Revert changes to the players affected
+		playerRatingForGame.forEach(async (playerRatingMatchRes) => {
+			const { team, mmrChange, uid, mid } = playerRatingMatchRes.dataValues;
+			await DatabaseSequelize.instance.Ratings.update(
+				{ mmr: DatabaseSequelize.instance.sequelize.literal(`mmr ${(mmrChange.charAt(0) === '-' ? mmrChange.substring(1) : '-' + mmrChange)}`) },
+				{ 
+					where: { 
+						uid: uid,
+					}
+				}
+			)
+		});
+
+		// Remove playerMatches with mid
+		await DatabaseSequelize.instance.PlayerMatches.destroy({
+			where: {
+				mid: mid
+			}
+		})
+
+		// Remove match with mid
+		await DatabaseSequelize.instance.Matches.destroy({
+			where: {
+				mid: mid
+			}
+		})
+
+		// Finish transaction
+		await transaction.commit();
+	} catch (err) {
+		// Rollback transaction only if the transaction object is defined
+		console.log('Error Rollback match', err);
+		if (transaction) await transaction.rollback();
+		return false;
+	}
+	return true;
 }
 
 // Get Winrate playing with other players
@@ -478,5 +524,6 @@ module.exports = {
 	createUser : createUser,
 	createRatingForUser : createRatingForUser,
 	createMatch : createMatch,
-	storeSteamIdDb : storeSteamIdDb
+	storeSteamIdDb : storeSteamIdDb,
+	rollbackMatch : rollbackMatch,
 }

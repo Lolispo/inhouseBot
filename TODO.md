@@ -16,6 +16,21 @@ FIX BUG: New players added foreign key constraint
 
 -server also gives link to press connect
 
+Längre duration på stats
+
+Check Debug
+    Keeps reading after result (-getResult)
+    NOT WORKING
+    uniteChannels();
+    clearIntervals(gameObject);
+
+Store stats results in table
+    Fix matchid
+    Store match results first, get matchid use for cs stats storage
+
+
+FIX GAME STOP LISTENING TO STREAM OF MESSAGES
+
 remove unneccessary prints from console reads
 
 Bug: Petter not counted in discord - didn't work for split/unite etc
@@ -34,42 +49,20 @@ Not able to send DM error handling:
 (node:15012) UnhandledPromiseRejectionWarning: Unhandled promise rejection. This error originated either by throwing inside of an async function without a catch block, or by rejecting a promise which was not handled with .catch(). (rejection id: 2)
 (node:15012) [DEP0018] DeprecationWarning: Unhandled promise rejections are deprecated. In the future, promise rejections that are not handled will terminate the Node.js process with a non-zero exit code.
 
+CHECK: STEAM_1:1:6530834> Paraflaxet = DOESNT EXIST AUTHOR
+
 Fix double mmr 
     DB_sequelize rollback functionality
 
-Rollback results for match id = 29
-/*
-4 Cats and confused Lacktjo won! Played game: cs. Updated mmr is: 
-5 Edgy Plebs: 
-    Aios (2626 mmr, 2651 -25)
-    Petter (2595 mmr, 2620 -25)
-    Knas (2525 mmr, 2550 -25)
-    CATKNIFE (2423 mmr, 2448 -25)
-    Robin (2305 mmr, 2330 -25)
-4 Cats and confused Lacktjo: 
-    Bambi på hal is (2879 mmr, 2854 +25)
-    PARaflaXet (2574 mmr, 2549 +25)
-    Von Dobblen (2498 mmr, 2473 +25)
-    Banza1 (2452 mmr, 2427 +25)
-    Lacktjo (2325 mmr, 2300 +25)
-4 Cats and confused Lacktjo won! Played game: cs. Updated mmr is: 
-5 Edgy Plebs: 
-    Aios (2601 mmr, 2626 -25)
-    Petter (2570 mmr, 2595 -25)
-    Knas (2500 mmr, 2525 -25)
-    CATKNIFE (2398 mmr, 2423 -25)
-    Robin (2280 mmr, 2305 -25)
-4 Cats and confused Lacktjo: 
-    Bambi på hal is (2904 mmr, 2879 +25)
-    PARaflaXet (2599 mmr, 2574 +25)
-    Von Dobblen (2523 mmr, 2498 +25)
-    Banza1 (2477 mmr, 2452 +25)
-    Lacktjo (2350 mmr, 2325 +25)
-
-    Double mmr fix
-*/
-
 ## Prio
+
+Rollback fix
+
+Fix default mmr for trivia
+CATKNIFE:     2500 rating
+Groovy:     2500 rating
+Knas:     2500 rating
+PARaflaXet:     2500 rating
 
 Save highest lowest mmr per play (edit rating table)
 
