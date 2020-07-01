@@ -474,6 +474,7 @@ const handleMessage = async (message) => {
 				}
 				f.deleteDiscMessage(message, 15000, 'getmatchresult');
 			}
+			// Cant reach this after game
 			else if(playerStatusCommands.includes(message.content) && adminUids.includes(message.author)) {
 				console.log('DEBUG playerStatusCommands', gameObject.getActiveMembers());
 				f.deleteDiscMessage(message, 15000, 'playerStatusCommands');
@@ -489,10 +490,11 @@ const handleMessage = async (message) => {
 }
 
 // Returns true if message is an active game command
-function isActiveGameCommand(message){
+const isActiveGameCommand = (message) => {
 	return (team1wonCommands.includes(message.content) || team2wonCommands.includes(message.content) || tieCommands.includes(message.content) ||
 			cancelCommands.includes(message.content) || splitCommands.includes(message.content) || startsWith(message, uniteCommands) 
-			|| mapvetostartCommands.includes(message.content) || getMatchResultCommand.includes(message.content));
+			|| mapvetostartCommands.includes(message.content) || getMatchResultCommand.includes(message.content) || 
+			playerStatusCommands.includes(message.content));
 }
 
 // Returns boolean of if message starts with string

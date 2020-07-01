@@ -130,6 +130,7 @@ const readConsoleSayLines = async (serverId, gameObject) => {
         getGameStats(serverId, gameObject);
         uniteChannels(gameObject);
         clearIntervals(gameObject);
+        console.log('DEBUG gameEnd PLAYERS:', gameObject.getActiveMembers());
       }
       
       let spokenWord = isSayMessage(message);
