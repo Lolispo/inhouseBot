@@ -97,7 +97,7 @@ const buildMapStatsMessage = (mapTeam) => {
       if (key === 'score') continue;
       const { name, kills, deaths, assists } = player;
       const adr = Math.floor(player.damage / player.roundsplayed) + ''; // + ' DPR';
-      const hsPerc = Math.floor((player.headshot_kills / kills).toFixed(2) * 100) + '%';
+      const hsPerc = Math.floor(((parseInt(player.headshot_kills) || 0) / kills).toFixed(2) * 100) + '%';
       const { firstkill_t, firstdeath_t } = player;
       const entriesT = (parseInt(firstkill_t) || 0) + '/' + ((parseInt(firstdeath_t) || 0)); // (parseInt(firstkill_t) || 0) + 
       const { firstkill_ct, firstdeath_ct } = player;

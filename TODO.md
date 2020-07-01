@@ -24,6 +24,15 @@ Check Debug
     uniteChannels();
     clearIntervals(gameObject);
 
+Not sorted correctly (ARvid should be at the top)
+5 Tiny Stealth Assassins:
+| Name        | Kills | Deaths | Assists | ADR | HS% | Ent. T | Ent. CT | Trades | 5k | 4k | 3k | 2k | Plants | Defuses
+| Knas        | 9     | 18     | 2       | 69  | 33% | 4/1    | 1/0     | 1      | -  | -  | -  | 1  | -      | -       
+| Lacktjo     | 3     | 17     | 3       | 41  |NaN%| 0/2    | 0/1     | 1      | -  | -  | -  | -  | 2      | -       
+| Livaitan    | 2     | 17     | -       | 13  |NaN%| 1/3    | 0/1     | 1      | -  | -  | -  | -  | -      | -       
+| Rudolf And. | 2     | 17     | -       | 11  |NaN%| 0/2    | 0/0     | 1      | -  | -  | -  | -  | -      | -       
+| Bambi på h. | 19    | 16     | 3       | 107 | 53% | 6/7    | 2/1     | 1      | 1  | -  | 1  | 4  | -      | -      
+
 Star mark things in stats
 
  HS% | Ent. T | Ent. CT | Trades | 5k | 4k | 3k | 2k | Plants | Defuses

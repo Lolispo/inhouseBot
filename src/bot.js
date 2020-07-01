@@ -59,7 +59,7 @@ const rollCommands = [prefix + 'roll'];
 const connectSteamCommands = [prefix + 'connectsteam', prefix+'connectsteamid'];
 const steamidCommands = [prefix + 'getsteamid', prefix + 'steamid'];
 const getMatchResultCommand = [prefix + 'getresult', prefix + 'getmatchresult'];
-const playerStatusCommands = [prefix + 'playersStatus'];
+const playerStatusCommands = [prefix + 'playersstatus'];
 
 
 // Initialize Client
