@@ -24,6 +24,11 @@ Check Debug
     uniteChannels();
     clearIntervals(gameObject);
 
+Star mark things in stats
+
+ HS% | Ent. T | Ent. CT | Trades | 5k | 4k | 3k | 2k | Plants | Defuses
+| Ahoy!       | 7     | 20     | 2       | 31  |NaN%
+
 Store stats results in table
     Fix matchid
     Store match results first, get matchid use for cs stats storage

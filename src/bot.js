@@ -59,6 +59,7 @@ const rollCommands = [prefix + 'roll'];
 const connectSteamCommands = [prefix + 'connectsteam', prefix+'connectsteamid'];
 const steamidCommands = [prefix + 'getsteamid', prefix + 'steamid'];
 const getMatchResultCommand = [prefix + 'getresult', prefix + 'getmatchresult'];
+const playerStatusCommands = [prefix + 'playersStatus'];
 
 
 // Initialize Client
@@ -465,12 +466,17 @@ const handleMessage = async (message) => {
 				f.deleteDiscMessage(message, 15000, 'mapveto'); // Remove mapVeto text
 			}
 			else if(getMatchResultCommand.includes(message.content)) {
+				// Shouldn't be required anymore but good to have
 				// If game stats exist but it wasn't detected automatically to check stats, use command
 				const serverId = gameObject.getServerId();
 				if (serverId) {
 					getGameStats(serverId, gameObject);
 				}
 				f.deleteDiscMessage(message, 15000, 'getmatchresult');
+			}
+			else if(playerStatusCommands.includes(message.content) && adminUids.includes(message.author)) {
+				console.log('DEBUG playerStatusCommands', gameObject.getActiveMembers());
+				f.deleteDiscMessage(message, 15000, 'playerStatusCommands');
 			}
 		} else {
 			f.print(message, 'Invalid command: User ' + message.author + ' not currently in a game', callbackInvalidCommand);

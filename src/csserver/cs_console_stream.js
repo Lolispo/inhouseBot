@@ -17,7 +17,7 @@ den kommer fortfarande att tugga väldigt mycket lines när den väl är aktiv, 
 let consoleMessages = [];
 let lastSeen = '';
 
-const uniteChannels = () => {
+const uniteChannels = (gameObject) => {
   console.log('@uniteChannels');
   const messageObject = gameObject.getFreshMessage();
   const hostMessage = gameObject.getMatchupMessage();
@@ -128,7 +128,7 @@ const readConsoleSayLines = async (serverId, gameObject) => {
       if (gameHasEnded) {
         console.log('@gameHasEnded');
         getGameStats(serverId, gameObject);
-        uniteChannels();
+        uniteChannels(gameObject);
         clearIntervals(gameObject);
       }
       

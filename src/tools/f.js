@@ -4,6 +4,7 @@
 // Should handle general help functions
 const bot = require('../bot');
 const fs = require('fs');
+const { assert } = require('console');
 
 const getDefaultRemoveTime = () => {
 	return 60000;
@@ -135,15 +136,15 @@ const teamToGuildMember = (team, activeMembers) => {
 	if(isUndefined(activeMembers)){
 		console.log('Error: activeMembers not initialized in @teamToGuildMember (Test case = ok)'); // Since it is assumed to always be initialized, throw error otherwise
 	} else {
-		team.forEach(function(player){
-			var guildMember = activeMembers.find(function(guildMember){
-				return player.uid === guildMember.id;
-			});
+		team.forEach((player) => {
+			const guildMember = activeMembers.find(guildMember => player.uid === guildMember.id);
 			if(!isUndefined(guildMember)){
 				teamMembers.push(guildMember);
 			}
 		});		
 	}
+	console.log('@teamToGuildMember SIZE', teamMembers.length, activeMembers.length);
+	if (teamMembers.length !== activeMembers.length) console.log('DEBUG teamToGuildMember ERROR different size')
 	return teamMembers;
 }
 
