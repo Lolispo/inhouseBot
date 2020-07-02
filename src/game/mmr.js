@@ -11,12 +11,16 @@ const db_sequelize = require('../database/db_sequelize');
 */
 
 // Update mmr for all players and returns result to clients
-exports.updateMMR = function(winner, gameObject, callbackUpdate){ // winner = 0 -> draw, 1 -> team 1, 2 -> team 2
-	var balanceInfo = gameObject.getBalanceInfo();
-	var mmrChange = eloUpdate(balanceInfo.avgT1, balanceInfo.avgT2, winner); 
+exports.updateMMR = (winner, gameObject, callbackUpdate) => { // winner = 0 -> draw, 1 -> team 1, 2 -> team 2
+	const balanceInfo = gameObject.getBalanceInfo();
+	const mmrChange = eloUpdate(balanceInfo.avgT1, balanceInfo.avgT2, winner); 
 	updateTeamMMR(balanceInfo.team1, mmrChange.t1, balanceInfo.game, winner === 1);
 	updateTeamMMR(balanceInfo.team2, mmrChange.t2, balanceInfo.game, winner === 2);
-
+	
+	db_sequelize.createMatch(winner, balanceInfo, {
+		t1: mmrChange.t1,
+		t2: mmrChange.t2
+	});
 	buildMMRUpdateString(winner, callbackResult, balanceInfo, callbackUpdate, gameObject);
 }
 

@@ -3,7 +3,7 @@
 
 const { getEnvironment, getConfig } = require('./tools/load-environment');
 
-const { getClient, noop } = require('./client');
+const { getClient, noop, getTextTestChannel, getTextGeneralChannel } = require('./client');
 const { getPool, initializeMySQL } = require('./database/mysql_pool');
 
 const birthdayStart = async () => {
@@ -33,8 +33,8 @@ const getBirthdays = async (date) => {
   }
 }
 
-const generalId = '102097104322711552'; // General
-const testId = '424309421519142913';  	// robot-playground
+const generalId = getTextGeneralChannel(); // General
+const testId = getTextTestChannel();  	// robot-playground
 
 const findTextChannel = () => {
 	const channelId = getEnvironment() === 'DEVELOPMENT' ? testId : generalId;

@@ -1,0 +1,21 @@
+DEBUG
+
+(node:16112) UnhandledPromiseRejectionWarning: SequelizeForeignKeyConstraintError: Cannot add or update a child row: a foreign key constraint fails (`database1`.`playerMatches`, CONSTRAINT `playerMatches_ibfk_2` FOREIGN KEY (`uid`) REFERENCES `users` (`uid`))
+    at Query.formatError (C:\Users\Petter\Documents\GitHub\inhouseBot\node_modules\sequelize\lib\dialects\mysql\query.js:236:16)
+    at Query.handler [as onResult] (C:\Users\Petter\Documents\GitHub\inhouseBot\node_modules\sequelize\lib\dialects\mysql\query.js:68:23)
+    at Query.execute (C:\Users\Petter\Documents\GitHub\inhouseBot\node_modules\mysql2\lib\commands\command.js:30:14)
+    at Connection.handlePacket (C:\Users\Petter\Documents\GitHub\inhouseBot\node_modules\mysql2\lib\connection.js:408:32)
+    at PacketParser.Connection.packetParser.p [as onPacket] (C:\Users\Petter\Documents\GitHub\inhouseBot\node_modules\mysql2\lib\connection.js:70:12)
+    at PacketParser.executeStart (C:\Users\Petter\Documents\GitHub\inhouseBot\node_modules\mysql2\lib\packet_parser.js:75:16)
+    at Socket.Connection.stream.on.data (C:\Users\Petter\Documents\GitHub\inhouseBot\node_modules\mysql2\lib\connection.js:77:25)
+    at emitOne (events.js:116:13)
+    at Socket.emit (events.js:211:7)
+    at addChunk (_stream_readable.js:263:12)
+    at readableAddChunk (_stream_readable.js:250:11)
+    at Socket.Readable.push (_stream_readable.js:208:10)
+    at TCP.onread (net.js:607:20)
+(node:16112) UnhandledPromiseRejectionWarning: Unhandled promise rejection. This error originated either by throwing inside of an async function without a catch block, or by rejecting a promise which was not handled with .catch(). (rejection id: 5)
+
+Morgelev #4174
+2475
+mid 15 1 -25 

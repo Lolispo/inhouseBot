@@ -6,6 +6,8 @@
 const bot = require('./bot');
 const player_js = require('./game/player');
 const f = require('./tools/f');
+const { configureServer } = require('./csserver/cs_server');
+const { promises } = require('fs');
 
 let mapMessagesBuilder = [];
 
@@ -48,8 +50,12 @@ function handleCaptainMessage(user, mapMessage, gameObject){
 			var chosenMap = gameMapMessages[0];
 			gameMapMessages = []; // TODO: Alternative way of init mapMessages? undefined = ugly
 			chosenMap.delete();
-			gameObject.getBannedMaps().push('\nChosen map is ' + String(chosenMap).split('\n')[1]);
+			const chosenMapString = String(chosenMap).split('\n')[1];
+			gameObject.getBannedMaps().push('\nChosen map is ' + chosenMapString);
 			gameObject.getMapStatusMessage().edit(getMapString(true, gameObject)); // TODO Check
+			// TODO: Only if no other games are active
+			gameObject.chosenMap = chosenMapString;
+			configureServer(gameObject); // Start in
 		}
 	} else {
 		console.log('MESSAGE NOT FOUND');
@@ -93,15 +99,17 @@ async function mapVetoStart(message, gameObject, clientEmojis){
 }
 
 // Create map messages, add default reactions and add them to mapMessageBuilder
-async function getMapMessages(message, clientEmojis){ // TODO Check Should run asynchrounsly, try setTimeout , 0 otherwise
-	await initMap('Dust2', clientEmojis, message, callbackMapMessage);
-	await initMap('Inferno', clientEmojis, message, callbackMapMessage);
-	await initMap('Mirage', clientEmojis, message, callbackMapMessage);
-	await initMap('Nuke', clientEmojis, message, callbackMapMessage);
-	await initMap('Cache', clientEmojis, message, callbackMapMessage);
-	await initMap('Overpass', clientEmojis, message, callbackMapMessage);
-	await initMap('Train', clientEmojis, message, callbackMapMessage);
-	await initMap('Vertigo', clientEmojis, message, callbackMapMessage);
+const getMapMessages = async (message, clientEmojis) => { // TODO Check Should run asynchrounsly, try setTimeout , 0 otherwise
+	const mapvetoMessages = [];
+	mapvetoMessages.push(initMap('Dust2', clientEmojis, message, callbackMapMessage));
+	mapvetoMessages.push(initMap('Inferno', clientEmojis, message, callbackMapMessage));
+	mapvetoMessages.push(initMap('Mirage', clientEmojis, message, callbackMapMessage));
+	mapvetoMessages.push(initMap('Nuke', clientEmojis, message, callbackMapMessage));
+	mapvetoMessages.push(initMap('Cache', clientEmojis, message, callbackMapMessage));
+	mapvetoMessages.push(initMap('Overpass', clientEmojis, message, callbackMapMessage));
+	mapvetoMessages.push(initMap('Train', clientEmojis, message, callbackMapMessage));
+	mapvetoMessages.push(initMap('Vertigo', clientEmojis, message, callbackMapMessage));
+	await Promise.all(mapvetoMessages);
 }	
 
 
@@ -127,8 +135,8 @@ function callbackMapMessage(mapObj){
 
 async function mapMessageReact(message){
 	await message.react(emoji_error);
-	await message.react(emoji_agree);
-	message.react(emoji_disagree);
+	// await message.react(emoji_agree);
+	// message.react(emoji_disagree);
 }
 
 var getMapString = function(finished, gameObject, startingCaptainUsername){ // Allows to be called without third parameter if finished = false

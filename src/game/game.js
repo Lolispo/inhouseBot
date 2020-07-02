@@ -5,24 +5,31 @@
 	Class handles active games being played
 */
 
-var activeGames = [];
+const f = require('../tools/f');
+const { cancelGameCSServer } = require('../csserver/cs_console');
 
-exports.getActiveGames = function(){
-    return activeGames;
-}
+let activeGames = [];
 
-function Game(gameID, channelMessage){
+const getActiveGames = () => activeGames;
+
+function Game(gameID, channelMessage) {
     this.gameID = gameID;   // Unique id for game, set as the balance message id in the discord channel
     this.channelMessage = channelMessage; // Controls which channel to make prints in
     this.activeMembers;     // Active members playing (team1 players + team2 players)
     this.balanceInfo;       // Object: {team1, team2, difference, avgT1, avgT2, avgDiff, game} Initialized on creation of game object
+    
+    this.serverId;          // ServerId
+    this.matchId;           // MatchId for server
+    this.csConsoleIntervalPassive;   // between games - lower time
+    this.csConsoleIntervalActive;    // active gameInterval
 
     this.matchupMessage = channelMessage;    // One who started game's balance's message (-b)
     this.matchupServerMsg; 	// Discord message for showing matchup, members in both teams and mmr difference
     this.voteMessage;		// When voting on who won, this holds the voteText discord message
     this.teamWonMessage;	// The typed teamWon message, used to vote on agreeing as well as remove on finished vote
     this.teamWon;			// Keeps track on which team won
-    
+    this.freshMessage = channelMessage;      // Fresh message in same channel
+
     this.mapStatusMessage;  // Message that keep track of which maps are banned and whose turn is it
     this.mapMessages = [];  // Keeps track of the discord messages for the different maps 
     this.mapVetoTurn;       // Turn variable, whose turn it is
@@ -33,149 +40,179 @@ function Game(gameID, channelMessage){
     activeGames.push(this);
 
     // Returns true if userid is contained in activeMembers in this game
-    this.containsPlayer = function(uid){
-        return this.activeMembers.some(function(guildMember){
+    this.containsPlayer = (uid) => {
+        return this.activeMembers.some((guildMember) => {
             return guildMember.id === uid
         });
     }
 
-    this.getBalanceInfo = function(){
-        return this.balanceInfo;
+    this.getBalanceInfo = () => this.balanceInfo;
+
+    this.getMatchupMessage = () => this.matchupMessage;
+
+    this.getFreshMessage = () => this.freshMessage;
+    this.updateFreshMessage = (message) => {
+        if (message.channel.id === this.matchupMessage.channel.id) {
+            this.freshMessage = message;
+            // console.log('Updated Fresh');
+        }
     }
 
-    this.getMatchupMessage = function(){
-        return this.matchupMessage;
-    }
+    this.setIntervalPassive = (value) => this.csConsoleIntervalPassive = value;
+    this.setIntervalActive = (value) => this.csConsoleIntervalActive = value;
+    this.getIntervalPassive = () => this.csConsoleIntervalPassive;
+    this.getIntervalActive = () => this.csConsoleIntervalActive;
 
-    this.getTeamWonMessage = function(){
-        return this.teamWonMessage;
-    }
+    this.setMatchId = (value) => this.matchId = value;
+    this.getMatchId = () => this.matchId;
 
-    this.getTeamWon = function(value){
-        return this.teamWon;
-    }
+    this.getTeamWonMessage = () => this.teamWonMessage;
 
-    this.getMatchupServerMsg = function(){
-        return this.matchupServerMsg;
-    }
+    this.getTeamWon = (value) => this.teamWon;
 
-    this.getActiveMembers = function(){
-        return this.activeMembers;
-    }
+    this.getMatchupServerMessage = () => this.matchupServerMsg;
 
-    this.getChannelMessage= function(){
-        return this.channelMessage;
-    }
+    this.getActiveMembers = () => this.activeMembers;
 
-    this.getVoteMessage = function(){
-        return this.voteMessage;
-    }
+    this.getChannelMessage= () => this.channelMessage;
 
-    this.setVoteMessage = function(value){
-        this.voteMessage = value;
-    }
+    this.getVoteMessage = () => this.voteMessage;
 
-    this.getGameID = function(){
-        return this.gameID;
-    }
+    this.setVoteMessage = (value) => this.voteMessage = value;
 
-    this.getMapMessages = function(){
-        return this.mapMessages;
-    }
+    this.getGameID = () => this.gameID;
 
-    this.getMapVetoTurn = function(){
-        return this.mapVetoTurn;
-    }
+    this.getMapMessages = () => this.mapMessages;
 
-    this.setMapVetoTurn = function(value){
-        this.mapVetoTurn = value;
-    }
+    this.getMapVetoTurn = () => this.mapVetoTurn;
 
-    this.getCaptain1 = function(){
-        return this.captain1;
-    }
+    this.setMapVetoTurn = (value) => this.mapVetoTurn = value;
 
-    this.getCaptain2 = function(){
-        return this.captain2;
-    }
+    this.getCaptain1 = () => this.captain1;
 
-    this.setCaptain1 = function(value){
-        this.captain1 = value;
-    }
+    this.getCaptain2 = () => this.captain2;
 
-    this.setCaptain2 = function(value){
-        this.captain2 = value;
-    }
+    this.setCaptain1 = (value) => this.captain1 = value;
 
-    this.getBannedMaps = function(){
-        return this.bannedMaps;
-    }
+    this.setCaptain2 = (value) => this.captain2 = value;
+
+    this.getBannedMaps = () => this.bannedMaps;
     
-    this.getMapStatusMessage = function(){
-        return this.mapStatusMessage;
-    }
+    this.getMapStatusMessage = () => this.mapStatusMessage;
     
-    this.setMapStatusMessage = function(variable){
-        this.mapStatusMessage = variable;
-    }
+    this.setMapStatusMessage = (variable) => this.mapStatusMessage = variable;
 
-    this.setTeamWon = function(value){
-        this.teamWon = value;
-    }
+    this.setTeamWon = (value) => this.teamWon = value;
 
-    this.setTeamWonMessage = function(message){
-        this.teamWonMessage = message;
-    }
+    this.setTeamWonMessage = (message) => this.teamWonMessage = message;
 
-    this.setMatchupServerMessage = function(message){
-        this.matchupServerMsg = message;
-    }
+    this.setMatchupServerMessage = (message) => this.matchupServerMsg = message;
  
-    this.setMapMessages = function(result){
-        this.mapMessages = result;
-    }
+    this.setMapMessages = (result) => this.mapMessages = result;
 
-    this.setActiveMembers = function(members){
-        this.activeMembers = members;
-    }
+    this.setActiveMembers = (members) => this.activeMembers = members;
 
-    this.setBalanceInfo = function(value){
-        this.balanceInfo = value;
-    }
+    this.setBalanceInfo = (value) => this.balanceInfo = value;
 
-    this.setMatchupMessage = function(message){
-        this.matchupMessage = message;
-    }
+    this.setMatchupMessage = (message) => this.matchupMessage = message;
+
+    this.setServerId = (value) => this.serverId = value;
+
+    this.getServerId = () => this.serverId;
 }
 
-exports.createGame = function(gameID, channelMessage){
+const createGame = function(gameID, channelMessage){
 	return new Game(gameID, channelMessage);
 }
 
 // Returns the game where the author is
-exports.getGame = function(author){
-    return activeGames.find(function(game){
-        return game.containsPlayer(author.id);
-    });
-    // console.log('@getGame', gameToReturn, author.id, (gameToReturn ? gameToReturn.containsPlayer(author.id) : '')) ;
-    // return gameToReturn;
+const getGame = (author) => {
+    return activeGames.find((game) => game.containsPlayer(author.id));
 }
 
-exports.hasActiveGames = function(){
-    if(activeGames.length === 0){
-        return false;
+const hasActiveGames = () => activeGames.length !== 0;
+
+// Finds the game with the mapMessage reacted to or null
+const getGameMapMessages = (messageReaction) => {
+    return activeGames.find((game) => {
+        return game.getMapMessages().some((mapMsg) => messageReaction.message.id === mapMsg.id);
+    });
+}
+
+// Deletes the gameobject, returns the list afterwards
+const deleteGame = (gameObject) => {
+    // console.log('DEBUG @deleteGame BEFORE', activeGames);
+    const index = activeGames.indexOf(gameObject);
+    if (index > -1) {
+        activeGames.splice(index, 1);
+    } else {
+        console.error('Failed to delete gameObject', gameObject);
     }
-    return true;
+    // console.log('DEBUG @deleteGame AFTER', activeGames);
+    return activeGames;
 }
 
-exports.getGameMapMessages = function(messageReaction){
-    return activeGames.find(function(game){
-        return game.getMapMessages().some(function(mapMsg){
-            return messageReaction.message.id === mapMsg.id
-        });
-    });
+const clearIntervals = (gameObject) => {
+    if (gameObject) {
+        // console.log('DEBUG @clearIntervals:', gameObject.getIntervalPassive(), gameObject.getIntervalActive());
+        clearInterval(gameObject.getIntervalPassive());
+        clearInterval(gameObject.getIntervalActive());
+    } else {
+        console.error('@clearIntervals ERROR gameObject not defined', gameObject);
+    }
 }
 
-exports.deleteGame = function(gameObject){
-    activeGames.splice(gameObject, 1)
+// Used to delete messages if game ended
+// Takes GameObject to clean
+const cleanOnGameEnd = (gameObject) => {
+    console.log('@cleanOnGameEnd Init');
+	const mapMessages = gameObject.getMapMessages();
+	if(!f.isUndefined(mapMessages)){
+		for(var i = mapMessages.length - 1; i >= 0; i--){
+			f.deleteDiscMessage(mapMessages[i], 0, 'mapMessages['+i+']', function(msg){
+				var index = mapMessages.indexOf(msg);
+				if (index > -1) {
+					mapMessages.splice(index, 1);
+				}
+			});	
+		}
+	}
+	if(!f.isUndefined(gameObject.getMapStatusMessage())){
+		f.deleteDiscMessage(gameObject.getMapStatusMessage(), 0, 'mapStatusMessage');	
+	}
+	if(!f.isUndefined(gameObject.getVoteMessage())){
+		f.deleteDiscMessage(gameObject.getVoteMessage(), 0, 'voteMessage');
+	}
+	if(!f.isUndefined(gameObject.getTeamWonMessage())){
+		f.deleteDiscMessage(gameObject.getTeamWonMessage(), 0, 'teamWonMessage');
+	}
+	if(!f.isUndefined(gameObject.getMatchupServerMessage())){
+		//console.log('DEBUG getMatchupServerMessage cleanOnGameEnd', gameObject.getMatchupServerMessage().content);
+		f.deleteDiscMessage(gameObject.getMatchupServerMessage(), 0, 'matchupServerMsg');
+	}
+	if(!f.isUndefined(gameObject.getMatchupMessage())){
+		//console.log('DEBUG matchupMessage cleanOnGameEnd', gameObject.getMatchupMessage().content);
+		f.deleteDiscMessage(gameObject.getMatchupMessage(), 0, 'matchupMessage');
+	}
+    const gameName = gameObject.getBalanceInfo().game;
+    console.log('@cleanOnGameEnd GameName:', gameName);
+	if (gameName === 'cs' || gameName === 'cs1v1') {
+		cancelGameCSServer(gameObject);
+	}
+	// Clear csserver interval listeners
+	clearIntervals(gameObject);
+	// Remove game from ongoing games
+	deleteGame(gameObject);
+}
+
+
+module.exports = {
+    createGame : createGame,
+    getGame : getGame,
+    hasActiveGames : hasActiveGames,
+    getGameMapMessages : getGameMapMessages,
+    deleteGame : deleteGame,
+    cleanOnGameEnd : cleanOnGameEnd,
+    getActiveGames : getActiveGames,
+    clearIntervals : clearIntervals,
 }

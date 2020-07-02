@@ -3,10 +3,15 @@
 
 // Should handle general help functions
 const bot = require('../bot');
-var fs = require('fs');
+const fs = require('fs');
+const { assert } = require('console');
+
+const getDefaultRemoveTime = () => {
+	return 60000;
+}
 
 /*
-var nodeCleanup = require('node-cleanup');
+const nodeCleanup = require('node-cleanup');
 // TODO Cleanup on exit, can't control SIGINT (ctrl+c) Correctly, requires synchronous code
 nodeCleanup(function (exitCode, signal) {
     // release resources here before node exits
@@ -16,14 +21,14 @@ nodeCleanup(function (exitCode, signal) {
 
 // Returns boolean over if type of obj is undefined
 // Could add function isNotUndefined for readability, replace !isUndefined with isNotUndefined
-var isUndefined = function(obj){
+const isUndefined = function(obj){
 	return (typeof obj === 'undefined');
 }
 
 // Used to print message in channel, use for every use of channel.send for consistency
 // Returns promise for use in async functions
-var print = function(messageVar, message, callback = callbackPrintDefault){
-	console.log('> ' + message);
+const print = function(messageVar, message, callback = callbackPrintDefault){
+	console.log('> ' + (message.embed ? '(Embed)' + message.embed.title + '\t' + message.embed.description : message));
 	if (message.length >= 2000) {
 		let sent = false;
 		for(let i = 2000; i >= 0; i--) {
@@ -57,18 +62,21 @@ var print = function(messageVar, message, callback = callbackPrintDefault){
 	}
 }
 
-var listToDeleteFrom = new Map();
+const listToDeleteFrom = new Map();
+const deleteIntervals = [];
 
-var deleteDiscMessage = function(messageVar, time = bot.getRemoveTime(), messageName = 'defaultName', callback = function(msg) {}){
+const deleteDiscMessage = (messageVar, time = getDefaultRemoveTime(), messageName = 'defaultName', callback = (msg) => {}) => {
 	// Alt. (Somehow) Compare freshest time, delete other timeout
 	//console.log('DEBUG @delete1 for ' + messageName + ', addDelete(' + time + ') = ' + (!listToDeleteFrom.has(messageName) && !isUndefined(messageVar) && messageVar.content !== ''), listToDeleteFrom.has(messageName));
-	messageName = messageName + '.id='+messageVar.id;
-	if(!listToDeleteFrom.has(messageName) && !isUndefined(messageVar) && messageVar.content !== ''){
-		if(!messageVar.content.includes('<removed>')){ // TODO: If repeated attempts are made to delete same thing, reflect if <removed> should be added
+	messageName = messageName + '.id=' + messageVar.id;
+	if(!listToDeleteFrom.has(messageName) && !isUndefined(messageVar) && (messageVar.content !== '' || messageVar.embeds.length > 0)) {
+		if(!messageVar.content.includes('<removed>')) { // TODO: If repeated attempts are made to delete same thing, reflect if <removed> should be added
 			listToDeleteFrom.set(messageName, messageVar);	
+		} else {
+			console.error('DEBUG Multiple Removal:', messageName);
 		}
 	}
-	setTimeout(function(){
+	deleteIntervals.push(setTimeout(() => {
 		console.log('----- @Delete Message --- for ' + messageName + ':', listToDeleteFrom.has(messageName), time);
 		if(listToDeleteFrom.has(messageName)){ // Makes sure it isn't already deleted
 			console.log('DEBUG @f.deleteDiscMessage', messageName, listToDeleteFrom.has(messageName));
@@ -81,15 +89,16 @@ var deleteDiscMessage = function(messageVar, time = bot.getRemoveTime(), message
 				callback(messageVar);	// Call callback anyway, even if print isn't made
 			});
 		}
-	}, time);
+	}, time));
 }
 
 // Used on exit, should delete all messages that are awaiting deletion instantly
-var onExitDelete = function(){
-	console.log('DEBUG @onExitDelete: Deleting all messages awaiting deletion');
-	var mapIter = listToDeleteFrom.values();
-	for(var i = 0; i < listToDeleteFrom.size; i++){
-		var ele = mapIter.next().value;
+const onExitDelete = function(){
+	console.log('DEBUG @onExitDelete: --- EXITING --- Deleting all messages awaiting deletion');
+	const mapIter = listToDeleteFrom.values();
+	deleteIntervals.map((interval) => clearInterval(interval));
+	for(let i = 0; i < listToDeleteFrom.size; i++){
+		const ele = mapIter.next().value;
 		//console.log(ele.content);
 		ele.delete()	
 		.catch(err => console.log('@onExitDelete' + err));
@@ -100,8 +109,8 @@ function callbackPrintDefault(message){
 	deleteDiscMessage(message);
 }
 
-var writeToFile = function(filePath, contentToWrite, messageOnSuccess){
-	fs.writeFile(filePath, contentToWrite, function(err) {
+const writeToFile = (filePath, contentToWrite, messageOnSuccess) => {
+	fs.writeFile(filePath, contentToWrite, (err) => {
 	    if(err) {
 	        return console.log(err);
 	    }
@@ -109,7 +118,7 @@ var writeToFile = function(filePath, contentToWrite, messageOnSuccess){
 	}); 
 }
 
-var readFromFile = function(filePath, messageRead, callback, callbackError){
+const readFromFile = function(filePath, messageRead, callback, callbackError){
 	fs.readFile(filePath, 'utf8', function (err,data) {
 		if (err || isUndefined(data)) {
 			console.log(err);
@@ -122,28 +131,28 @@ var readFromFile = function(filePath, messageRead, callback, callbackError){
 }
 
 // Takes an Array of Players and returns an Array of GuildMembers with same ids
- var teamToGuildMember = function(team, activeMembers) {
-	var teamMembers = new Array;
+const teamToGuildMember = (team, activeMembers) => {
+	const teamMembers = [];
 	if(isUndefined(activeMembers)){
 		console.log('Error: activeMembers not initialized in @teamToGuildMember (Test case = ok)'); // Since it is assumed to always be initialized, throw error otherwise
-	}else{
-		team.forEach(function(player){
-			var guildMember = activeMembers.find(function(guildMember){
-				return player.uid === guildMember.id;
-			});
+	} else {
+		team.forEach((player) => {
+			const guildMember = activeMembers.find(guildMember => player.uid === guildMember.id);
 			if(!isUndefined(guildMember)){
 				teamMembers.push(guildMember);
 			}
 		});		
 	}
+	console.log('@teamToGuildMember SIZE', teamMembers.length, activeMembers.length);
+	if (teamMembers.length !== activeMembers.length) console.log('DEBUG teamToGuildMember ERROR different size')
 	return teamMembers;
 }
 
 // Idea put on hold - hard to detect character width
 // gets longestName length
-var getLongestNameLength = function(activePlayers){
-	var longestName = -1;
-	activePlayers.forEach(function(oneData){
+const getLongestNameLength = (activePlayers) => {
+	let longestName = -1;
+	activePlayers.forEach((oneData) => {
 		if(oneData.userName.length > longestName){
 			longestName = oneData.userName.length;
 		}
@@ -161,19 +170,19 @@ var getLongestNameLength = function(activePlayers){
 	s2 = '\t'
 */
 // TODO Print``
-var getTabsForName = function(nameLength, longestName){
+const getTabsForName = function(nameLength, longestName){
 	console.log('DEBUG: @getTabsForName', longestName, nameLength);
-	var discTabSize = 4;
-	var diff = longestName - nameLength;
-	var s = '';
+	let discTabSize = 4;
+	let diff = longestName - nameLength;
+	let s = '';
 	/*
-	for(var i = 0; i < diff; i++){
+	for(let i = 0; i < diff; i++){
 		s += ' ';
 	}*/
-	for(var i = 0; i < (diff % discTabSize); i++){
+	for(let i = 0; i < (diff % discTabSize); i++){
 		s += '  ';
 	}
-	for(var i = 0; i < diff; i += discTabSize){
+	for(let i = 0; i < diff; i += discTabSize){
 		s += '\t';
 	}
 	return s;
@@ -189,5 +198,6 @@ module.exports = {
 	getLongestNameLength : getLongestNameLength,
 	getTabsForName : getTabsForName,
 	writeToFile : writeToFile,
-	readFromFile : readFromFile
+	readFromFile : readFromFile,
+	getDefaultRemoveTime : getDefaultRemoveTime,
 }

@@ -14,6 +14,9 @@ const createUser = db_sequelize.__get__('createUser');
 const createRatingForUser = db_sequelize.__get__('createRatingForUser');
 const DatabaseSequelize = db_sequelize.__get__('DatabaseSequelize');
 const removeUser = db_sequelize.__get__('removeUser');
+const createMatch = db_sequelize.__get__('createMatch');
+const bestTeammates = db_sequelize.__get__('bestTeammates');
+const addMissingUsers = db_sequelize.__get__('addMissingUsers');
 
 const test_username = 'Test';
 const test_id = '1';
@@ -22,11 +25,15 @@ const test_mmr = 2500;
 
 describe('db_sequelize', () => {
   let databaseConnection;
+  // TODO: Move player dependent tests into one describe
   before(async () => {
     databaseConnection = await initializeDBSequelize(getConfig().db);
     DatabaseSequelize.instance = databaseConnection;
     assert.ok(databaseConnection.Users);
     assert.ok(databaseConnection.Ratings);
+    for(let i = 1; i <= 4; i++) {
+      const res = await removeUser(test_id + i);
+    }
   }),
   describe('getInstance', () => {
     it('getInstance', async () => {
@@ -41,24 +48,62 @@ describe('db_sequelize', () => {
       assert.equal(res.length, 5);
     })
   }),
+  describe('addMissingUsers', () => {
+    it('addMissingUsers', async () => {
+      const players = [
+        createPlayer('Test1', '6'),
+        createPlayer('Test2', '7'),
+      ]
+      const res = await addMissingUsers(players, [], test_game, () => console.log('Test Callback'));
+    })
+  }),
   describe('createUser', () => {
     it('createUser', async () => {
       const players = [
-        createPlayer('Test1', '1')
+        createPlayer('Test1', '1'),
+        createPlayer('Test2', '2'),
+        createPlayer('Test3', '3'),
+        createPlayer('Test4', '4')
       ]
       const res = await getUsers(players);
       res.forEach((entry) => console.log('getUsers ' + entry.dataValues.userName + ' ' + entry.dataValues[test_game]));
       if (res.length === 0) {
-        const res = await createUser(test_id, test_username, test_mmr);
-        console.log('createUser', res);
+        for(let i = 0; i < players.length; i++) {
+          const res = await createUser((i+1) + '', test_username + i, test_mmr);
+          console.log('createUser', res.dataValues);
+        }
         const res2 = await getUsers(players);
         res2.forEach((entry) => console.log('getUsers ' + entry.dataValues.userName + ' ' + entry.dataValues[test_game]));
-        assert.equal(res2.length, 1);
+        assert.equal(res2.length, 4);
       } else if (res.length === 1) {
         assert.equal(res[0].dataValues.userName, 'Test');
         assert.equal(res[0].dataValues[test_game], test_mmr);
       }
     })
+  })
+  describe('createMatch', () => {
+    it('createMatch', async () => {
+      // TODO: Save players in database for foreign key constraint to work
+      const players = [
+        createPlayer('Test1', '1'),
+        createPlayer('Test2', '2'),
+        createPlayer('Test3', '3'),
+        createPlayer('Test4', '4')
+      ];
+      const game = test_game;
+      const team1Name = 'team 1 name';
+      const team2Name = 'team 2 name';
+      const balanceInfo = {
+        game: game,
+        team1Name: team1Name,
+        team2Name: team2Name,
+        team1: players.slice(0, 2),
+        team2: players.slice(2)
+      }
+      const result = 1;
+      const matchResult = await createMatch(result, balanceInfo) 
+      console.log(matchResult);
+    });
   })
   describe('createRatingForUser', () => {
     it('createRatingForUser', async () => {
@@ -80,8 +125,15 @@ describe('db_sequelize', () => {
       assert.equal(res.length, 0);
     })
   })
+  describe('bestTeammates', () => {
+    it('bestTeammates', async () => {
+      const res = await bestTeammates(test_id, test_game);
+    })
+  })
   after(async () => {
-    const res = await removeUser(test_id);
-    assert.ok(res);
+    for(let i = 1; i <= 4; i++) {
+      const res = await removeUser(test_id + i);
+      assert.ok(res);
+    }
   })
 });

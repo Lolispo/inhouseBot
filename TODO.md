@@ -9,31 +9,119 @@ Add integration tests for main functionalities
 
 # Error message
 
+FIX BUG: New players added foreign key constraint
+    Fixed?
+
 (node:6580) DeprecationWarning: Collection#find: pass a function instead
+
+-server also gives link to press connect
+
+store stats
+
+Check Debug
+    Keeps reading after result (-getResult)
+    NOT WORKING
+    uniteChannels();
+    clearIntervals(gameObject);
+
+Not sorted correctly (ARvid should be at the top)
+5 Tiny Stealth Assassins:
+| Name        | Kills | Deaths | Assists | ADR | HS% | Ent. T | Ent. CT | Trades | 5k | 4k | 3k | 2k | Plants | Defuses
+| Knas        | 9     | 18     | 2       | 69  | 33% | 4/1    | 1/0     | 1      | -  | -  | -  | 1  | -      | -       
+| Lacktjo     | 3     | 17     | 3       | 41  |NaN%| 0/2    | 0/1     | 1      | -  | -  | -  | -  | 2      | -       
+| Livaitan    | 2     | 17     | -       | 13  |NaN%| 1/3    | 0/1     | 1      | -  | -  | -  | -  | -      | -       
+| Rudolf And. | 2     | 17     | -       | 11  |NaN%| 0/2    | 0/0     | 1      | -  | -  | -  | -  | -      | -       
+| Bambi på h. | 19    | 16     | 3       | 107 | 53% | 6/7    | 2/1     | 1      | 1  | -  | 1  | 4  | -      | -      
+
+Star mark things in stats
+
+ HS% | Ent. T | Ent. CT | Trades | 5k | 4k | 3k | 2k | Plants | Defuses
+| Ahoy!       | 7     | 20     | 2       | 31  |NaN%
+
+Store stats results in table
+    Fix matchid
+    Store match results first, get matchid use for cs stats storage
+
+getResult - Prevent being able to use during a game (fucks the game up)
+    If game is not done (game unfinished) dont run endgame commands etc
+
+Bug: Petter not counted in discord - didn't work for split/unite etc
+    < MSG (Kosa Tupp.kanal_general) Petter: -cancel
+    > Invalid command: User <@96941150824329216> not currently in a game
+    (Shows Von Dobbeln) when Petter was writer
+    Allow for admin command in discord to get all initialized players, seems to be faulty initialized
+
+Not able to send DM error handling:
+    @configureServer.filePath: cfg/kosatupp_inhouse_coordinator_match-gen.cfg
+(node:15012) UnhandledPromiseRejectionWarning: DiscordAPIError: Cannot send messages to this user
+    at item.request.gen.end (C:\Users\Petter\Documents\GitHub\inhouseBot\node_modules\discord.js\src\client\rest\RequestHandlers\Sequential.js:85:15)
+    at then (C:\Users\Petter\Documents\GitHub\inhouseBot\node_modules\snekfetch\src\index.js:215:21)
+    at <anonymous>
+    at process._tickCallback (internal/process/next_tick.js:188:7)
+(node:15012) UnhandledPromiseRejectionWarning: Unhandled promise rejection. This error originated either by throwing inside of an async function without a catch block, or by rejecting a promise which was not handled with .catch(). (rejection id: 2)
+(node:15012) [DEP0018] DeprecationWarning: Unhandled promise rejections are deprecated. In the future, promise rejections that are not handled will terminate the Node.js process with a non-zero exit code.
+
+CHECK: STEAM_1:1:6530834> Paraflaxet = DOESNT EXIST AUTHOR
+
+Fix double mmr 
+    DB_sequelize rollback functionality
 
 ## Prio
 
-Steam account integration
+Rollback fix
 
-    -connectsteam - save in column on user
+Fix default mmr for trivia
+CATKNIFE:     2500 rating
+Groovy:     2500 rating
+Knas:     2500 rating
+PARaflaXet:     2500 rating
 
-discord embed messages - access and links embedded
+Save highest lowest mmr per play (edit rating table)
+
+Player 0 -> 10 remove stats
+    Command removed
+    cs Leaderboard requires games > 0
+
+Fetch Winner (check console when game ends to see who won)
+    Syntax of message
+    Trigger Unite
+    Trigger fetch CFG File
+    (Trigger score change? -> Should be done after score file)
+
+randoma om namn om över ett visst antal chars: Morgans Stealth Assasins e för långt
+
+P4G name only when 5
+
+Design of team names change (Change color if possible)
+
+Stäng av read console tills testad
+
+emailSign.belongsTo(models.user_number, {
+     foreignKey: 'user_number_id',
+     onDelete: 'CASCADE'
+});
 
 ## CS Integration
 
-POST /api/0.1/game-servers/{server_id}/files/{path}
-POST - upload path
-{
-    path: ./<>.cfg
-}
+Stream
+    newMessages aren't entered - debug
 
-POST /api/0.1/game-servers/{server_id}/console
-{
-    get5_loadmatch <file>
-}
-POST - load a match config file
+-gen file to .gitignore
 
-MySQL - (Anton access)
+"
+hm, har en idé för att minska lite på mängden api spam. Man lär ju egentligen bara vilja skicka meddelanden till discord mellan matcher. Typ för att starta en ny. Det finns ett kommando som heter get5_status som kan berätta om en match är loaded eller inte. Man skulle kunna skicka det typ varje minut och om ingen match är loaded och det är >3 spelare på servern så börjar den polla för att se om nån skriver i chatten. Kasnke till och med skickar en "say" när den börjar lyssna
+bonus är att man kan använda det så att den vet när den ska kolla databasen för att se matchresultatet
+den kommer fortfarande att tugga väldigt mycket lines när den väl är aktiv, men då sitter den iaf inte konstant och läser en massa useless shit
+"
+
+MySQL - (Anton access) - initialized
+    check format and initialize connection - Not saving any data
+
+
+"You can also set get5_mysql_force_matchid to 1 to make get5 ignore the matchid in match configs, and instead set it based on the id assigned when the plugin inserts into get5_stats_matches" so if u want matchid 100 get5_mysql_force_matchid should be set to 0 and matchid should be set to 100.
+tror våran är satt till 1
+
+Make sure to not allow updating server if discord game is ongoing on cs
 
 ### eslint add
 
@@ -43,6 +131,8 @@ MySQL - (Anton access)
     Test - sometimes captain not able to vote?
 
     Add all cs maps emojis to git repo
+
+    Fix: Unhandled promise rejection if message is removed when you try to add reaction (fast interaction with mapveto)
 
 Fix datarace when multiple people upvote - lock
 
@@ -56,13 +146,15 @@ Store only message id instead of entire messages
 
 ## Features:
 
-Stats for all games (not only chosen game)
-
 ### Cancel game after 24 h duration, to not have active games clog up for users
 
 ### Rollback latest games functionality
 
 ### Unite all exploit dodge
+
+### Match history
+
+# More
     
     Before uniting all players, should save their current voiceChannel
         Then, possible to unUniteAll to revert exploit 

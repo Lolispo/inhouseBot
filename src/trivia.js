@@ -189,7 +189,7 @@ function startQuestion(){
 	if(questionIndex >= lastQuestionIndex){
 		setTimeout(function(){
 			if(!f.isUndefined(finishMessage)){
-				f.deleteDiscMessage(finishMessage, bot.getRemoveTime(), 'finishMessage');
+				f.deleteDiscMessage(finishMessage, f.getDefaultRemoveTime(), 'finishMessage');
 			}
 			var resultString = '';
 			if(activePlayers.length > 0){
@@ -503,7 +503,7 @@ function finishedQuestion(){
 	if(!f.isUndefined(allMessages)){
 		for(var i = allMessages.length - 1; i >= 0; i--){
 			f.deleteDiscMessage(allMessages[i], 0, 'allMessages['+i+']', function(msg){
-				var index = allMessages.indexOf(msg);
+				const index = allMessages.indexOf(msg);
 				if (index > -1) {
 					allMessages.splice(index, 1);
 				}

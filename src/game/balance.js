@@ -2,8 +2,11 @@
 // Author: Petter Andersson
 
 const bot = require('../bot');
-const game_js = require('./game');
+const f = require('../tools/f');
 const { getTeamName } = require('../teamNames');
+const { configureServer } = require('../csserver/cs_server');
+const { getCsIp, getCsUrl } = require('../csserver/server_info');
+const { checkMissingSteamIds, notifyPlayersMissingSteamId } = require('../steamid');
 
 /*
 	Handles getting the most balanced team matchup for the given 10 players
@@ -15,13 +18,47 @@ const { getTeamName } = require('../teamNames');
 */
 
 // @param players should contain Array of initialized Players of people playing
-exports.balanceTeams = function(players, game, gameObject){
+exports.balanceTeams = (players, game, gameObject) => {
 	// Generate team combs, all possibilities of the 10 players
-	var teamCombs = generateTeamCombs(players);
-	var result = findBestTeamComb(players, teamCombs, game);
+	const teamCombs = generateTeamCombs(players);
+	const result = findBestTeamComb(players, teamCombs, game);
 
 	// Return string to message to clients
-	buildReturnString(result, gameObject, callbackBalanceInfo); // callbackBalanceInfo = method 
+	let message;
+	let balanceInfo;
+	
+	try {
+		const object = buildReturnStringEmbed(result, gameObject);
+		message = object.message;
+		console.log(message);
+		balanceInfo = object.balanceInfo;
+		gameObject.setBalanceInfo(balanceInfo);
+	} catch (e) {
+		console.error('Embed failed', e);
+		const object = buildReturnString(result);
+		message = object.message;
+		balanceInfo = object.balanceInfo;
+		gameObject.setBalanceInfo(balanceInfo);
+	}
+
+	bot.printMessage(message, gameObject.getChannelMessage(), (message) => {
+		gameObject.setMatchupServerMessage(message);
+	});
+
+	// TODO: Only if no other active games using server
+	if (game === 'cs' || game === 'cs1v1') {
+		const playersMissingSteamIds = checkMissingSteamIds(players);
+		// console.log('Check missing steam ids:', players, players.map(player => player.steamid).join(", "), playersMissingSteamIds.map(player => player.steamid).join(", "));
+		if (playersMissingSteamIds.length > 0) {
+			// People are missing steamids
+			notifyPlayersMissingSteamId(playersMissingSteamIds);
+			const playersString = playersMissingSteamIds.map((player) => player.userName).join(', ');
+			bot.printMessage('Note: Missing SteamIds for: ' + playersString, gameObject.getChannelMessage(), (messageParam) => {
+				f.deleteDiscMessage(messageParam, 120000, 'missingSteamIds');
+			});
+		}
+		configureServer(gameObject);
+	}
 }
 
 // Generates the combinations for different team sizes
@@ -173,8 +210,75 @@ const roundValue = (num) => {
 	return parseFloat(num).toFixed(2)
 }
 
+const buildReturnStringEmbed = (obj) => {
+	let title = '**New Game!** Playing **' + obj.game + '**. ';
+	if(obj.team1.length === 1){ // No average for 2 player matchup
+		title += 'MMR diff: ' + obj.difference + ' mmr';
+	} else {
+		title += 'MMR Avg diff: ' + roundValue(obj.avgDiff) + ' mmr (Total: ' + obj.difference + ' mmr)';	
+	}
+	
+	let s = '';
+	let gif;
+	let fields = [];
+	//console.log('@buildReturnString', obj)
+	
+	const team1Name = getTeamName(obj.team1, obj.game) || 'Team 1';
+	const team2Name = getTeamName(obj.team2, obj.game) || 'Team 2';
+	obj.team1Name = team1Name;
+	obj.team2Name = team2Name;
+	const teamCT = (obj.game === 'cs' ? '**(CT)**' : '');
+	const teamT = (obj.game === 'cs' ? '**(T)**' : '');
+	// s +=
+	let name = `**${team1Name}** ${teamCT}\t(Avg: ${roundValue(obj.avgT1)} mmr): `;
+	let value = `*${obj.team1[0].userName} (${obj.team1[0].getMMR(obj.game)})*`;
+	for(var i = 1; i < obj.team1.length; i++){
+		value += `,\t*${obj.team1[i].userName} (${obj.team1[i].getMMR(obj.game)})*`;
+	}
+	// value += '*';
+	fields.push({ name, value });
+	// s += '*\n';
+	name = `**${team2Name}** ${teamT}\t(Avg: ${roundValue(obj.avgT2)} mmr): `; 
+	value = `*${obj.team2[0].userName} (${obj.team2[0].getMMR(obj.game)})*`;
+	for(var i = 1; i < obj.team2.length; i++){
+		value += `,\t*${obj.team2[i].userName} (${obj.team2[i].getMMR(obj.game)})*`;
+	}
+	// value += '*';
+	fields.push({ name, value });
+	// s += '*\n\n';
+	const isCs = obj.game === 'cs' || obj.game === 'cs1v1';
+	if (isCs) {
+		//s += '*Connect:* \n';
+		s += `Link: ${getCsUrl()}`; // TODO: Embedded links or something [Named Link](<link>) (Steam link no work)
+		s += '\n**' + getCsIp() + '**';
+	}
+	else if(obj.game === 'dota' || obj.game === 'dota1v1') {
+		const gifLink = 'res/dotaConnect.gif';
+		gif = [{
+			attachment: gifLink,
+			name: 'DotaConnect.gif'
+		}]
+		s  += 'Lobby Name: Dank\nPassword: 123';
+	}
+	const messageEmbedded = {
+		// content: title,
+		content: '',
+		// TODO: Check embeds instead of embed
+		embed: {
+			title: title,
+			...(isCs ? { description: s } : { footer: { text: s }}),
+			fields: fields,
+			color: 0x251ac1,
+			...(gif && { image: { url: "attachment://" + gif[0].name } }), 
+		},
+		...(gif && { files: gif }),
+	}
+
+	return { message: messageEmbedded, balanceInfo: obj };
+}
+
 // Build a string to return to print as message
-function buildReturnString(obj, gameObject, callback){ // TODO: Print``
+const buildReturnString = (obj) => { // TODO: Print``
 	let s = '';
 	//console.log('@buildReturnString', obj)
 	s += '**New Game!** Playing **' + obj.game + '**. ';
@@ -201,29 +305,10 @@ function buildReturnString(obj, gameObject, callback){ // TODO: Print``
 	}
 	s += '*\n\n';
 	if (obj.game === 'cs' || obj.game === 'cs1v1') {
-		s += '*Connect:* \n**' + bot.getCsIp() + '**';
+		s += '*Connect:* \n**' + getCsIp() + '**';
 	}
 	else if(obj.game === 'dota' || obj.game === 'dota1v1') {
-		// s += '*Password: 123*\n[Instruction](https://gyazo.com/668d091b3d3eed728bd09865542acf06)';
-		// const gif = '../res/dotaConnect.mp4';
-		/*
-		// Lacking discord permissions
-		s = {
-			content: 'Content: ' + s,
-			embed: {
-				title: 'Instruction',
-				image: {
-					url: 'https://gyazo.com/668d091b3d3eed728bd09865542acf06'
-				}
-			}
-		}*/
+		// TODO Embed
 	}
-	callback(gameObject, s, obj); // Should send the message back to the bot
-}
-
-function callbackBalanceInfo(gameObject, message, obj){	
-	gameObject.setBalanceInfo(obj);
-	bot.printMessage(message, gameObject.getChannelMessage(), function(message){
-		gameObject.setMatchupServerMessage(message);
-	});
+	return { message: s, balanceInfo: obj };
 }
