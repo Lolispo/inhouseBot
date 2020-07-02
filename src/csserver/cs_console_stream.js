@@ -145,8 +145,10 @@ const readConsoleSayLines = async (serverId, gameObject) => {
         if (player) {
           // Override channelMessage from
           const messageObject = gameObject.getFreshMessage();
-          messageObject.author.id = player.uid;
-          messageObject.author.userName = player.userName;
+          // Point author to other existing user instead of changing user
+          // messageObject.author.id = player.uid;
+          // messageObject.author.username = player.userName;
+          messageObject.author = messageObject.guild.members.find((user) => user.id === player.uid);
           messageObject.content = spokenWord;
           bot.handleMessageExported(messageObject);
         } else {

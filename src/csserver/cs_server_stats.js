@@ -50,6 +50,26 @@ const tableTitleArray = [
   'Defuses',
 ];
 
+const dataFields = [
+  'Name',
+  'Kills',
+  'Deaths',
+  'Assists',
+  'ADR',
+  'HS%',
+  'Ent. T +',
+  'Ent. T -',
+  'Ent. CT +',
+  'Ent. CT -',
+  'Trades',
+  '5k',
+  '4k',
+  '3k',
+  '2k',
+  'Plants',
+  'Defuses',
+];
+
 const tableTitlesToString = () => {
   return tableTitleArray.join('\t') + '\n';
 }
@@ -86,6 +106,60 @@ const shortenName = (name, maxsize = 10) => {
   return name;
 }
 
+let highestScoreObject = {};
+
+const setHighestScore = (array, arrayIndex) => {
+  array.forEach((value, index) => {
+    if (highestScore[index] && highestScore[index].value) {
+      // Compare to highestScore
+      if (index === 2) { // Deaths compare to lowest
+        if (value < highestScore[index].value) {
+          highestScore[index].value = value;
+          highestScore[index].index = arrayIndex;
+        } else if (value === highestScoreObject[index].value) {
+          highestScoreObject.index = [].concat(highestScoreObject[index].index, arrayIndex);
+        }
+      } else { // Highest best
+        if (value > highestScore[index].value) {
+          highestScore[index].value = value;
+          highestScore[index].index = arrayIndex;
+        } else if (value === highestScoreObject[index].value) {
+          highestScoreObject.index = [].concat(highestScoreObject[index].index, arrayIndex);
+        }
+      }
+    } else { // First value
+      highestScore[index].value = value;
+      highestScore[index].index = arrayIndex;
+    }
+  });
+}
+
+// Marks best values in table with bold
+const hightlightHighestValues = (playerArrays, highestScore) => {
+  const amountOfDataFields = dataFields.length; // TODO Amount of data fields
+  for (let i = 0; i < amountOfDataFields; i++) {
+    // Checks highestScore index
+    if (highestScore[i] && highestScore[i].index && highestScore[i].value !== '-') {      
+      const index = highestScore[i].index
+      playerArrays[index][i] = '**' + playerArrays[index][i] + '**';
+    }
+  }
+}
+
+const adjustStrings = (array) => {
+  const indexT = 7;
+  const indexCT = 9;
+  const entryTDeaths = array[indexT];
+  const entryCTDeaths = array[indexCT];
+  const tempMap = array.filter((_, index) => index != indexT || index != indexCT);
+  return array.map((value, index) => {
+    if (index === 4) return value + '';
+    if (index === 5) return value + '%';
+    if (index === 6) return value + '/' + entryTDeaths;
+    if (index === 7) return value + '/' + entryCTDeaths;
+    return value;
+  });
+}
 
 const buildMapStatsMessage = (mapTeam) => {
   let s = '';
@@ -95,13 +169,18 @@ const buildMapStatsMessage = (mapTeam) => {
       let playerArray = [];
       let player = mapTeam[key];
       if (key === 'score') continue;
+
+      // Get stats values for player
+
       const { name, kills, deaths, assists } = player;
-      const adr = Math.floor(player.damage / player.roundsplayed) + ''; // + ' DPR';
-      const hsPerc = Math.floor(((parseInt(player.headshot_kills) || 0) / kills).toFixed(2) * 100) + '%';
+      const adr = Math.floor(player.damage / player.roundsplayed); // + ' DPR';
+      const hsPerc = Math.floor(((parseInt(player.headshot_kills) || 0) / kills).toFixed(2) * 100);
       const { firstkill_t, firstdeath_t } = player;
-      const entriesT = (parseInt(firstkill_t) || 0) + '/' + ((parseInt(firstdeath_t) || 0)); // (parseInt(firstkill_t) || 0) + 
+      const entriesT = (parseInt(firstkill_t) || 0);
+      const failedEntriesT = (parseInt(firstdeath_t) || 0);
       const { firstkill_ct, firstdeath_ct } = player;
-      const entriesCT = (parseInt(firstkill_ct) || 0) + '/' + ((parseInt(firstdeath_ct) || 0)); // (parseInt(firstkill_ct) || 0) + 
+      const entriesCT = (parseInt(firstkill_ct) || 0);
+      const failedEntriesCT = (parseInt(firstdeath_ct) || 0);
       const kill5_rounds = player['5kill_rounds'] || '-';
       const kill4_rounds = player['4kill_rounds'] || '-';
       const kill3_rounds = player['3kill_rounds'] || '-';
@@ -114,7 +193,9 @@ const buildMapStatsMessage = (mapTeam) => {
       playerArray.push(adr);
       playerArray.push(hsPerc);
       playerArray.push(entriesT);
+      playerArray.push(failedEntriesT);
       playerArray.push(entriesCT);
+      playerArray.push(failedEntriesCT);
       playerArray.push(player.tradekill || '-');
       playerArray.push(kill5_rounds);
       playerArray.push(kill4_rounds);
@@ -123,15 +204,17 @@ const buildMapStatsMessage = (mapTeam) => {
       playerArray.push(player.bomb_plants || '-');
       playerArray.push(player.bomb_defuses || '-');
 
-/*
-|      |       |        |         |     |     |           |            |        |    |    |    |    |             |              |
-+------+-------+--------+---------+-----+-----+-----------+------------+--------+----+----+----+----+-------------+--------------+
-*/
+      setHighestScore(playerArray);
+
       playerArrays.push(playerArray);
-      // s += playerArray.join('\t');
     }
   }
-  const sortedArrays = playerArrays.sort((a, b) => a[1] < b[1]);
+
+  // Set bolded for highest values
+  hightlightHighestValues(playerArrays, highestScoreObject);
+  const fixedPlayerArray = adjustStrings(playerArrays);
+
+  const sortedArrays = fixedPlayerArray.sort((a, b) => a[1] < b[1]);
   for(let i = 0; i < sortedArrays.length; i++) {
     // TODO: Create table instead
     // s += sortedArrays[i].join('\t');

@@ -24,6 +24,9 @@ Check Debug
     uniteChannels();
     clearIntervals(gameObject);
 
+bold highest in each column
+KDA instead of writing out     
+
 Not sorted correctly (ARvid should be at the top)
 5 Tiny Stealth Assassins:
 | Name        | Kills | Deaths | Assists | ADR | HS% | Ent. T | Ent. CT | Trades | 5k | 4k | 3k | 2k | Plants | Defuses
