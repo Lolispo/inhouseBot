@@ -34,21 +34,18 @@ const genSpaces = (num) => {
 
 const tableTitleArray = [
   'Name       ',
-  'Kills',
-  'Deaths',
-  'Assists',
+  ' K  D  A ', //  37/23/23
   'ADR',
   'HS%',
-  'Ent. T',
-  'Ent. CT',
-  'Trades',
+  'Et.T', // Entry 🏃
+  'Et.CT',
+  'Tr.', // Trades ⇄
   '5k',
   '4k',
   '3k',
   '2k',
-  'Plants',
-  'Defuses',
-];
+  'Bomb', // Plants Defuses
+]; // 13
 
 const dataFields = [
   'Name',
@@ -68,19 +65,19 @@ const dataFields = [
   '2k',
   'Plants',
   'Defuses',
-];
+]; // 17
 
 const tableTitlesToString = () => {
   return tableTitleArray.join('\t') + '\n';
 }
 
 const tableTitles = () => {
-  return '| ' + tableTitleArray.join(' | ') + '\n';
+  return '| ' + tableTitleArray.join(' | ') + ' |\n';
 }
 
 // pad column to fit in table design
 const padColumn = (index, value='-') => {
-  // console.log('@padColumn', index, value);
+  console.log('@padColumn', index, value);
   const columnTitle = tableTitleArray[index];
   const titleLength = columnTitle.length;
   const valueLength = value.length;
@@ -94,7 +91,7 @@ const padColumn = (index, value='-') => {
     if (valueLength < titleLength + 2) {
       return value;
     } else {
-      return value.substring(0, titleLength);
+      return (value + '').substring(0, titleLength);
     }
   }
 }
@@ -110,26 +107,32 @@ let highestScoreObject = {};
 
 const setHighestScore = (array, arrayIndex) => {
   array.forEach((value, index) => {
-    if (highestScore[index] && highestScore[index].value) {
-      // Compare to highestScore
+    if (highestScoreObject[index] && highestScoreObject[index].value) {
+      // Compare to highestScoreObject
+      if (index === 0) {} // No comparison (name)
       if (index === 2) { // Deaths compare to lowest
-        if (value < highestScore[index].value) {
-          highestScore[index].value = value;
-          highestScore[index].index = arrayIndex;
+        if (value < highestScoreObject[index].value) {
+          highestScoreObject[index].value = value;
+          highestScoreObject[index].index = arrayIndex;
         } else if (value === highestScoreObject[index].value) {
           highestScoreObject.index = [].concat(highestScoreObject[index].index, arrayIndex);
         }
       } else { // Highest best
-        if (value > highestScore[index].value) {
-          highestScore[index].value = value;
-          highestScore[index].index = arrayIndex;
+        if (value > highestScoreObject[index].value) {
+          console.log('New highest!', value, tableTitleArray[index], arrayIndex);
+          highestScoreObject[index].value = value;
+          highestScoreObject[index].index = arrayIndex;
         } else if (value === highestScoreObject[index].value) {
           highestScoreObject.index = [].concat(highestScoreObject[index].index, arrayIndex);
         }
       }
-    } else { // First value
-      highestScore[index].value = value;
-      highestScore[index].index = arrayIndex;
+    } else if(value && value !== '-'){ // First value
+      if (index !== 0) {
+        highestScoreObject[index] = {
+          value: value,
+          index: arrayIndex,
+        }
+      } // No comparison (name)
     }
   });
 }
@@ -141,29 +144,49 @@ const hightlightHighestValues = (playerArrays, highestScore) => {
     // Checks highestScore index
     if (highestScore[i] && highestScore[i].index && highestScore[i].value !== '-') {      
       const index = highestScore[i].index
-      playerArrays[index][i] = '**' + playerArrays[index][i] + '**';
+      // playerArrays[index][i] = '**' + playerArrays[index][i] + '**';
+      // playerArrays[index][i] = '⭐' + playerArrays[index][i];
     }
   }
 }
 
-const adjustStrings = (array) => {
+const padTo2 = (value) => {
+  return value.length === 1 ? ' ' + value : value;
+}
+
+const adjustStrings = (arrayOfArrays) => {
+  const deathsIndex = 2;
+  const assistsIndex = 3;
   const indexT = 7;
   const indexCT = 9;
-  const entryTDeaths = array[indexT];
-  const entryCTDeaths = array[indexCT];
-  const tempMap = array.filter((_, index) => index != indexT || index != indexCT);
-  return array.map((value, index) => {
-    if (index === 4) return value + '';
-    if (index === 5) return value + '%';
-    if (index === 6) return value + '/' + entryTDeaths;
-    if (index === 7) return value + '/' + entryCTDeaths;
-    return value;
+  const defusesIndex = 16;
+  return arrayOfArrays.map(array => {
+    console.log('@adjustedStrings Start', array.length, array);
+    const deaths = array[deathsIndex];
+    const assists = array[assistsIndex];
+    const entryTDeaths = array[indexT];
+    const entryCTDeaths = array[indexCT];
+    const defuses = array[defusesIndex];
+    const tempArray = array.filter((_, index) => !(index === indexT || index === indexCT || index === deathsIndex || index === assistsIndex || index === defusesIndex) );
+    // Expected order: name, KDA, ADR, etc
+    const adjustedArray = tempArray.map((value, index) => {
+      if (index === 1) return padTo2(value) + '/' + padTo2(deaths) + '/' + padTo2(assists); 
+      if (index === 2) return value + '';
+      if (index === 3) return value + '%';
+      if (index === 4) return value + '/' + entryTDeaths;
+      if (index === 5) return value + '/' + entryCTDeaths;
+      if (index === 11) return value + '/' + defuses;
+      return value;
+    });
+    console.log('@adjustedStrings end', adjustedArray.length, adjustedArray);
+    return adjustedArray;
   });
 }
 
 const buildMapStatsMessage = (mapTeam) => {
   let s = '';
   let playerArrays = [];
+  let loopIndex = 0;
   for (let key in mapTeam) {
     if (mapTeam.hasOwnProperty(key)) {
       let playerArray = [];
@@ -175,12 +198,11 @@ const buildMapStatsMessage = (mapTeam) => {
       const { name, kills, deaths, assists } = player;
       const adr = Math.floor(player.damage / player.roundsplayed); // + ' DPR';
       const hsPerc = Math.floor(((parseInt(player.headshot_kills) || 0) / kills).toFixed(2) * 100);
-      const { firstkill_t, firstdeath_t } = player;
-      const entriesT = (parseInt(firstkill_t) || 0);
-      const failedEntriesT = (parseInt(firstdeath_t) || 0);
-      const { firstkill_ct, firstdeath_ct } = player;
-      const entriesCT = (parseInt(firstkill_ct) || 0);
-      const failedEntriesCT = (parseInt(firstdeath_ct) || 0);
+      const { firstkill_t, firstdeath_t, firstkill_ct, firstdeath_ct } = player;
+      const entriesT = parseInt(firstkill_t) || 0;
+      const failedEntriesT = parseInt(firstdeath_t) || 0;
+      const entriesCT = parseInt(firstkill_ct) || 0;
+      const failedEntriesCT = parseInt(firstdeath_ct) || 0;
       const kill5_rounds = player['5kill_rounds'] || '-';
       const kill4_rounds = player['4kill_rounds'] || '-';
       const kill3_rounds = player['3kill_rounds'] || '-';
@@ -204,9 +226,10 @@ const buildMapStatsMessage = (mapTeam) => {
       playerArray.push(player.bomb_plants || '-');
       playerArray.push(player.bomb_defuses || '-');
 
-      setHighestScore(playerArray);
+      setHighestScore(playerArray, loopIndex);
 
       playerArrays.push(playerArray);
+      loopIndex++;
     }
   }
 
@@ -214,13 +237,18 @@ const buildMapStatsMessage = (mapTeam) => {
   hightlightHighestValues(playerArrays, highestScoreObject);
   const fixedPlayerArray = adjustStrings(playerArrays);
 
-  const sortedArrays = fixedPlayerArray.sort((a, b) => a[1] < b[1]);
+  const sortedArrays = fixedPlayerArray.sort((a, b) => parseInt(a[1]) < parseInt(b[1]));
+  console.log('SIZES:', tableTitleArray.length, fixedPlayerArray.length, sortedArrays.length);
   for(let i = 0; i < sortedArrays.length; i++) {
-    // TODO: Create table instead
-    // s += sortedArrays[i].join('\t');
+    console.log('@loop last', tableTitleArray[i], sortedArrays[i]);
     s += '|';
-    s += sortedArrays[i].map((entry, index) => padColumn(index, entry)).join('|');
-    s += '\n';
+    let innerCounter = 0;
+    s += sortedArrays[i].map((entry, index) => {
+      console.log('@inner loop', index, innerCounter, entry)
+      innerCounter++;
+      return padColumn(index, entry);
+    }).join('|');
+    s += '|\n';
   }
   return s;
 }
@@ -247,7 +275,7 @@ const buildStatsMessage = (stats) => {
       s += buildMapStatsMessage(map.team2);
     }
   }
-  return '```' + s + '```';
+  return '```' + s + '```'; // TODO: Include some explanation after message in footer?
 }
 
 // Send stats message to discord in the correct channel

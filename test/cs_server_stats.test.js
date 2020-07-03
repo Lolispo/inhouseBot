@@ -217,7 +217,7 @@ describe('server_stats', function(){
               firstkill_ct: '7',
               kills: '43',
               headshot_kills: '18',
-              deaths: '24',
+              deaths: '2', // 24
               '3kill_rounds': '6',
               assists: '3',
               '2kill_rounds': '6',

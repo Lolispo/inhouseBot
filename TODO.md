@@ -9,6 +9,23 @@ Add integration tests for main functionalities
 
 # Error message
 
+STATS
+Store stats results in table
+    Fix matchid
+    Store match results first, get matchid use for cs stats storage
+Stats screen revamp size - decrease
+    Remove 5k, 4k etc if no entries are found for any player
+Include title of results and teams in table
+    |----------|:-------------:|------:|
+Highlight best performer
+    Problematic since ``` codeblock allows for same character sizes (tables) but no bold
+    Star mark things - Makes it hard in codeblock mode due to size of utf8 chars
+        Find Char with normal size
+        Should do this without ruining table size
+
+
+CHECK: STEAM_1:1:6530834> Paraflaxet = DOESNT EXIST AUTHOR
+
 FIX BUG: New players added foreign key constraint
     Fixed?
 
@@ -16,43 +33,18 @@ FIX BUG: New players added foreign key constraint
 
 -server also gives link to press connect
 
-store stats
-
-Check Debug
-    Keeps reading after result (-getResult)
-    NOT WORKING
-    uniteChannels();
-    clearIntervals(gameObject);
-
-bold highest in each column
-KDA instead of writing out     
-
-Not sorted correctly (ARvid should be at the top)
-5 Tiny Stealth Assassins:
-| Name        | Kills | Deaths | Assists | ADR | HS% | Ent. T | Ent. CT | Trades | 5k | 4k | 3k | 2k | Plants | Defuses
-| Knas        | 9     | 18     | 2       | 69  | 33% | 4/1    | 1/0     | 1      | -  | -  | -  | 1  | -      | -       
-| Lacktjo     | 3     | 17     | 3       | 41  |NaN%| 0/2    | 0/1     | 1      | -  | -  | -  | -  | 2      | -       
-| Livaitan    | 2     | 17     | -       | 13  |NaN%| 1/3    | 0/1     | 1      | -  | -  | -  | -  | -      | -       
-| Rudolf And. | 2     | 17     | -       | 11  |NaN%| 0/2    | 0/0     | 1      | -  | -  | -  | -  | -      | -       
-| Bambi på h. | 19    | 16     | 3       | 107 | 53% | 6/7    | 2/1     | 1      | 1  | -  | 1  | 4  | -      | -      
-
-Star mark things in stats
-
- HS% | Ent. T | Ent. CT | Trades | 5k | 4k | 3k | 2k | Plants | Defuses
-| Ahoy!       | 7     | 20     | 2       | 31  |NaN%
-
-Store stats results in table
-    Fix matchid
-    Store match results first, get matchid use for cs stats storage
-
 getResult - Prevent being able to use during a game (fucks the game up)
     If game is not done (game unfinished) dont run endgame commands etc
 
 Bug: Petter not counted in discord - didn't work for split/unite etc
+    Update: Check if this is fixed pointing to a player instead
+        When done, remove player print when game done
     < MSG (Kosa Tupp.kanal_general) Petter: -cancel
     > Invalid command: User <@96941150824329216> not currently in a game
     (Shows Von Dobbeln) when Petter was writer
     Allow for admin command in discord to get all initialized players, seems to be faulty initialized
+
+Support not playing on the csgo server option for cs games
 
 Not able to send DM error handling:
     @configureServer.filePath: cfg/kosatupp_inhouse_coordinator_match-gen.cfg
@@ -64,7 +56,6 @@ Not able to send DM error handling:
 (node:15012) UnhandledPromiseRejectionWarning: Unhandled promise rejection. This error originated either by throwing inside of an async function without a catch block, or by rejecting a promise which was not handled with .catch(). (rejection id: 2)
 (node:15012) [DEP0018] DeprecationWarning: Unhandled promise rejections are deprecated. In the future, promise rejections that are not handled will terminate the Node.js process with a non-zero exit code.
 
-CHECK: STEAM_1:1:6530834> Paraflaxet = DOESNT EXIST AUTHOR
 
 Fix double mmr 
     DB_sequelize rollback functionality
