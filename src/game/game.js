@@ -196,7 +196,7 @@ const cleanOnGameEnd = (gameObject) => {
 	}
     const gameName = gameObject.getBalanceInfo().game;
     console.log('@cleanOnGameEnd GameName:', gameName);
-	if (gameName === 'cs' || gameName === 'cs1v1') {
+	if (gameIsCS(gameName)) {
 		cancelGameCSServer(gameObject);
 	}
 	// Clear csserver interval listeners
@@ -205,6 +205,9 @@ const cleanOnGameEnd = (gameObject) => {
 	deleteGame(gameObject);
 }
 
+const gameIsCS = (gameName) => gameName === 'cs' || gameName === 'cs1v1';
+const gameIsCSMain = (gameName) => gameName === 'cs';
+const gameIsDota = (gameName) => gameName === 'dota' || gameName === 'dota1v1';
 
 module.exports = {
     createGame : createGame,
@@ -215,4 +218,7 @@ module.exports = {
     cleanOnGameEnd : cleanOnGameEnd,
     getActiveGames : getActiveGames,
     clearIntervals : clearIntervals,
+    gameIsCS : gameIsCS,
+    gameIsCSMain : gameIsCSMain,
+    gameIsDota : gameIsDota,
 }

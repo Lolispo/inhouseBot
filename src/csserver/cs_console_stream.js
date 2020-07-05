@@ -181,7 +181,7 @@ const findAuthorFromMessage = (message, gameObject) => {
   console.log('@findAuthorFromMessage: SteamId:', steamid);
   const balanceInfo = gameObject.getBalanceInfo();
   const players = balanceInfo.team1.concat(balanceInfo.team2);
-  const player = players.find((player) => player.steamId === steamid);
+  const player = players.find((player) => player.getSteamId() === steamid);
   if (player) {
     // Valid player provided message
     return player;    

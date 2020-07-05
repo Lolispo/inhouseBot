@@ -5,6 +5,7 @@ const vdf = require('simple-vdf');
 const f = require("../tools/f");
 const mmr_js = require('../game/mmr');
 const { cleanOnGameEnd } = require('../game/game');
+const { convertIdFrom64 } = require("../steamid");
 
 const fetchStatsFile = async (serverId, matchId = '1') => {
 
@@ -45,6 +46,7 @@ const tableTitleArray = [
   '3k',
   '2k',
   'Bomb', // Plants Defuses
+  'FA',
 ]; // 13
 
 const dataFields = [
@@ -65,6 +67,7 @@ const dataFields = [
   '2k',
   'Plants',
   'Defuses',
+  'FA' // flashbang_assists
 ]; // 17
 
 const tableTitlesToString = () => {
@@ -77,7 +80,7 @@ const tableTitles = () => {
 
 // pad column to fit in table design
 const padColumn = (index, value='-') => {
-  console.log('@padColumn', index, value);
+  // console.log('@padColumn', index, value);
   const columnTitle = tableTitleArray[index];
   const titleLength = columnTitle.length;
   const valueLength = value.length;
@@ -119,7 +122,7 @@ const setHighestScore = (array, arrayIndex) => {
         }
       } else { // Highest best
         if (value > highestScoreObject[index].value) {
-          console.log('New highest!', value, tableTitleArray[index], arrayIndex);
+          console.log('New highest!', value, dataFields[index], arrayIndex);
           highestScoreObject[index].value = value;
           highestScoreObject[index].index = arrayIndex;
         } else if (value === highestScoreObject[index].value) {
@@ -138,6 +141,7 @@ const setHighestScore = (array, arrayIndex) => {
 }
 
 // Marks best values in table with bold
+// TODO: Fix styling in discord message
 const hightlightHighestValues = (playerArrays, highestScore) => {
   const amountOfDataFields = dataFields.length; // TODO Amount of data fields
   for (let i = 0; i < amountOfDataFields; i++) {
@@ -161,7 +165,7 @@ const adjustStrings = (arrayOfArrays) => {
   const indexCT = 9;
   const defusesIndex = 16;
   return arrayOfArrays.map(array => {
-    console.log('@adjustedStrings Start', array.length, array);
+    // console.log('@adjustedStrings Start', array.length, array);
     const deaths = array[deathsIndex];
     const assists = array[assistsIndex];
     const entryTDeaths = array[indexT];
@@ -209,9 +213,9 @@ const buildMapStatsMessage = (mapTeam) => {
       const kill2_rounds = player['2kill_rounds'] || '-';
 
       playerArray.push(shortenName(name));
-      playerArray.push(kills);
-      playerArray.push(deaths);
-      playerArray.push(assists);
+      playerArray.push(kills || '0');
+      playerArray.push(deaths || '0');
+      playerArray.push(assists || '0');
       playerArray.push(adr);
       playerArray.push(hsPerc);
       playerArray.push(entriesT);
@@ -225,6 +229,7 @@ const buildMapStatsMessage = (mapTeam) => {
       playerArray.push(kill2_rounds);
       playerArray.push(player.bomb_plants || '-');
       playerArray.push(player.bomb_defuses || '-');
+      playerArray.push(player.flashbang_assists || '-');
 
       setHighestScore(playerArray, loopIndex);
 
@@ -240,11 +245,11 @@ const buildMapStatsMessage = (mapTeam) => {
   const sortedArrays = fixedPlayerArray.sort((a, b) => parseInt(a[1]) < parseInt(b[1]));
   console.log('SIZES:', tableTitleArray.length, fixedPlayerArray.length, sortedArrays.length);
   for(let i = 0; i < sortedArrays.length; i++) {
-    console.log('@loop last', tableTitleArray[i], sortedArrays[i]);
+    // console.log('@loop last', tableTitleArray[i], sortedArrays[i]);
     s += '|';
     let innerCounter = 0;
     s += sortedArrays[i].map((entry, index) => {
-      console.log('@inner loop', index, innerCounter, entry)
+      // console.log('@inner loop', index, innerCounter, entry)
       innerCounter++;
       return padColumn(index, entry);
     }).join('|');
@@ -305,17 +310,101 @@ const samePlayersInTeams = (gameObject, stats) => {
   return team1Name === serverTeam1Name && team2Name === serverTeam2Name;
 }
 
+const remapTeam = (players, mapTeam) => {
+  let obj = {};
+  console.log('@remapTeam Debug players:', players);
+  for (let key in mapTeam) {
+    if (mapTeam.hasOwnProperty(key)) {
+      let player = mapTeam[key];
+      console.log('Debug player', player);
+      if (key === 'score' || key === 'v1' || key === 'v2') continue;
+      const { convertedId, altConvertedId } = convertIdFrom64(key);
+      let playerDisc = players.find(player => {
+        return player.getSteamId() === convertedId || player.getSteamId() === altConvertedId;
+      });
+      if (playerDisc) {
+        /*
+ { roundsplayed: '20',
+        name: 'Petter',
+        damage: '2769',
+        tradekill: '3',
+        kills: 26,
+        headshot_kills: '11',
+        '2kill_rounds': '7',
+        deaths: 7,
+        firstkill_ct: '3',
+        firstdeath_ct: '1',
+        assists: 3,
+        '1kill_rounds': '9',
+        '3kill_rounds': '1',
+        firstkill_t: '3',
+        uid: '1' }
+        */
+        // Successfully found player
+        obj[playerDisc.uid] = {
+          // ...player,
+          uid: playerDisc.uid,
+          name: player.name,
+          roundsplayed: parseInt(player.roundsplayed || 0),
+          kills: parseInt(player.kills || 0),
+          deaths: parseInt(player.deaths || 0),
+          assists: parseInt(player.assists || 0),
+          damage: parseInt(player.damage || 0),
+          headshot_kills: parseInt(player.headshot_kills || 0),
+          '1kill_rounds': parseInt(player['1kill_rounds'] || 0),
+          '2kill_rounds': parseInt(player['2kill_rounds'] || 0),
+          '3kill_rounds': parseInt(player['3kill_rounds'] || 0),
+          '4kill_rounds': parseInt(player['4kill_rounds'] || 0),
+          '5kill_rounds': parseInt(player['5kill_rounds'] || 0),
+          tradekill: parseInt(player.tradekill || 0),
+          firstkill_ct: parseInt(player.firstkill_ct || 0),
+          firstdeath_ct: parseInt(player.firstdeath_ct || 0),
+          firstkill_t: parseInt(player.tradekill || 0),
+          firstdeath_t: parseInt(player.tradekill || 0),
+          bomb_plants: parseInt(player.bomb_plants || 0),
+          bomb_defuses: parseInt(player.bomb_defuses || 0),
+          flashbang_assists: parseInt(player.flashbang_assists || 0),
+        };
+      } else {
+        console.error('ERROR: Unable to find entry for player:', key, convertedId, altConvertedId);
+      }
+    }
+  }
+  return obj;
+}
+
+// Update mapping from Steam64ID to DiscordId
+const playerMapSteamIdStats = (gameObject, stats) => {
+  let obj;
+  for (let i = 0; i < 1; i++) { // Should only be 1 map for now
+    let tempMap = {};
+    const map = stats['map' + i];
+    if (map) {
+      const t1 = map.team1;
+      const t2 = map.team2;
+      const team1Players = gameObject.getBalanceInfo().team1;
+      const team2Players = gameObject.getBalanceInfo().team2;
+      tempMap.team1 = remapTeam(team1Players, t1);
+      tempMap.team2 = remapTeam(team2Players, t2);
+      obj = tempMap; // ['map' + i]
+    }
+  }
+  // Update Mapping from Steam2ID -> Players To Steam64Id Players
+  return obj;
+}
+
 const setResults = (gameObject, stats) => {
   const winnerTeam = stats.map0.winner;
   const winner = winnerTeam === 'team1' ? 1 : (winnerTeam === 'team2' ? 2 : '');
   // console.log('@setResults DEBUG:', winnerTeam, '"' + winner + '"');
+  const playerMappedStats = playerMapSteamIdStats(gameObject, stats);
   if (winner !== '' && samePlayersInTeams(gameObject, stats)) {
     console.log('@getGameStatsDiscord Winning team:', winnerTeam);
     mmr_js.updateMMR(winner, gameObject, (message) => {
       console.log('DEBUG @callbackGameFinished - Calls on exit after delete on this message');
       f.deleteDiscMessage(message, f.getDefaultRemoveTime() * 4, 'gameFinished');
       cleanOnGameEnd(gameObject);
-    });
+    }, playerMappedStats);
   } else {
     console.log('Missing Winner - Incomplete Results', winner, samePlayersInTeams(gameObject, stats));
   }
