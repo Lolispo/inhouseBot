@@ -14,7 +14,8 @@ const validateSteamID = (msgContent) => {
 
 const storeSteamId = async (uid, message) => {
   const msgContent = message.content;
-	console.log('DEBUG Storing SteamID ' + msgContent + ' for user with ID', uid);
+  console.log('DEBUG Storing SteamID ' + msgContent + ' for user with ID', uid);
+  // TODO: Utilize SteamId npm lib to store all in same format
   const res = await storeSteamIdDb(uid, msgContent);
   console.log('Store SteamID result:', res); // undefined - res.dataValues);
   message.author.send("Successfully set your SteamID to: " + msgContent)
