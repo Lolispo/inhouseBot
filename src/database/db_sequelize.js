@@ -50,7 +50,9 @@ class DatabaseSequelize {
 			userName: Sequelize.STRING,
 			mmr: Sequelize.INTEGER,
 			gamesPlayed: Sequelize.INTEGER,
-			wins: Sequelize.INTEGER
+			wins: Sequelize.INTEGER,
+			// highestRating: 
+			// lowestRating: 
 		}, {
 			associate: (models) => {
 				models.Users.hasMany(this.Ratings, { onDelete: 'cascade' });

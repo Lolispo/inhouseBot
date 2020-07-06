@@ -3,6 +3,7 @@ const bot = require("../bot");
 const { writeConsole, getLatestConsoleLines } = require("./cs_console");
 const { getGameStats } = require('./cs_server_stats');
 const { clearIntervals } = require("../game/game");
+const { findPlayerWithGivenSteamId } = require("../steamid");
 
 /*
 hm, har en idé för att minska lite på mängden api spam. Man lär ju egentligen bara vilja skicka meddelanden till discord mellan matcher. 
@@ -177,11 +178,11 @@ const findAuthorFromMessage = (message, gameObject) => {
   let tempString = message.substring(message.indexOf('<STEAM'));
   let steamid = tempString.substring(1, tempString.indexOf('>'));
 
-  // TODO: Reference existing loading players to find correct one
+  // Reference existing loading players to find correct one
   console.log('@findAuthorFromMessage: SteamId:', steamid);
   const balanceInfo = gameObject.getBalanceInfo();
   const players = balanceInfo.team1.concat(balanceInfo.team2);
-  const player = players.find((player) => player.getSteamId() === steamid);
+  const player = findPlayerWithGivenSteamId(players, steamid);
   if (player) {
     // Valid player provided message
     return player;    

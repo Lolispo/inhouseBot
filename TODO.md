@@ -10,9 +10,6 @@ Add integration tests for main functionalities
 # Error message
 
 STATS
-Store stats results in table
-    Fix matchid
-    Store match results first, get matchid use for cs stats storage
 Stats screen revamp size - decrease
     Remove 5k, 4k etc if no entries are found for any player
 Include title of results and teams in table
@@ -23,8 +20,11 @@ Highlight best performer
         Find Char with normal size
         Should do this without ruining table size
 
-
-CHECK: STEAM_1:1:6530834> Paraflaxet = DOESNT EXIST AUTHOR
+Verify:
+    CHECK: STEAM_1:1:6530834> Paraflaxet = DOESNT EXIST AUTHOR
+    Petter not counted in discord - didn't work for split/unite etc
+        Update: Check if this is fixed pointing to a player instead
+        When done, remove player print when game done
 
 FIX BUG: New players added foreign key constraint
     Fixed?
@@ -36,13 +36,6 @@ FIX BUG: New players added foreign key constraint
 getResult - Prevent being able to use during a game (fucks the game up)
     If game is not done (game unfinished) dont run endgame commands etc
 
-Bug: Petter not counted in discord - didn't work for split/unite etc
-    Update: Check if this is fixed pointing to a player instead
-        When done, remove player print when game done
-    < MSG (Kosa Tupp.kanal_general) Petter: -cancel
-    > Invalid command: User <@96941150824329216> not currently in a game
-    (Shows Von Dobbeln) when Petter was writer
-    Allow for admin command in discord to get all initialized players, seems to be faulty initialized
 
 Support not playing on the csgo server option for cs games
 
