@@ -359,8 +359,8 @@ const remapTeam = (players, mapTeam) => {
           tradekill: parseInt(player.tradekill || 0),
           firstkill_ct: parseInt(player.firstkill_ct || 0),
           firstdeath_ct: parseInt(player.firstdeath_ct || 0),
-          firstkill_t: parseInt(player.tradekill || 0),
-          firstdeath_t: parseInt(player.tradekill || 0),
+          firstkill_t: parseInt(player.firstkill_t || 0),
+          firstdeath_t: parseInt(player.firstdeath_t || 0),
           bomb_plants: parseInt(player.bomb_plants || 0),
           bomb_defuses: parseInt(player.bomb_defuses || 0),
           flashbang_assists: parseInt(player.flashbang_assists || 0),
@@ -419,6 +419,37 @@ const getGameStatsDiscord = (gameObject, stats) => {
     // Visualize stats in discord message
     sendStatsDiscord(gameObject, discordMessage);
   }
+}
+
+const getCsStats = (uid) => {
+  /*
+    SELECT name, ROUND(GROUP_CONCAT(headshot_kills / kills), 2), AVG(5kill_rounds), AVG(4kill_rounds), ROUND(AVG(3kill_rounds)), 
+    ROUND(AVG(2kill_rounds)), ROUND(AVG(1kill_rounds)), AVG(kills), AVG(deaths), AVG(assists), ROUND(AVG(damage)), AVG(flashbang_assists), 
+    GROUP_CONCAT(mid) FROM CSPlayerStats WHERE name IN ("Petter", "Weeb as Fuck", "Lacktjo", "Ahoy!") GROUP BY name ORDER BY kills DESC;
+
+    SELECT name, 
+    ROUND(AVG(kills), 2) AS Kills, ROUND(AVG(deaths), 2) AS Deaths, ROUND(AVG(assists), 2) AS Assists, 
+    ROUND(GROUP_CONCAT(headshot_kills / kills), 2) AS HS, 
+    AVG(ROUND(damage / roundsplayed)) AS ADR, 
+    SUM(flashbang_assists) AS FA, 
+    ROUND(AVG(IFNULL(firstkill_t, 0)), 2) AS TKills, 
+    ROUND(AVG(IFNULL(firstdeath_t, 0)), 2) AS TDeaths, 
+    ROUND(AVG(IFNULL(firstkill_ct, 0)), 2) AS CTKills, 
+    ROUND(AVG(IFNULL(firstdeath_ct, 0)), 2) AS CTDeaths, 
+    SUM(5kill_rounds) AS 5k, SUM(4kill_rounds) AS 4k, SUM(3kill_rounds) AS 3k, 
+    ROUND(AVG(tradekill), 2) AS Trades, 
+    ROUND(AVG(bomb_plants), 1) AS Plants, ROUND(AVG(bomb_defuses), 1) AS Defuses, 
+    GROUP_CONCAT(mid) AS MatchID
+    FROM CSPlayerStats 
+    GROUP BY uid ORDER BY kills DESC;
+    
+    SUM(2kill_rounds) AS 2k, 
+    ROUND(AVG(1kill_rounds)) AS 1k, 
+    AVG(IFNULL(firstkill_t, 0) / (IFNULL(firstkill_t, 0) + IFNULL(firstdeath_t, 0))) AS T, 
+    AVG(firstkill_ct / (firstkill_ct + firstdeath_ct)) AS CT, 
+    WHERE name IN ("Petter", "Weeb as Fuck", "Lacktjo", "Ahoy!") 
+    WHERE uid in (?)
+    */
 }
 
 const getGameStats = async (serverId, gameObject) => {

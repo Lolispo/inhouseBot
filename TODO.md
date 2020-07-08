@@ -9,6 +9,11 @@ Add integration tests for main functionalities
 
 # Error message
 
+Store stats for game results (same table as map?)
+
+Add +mmr to leaderboard results?
+    Low prio
+
 STATS
 Stats screen revamp size - decrease
     Remove 5k, 4k etc if no entries are found for any player
