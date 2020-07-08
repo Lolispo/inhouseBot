@@ -398,8 +398,12 @@ const setResults = (gameObject, stats) => {
   const winner = winnerTeam === 'team1' ? 1 : (winnerTeam === 'team2' ? 2 : '');
   // console.log('@setResults DEBUG:', winnerTeam, '"' + winner + '"');
   const playerMappedStats = playerMapSteamIdStats(gameObject, stats);
+  if (!gameObject.chosenMap) {
+    gameObject.chosenMap = stats.map0.mapname;
+  }
+  gameObject.scoreString = stats.map0.team1.score + '-' + stats.map0.team2.score;
   if (winner !== '' && samePlayersInTeams(gameObject, stats)) {
-    console.log('@getGameStatsDiscord Winning team:', winnerTeam);
+    console.log('@getGameStatsDiscord Winning team:', winnerTeam, gameObject.scoreString, gameObject.chosenMap);
     mmr_js.updateMMR(winner, gameObject, (message) => {
       console.log('DEBUG @callbackGameFinished - Calls on exit after delete on this message');
       f.deleteDiscMessage(message, f.getDefaultRemoveTime() * 4, 'gameFinished');

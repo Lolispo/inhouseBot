@@ -20,7 +20,7 @@ exports.updateMMR = (winner, gameObject, callbackUpdate, stats) => { // winner =
 	db_sequelize.createMatch(winner, balanceInfo, {
 		t1: mmrChange.t1,
 		t2: mmrChange.t2
-	}, gameObject.chosenMap, stats);
+	}, gameObject.chosenMap, gameObject.scoreString, stats);
 	buildMMRUpdateString(winner, callbackResult, balanceInfo, callbackUpdate, gameObject);
 }
 

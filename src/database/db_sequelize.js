@@ -70,6 +70,7 @@ class DatabaseSequelize {
 			team1Name: Sequelize.STRING,
 			team2Name: Sequelize.STRING,
 			mapName: Sequelize.STRING,
+			score: Sequelize.STRING,
 		});
 	
 		this.PlayerMatches = this.sequelize.define('playerMatches', {
@@ -473,7 +474,7 @@ const storePlayerResults = async (team, teamIndex, mmrChange, mid, stats) => {
 
 // Used to createMatch
 // Note: Requires players in database
-const createMatch = async (result, balanceInfo, mmrChange, map, stats) => {
+const createMatch = async (result, balanceInfo, mmrChange, map, scoreString, stats) => {
 	// TODO: Use stats data
 	//  - get cs stats and save them
 	//  - match id get
@@ -488,9 +489,10 @@ const createMatch = async (result, balanceInfo, mmrChange, map, stats) => {
 		result: result,
 		team1Name: team1Name,
 		team2Name: team2Name,
-		...(map && { mapName: map })
+		...(map && { mapName: map }),
+		...(scoreString && { score: scoreString })
 	})
-	console.log('Res:', resultDB);
+	console.log('Res:', map, scoreString, resultDB);
 	const mid = resultDB.dataValues.mid;
 	await storePlayerResults(team1, 1, mmrChange.t1, mid, stats);
 	await storePlayerResults(team2, 2, mmrChange.t2, mid, stats);
