@@ -1,6 +1,4 @@
 # TODO:
-## Need to check all functionality, since so much is changed, refactored and untested!
-
 ## Tests
 
 Add unit tests for all files
@@ -8,6 +6,14 @@ Add unit tests for all files
 Add integration tests for main functionalities
 
 # Error message
+
+Re-add dathost integraton
+    Move server_info.js to env variables
+    Add more documentation on where to fetch env variables
+
+Investigate unable to hear each other when split / uniting channels
+    editGuildMember seems to have a limit of 10 - investigate if side effect of this limit is that you are connected to the channel 
+     in a weird way. Further investigation needed
 
 FIX BUG: New players added foreign key constraint
     Fixed?
@@ -68,7 +74,14 @@ Fix double mmr
 
 ## Prio
 
+Merge "improve-stats" branch
+
 Rollback fix
+
+Look into: Serverless MySQL on AWS instead of hosted (cost reduction?)
+
+Season reset script (Half amount of database score)
+    BONUS: Fetch Summary of season to summarize for users
 
 Fix default mmr for trivia
 CATKNIFE:     2500 rating
@@ -126,6 +139,9 @@ Make sure to not allow updating server if discord game is ongoing on cs
 ### eslint add
 
 ### Mapveto
+
+    Dathost: Add change map level as option ingame config
+
     give option to choose if more than default 8 (abbey, subzero, anubis)
 
     Test - sometimes captain not able to vote?
@@ -213,6 +229,8 @@ Store only message id instead of entire messages
 ### Support unite to channels with names over one word
         Easier with commands change, take all arguments after first as one, for this one
 ## Bigger but Core Features:
+### Csgostats integration
+        Allow users to provide match id and upload that request to csgostats and then return URL to csgostats
 ### Challenge / Duel: Challenge someone to 1v1
         Duel: Should be same as balance for 2 people in call
             Queue: Solo "Queue" so anyone can accept, creates game between user that accepts and person queuing
