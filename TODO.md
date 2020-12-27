@@ -106,6 +106,8 @@ emailSign.belongsTo(models.user_number, {
      onDelete: 'CASCADE'
 });
 
+Winston logger
+
 ## CS Integration
 
 Stream
