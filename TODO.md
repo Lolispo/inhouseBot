@@ -9,10 +9,27 @@ Add integration tests for main functionalities
 
 # Error message
 
+Hej undefined
+
+UTF8 Encoding
+    ALTER TABLE (table name) CONVERT TO CHARACTER SET UTF8
+
+Set up scheduled backup of data to S3 https://stackoverflow.com/questions/39362083/export-mysql-dump-from-aws-rds-via-aws-command-line
+
+Verify:
+    CHECK: STEAM_1:1:6530834> Paraflaxet = DOESNT EXIST AUTHOR
+    Petter not counted in discord - didn't work for split/unite etc
+        Update: Check if this is fixed pointing to a player instead
+        When done, remove player print when game done
+
 Store stats for game results (same table as map?)
 
 Add +mmr to leaderboard results?
     Low prio
+
+rank overall (rank 1 highest mmr, 5 fifth highest)
+
+Allow mmr for any game (if Admin)
 
 STATS
 Stats screen revamp size - decrease
@@ -25,11 +42,9 @@ Highlight best performer
         Find Char with normal size
         Should do this without ruining table size
 
-Verify:
-    CHECK: STEAM_1:1:6530834> Paraflaxet = DOESNT EXIST AUTHOR
-    Petter not counted in discord - didn't work for split/unite etc
-        Update: Check if this is fixed pointing to a player instead
-        When done, remove player print when game done
+Fix async await
+https://discordjs.guide/additional-info/async-await.html#how-do-promises-work
+
 
 FIX BUG: New players added foreign key constraint
     Fixed?
