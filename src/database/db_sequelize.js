@@ -361,6 +361,22 @@ const updateDbMMR = async (uid, newMmr, game, won) => {
 	}
 }
 
+const truncateRating = async (uid, newMmr, game) => {
+	const rating = await DatabaseSequelize.instance.Ratings.findOne({
+		where: {
+			uid,
+			gameName: game
+		}
+	});
+	if (rating) {
+		const result = await rating.update({
+				mmr: newMmr
+			}
+		)
+		return result;
+	}
+}
+
 // Create user and ratings entry in transaction
 const createUserWithGame = async (uid, userName, defaultMMR, game) => {
 	let transaction;    
@@ -635,4 +651,5 @@ module.exports = {
 	createMatch : createMatch,
 	storeSteamIdDb : storeSteamIdDb,
 	rollbackMatch : rollbackMatch,
+	truncateRating : truncateRating,
 }

@@ -2,9 +2,28 @@
 
 [![License](https://img.shields.io/github/license/mashape/apistatus.svg)](https://opensource.org/licenses/MIT)
 
-#### A discord bot made in NodeJS that handles a inhouse system with rating for each individual user. 
+## Discord bot made to host inhouse games
+
+#### The discord bot is in NodeJS and handles a inhouse system with rating for each individual user. 
+#### Supports any game of your choice
+Bots Purpose
+
+* Balance Teams
+* Adjust rating based on performance
+* Easy discord and game interaction, giving commands to move voice channels etc
+* Full list of commands is given below
 
 #### Supports sizes of 2v2, 3v3, 4v4 and 5v5
+
+## New: Counter Strike Integration
+
+The bot is able to be easily configured to be setup together with a dathost hosted ebot server, which allows you to fetch in-game performance directly into the bot database, as well as fetching the result of the match.
+
+## Bonus feature: Includes a Trivia game which is to be played in a discord channel
+* Questions are fetched from an external API
+* Feature contains ability to provide hints, a scoreboard as well as over 20 different trivia topics
+
+## 
 
 ## Available commands
 
