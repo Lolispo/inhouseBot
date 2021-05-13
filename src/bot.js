@@ -633,7 +633,11 @@ function balanceCommand(message){
 				testBalanceGeneric(allModes[0], gameObject);
 			} */
 			else{
-				f.print(message, 'Currently support games <= ' + maxPlayers + ' players', callbackInvalidCommand);
+				const amountVoiceChannel = voiceChannel.members.size;
+				const stringAmountConnected = amountVoiceChannel !== numPlayers ? 
+				`Loaded amount differ from connected in voice channel: ${amountVoiceChannel} in channel vs ${numPlayers} loaded` : 
+				`Not supported: ${numPlayers}`;
+				f.print(message, `Invalid amount of players in voicechannel: ${stringAmountConnected}`, callbackInvalidCommand);
 				game_js.deleteGame(gameObject);
 			}
 		} else {
@@ -652,7 +656,6 @@ function balanceCommand(message){
 // Initialize players array from given voice channel
 // activeGame set to true => for phases where you should prevent others from overwriting (not trivia)
 function findPlayersStart(message, channel, gameObject){
-	console.log('VoiceChannel', channel.name, ' (id =',channel.id,') active users: (Total: ', channel.members.size ,')');
 	var players = [];
 	var members = Array.from(channel.members.values());
 	members.forEach(function(member){
@@ -666,6 +669,7 @@ function findPlayersStart(message, channel, gameObject){
 		gameObject.setActiveMembers(members); // TODO Game
 		//activeMembers = members;
 	}
+	console.log(`VoiceChannel ${channel.name} (id = ${channel.id}) active users: (Total: ${channel.members.size}) ${players.length}`);
 	return players;
 }
 
