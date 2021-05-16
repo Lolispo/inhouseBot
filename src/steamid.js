@@ -1,6 +1,7 @@
 const f = require('./tools/f');	
 const { getUser, storeSteamIdDb } = require('./database/db_sequelize');
 const { getClientReference } = require('./client');
+const SteamID = require('steamid');
 
 // Return boolean if valid steam id format or not
 const validateSteamID = (msgContent) => {
@@ -13,13 +14,27 @@ const validateSteamID = (msgContent) => {
 
 const storeSteamId = async (uid, message) => {
   const msgContent = message.content;
-	console.log('DEBUG Storing SteamID ' + msgContent + ' for user with ID', uid);
+  console.log('DEBUG Storing SteamID ' + msgContent + ' for user with ID', uid);
+  // TODO: Utilize SteamId npm lib to store all in same format
   const res = await storeSteamIdDb(uid, msgContent);
   console.log('Store SteamID result:', res); // undefined - res.dataValues);
   message.author.send("Successfully set your SteamID to: " + msgContent)
   .then(result => {
 		f.deleteDiscMessage(result, 20000);
 	});
+}
+
+const convertIdFrom64 = (key) => {
+  const sid = new SteamID(key);
+  const convertedId = sid.getSteam2RenderedID(true);
+  const altConvertedId = sid.getSteam2RenderedID();
+  return { convertedId, altConvertedId };
+}
+
+const findPlayerWithGivenSteamId = (players, steamid) => {
+  const sid = new SteamID(steamid);
+  return players.find((player) => player.getSteamId() === sid.getSteam2RenderedID(true)) 
+    || player.getSteamId() === sid.getSteam2RenderedID();
 }
 
 const enterSteamIdString = "Enter your SteamID (format: STEAM\_1:0:XXXXXXXX)\nLink: https://steamid.io/"; // https://steamidfinder.com/
@@ -49,7 +64,7 @@ const sendSteamId = async (message) => {
 
 // Returns users with missing steamids
 const checkMissingSteamIds = (players) => {
-  return players.filter((player) => !player.steamId);
+  return players.filter((player) => !player.getSteamId());
 }
 
 const notifyPlayersMissingSteamId = async (players) => {
@@ -70,5 +85,7 @@ module.exports = {
   connectSteamEntry : connectSteamEntry,
   sendSteamId : sendSteamId,
   checkMissingSteamIds : checkMissingSteamIds,
-  notifyPlayersMissingSteamId : notifyPlayersMissingSteamId
+  notifyPlayersMissingSteamId : notifyPlayersMissingSteamId,
+  convertIdFrom64 : convertIdFrom64,
+  findPlayerWithGivenSteamId : findPlayerWithGivenSteamId,
 }

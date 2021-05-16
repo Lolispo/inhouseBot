@@ -85,12 +85,12 @@ const uploadFile = async (serverId, filePath, localPath) => {
   }, 'Upload File');
 }
 
-const generateTeamPlayersBody = (team, players) => {
+const generateTeamPlayersBody = (players) => {
   let s = '';
-  console.log('@generateTeamPlayersBody:', players.map((player) => player.steamId).join(', '));
+  console.log('@generateTeamPlayersBody:', players.map((player) => player.getSteamId()).join(', '));
   players.map((player, index) => {
-    if (!player.steamId) return null;
-    s += `"${player.steamId}" \t""\n`
+    if (!player.getSteamId()) return null;
+    s += `"${player.getSteamId()}" \t""\n`
   });
   return s;
 }
@@ -124,8 +124,8 @@ const configureServer = async (gameObject) => {
   gameObject.setServerId(serverId);
   gameObject.setMatchId(matchId);
   assert(gameObject.getServerId(), serverId);
-  const team1Players = generateTeamPlayersBody(1, gameObject.getBalanceInfo().team1);
-  const team2Players = generateTeamPlayersBody(2, gameObject.getBalanceInfo().team2);
+  const team1Players = generateTeamPlayersBody(gameObject.getBalanceInfo().team1);
+  const team2Players = generateTeamPlayersBody(gameObject.getBalanceInfo().team2);
   const mapVetoChosenMap = gameObject.chosenMap;
   const { chosenMap, skipVeto } = getChosenMap(mapVetoChosenMap);
   const predictionTeam1 = getPredictionTeam1(gameObject.getBalanceInfo());

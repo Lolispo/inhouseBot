@@ -93,4 +93,4 @@ Make a [Pull Request](https://github.com/Lolispo/inhouseBot/pulls) for a new iss
 Current TODO:s for the projects are listed in the files, main TODO section is in bot.js
 
 
-
+## Node version Recommended: 14 LTS (discord.js requirement)

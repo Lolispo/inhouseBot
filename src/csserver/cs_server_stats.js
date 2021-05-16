@@ -5,6 +5,7 @@ const vdf = require('simple-vdf');
 const f = require("../tools/f");
 const mmr_js = require('../game/mmr');
 const { cleanOnGameEnd } = require('../game/game');
+const { convertIdFrom64 } = require("../steamid");
 
 const fetchStatsFile = async (serverId, matchId = '1') => {
 
@@ -34,13 +35,31 @@ const genSpaces = (num) => {
 
 const tableTitleArray = [
   'Name       ',
+  ' K  D  A ', //  37/23/23
+  'ADR',
+  'HS%',
+  'Et.T', // Entry 🏃
+  'Et.CT',
+  'Tr.', // Trades ⇄
+  '5k',
+  '4k',
+  '3k',
+  '2k',
+  'Bomb', // Plants Defuses
+  'FA',
+]; // 13
+
+const dataFields = [
+  'Name',
   'Kills',
   'Deaths',
   'Assists',
   'ADR',
   'HS%',
-  'Ent. T',
-  'Ent. CT',
+  'Ent. T +',
+  'Ent. T -',
+  'Ent. CT +',
+  'Ent. CT -',
   'Trades',
   '5k',
   '4k',
@@ -48,14 +67,15 @@ const tableTitleArray = [
   '2k',
   'Plants',
   'Defuses',
-];
+  'FA' // flashbang_assists
+]; // 17
 
 const tableTitlesToString = () => {
   return tableTitleArray.join('\t') + '\n';
 }
 
 const tableTitles = () => {
-  return '| ' + tableTitleArray.join(' | ') + '\n';
+  return '| ' + tableTitleArray.join(' | ') + ' |\n';
 }
 
 // pad column to fit in table design
@@ -74,7 +94,7 @@ const padColumn = (index, value='-') => {
     if (valueLength < titleLength + 2) {
       return value;
     } else {
-      return value.substring(0, titleLength);
+      return (value + '').substring(0, titleLength);
     }
   }
 }
@@ -86,35 +106,122 @@ const shortenName = (name, maxsize = 10) => {
   return name;
 }
 
+let highestScoreObject = {};
+
+const setHighestScore = (array, arrayIndex) => {
+  array.forEach((value, index) => {
+    if (highestScoreObject[index] && highestScoreObject[index].value) {
+      // Compare to highestScoreObject
+      if (index === 0) {} // No comparison (name)
+      if (index === 2) { // Deaths compare to lowest
+        if (value < highestScoreObject[index].value) {
+          highestScoreObject[index].value = value;
+          highestScoreObject[index].index = arrayIndex;
+        } else if (value === highestScoreObject[index].value) {
+          highestScoreObject.index = [].concat(highestScoreObject[index].index, arrayIndex);
+        }
+      } else { // Highest best
+        if (value > highestScoreObject[index].value) {
+          console.log('New highest!', value, dataFields[index], arrayIndex);
+          highestScoreObject[index].value = value;
+          highestScoreObject[index].index = arrayIndex;
+        } else if (value === highestScoreObject[index].value) {
+          highestScoreObject.index = [].concat(highestScoreObject[index].index, arrayIndex);
+        }
+      }
+    } else if(value && value !== '-'){ // First value
+      if (index !== 0) {
+        highestScoreObject[index] = {
+          value: value,
+          index: arrayIndex,
+        }
+      } // No comparison (name)
+    }
+  });
+}
+
+// Marks best values in table with bold
+// TODO: Fix styling in discord message
+const hightlightHighestValues = (playerArrays, highestScore) => {
+  const amountOfDataFields = dataFields.length; // TODO Amount of data fields
+  for (let i = 0; i < amountOfDataFields; i++) {
+    // Checks highestScore index
+    if (highestScore[i] && highestScore[i].index && highestScore[i].value !== '-') {      
+      const index = highestScore[i].index
+      // playerArrays[index][i] = '**' + playerArrays[index][i] + '**';
+      // playerArrays[index][i] = '⭐' + playerArrays[index][i];
+    }
+  }
+}
+
+const padTo2 = (value) => {
+  return value.length === 1 ? ' ' + value : value;
+}
+
+const adjustStrings = (arrayOfArrays) => {
+  const deathsIndex = 2;
+  const assistsIndex = 3;
+  const indexT = 7;
+  const indexCT = 9;
+  const defusesIndex = 16;
+  return arrayOfArrays.map(array => {
+    // console.log('@adjustedStrings Start', array.length, array);
+    const deaths = array[deathsIndex];
+    const assists = array[assistsIndex];
+    const entryTDeaths = array[indexT];
+    const entryCTDeaths = array[indexCT];
+    const defuses = array[defusesIndex];
+    const tempArray = array.filter((_, index) => !(index === indexT || index === indexCT || index === deathsIndex || index === assistsIndex || index === defusesIndex) );
+    // Expected order: name, KDA, ADR, etc
+    const adjustedArray = tempArray.map((value, index) => {
+      if (index === 1) return padTo2(value) + '/' + padTo2(deaths) + '/' + padTo2(assists); 
+      if (index === 2) return value + '';
+      if (index === 3) return value + '%';
+      if (index === 4) return value + '/' + entryTDeaths;
+      if (index === 5) return value + '/' + entryCTDeaths;
+      if (index === 11) return value + '/' + defuses;
+      return value;
+    });
+    console.log('@adjustedStrings end', adjustedArray.length, adjustedArray);
+    return adjustedArray;
+  });
+}
 
 const buildMapStatsMessage = (mapTeam) => {
   let s = '';
   let playerArrays = [];
+  let loopIndex = 0;
   for (let key in mapTeam) {
     if (mapTeam.hasOwnProperty(key)) {
       let playerArray = [];
       let player = mapTeam[key];
       if (key === 'score') continue;
+
+      // Get stats values for player
+
       const { name, kills, deaths, assists } = player;
-      const adr = Math.floor(player.damage / player.roundsplayed) + ''; // + ' DPR';
-      const hsPerc = Math.floor(((parseInt(player.headshot_kills) || 0) / kills).toFixed(2) * 100) + '%';
-      const { firstkill_t, firstdeath_t } = player;
-      const entriesT = (parseInt(firstkill_t) || 0) + '/' + ((parseInt(firstdeath_t) || 0)); // (parseInt(firstkill_t) || 0) + 
-      const { firstkill_ct, firstdeath_ct } = player;
-      const entriesCT = (parseInt(firstkill_ct) || 0) + '/' + ((parseInt(firstdeath_ct) || 0)); // (parseInt(firstkill_ct) || 0) + 
+      const adr = Math.floor(player.damage / player.roundsplayed); // + ' DPR';
+      const hsPerc = Math.floor(((parseInt(player.headshot_kills) || 0) / kills).toFixed(2) * 100);
+      const { firstkill_t, firstdeath_t, firstkill_ct, firstdeath_ct } = player;
+      const entriesT = parseInt(firstkill_t) || 0;
+      const failedEntriesT = parseInt(firstdeath_t) || 0;
+      const entriesCT = parseInt(firstkill_ct) || 0;
+      const failedEntriesCT = parseInt(firstdeath_ct) || 0;
       const kill5_rounds = player['5kill_rounds'] || '-';
       const kill4_rounds = player['4kill_rounds'] || '-';
       const kill3_rounds = player['3kill_rounds'] || '-';
       const kill2_rounds = player['2kill_rounds'] || '-';
 
       playerArray.push(shortenName(name));
-      playerArray.push(kills);
-      playerArray.push(deaths);
-      playerArray.push(assists);
+      playerArray.push(kills || '0');
+      playerArray.push(deaths || '0');
+      playerArray.push(assists || '0');
       playerArray.push(adr);
       playerArray.push(hsPerc);
       playerArray.push(entriesT);
+      playerArray.push(failedEntriesT);
       playerArray.push(entriesCT);
+      playerArray.push(failedEntriesCT);
       playerArray.push(player.tradekill || '-');
       playerArray.push(kill5_rounds);
       playerArray.push(kill4_rounds);
@@ -122,22 +229,31 @@ const buildMapStatsMessage = (mapTeam) => {
       playerArray.push(kill2_rounds);
       playerArray.push(player.bomb_plants || '-');
       playerArray.push(player.bomb_defuses || '-');
+      playerArray.push(player.flashbang_assists || '-');
 
-/*
-|      |       |        |         |     |     |           |            |        |    |    |    |    |             |              |
-+------+-------+--------+---------+-----+-----+-----------+------------+--------+----+----+----+----+-------------+--------------+
-*/
+      setHighestScore(playerArray, loopIndex);
+
       playerArrays.push(playerArray);
-      // s += playerArray.join('\t');
+      loopIndex++;
     }
   }
-  const sortedArrays = playerArrays.sort((a, b) => a[1] < b[1]);
+
+  // Set bolded for highest values
+  hightlightHighestValues(playerArrays, highestScoreObject);
+  const fixedPlayerArray = adjustStrings(playerArrays);
+
+  const sortedArrays = fixedPlayerArray.sort((a, b) => parseInt(a[1]) < parseInt(b[1]));
+  console.log('SIZES:', tableTitleArray.length, fixedPlayerArray.length, sortedArrays.length);
   for(let i = 0; i < sortedArrays.length; i++) {
-    // TODO: Create table instead
-    // s += sortedArrays[i].join('\t');
+    // console.log('@loop last', tableTitleArray[i], sortedArrays[i]);
     s += '|';
-    s += sortedArrays[i].map((entry, index) => padColumn(index, entry)).join('|');
-    s += '\n';
+    let innerCounter = 0;
+    s += sortedArrays[i].map((entry, index) => {
+      // console.log('@inner loop', index, innerCounter, entry)
+      innerCounter++;
+      return padColumn(index, entry);
+    }).join('|');
+    s += '|\n';
   }
   return s;
 }
@@ -164,7 +280,7 @@ const buildStatsMessage = (stats) => {
       s += buildMapStatsMessage(map.team2);
     }
   }
-  return '```' + s + '```';
+  return '```' + s + '```'; // TODO: Include some explanation after message in footer?
 }
 
 // Send stats message to discord in the correct channel
@@ -194,17 +310,105 @@ const samePlayersInTeams = (gameObject, stats) => {
   return team1Name === serverTeam1Name && team2Name === serverTeam2Name;
 }
 
+const remapTeam = (players, mapTeam) => {
+  let obj = {};
+  console.log('@remapTeam Debug players:', players);
+  for (let key in mapTeam) {
+    if (mapTeam.hasOwnProperty(key)) {
+      let player = mapTeam[key];
+      console.log('Debug player', player);
+      if (key === 'score' || key === 'v1' || key === 'v2') continue;
+      const { convertedId, altConvertedId } = convertIdFrom64(key);
+      let playerDisc = players.find(player => {
+        return player.getSteamId() === convertedId || player.getSteamId() === altConvertedId;
+      });
+      if (playerDisc) {
+        /*
+ { roundsplayed: '20',
+        name: 'Petter',
+        damage: '2769',
+        tradekill: '3',
+        kills: 26,
+        headshot_kills: '11',
+        '2kill_rounds': '7',
+        deaths: 7,
+        firstkill_ct: '3',
+        firstdeath_ct: '1',
+        assists: 3,
+        '1kill_rounds': '9',
+        '3kill_rounds': '1',
+        firstkill_t: '3',
+        uid: '1' }
+        */
+        // Successfully found player
+        obj[playerDisc.uid] = {
+          // ...player,
+          uid: playerDisc.uid,
+          name: player.name,
+          roundsplayed: parseInt(player.roundsplayed || 0),
+          kills: parseInt(player.kills || 0),
+          deaths: parseInt(player.deaths || 0),
+          assists: parseInt(player.assists || 0),
+          damage: parseInt(player.damage || 0),
+          headshot_kills: parseInt(player.headshot_kills || 0),
+          '1kill_rounds': parseInt(player['1kill_rounds'] || 0),
+          '2kill_rounds': parseInt(player['2kill_rounds'] || 0),
+          '3kill_rounds': parseInt(player['3kill_rounds'] || 0),
+          '4kill_rounds': parseInt(player['4kill_rounds'] || 0),
+          '5kill_rounds': parseInt(player['5kill_rounds'] || 0),
+          tradekill: parseInt(player.tradekill || 0),
+          firstkill_ct: parseInt(player.firstkill_ct || 0),
+          firstdeath_ct: parseInt(player.firstdeath_ct || 0),
+          firstkill_t: parseInt(player.firstkill_t || 0),
+          firstdeath_t: parseInt(player.firstdeath_t || 0),
+          bomb_plants: parseInt(player.bomb_plants || 0),
+          bomb_defuses: parseInt(player.bomb_defuses || 0),
+          flashbang_assists: parseInt(player.flashbang_assists || 0),
+        };
+      } else {
+        console.error('ERROR: Unable to find entry for player:', key, convertedId, altConvertedId);
+      }
+    }
+  }
+  return obj;
+}
+
+// Update mapping from Steam64ID to DiscordId
+const playerMapSteamIdStats = (gameObject, stats) => {
+  let obj;
+  for (let i = 0; i < 1; i++) { // Should only be 1 map for now
+    let tempMap = {};
+    const map = stats['map' + i];
+    if (map) {
+      const t1 = map.team1;
+      const t2 = map.team2;
+      const team1Players = gameObject.getBalanceInfo().team1;
+      const team2Players = gameObject.getBalanceInfo().team2;
+      tempMap.team1 = remapTeam(team1Players, t1);
+      tempMap.team2 = remapTeam(team2Players, t2);
+      obj = tempMap; // ['map' + i]
+    }
+  }
+  // Update Mapping from Steam2ID -> Players To Steam64Id Players
+  return obj;
+}
+
 const setResults = (gameObject, stats) => {
   const winnerTeam = stats.map0.winner;
   const winner = winnerTeam === 'team1' ? 1 : (winnerTeam === 'team2' ? 2 : '');
   // console.log('@setResults DEBUG:', winnerTeam, '"' + winner + '"');
+  const playerMappedStats = playerMapSteamIdStats(gameObject, stats);
+  if (!gameObject.chosenMap) {
+    gameObject.chosenMap = stats.map0.mapname;
+  }
+  gameObject.scoreString = stats.map0.team1.score + '-' + stats.map0.team2.score;
   if (winner !== '' && samePlayersInTeams(gameObject, stats)) {
-    console.log('@getGameStatsDiscord Winning team:', winnerTeam);
+    console.log('@getGameStatsDiscord Winning team:', winnerTeam, gameObject.scoreString, gameObject.chosenMap);
     mmr_js.updateMMR(winner, gameObject, (message) => {
       console.log('DEBUG @callbackGameFinished - Calls on exit after delete on this message');
       f.deleteDiscMessage(message, f.getDefaultRemoveTime() * 4, 'gameFinished');
       cleanOnGameEnd(gameObject);
-    });
+    }, playerMappedStats);
   } else {
     console.log('Missing Winner - Incomplete Results', winner, samePlayersInTeams(gameObject, stats));
   }
@@ -219,6 +423,37 @@ const getGameStatsDiscord = (gameObject, stats) => {
     // Visualize stats in discord message
     sendStatsDiscord(gameObject, discordMessage);
   }
+}
+
+const getCsStats = (uid) => {
+  /*
+    SELECT name, ROUND(GROUP_CONCAT(headshot_kills / kills), 2), AVG(5kill_rounds), AVG(4kill_rounds), ROUND(AVG(3kill_rounds)), 
+    ROUND(AVG(2kill_rounds)), ROUND(AVG(1kill_rounds)), AVG(kills), AVG(deaths), AVG(assists), ROUND(AVG(damage)), AVG(flashbang_assists), 
+    GROUP_CONCAT(mid) FROM CSPlayerStats WHERE name IN ("Petter", "Weeb as Fuck", "Lacktjo", "Ahoy!") GROUP BY name ORDER BY kills DESC;
+
+    SELECT name, 
+    ROUND(AVG(kills), 2) AS Kills, ROUND(AVG(deaths), 2) AS Deaths, ROUND(AVG(assists), 2) AS Assists, 
+    ROUND(GROUP_CONCAT(headshot_kills / kills), 2) AS HS, 
+    AVG(ROUND(damage / roundsplayed)) AS ADR, 
+    SUM(flashbang_assists) AS FA, 
+    ROUND(AVG(IFNULL(firstkill_t, 0)), 2) AS TKills, 
+    ROUND(AVG(IFNULL(firstdeath_t, 0)), 2) AS TDeaths, 
+    ROUND(AVG(IFNULL(firstkill_ct, 0)), 2) AS CTKills, 
+    ROUND(AVG(IFNULL(firstdeath_ct, 0)), 2) AS CTDeaths, 
+    SUM(5kill_rounds) AS 5k, SUM(4kill_rounds) AS 4k, SUM(3kill_rounds) AS 3k, 
+    ROUND(AVG(tradekill), 2) AS Trades, 
+    ROUND(AVG(bomb_plants), 1) AS Plants, ROUND(AVG(bomb_defuses), 1) AS Defuses, 
+    GROUP_CONCAT(mid) AS MatchID
+    FROM CSPlayerStats 
+    GROUP BY uid ORDER BY kills DESC;
+    
+    SUM(2kill_rounds) AS 2k, 
+    ROUND(AVG(1kill_rounds)) AS 1k, 
+    AVG(IFNULL(firstkill_t, 0) / (IFNULL(firstkill_t, 0) + IFNULL(firstdeath_t, 0))) AS T, 
+    AVG(firstkill_ct / (firstkill_ct + firstdeath_ct)) AS CT, 
+    WHERE name IN ("Petter", "Weeb as Fuck", "Lacktjo", "Ahoy!") 
+    WHERE uid in (?)
+    */
 }
 
 const getGameStats = async (serverId, gameObject) => {

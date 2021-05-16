@@ -7,6 +7,7 @@ const { getTeamName } = require('../teamNames');
 const { configureServer } = require('../csserver/cs_server');
 const { getCsIp, getCsUrl } = require('../csserver/server_info');
 const { checkMissingSteamIds, notifyPlayersMissingSteamId } = require('../steamid');
+const { gameIsCS, gameIsDota, gameIsCSMain } = require('./game');
 
 /*
 	Handles getting the most balanced team matchup for the given 10 players
@@ -46,9 +47,9 @@ exports.balanceTeams = (players, game, gameObject) => {
 	});
 
 	// TODO: Only if no other active games using server
-	if (game === 'cs' || game === 'cs1v1') {
+	if (gameIsCS(game)) {
 		const playersMissingSteamIds = checkMissingSteamIds(players);
-		// console.log('Check missing steam ids:', players, players.map(player => player.steamid).join(", "), playersMissingSteamIds.map(player => player.steamid).join(", "));
+		// console.log('Check missing steam ids:', players, players.map(player => player.getSteamId()).join(", "), playersMissingSteamIds.map(player => player.getSteamId()).join(", "));
 		if (playersMissingSteamIds.length > 0) {
 			// People are missing steamids
 			notifyPlayersMissingSteamId(playersMissingSteamIds);
@@ -227,8 +228,8 @@ const buildReturnStringEmbed = (obj) => {
 	const team2Name = getTeamName(obj.team2, obj.game) || 'Team 2';
 	obj.team1Name = team1Name;
 	obj.team2Name = team2Name;
-	const teamCT = (obj.game === 'cs' ? '**(CT)**' : '');
-	const teamT = (obj.game === 'cs' ? '**(T)**' : '');
+	const teamCT = (gameIsCSMain(obj.game) ? '**(CT)**' : '');
+	const teamT = (gameIsCSMain(obj.game) ? '**(T)**' : '');
 	// s +=
 	let name = `**${team1Name}** ${teamCT}\t(Avg: ${roundValue(obj.avgT1)} mmr): `;
 	let value = `*${obj.team1[0].userName} (${obj.team1[0].getMMR(obj.game)})*`;
@@ -246,13 +247,13 @@ const buildReturnStringEmbed = (obj) => {
 	// value += '*';
 	fields.push({ name, value });
 	// s += '*\n\n';
-	const isCs = obj.game === 'cs' || obj.game === 'cs1v1';
+	const isCs = gameIsCS(obj.game);
 	if (isCs) {
 		//s += '*Connect:* \n';
 		s += `Link: ${getCsUrl()}`; // TODO: Embedded links or something [Named Link](<link>) (Steam link no work)
 		s += '\n**' + getCsIp() + '**';
 	}
-	else if(obj.game === 'dota' || obj.game === 'dota1v1') {
+	else if(gameIsDota(obj.game)) {
 		const gifLink = 'res/dotaConnect.gif';
 		gif = [{
 			attachment: gifLink,
@@ -292,8 +293,8 @@ const buildReturnString = (obj) => { // TODO: Print``
 	const team2Name = getTeamName(obj.team2, obj.game) || 'Team 2';
 	obj.team1Name = team1Name;
 	obj.team2Name = team2Name;
-	const teamCT = (obj.game === 'cs' ? '**(CT)**' : '');
-	const teamT = (obj.game === 'cs' ? '**(T)**' : '');
+	const teamCT = (gameIsCSMain(obj.game) ? '**(CT)**' : '');
+	const teamT = (gameIsCSMain(obj.game) ? '**(T)**' : '');
 	s += `**${team1Name}** ${teamCT}\t(Avg: ${roundValue(obj.avgT1)} mmr): \n*${obj.team1[0].userName} (${obj.team1[0].getMMR(obj.game)})`;
 	for(var i = 1; i < obj.team1.length; i++){
 		s += ',\t' + obj.team1[i].userName + ' (' + obj.team1[i].getMMR(obj.game) + ')';
@@ -304,10 +305,10 @@ const buildReturnString = (obj) => { // TODO: Print``
 		s += ',\t' + obj.team2[i].userName + ' (' + obj.team2[i].getMMR(obj.game) + ')';
 	}
 	s += '*\n\n';
-	if (obj.game === 'cs' || obj.game === 'cs1v1') {
+	if (gameIsCS(obj.game)) {
 		s += '*Connect:* \n**' + getCsIp() + '**';
 	}
-	else if(obj.game === 'dota' || obj.game === 'dota1v1') {
+	else if(gameIsDota(obj.game)) {
 		// TODO Embed
 	}
 	return { message: s, balanceInfo: obj };

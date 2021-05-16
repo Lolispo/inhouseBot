@@ -36,7 +36,7 @@ exports.getTextChannel = (channelId = testId) => {
   return client.channels.fetch(channelId);
 }
 
-exports.getChannels = (channelId = testId) => {
+exports.getChannels = () => {
   return client.channels;
 }
 

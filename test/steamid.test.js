@@ -10,7 +10,7 @@ const { checkMissingSteamIds } = require('../src/steamid');
       createPlayer('Test3', '3'),
       createPlayer('Test4', '4'),
     ];
-    players[0].steamId = '123'
+    players[0].setSteamId('123');
 
     const res = await checkMissingSteamIds(players);
     assert.equal(res.length, 3);
