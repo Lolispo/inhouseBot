@@ -670,7 +670,7 @@ function findPlayersStart(message, channel, gameObject){
 		gameObject.setActiveMembers(members); // TODO Game
 		//activeMembers = members;
 	}
-	console.log(`VoiceChannel ${channel.name} (id = ${channel.id}) active users: (Total: ${channel.members.size}) ${players.length} Members: ${players}`);
+	console.log(`VoiceChannel ${channel.name} (id = ${channel.id}) active users: (Total: ${channel.members.size}) ${players.length} Members: ${players.map(player => player.userName)}`);
 	return players;
 }
 
