@@ -631,8 +631,52 @@ const bestTeammates = async (uid, game) => {
 }
 
 // TODO: Returns last played game
-const lastGame = async (game = null) => {
-	return null;
+const lastGame = async (uid, game = null) => {
+	/*const mid = `SELECT * FROM matches LEFT JOIN playerMatches ON matches.mid = playerMatches.mid WHERE playerMatches.mid = 
+	SELECT userName, result, gameName, mapName, score, updatedAt, playerMatches.mid, mmrChange, team1Name, team2Name, team FROM matches LEFT JOIN playerMatches ON matches.mid = playerMatches.mid LEFT JOIN users ON users.uid = playerMatches.uid WHERE playerMatches.mid = (SELECT playerMatches.mid FROM playerMatches LEFT JOIN matches ON playerMatches.mid = matches.mid WHERE uid = ? ORDER BY mid DESC LIMIT 1) ORDER BY team;
+	SELECT userName, result, gameName, mapName, score, updatedAt, playerMatches.mid, mmrChange, team1Name, team2Name, team FROM matches LEFT JOIN playerMatches ON matches.mid = playerMatches.mid LEFT JOIN users ON users.uid = playerMatches.uid WHERE playerMatches.mid = (SELECT playerMatches.mid FROM playerMatches LEFT JOIN matches ON playerMatches.mid = matches.mid WHERE uid = "96293765001519104" ORDER BY mid DESC LIMIT 1) ORDER BY team;
+	(SELECT mid FROM playerMatches WHERE uid = ? ORDER BY mid DESC LIMIT 1);`
+	;*/
+	const where = `WHERE uid = ? ${game ? 'AND gameName = ? ': ''}`;
+	const mid = `SELECT playerMatches.mid FROM playerMatches LEFT JOIN matches ON playerMatches.mid = matches.mid ${where}ORDER BY mid DESC LIMIT 1`;
+	const lastGame = `SELECT userName, result, gameName, mapName, score, updatedAt, playerMatches.mid, mmrChange, team1Name, team2Name, team FROM matches LEFT JOIN playerMatches ON matches.mid = playerMatches.mid LEFT JOIN users ON users.uid = playerMatches.uid WHERE playerMatches.mid = (${mid}) ORDER BY team;`;
+	console.log('@query debug lastgame', lastGame);
+	const replacements = game ? [uid, game] : [uid]
+	const lastGameQuery = await DatabaseSequelize.instance.sequelize.query(lastGame, 
+	{ 
+		replacements: replacements,
+		type: Sequelize.QueryTypes.SELECT 
+	});
+	// Game exist
+	console.log('@RESULT', lastGameQuery);
+	if (lastGameQuery[0]?.result) {
+		const gameValue = lastGameQuery[0];
+		let result = {
+			team1Name: gameValue.team1Name,
+			team2Name: gameValue.team2Name,
+			updatedAt: gameValue.updatedAt,
+			result: gameValue.result,
+			gameName: gameValue.gameName,
+			...(gameValue.mapName && { mapName: gameValue.mapName }),
+			...(gameValue.score && { score: gameValue.score }),
+		}
+		const players = {
+			team1: [],
+			team2: []
+		};
+		lastGameQuery.map(playerObj => {
+			const player = {
+				userName: playerObj.userName,
+				team: playerObj.team,
+				mmrChange: playerObj.mmrChange,
+			}
+			players[`team${ playerObj.team}`].push(player);
+		});
+		result.players = players;
+		return result;
+	} else {
+		return 'No game found for player';
+	}
 }
 
 module.exports = {
@@ -652,4 +696,5 @@ module.exports = {
 	storeSteamIdDb : storeSteamIdDb,
 	rollbackMatch : rollbackMatch,
 	truncateRating : truncateRating,
+	lastGame : lastGame,
 }

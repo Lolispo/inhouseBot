@@ -10,6 +10,7 @@ const player_js = require('./game/player');					// Handles player storage in ses
 const map_js = require('./mapVeto');					// MapVeto system
 const voiceMove_js = require('./voiceMove'); 			// Handles moving of users between voiceChannels
 const db_sequelize = require('./database/db_sequelize');			// Handles communication with db
+const { lastGameCommands, lastGameAction } = require('./commands/lastGame')
 const { initializeDBSequelize } = require('./database/db_sequelize');	
 const trivia = require('./trivia');						// Trivia
 const game_js = require('./game/game');
@@ -184,6 +185,7 @@ exports.handleMessageExported = (message) => handleMessage(message);
 // Main message handling function 
 const handleMessage = async (message) => {
 	console.log('< MSG (' + message.channel.guild.name + '.' + message.channel.name + ') ' + message.author.username + ':', message.content); 
+	const options = message.content.split(' ');
 	// All stages commands, Commands that should always work, from every stage
 	if(startsWith(message, 'hej')){
 		f.print(message, 'Hej ' + message.author.username, noop); // Not removing hej messages
@@ -203,11 +205,10 @@ const handleMessage = async (message) => {
 	}
 	else if(startsWith(message, rollCommands)){ // Roll command for luls
 		console.log('RollCommand');
-		var messages = message.content.split(' ');
-		if(messages.length === 2 && !isNaN(parseInt(messages[1]))){ // Valid input
-			roll(message, 0, messages[1])
-		}else if(messages.length === 3 && !isNaN(parseInt(messages[1])) && !isNaN(parseInt(messages[2]))){ // Valid input
-			roll(message, parseInt(messages[1]), parseInt(messages[2]))
+		if(options.length === 2 && !isNaN(parseInt(options[1]))){ // Valid input
+			roll(message, 0, options[1])
+		}else if(options.length === 3 && !isNaN(parseInt(options[1])) && !isNaN(parseInt(options[2]))){ // Valid input
+			roll(message, parseInt(options[1]), parseInt(options[2]))
 		}else {
 			roll(message, 0, 100);
 		}
@@ -335,11 +336,10 @@ const handleMessage = async (message) => {
 	else if(startsWith(message, leaderboardCommands)){
 		const allModes = player_js.getAllModes();
 		var game = getModeChosen(message, allModes, allModes[0]);
-		const messages = message.content.split(' '); 
 		let size = 5; 
-		if(messages.length >= 2) {
-			let num = parseInt(messages[1]);
-			size = messages[1] > 0 && messages[1] <= 100 ? num : 5;
+		if(options.length >= 2) {
+			let num = parseInt(options[1]);
+			size = options[1] > 0 && options[1] <= 100 ? num : 5;
 		}
 		const data = await db_sequelize.getHighScore(game, size);
 		// TODO: Print``
@@ -373,7 +373,11 @@ const handleMessage = async (message) => {
 	else if(startsWith(message, uniteAllCommands)){
 		voiceMove_js.uniteAll(message);
 		f.deleteDiscMessage(message, 15000, 'ua');
-	}
+	} 
+	else if(startsWith(message, lastGameCommands)){
+		lastGameAction(message, options);
+		f.deleteDiscMessage(message, 15000, 'lastGame');
+	} 
 	// Active Game commands: (After balance is made)
 	else if(isActiveGameCommand(message)){
 		var gameObject = game_js.getGame(message.author);
