@@ -649,6 +649,7 @@ function balanceCommand(message){
 		});
 	} else{
 		f.print(message, 'Invalid command: ' + message.author + ' is already in a game (' + gameObjectExist.getGameID() + ')', callbackInvalidCommand); 
+		console.log('Existing game object:', gameObjectExist);
 		f.deleteDiscMessage(message, 10000, 'matchupMessage');
 	}
 }
@@ -669,7 +670,7 @@ function findPlayersStart(message, channel, gameObject){
 		gameObject.setActiveMembers(members); // TODO Game
 		//activeMembers = members;
 	}
-	console.log(`VoiceChannel ${channel.name} (id = ${channel.id}) active users: (Total: ${channel.members.size}) ${players.length}`);
+	console.log(`VoiceChannel ${channel.name} (id = ${channel.id}) active users: (Total: ${channel.members.size}) ${players.length} Members: ${players}`);
 	return players;
 }
 

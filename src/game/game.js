@@ -166,43 +166,53 @@ const clearIntervals = (gameObject) => {
 // Takes GameObject to clean
 const cleanOnGameEnd = (gameObject) => {
     console.log('@cleanOnGameEnd Init');
-	const mapMessages = gameObject.getMapMessages();
-	if(!f.isUndefined(mapMessages)){
-		for(var i = mapMessages.length - 1; i >= 0; i--){
-			f.deleteDiscMessage(mapMessages[i], 0, 'mapMessages['+i+']', function(msg){
-				var index = mapMessages.indexOf(msg);
-				if (index > -1) {
-					mapMessages.splice(index, 1);
-				}
-			});	
-		}
-	}
-	if(!f.isUndefined(gameObject.getMapStatusMessage())){
-		f.deleteDiscMessage(gameObject.getMapStatusMessage(), 0, 'mapStatusMessage');	
-	}
-	if(!f.isUndefined(gameObject.getVoteMessage())){
-		f.deleteDiscMessage(gameObject.getVoteMessage(), 0, 'voteMessage');
-	}
-	if(!f.isUndefined(gameObject.getTeamWonMessage())){
-		f.deleteDiscMessage(gameObject.getTeamWonMessage(), 0, 'teamWonMessage');
-	}
-	if(!f.isUndefined(gameObject.getMatchupServerMessage())){
-		//console.log('DEBUG getMatchupServerMessage cleanOnGameEnd', gameObject.getMatchupServerMessage().content);
-		f.deleteDiscMessage(gameObject.getMatchupServerMessage(), 0, 'matchupServerMsg');
-	}
-	if(!f.isUndefined(gameObject.getMatchupMessage())){
-		//console.log('DEBUG matchupMessage cleanOnGameEnd', gameObject.getMatchupMessage().content);
-		f.deleteDiscMessage(gameObject.getMatchupMessage(), 0, 'matchupMessage');
-	}
-    const gameName = gameObject.getBalanceInfo().game;
-    console.log('@cleanOnGameEnd GameName:', gameName);
-	if (gameIsCS(gameName)) {
-		cancelGameCSServer(gameObject);
-	}
-	// Clear csserver interval listeners
-	clearIntervals(gameObject);
-	// Remove game from ongoing games
-	deleteGame(gameObject);
+    try {
+
+        const mapMessages = gameObject.getMapMessages();
+        if(!f.isUndefined(mapMessages)){
+            for(var i = mapMessages.length - 1; i >= 0; i--){
+                f.deleteDiscMessage(mapMessages[i], 0, 'mapMessages['+i+']', function(msg){
+                    var index = mapMessages.indexOf(msg);
+                    if (index > -1) {
+                        mapMessages.splice(index, 1);
+                    }
+                });	
+            }
+        }
+        if(!f.isUndefined(gameObject.getMapStatusMessage())){
+            f.deleteDiscMessage(gameObject.getMapStatusMessage(), 0, 'mapStatusMessage');	
+        }
+        if(!f.isUndefined(gameObject.getVoteMessage())){
+            f.deleteDiscMessage(gameObject.getVoteMessage(), 0, 'voteMessage');
+        }
+        if(!f.isUndefined(gameObject.getTeamWonMessage())){
+            f.deleteDiscMessage(gameObject.getTeamWonMessage(), 0, 'teamWonMessage');
+        }
+        if(!f.isUndefined(gameObject.getMatchupServerMessage())){
+            //console.log('DEBUG getMatchupServerMessage cleanOnGameEnd', gameObject.getMatchupServerMessage().content);
+            f.deleteDiscMessage(gameObject.getMatchupServerMessage(), 0, 'matchupServerMsg');
+        }
+        if(!f.isUndefined(gameObject.getMatchupMessage())){
+            //console.log('DEBUG matchupMessage cleanOnGameEnd', gameObject.getMatchupMessage().content);
+            f.deleteDiscMessage(gameObject.getMatchupMessage(), 0, 'matchupMessage');
+        }
+        const game = gameObject.getBalanceInfo();
+        if (game) {
+            // If game is available
+            const gameName = game.game;            
+            console.log('@cleanOnGameEnd GameName:', gameName);
+            if (gameIsCS(gameName)) {
+                cancelGameCSServer(gameObject);
+            }
+            // Clear csserver interval listeners
+            clearIntervals(gameObject);
+        }
+    } catch (e) {
+        console.error('@cleanOnGameEnd Error cancelling game:', e);    
+        throw e;
+    }
+    // Remove game from ongoing games
+    deleteGame(gameObject);
 }
 
 const gameIsCS = (gameName) => gameName === 'cs' || gameName === 'cs1v1';
