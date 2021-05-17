@@ -9,6 +9,21 @@ Add integration tests for main functionalities
 
 Hej undefined
 
+Fix crash
+/home/ubuntu/Projects/inhouseBot/src/steamid.js:49
+  const steamid = users[0].dataValues.steamid;
+                           ^
+
+TypeError: Cannot read property 'dataValues' of undefined
+    at sendSteamId (/home/ubuntu/Projects/inhouseBot/src/steamid.js:49:28)
+
+
+Refactor commands to command folder
+
+LastGame command to help list
+    Check generate collection from the command files
+        Add entry to public list from each command function which is used by the help command
+
 UTF8 Encoding
     ALTER TABLE (table name) CONVERT TO CHARACTER SET UTF8
 
