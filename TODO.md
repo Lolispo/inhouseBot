@@ -7,6 +7,15 @@ Add integration tests for main functionalities
 
 # Error message
 
+VOICE BROKEN - DOESNT GET CORRECT MEMBERS IN VOICE CHANNEL (works on restart)
+
+Issue revoting when downvote - Allow cancelling vote more clearly / make this cancel vote for real so you can do it afterwards
+👎 CONFIRMED!  (6/6) Removing voteText msg and team#Won msg
+...
+> Invalid command: Active result vote for this game already ongoing, for team 2
+
+
+
 Hej undefined
 
 Fix crash
