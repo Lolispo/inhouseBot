@@ -15,6 +15,7 @@ Issue revoting when downvote - Allow cancelling vote more clearly / make this ca
 > Invalid command: Active result vote for this game already ongoing, for team 2
 
 
+Game balance not sorted after dota mmr
 
 Hej undefined
 
