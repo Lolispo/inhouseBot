@@ -619,19 +619,7 @@ const getModeAndPlayers = (players, gameObject, options) => {
 async function balanceCommand(message){
 	var gameObjectExist = game_js.getGame(message.author);
 	if(f.isUndefined(gameObjectExist)){ // User is not already in a game
-		let voiceChannel;
-		try {
-			const clientLocal = await getClientReference();
-			const guilds = clientLocal.guilds;
-			const guild = guilds.find(server => {
-				return server.id === message.guild.id;
-			})
-			voiceChannel = guild.member(message.author).voiceChannel; // Voice channel for user
-		} catch (e) {
-			console.error('Error fetching voiceChannel: Fallback to old method', e);
-			voiceChannel = message.guild.member(message.author).voiceChannel;
-		}
-		// console.log('@voiceChannel:', voiceChannel);
+		const voiceChannel = message.guild.member(message.author).voiceChannel;
 		if(voiceChannel !== null && !f.isUndefined(voiceChannel)){ // Makes sure user is in a voice channel
 			// Initialize Game object
 			var gameObject = game_js.createGame(message.id, message);
