@@ -45,8 +45,8 @@ exports.split = function(message, balanceInfo, activeMembers){
 
 	// Find channels to swap to -> Change conditions for other desired channels or to randomly take 2
 	// Currently hardcoded 'Team1' and 'Team2'
-	var channel1 = guildChannels.find(channel => channel[1].name === 'Team1');
-	var channel2 = guildChannels.find(channel => channel[1].name === 'Team2');
+	var channel1 = guildChannels.cache.find(channel => channel[1].name === 'Team1');
+	var channel2 = guildChannels.cache.find(channel => channel[1].name === 'Team2');
 	if(!f.isUndefined(channel1) && !f.isUndefined(channel2)) {
 		setTeamVoice(t1players, channel1[1].id);
 		setTeamVoice(t2players, channel2[1].id);
@@ -74,7 +74,7 @@ function getVoiceChannel(message){
 	if (res.length > 1) {
 		var channelName = res.length > 2 ? res.slice(1).join(' ') : res[1];
 		console.log('channelName:', channelName);
-		channel1 = message.guild.channels.find(function(channel) {
+		channel1 = message.guild.channels.cache.find(function(channel) {
 			console.log(channel.name, channel.type, channelName, channel.type === 'voice' && channel.name === channelName);
 			return channel.type === 'voice' && channel.name.toLowerCase() === channelName && channel.id !== message.guild.afkChannelID;
 		});
@@ -89,7 +89,7 @@ function getVoiceChannel(message){
 	
 	//console.log('DEBUG: getVoiceChannel', channel1);
 	if(f.isUndefined(channel1) || channel1.id === message.guild.afkChannelID){
-		channel1 = message.guild.channels.find(function(channel) {
+		channel1 = message.guild.channels.cache.find(function(channel) {
 			return channel.type === 'voice' && channel.id !== message.guild.afkChannelID;
 		});
 	}

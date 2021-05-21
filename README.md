@@ -94,3 +94,5 @@ Current TODO:s for the projects are listed in the files, main TODO section is in
 
 
 ## Node version Recommended: 14 LTS (discord.js requirement)
+
+# Previous DiscordJS version: ^11.6.4

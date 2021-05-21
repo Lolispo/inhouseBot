@@ -619,18 +619,8 @@ const getModeAndPlayers = (players, gameObject, options) => {
 async function balanceCommand(message){
 	var gameObjectExist = game_js.getGame(message.author);
 	if(f.isUndefined(gameObjectExist)){ // User is not already in a game
-		let voiceChannel;
-		try {
-			const clientLocal = await getClientReference();
-			const guilds = clientLocal.guilds;
-			const guild = guilds.find(server => {
-				return server.id === message.guild.id;
-			})
-			voiceChannel = guild.member(message.author).voiceChannel; // Voice channel for user
-		} catch (e) {
-			console.error('Error fetching voiceChannel: Fallback to old method', e);
-			voiceChannel = message.guild.member(message.author).voiceChannel;
-		}
+		console.log('@DEBUG', message.guild.member(message.author));
+		const voiceChannel = message.guild.member(message.author).voice.channel;
 		// console.log('@voiceChannel:', voiceChannel);
 		if(voiceChannel !== null && !f.isUndefined(voiceChannel)){ // Makes sure user is in a voice channel
 			// Initialize Game object
@@ -674,6 +664,8 @@ async function balanceCommand(message){
 // activeGame set to true => for phases where you should prevent others from overwriting (not trivia)
 function findPlayersStart(message, channel, gameObject){
 	var players = [];
+	// const fetchedMembers = channel.fetch({ force: true });
+	console.log(channel);
 	var members = Array.from(channel.members.values());
 	members.forEach(function(member){
 		if(!member.bot){ // Only real users

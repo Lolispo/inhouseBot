@@ -149,7 +149,7 @@ const readConsoleSayLines = async (serverId, gameObject) => {
           // Point author to other existing user instead of changing user
           // messageObject.author.id = player.uid;
           // messageObject.author.username = player.userName;
-          messageObject.author = messageObject.guild.members.find((user) => user.id === player.uid);
+          messageObject.author = messageObject.guild.members.cache.find((user) => user.id === player.uid);
           messageObject.content = spokenWord;
           bot.handleMessageExported(messageObject);
         } else {

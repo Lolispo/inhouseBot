@@ -170,7 +170,7 @@ exports.startGame = function(message, questions, players){
 	lastQuestionIndex = questionsArray.length;
 	questionIndex = 0;
 	// Find text channel: Send start message
-	var channel = message.guild.channels.find('name', channelName);
+	var channel = message.guild.channels.cache.find('name', channelName);
 	channel.send('Starting game of trivia!')
 	.then(result => {
 		messageVar = result;			// Initialize messageVar to be in correct chanel, used for print

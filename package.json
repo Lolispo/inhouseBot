@@ -24,7 +24,7 @@
     "FormData": "^0.10.1",
     "axios": "^0.19.2",
     "check-node-version": "^3.3.0",
-    "discord.js": "^11.6.4",
+    "discord.js": "^12.5.3",
     "dotenv": "^8.2.0",
     "form-data": "^3.0.0",
     "fs": "0.0.1-security",
