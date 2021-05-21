@@ -170,6 +170,7 @@ exports.startGame = function(message, questions, players){
 	lastQuestionIndex = questionsArray.length;
 	questionIndex = 0;
 	// Find text channel: Send start message
+	// TODO: V.12 is causing issue here
 	var channel = message.guild.channels.cache.find('name', channelName);
 	channel.send('Starting game of trivia!')
 	.then(result => {
