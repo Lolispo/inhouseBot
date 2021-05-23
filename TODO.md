@@ -28,6 +28,13 @@ TypeError: Cannot read property 'dataValues' of undefined
     at sendSteamId (/home/ubuntu/Projects/inhouseBot/src/steamid.js:49:28)
 
 
+   || player.getSteamId() === sid.getSteam2RenderedID();
+       ^
+
+ReferenceError: player is not defined
+    at findPlayerWithGivenSteamId (/home/ubuntu/Projects/inhouseBot/src/steamid.js:37:8)
+
+
 Refactor commands to command folder
 
 LastGame command to help list
