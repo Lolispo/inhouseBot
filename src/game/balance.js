@@ -28,6 +28,7 @@ exports.balanceTeams = (players, game, gameObject) => {
 	let message;
 	let balanceInfo;
 	
+	console.log('@Starting Game:', JSON.stringify(result, null, 2));
 	try {
 		const object = buildReturnStringEmbed(result, gameObject);
 		message = object.message;
