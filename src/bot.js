@@ -64,18 +64,22 @@ const playerStatusCommands = [prefix + 'playersstatus'];
 
 
 // Initialize Client
-getClient('bot', async () => initializeDBSequelize(getConfig().db), (client) => {
-	// Listener on message
-	client.on('message', message => discordEventMessage(message));
+const initializeClient = () => {
+	getClient('bot', async () => initializeDBSequelize(getConfig().db), (client) => {
+		// Listener on message
+		client.on('message', message => discordEventMessage(message));
+	
+		// Listener on reactions added to messages
+		client.on('messageReactionAdd', (messageReaction, user) => discordEventReactionAdd(messageReaction, user));
+	
+		// Listener on reactions removed from messages
+		client.on('messageReactionRemove', (messageReaction, user) => discordEventReactionRemove(messageReaction, user));
+	
+		client.on('error', console.error);
+	});
+};
 
-	// Listener on reactions added to messages
-	client.on('messageReactionAdd', (messageReaction, user) => discordEventReactionAdd(messageReaction, user));
-
-	// Listener on reactions removed from messages
-	client.on('messageReactionRemove', (messageReaction, user) => discordEventReactionRemove(messageReaction, user));
-
-	client.on('error', console.error);
-});
+initializeClient();
 
 // Handle Discord Event Message
 const discordEventMessage = (message) => {
@@ -364,9 +368,16 @@ const handleMessage = async (message) => {
 	else if(exitCommands.includes(message.content)){
 		if(adminUids.includes(message.author.id)){
 			// Do tests:
+			const gameObject = game_js.getGame(message.author);
+			if (gameObject) {
+				cleanOnGameEnd(gameObject);
+			}
 			cleanupExit();
 		}
 		f.deleteDiscMessage(message, 1, 'exit');
+		setTimeout(() => {
+			initializeClient();
+		}, 8000);
 	}
 	// Unites all channels, INDEPENDENT of game ongoing
 	// Optional additional argument to choose name of voiceChannel to uniteIn, otherwise same as balance was called from

@@ -1,11 +1,14 @@
 const Discord = require('discord.js');
 const { getConfig } = require('./tools/load-environment');
 
-const client = new Discord.Client();
+let client;
 
 // Get Instance of discord client
 exports.getClient = async (name, callbackReady = noop, callbackLogin = noop) => {
 
+  if (client)
+    client.destroy();
+  client = new Discord.Client();
   client.on('ready', async () => {
     console.log('ready to rumble -', name);
   });
