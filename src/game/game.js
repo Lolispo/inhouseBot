@@ -169,7 +169,7 @@ const cleanOnGameEnd = (gameObject) => {
     try {
 
         const mapMessages = gameObject.getMapMessages();
-        if(!f.isUndefined(mapMessages)){
+        if (!f.isUndefined(mapMessages)) {
             for(var i = mapMessages.length - 1; i >= 0; i--){
                 f.deleteDiscMessage(mapMessages[i], 0, 'mapMessages['+i+']', function(msg){
                     var index = mapMessages.indexOf(msg);
