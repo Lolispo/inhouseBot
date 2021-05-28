@@ -187,8 +187,10 @@ const handleMessage = async (message) => {
 	console.log('< MSG (' + message.channel.guild.name + '.' + message.channel.name + ') ' + message.author.username + ':', message.content); 
 	const options = message.content.split(' ');
 	// All stages commands, Commands that should always work, from every stage
-	if(startsWith(message, 'hej')){
-		f.print(message, 'Hej ' + message.author.username, noop); // Not removing hej messages
+	if (startsWith(message, 'hej')) {
+		if (message.author.username) {
+			f.print(message, 'Hej ' + message.author.username, noop); // Not removing hej messages
+		}
 	}
 	else if(lennyCommands.includes(message.content)){
 		f.print(message, '( ͡° ͜ʖ ͡°)');

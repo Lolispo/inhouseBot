@@ -33,8 +33,11 @@ const convertIdFrom64 = (key) => {
 
 const findPlayerWithGivenSteamId = (players, steamid) => {
   const sid = new SteamID(steamid);
-  return players.find((player) => player.getSteamId() === sid.getSteam2RenderedID(true)) 
-    || player.getSteamId() === sid.getSteam2RenderedID();
+  return players.find((player) => {
+    const playerSteamID = player?.getSteamId();
+    return playerSteamID === sid.getSteam2RenderedID(true) 
+        || playerSteamID === sid.getSteam2RenderedID();
+  });
 }
 
 const enterSteamIdString = "Enter your SteamID (format: STEAM\_1:0:XXXXXXXX)\nLink: https://steamid.io/"; // https://steamidfinder.com/
@@ -46,7 +49,7 @@ const connectSteamEntry = (message) => {
 
 const sendSteamId = async (message) => {
   const users = await getUser([message.author.id]);
-  const steamid = users[0].dataValues.steamid;
+  const steamid = users[0]?.dataValues?.steamid;
   if (steamid) {
     message.author.send("Your SteamID: " + steamid)
     .then(result => {
