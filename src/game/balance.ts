@@ -4,11 +4,11 @@
 import * as f from '../tools/f';
 
 import { printMessage } from '../bot';
-const { getTeamName } = require('../teamNames');
-const { configureServer } = require('../csserver/cs_server');
-const { getCsIp, getCsUrl } = require('../csserver/server_info');
-const { checkMissingSteamIds, notifyPlayersMissingSteamId } = require('../steamid');
-const { gameIsCS, gameIsDota, gameIsCSMain } = require('./game');
+import { getTeamName } from '../teamNames';
+import { configureServer } from '../csserver/cs_server';
+import { getCsIp, getCsUrl } from '../csserver/server_info';
+import { checkMissingSteamIds, notifyPlayersMissingSteamId } from '../steamid';
+import { gameIsCS, gameIsDota, gameIsCSMain } from './game';
 
 /*
 	Handles getting the most balanced team matchup for the given 10 players

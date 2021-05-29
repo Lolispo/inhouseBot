@@ -1,6 +1,6 @@
-const { createPlayer } = require("../src/game/player");
+import { createPlayer } from '../src/game/player';
 import { assert } from 'chai';
-const { checkMissingSteamIds } = require('../src/steamid'); 
+import { checkMissingSteamIds } from '../src/steamid'; 
 
  describe('checkMissingSteamIds', () => {
   it('checkMissingSteamIds', async () => {

@@ -2,7 +2,7 @@
 // Author: Petter Andersson
 
 // Should handle general help functions
-const fs = require('fs');
+import fs from 'fs';
 
 export const getDefaultRemoveTime = () => 60000;
 

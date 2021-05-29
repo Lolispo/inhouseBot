@@ -5,14 +5,13 @@
 
 import * as f from './tools/f';
 
-import { promises } from 'fs';
 import { getHighestMMR } from './game/player';
 import { configureServer } from './csserver/cs_server';
 
 let mapMessagesBuilder = [];
 
-const emoji_agree = '👍'; 		// Agree emoji. Alt: 👍👌, Om custom Emojis: Borde vara seemsgood emoji
-const emoji_disagree = '👎';	// Disagree emoji.
+// const emoji_agree = '👍'; 		// Agree emoji. Alt: 👍👌, Om custom Emojis: Borde vara seemsgood emoji
+// const emoji_disagree = '👎';	// Disagree emoji.
 const emoji_error = '❌'; 		// Error / Ban emoji. Alt: '🤚';
 const longLine = '\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\n';
 
@@ -37,7 +36,7 @@ function handleCaptainMessage(user, mapMessage, gameObject) {
   console.log('Removing', index, mapMessage.content);
   if (index > -1) {
   		gameMapMessages.splice(index, 1);
-    /*
+		/*
 		console.log('@handleCaptainMessage size = ', gameMapMessages.length);
 		console.log('Updated Maps: ')
 		for(let i = 0; i < mapMessagesBuilder.length; i++) {

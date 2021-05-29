@@ -6,8 +6,7 @@
 */
 
 import * as f from '../tools/f';
-
-const { cancelGameCSServer } = require('../csserver/cs_console');
+import { cancelGameCSServer } from '../csserver/cs_console';
 
 const activeGames = [];
 
@@ -65,7 +64,7 @@ function Game(gameID, channelMessage) {
 
   this.getTeamWonMessage = () => this.teamWonMessage;
 
-  this.getTeamWon = value => this.teamWon;
+  this.getTeamWon = () => this.teamWon;
 
   this.getMatchupServerMessage = () => this.matchupServerMsg;
 

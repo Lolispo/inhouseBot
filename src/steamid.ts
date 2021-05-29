@@ -75,7 +75,7 @@ export const notifyPlayersMissingSteamId = async (players) => {
   players.forEach((player) => {
     const uid = player.uid;
     try {
-      client.users.get(uid).send(enterSteamIdString);
+      client.users.cache.get(uid).send(enterSteamIdString);
     } catch (e) {
       console.error('Unable to send steamid fetch to user with uid' + uid + ':', e);
     }

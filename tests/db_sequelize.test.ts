@@ -2,10 +2,10 @@
 // Author: Petter Andersson
 
 import { assert } from 'chai';
-const rewire = require('rewire');
-const { initializeDBSequelize } = require('../src/database/db_sequelize');
-const { createPlayer } = require('../src/game/player');
-const { getConfig } = require('../src/tools/load-environment');
+import rewire from 'rewire';
+import { initializeDBSequelize } from '../src/database/db_sequelize';
+import { createPlayer } from '../src/game/player';
+import { getConfig } from '../src/tools/load-environment';
 const db_sequelize = rewire('../src/database/db_sequelize.js');
 const getHighScore = db_sequelize.__get__('getHighScore');
 const getUsers = db_sequelize.__get__('getUsers');

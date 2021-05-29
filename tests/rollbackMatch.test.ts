@@ -16,7 +16,7 @@ const foo = (uid, userName, mmr, game, gamesPlayed = 0) => {
   return s;
 }
 
-// const rollbackMatchId = 29;
+const rollbackMatchId = -1;
 
 describe('migration', () => {
   let databaseConnection;
