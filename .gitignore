@@ -1,4 +1,4 @@
-*.json
+.vscode/
 *.in
 !package.json
 !package-lock.json
