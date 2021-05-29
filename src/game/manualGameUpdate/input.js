@@ -1,7 +1,102 @@
 
+Set (local) mmr: Simon dota 2450
+Executing (default): SELECT `uid`, `gameName`, `userName`, `mmr`, `gamesPlayed`, `wins` FROM `ratings` AS `ratings` WHERE `ratings`.`uid` = '252531109491900417' AND `ratings`.`gameName` = 'dota';
+Executing (default): SELECT `uid`, `gameName`, `userName`, `mmr`, `gamesPlayed`, `wins` FROM `ratings` AS `ratings` WHERE `ratings`.`uid` = '356184240859250698' AND `ratings`.`gameName` = 'dota';
+Set (local) mmr: Xavantex dota 2675
+Set (local) mmr: Jotunheim dota 2550
+Set (local) mmr: Gaggg dota 2225
+Set (local) mmr: Marsche dota 2550
+Set (local) mmr: Pigeons dota 2525
+Set (local) mmr: Banza1 dota 2375
+Set (local) mmr: Jimi dota 2225
+
+
 exports.match = {
-  t1: 
+  "team1": [
+    {
+      "userName": "Xavantex",
+      "uid": "107205764044599296",
+      "defaultMMR": 2500,
+      "steamId": "STEAM_1:0:31051784",
+      "mmrs": {}
+    },
+    {
+      "userName": "Gaggg",
+      "uid": "175001994321330177",
+      "defaultMMR": 2500,
+      "steamId": "",
+      "mmrs": {}
+    },
+    {
+      "userName": "Marsche",
+      "uid": "218695120848027648",
+      "defaultMMR": 2500,
+      "steamId": "",
+      "mmrs": {}
+    },
+    {
+      "userName": "Pigeons",
+      "uid": "231097610113384448",
+      "defaultMMR": 2500,
+      "steamId": "",
+      "mmrs": {}
+    },
+    {
+      "userName": "Banza1",
+      "uid": "252531109491900417",
+      "defaultMMR": 2500,
+      "steamId": "STEAM_0:0:9391834",
+      "mmrs": {}
+    }
+  ],
+
+  "team2": [
+    {
+      "userName": "Petter",
+      "uid": "96293765001519104",
+      "defaultMMR": 2500,
+      "steamId": "STEAM_1:0:24603593",
+      "mmrs": {}
+    },
+    {
+      "userName": "Lacktjo",
+      "uid": "96306231043432448",
+      "defaultMMR": 2500,
+      "steamId": "STEAM_0:1:29138345",
+      "mmrs": {}
+    },
+    {
+      "userName": "Simon",
+      "uid": "96324164301910016",
+      "defaultMMR": 2500,
+      "steamId": "STEAM_0:1:28546456",
+      "mmrs": {}
+    },
+    {
+      "userName": "Jotunheim",
+      "uid": "118012070049349632",
+      "defaultMMR": 2500,
+      "steamId": "",
+      "mmrs": {}
+    },
+    {
+      "userName": "Jimi",
+      "uid": "356184240859250698",
+      "defaultMMR": 2500,
+      "steamId": "",
+      "mmrs": {}
+    }
+  ],
+  "difference": 0,
+  "avgT1": 2470,
+  "avgT2": 2470,
+  "avgDiff": 0,
+  "game": "dota"
 }
+
+
+
+// TODO: Allow loading this
 
 The Spawn Camping Villians (CT)    (Avg: 2534.83 mmr):
 Robin (2355), Bambi på hal is (2903), Pippin (2501), Samev (2500), neevz;.; (2500), zarwil (2450)
