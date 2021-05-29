@@ -1,6 +1,6 @@
-import fs from 'fs';
-import util from 'util';
-import FormData from 'form-data';
+import * as fs from 'fs';
+import * as util from 'util';
+import * as FormData from 'form-data';
 import { assert } from 'console';
 import { getChosenMap } from './cs_map';
 import { writeConsole, loadConfigFile, getLatestConsoleLines } from './cs_console';

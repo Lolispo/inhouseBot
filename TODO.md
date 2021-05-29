@@ -18,6 +18,7 @@ Issue revoting when downvote - Allow cancelling vote more clearly / make this ca
 
 MIGRATION TO 12 AND TYPESCRIPT:
     Fix birthday
+    Fix Ping command
 
 
 Load game from file

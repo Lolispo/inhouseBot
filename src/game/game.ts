@@ -8,138 +8,169 @@
 import * as f from '../tools/f';
 import { cancelGameCSServer } from '../csserver/cs_console';
 
-const activeGames = [];
 
-export const getActiveGames = () => activeGames;
 
-function Game(gameID, channelMessage) {
-  this.gameID = gameID; // Unique id for game, set as the balance message id in the discord channel
-  this.channelMessage = channelMessage; // Controls which channel to make prints in
-  this.activeMembers; // Active members playing (team1 players + team2 players)
-  this.balanceInfo; // Object: {team1, team2, difference, avgT1, avgT2, avgDiff, game} Initialized on creation of game object
+export class Game {
+  static activeGames = [];
+  static getActiveGames = () => Game.activeGames;
 
-  this.serverId; // ServerId
-  this.matchId; // MatchId for server
-  this.csConsoleIntervalPassive; // between games - lower time
-  this.csConsoleIntervalActive; // active gameInterval
+  gameID;
+  channelMessage;
+  activeMembers;
+  balanceInfo;
+  serverId: string;
+  matchId: string;
+  csConsoleIntervalPassive;
+  csConsoleIntervalActive;
+  matchupMessage;
+  matchupServerMsg
+  voteMessage
+  teamWonMessage
+  teamWon;			// Keeps track on which team won
+  freshMessage; // Fresh message in same channel
+  
+  mapStatusMessage; // Message that keep track of which maps are banned and whose turn is it
+  mapMessages = []; // Keeps track of the discord messages for the different maps
+  mapVetoTurn; // Turn variable, whose turn it is
+  captain1;			// Captain for team 1
+  captain2;			// Captain for team 2
+  bannedMaps;
 
-  this.matchupMessage = channelMessage; // One who started game's balance's message (-b)
-  this.matchupServerMsg; 	// Discord message for showing matchup, members in both teams and mmr difference
-  this.voteMessage;		// When voting on who won, this holds the voteText discord message
-  this.teamWonMessage;	// The typed teamWon message, used to vote on agreeing as well as remove on finished vote
-  this.teamWon;			// Keeps track on which team won
-  this.freshMessage = channelMessage; // Fresh message in same channel
+  constructor(gameID, channelMessage) {
+    this.gameID = gameID; // Unique id for game, set as the balance message id in the discord channel
+    this.channelMessage = channelMessage; // Controls which channel to make prints in
+    this.activeMembers = []; // Active members playing (team1 players + team2 players)
+    this.balanceInfo; // Object: {team1, team2, difference, avgT1, avgT2, avgDiff, game} Initialized on creation of game object
+  
+    this.serverId; // ServerId
+    this.matchId; // MatchId for server
+    this.csConsoleIntervalPassive; // between games - lower time
+    this.csConsoleIntervalActive; // active gameInterval
+  
+    this.matchupMessage = channelMessage; // One who started game's balance's message (-b)
+    this.matchupServerMsg; 	// Discord message for showing matchup, members in both teams and mmr difference
+    this.voteMessage;		// When voting on who won, this holds the voteText discord message
+    this.teamWonMessage;	// The typed teamWon message, used to vote on agreeing as well as remove on finished vote
+    this.teamWon;			// Keeps track on which team won
+    this.freshMessage = channelMessage; // Fresh message in same channel
+  
+    this.mapStatusMessage; // Message that keep track of which maps are banned and whose turn is it
+    this.mapMessages = []; // Keeps track of the discord messages for the different maps
+    this.mapVetoTurn; // Turn variable, whose turn it is
+    this.captain1;			// Captain for team 1
+    this.captain2;			// Captain for team 2
+    this.bannedMaps = [];	// String array holding who banned which map, is used in mapStatusMessage
+    Game.activeGames.push(this);
+  }
 
-  this.mapStatusMessage; // Message that keep track of which maps are banned and whose turn is it
-  this.mapMessages = []; // Keeps track of the discord messages for the different maps
-  this.mapVetoTurn; // Turn variable, whose turn it is
-  this.captain1;			// Captain for team 1
-  this.captain2;			// Captain for team 2
-  this.bannedMaps = [];	// String array holding who banned which map, is used in mapStatusMessage
-
-  activeGames.push(this);
 
   // Returns true if userid is contained in activeMembers in this game
-  this.containsPlayer = uid => this.activeMembers.some(guildMember => guildMember.id === uid);
+  containsPlayer = uid => this.activeMembers.some(guildMember => {
+    return guildMember.id === uid
+  });
 
-  this.getBalanceInfo = () => this.balanceInfo;
+  getBalanceInfo = () => this.balanceInfo;
 
-  this.getMatchupMessage = () => this.matchupMessage;
+  getMatchupMessage = () => this.matchupMessage;
 
-  this.getFreshMessage = () => this.freshMessage;
-  this.updateFreshMessage = (message) => {
+  getFreshMessage = () => this.freshMessage;
+  updateFreshMessage = (message) => {
     if (message.channel.id === this.matchupMessage.channel.id) {
       this.freshMessage = message;
       // console.log('Updated Fresh');
     }
   };
 
-  this.setIntervalPassive = value => this.csConsoleIntervalPassive = value;
-  this.setIntervalActive = value => this.csConsoleIntervalActive = value;
-  this.getIntervalPassive = () => this.csConsoleIntervalPassive;
-  this.getIntervalActive = () => this.csConsoleIntervalActive;
+  setIntervalPassive = value => this.csConsoleIntervalPassive = value;
+  setIntervalActive = value => this.csConsoleIntervalActive = value;
+  getIntervalPassive = () => this.csConsoleIntervalPassive;
+  getIntervalActive = () => this.csConsoleIntervalActive;
 
-  this.setMatchId = value => this.matchId = value;
-  this.getMatchId = () => this.matchId;
+  setMatchId = value => this.matchId = value;
+  getMatchId = () => this.matchId;
 
-  this.getTeamWonMessage = () => this.teamWonMessage;
+  getTeamWonMessage = () => this.teamWonMessage;
 
-  this.getTeamWon = () => this.teamWon;
+  getTeamWon = () => this.teamWon;
 
-  this.getMatchupServerMessage = () => this.matchupServerMsg;
+  getMatchupServerMessage = () => this.matchupServerMsg;
+  getActiveMembers = () => this.activeMembers;
 
-  this.getActiveMembers = () => this.activeMembers;
+  getChannelMessage = () => this.channelMessage;
 
-  this.getChannelMessage = () => this.channelMessage;
+  getVoteMessage = () => this.voteMessage;
 
-  this.getVoteMessage = () => this.voteMessage;
+  setVoteMessage = value => this.voteMessage = value;
 
-  this.setVoteMessage = value => this.voteMessage = value;
+  getGameID = () => this.gameID;
 
-  this.getGameID = () => this.gameID;
+  getMapMessages = () => this.mapMessages;
 
-  this.getMapMessages = () => this.mapMessages;
+  getMapVetoTurn = () => this.mapVetoTurn;
 
-  this.getMapVetoTurn = () => this.mapVetoTurn;
+  setMapVetoTurn = value => this.mapVetoTurn = value;
 
-  this.setMapVetoTurn = value => this.mapVetoTurn = value;
+  getCaptain1 = () => this.captain1;
 
-  this.getCaptain1 = () => this.captain1;
+  getCaptain2 = () => this.captain2;
 
-  this.getCaptain2 = () => this.captain2;
+  setCaptain1 = value => this.captain1 = value;
 
-  this.setCaptain1 = value => this.captain1 = value;
+  setCaptain2 = value => this.captain2 = value;
 
-  this.setCaptain2 = value => this.captain2 = value;
+  getBannedMaps = () => this.bannedMaps;
 
-  this.getBannedMaps = () => this.bannedMaps;
+  getMapStatusMessage = () => this.mapStatusMessage;
 
-  this.getMapStatusMessage = () => this.mapStatusMessage;
+  setMapStatusMessage = variable => this.mapStatusMessage = variable;
 
-  this.setMapStatusMessage = variable => this.mapStatusMessage = variable;
+  setTeamWon = value => this.teamWon = value;
 
-  this.setTeamWon = value => this.teamWon = value;
+  setTeamWonMessage = message => this.teamWonMessage = message;
 
-  this.setTeamWonMessage = message => this.teamWonMessage = message;
+  setMatchupServerMessage = message => this.matchupServerMsg = message;
 
-  this.setMatchupServerMessage = message => this.matchupServerMsg = message;
+  setMapMessages = result => this.mapMessages = result;
 
-  this.setMapMessages = result => this.mapMessages = result;
+  setActiveMembers = members => this.activeMembers = members;
 
-  this.setActiveMembers = members => this.activeMembers = members;
+  setBalanceInfo = value => this.balanceInfo = value;
 
-  this.setBalanceInfo = value => this.balanceInfo = value;
+  setMatchupMessage = message => this.matchupMessage = message;
 
-  this.setMatchupMessage = message => this.matchupMessage = message;
+  setServerId = value => this.serverId = value;
 
-  this.setServerId = value => this.serverId = value;
-
-  this.getServerId = () => this.serverId;
+  getServerId = () => this.serverId;
 }
 
-export const createGame = function (gameID, channelMessage) {
-  return new Game(gameID, channelMessage);
+export const createGame = (gameID, channelMessage): Game => {
+  const game = new Game(gameID, channelMessage);
+  console.log('@createGame DEBUG:', game);
+  return game;
 };
 
 // Returns the game where the author is
-export const getGame = author => activeGames.find(game => game.containsPlayer(author.id));
+export const getGame = author => Game.activeGames.find(game => {
+  console.log('@GETGAME', game, author.id)
+  return game.containsPlayer(author.id);
+});
 
-export const hasActiveGames = () => activeGames.length !== 0;
+export const hasActiveGames = () => Game.activeGames.length !== 0;
 
 // Finds the game with the mapMessage reacted to or null
-export const getGameMapMessages = messageReaction => activeGames.find(game => game.getMapMessages().some(mapMsg => messageReaction.message.id === mapMsg.id));
+export const getGameMapMessages = messageReaction => Game.activeGames.find(game => game.getMapMessages().some(mapMsg => messageReaction.message.id === mapMsg.id));
 
 // Deletes the gameobject, returns the list afterwards
 export const deleteGame = (gameObject) => {
   // console.log('DEBUG @deleteGame BEFORE', activeGames);
-  const index = activeGames.indexOf(gameObject);
+  const index = Game.activeGames.indexOf(gameObject);
   if (index > -1) {
-    activeGames.splice(index, 1);
+    Game.activeGames.splice(index, 1);
   } else {
     console.error('Failed to delete gameObject', gameObject);
   }
   // console.log('DEBUG @deleteGame AFTER', activeGames);
-  return activeGames;
+  return Game.activeGames;
 };
 
 export const clearIntervals = (gameObject) => {

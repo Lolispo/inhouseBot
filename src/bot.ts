@@ -12,7 +12,7 @@ import * as voiceMove_js from './voiceMove'; 			// Handles moving of users betwe
 import * as db_sequelize from './database/db_sequelize';			// Handles communication with db
 import { initializeDBSequelize } from './database/db_sequelize';	
 import { getChannelName, getGameOnGoing, isCorrect, startGame } from './trivia';						// Trivia
-import { getActiveGames, getGame, createGame, hasActiveGames, deleteGame } from './game/game';
+import { Game, getGame, createGame, hasActiveGames, deleteGame } from './game/game';
 import { getConfig } from './tools/load-environment';
 import { getClient, getClientReference } from './client';
 import * as birthday from './birthday';
@@ -23,8 +23,9 @@ import { getGameStats } from './csserver/cs_server_stats';
 
 import { lastGameCommands, lastGameAction } from './commands/stats/lastGame';
 import { rollAction } from './commands/memes/roll';
-import { GuildMember, Message, MessageReaction, TextChannel, User, VoiceChannel } from 'discord.js';
+import { GuildMember, Message, MessageReaction, ReactionUserManager, TextChannel, User, VoiceChannel } from 'discord.js';
 import { triviaStartCommand } from './commands/trivia/triviaCommand';
+import { pingAction } from './commands/memes/ping';
 
 const { prefix, token, db } = getConfig(); // Load config data from env
 
@@ -84,8 +85,8 @@ getClient('bot', async () => initializeDBSequelize(getConfig().db), (client) => 
 // Handle Discord Event Message
 const discordEventMessage = (message: Message) => {
 	if (!message.author.bot && message.author.username !== bot_name) { // Message sent from user
-		const isDmChannel = (message.channel as TextChannel).guild;
-		if (!isDmChannel) {
+		const isTextChannel = (message.channel as TextChannel).guild;
+		if (isTextChannel) {
 			const textChannel = message.channel as TextChannel;
 			message.content = message.content.toLowerCase(); // Allows command to not care about case
 			if (textChannel.name === getChannelName() && getGameOnGoing()) { 
@@ -207,10 +208,7 @@ const handleMessage = async (message) => {
 		return;
 	}
 	else if (pingCommands.includes(message.content)){ // Good for testing prefix and connection to bot
-		const client = await getClientReference();
-		console.log('PingAlert, user had !ping as command', client.pings);
-		f.print(message, 'Time of response ' + client.pings[0] + ' ms');
-		f.deleteDiscMessage(message, removeBotMessageDefaultTime, 'ping');
+		pingAction(message, options);
 	}
 	else if (startsWith(message, rollCommands)){ // Roll command for luls
 		rollAction(message, options);
@@ -313,6 +311,7 @@ const handleMessage = async (message) => {
 	// Active Game commands: (After balance is made)
 	else if (isActiveGameCommand(message)) {
 		const gameObject = getGame(message.author);
+		console.log('@isActive DEBUG:', message.author, gameObject);
 		if (!f.isUndefined(gameObject)){
 			gameObject.updateFreshMessage(message);
 			if (team1wonCommands.includes(message.content)) {
@@ -466,7 +465,7 @@ function getModeChosen(message, modeCategory, defaultGame = null){
 
 async function cleanupExit(){
 	await f.onExitDelete();
-	await getActiveGames().map(game => cleanOnGameEnd(game));
+	await Game.getActiveGames().map(game => cleanOnGameEnd(game));
 }
 
 const stats = async (message) => {
@@ -541,7 +540,8 @@ async function balanceCommand(message){
 		// console.log('@voiceChannel:', voiceChannel);
 		if (voiceChannel !== null && !f.isUndefined(voiceChannel)){ // Makes sure user is in a voice channel
 			// Initialize Game object
-			const gameObject = createGame(message.id, message);
+			const gameObject = await createGame(message.id, message);
+			if (!gameObject) console.error('GameObject Failed to initialize after creategame');
 			const players = findPlayersStart(message, voiceChannel, gameObject); // initalize players objects with playerInformation
 			const numPlayers = players.length;
 			// Initialize balancing, Result is printed and stage = 1 when done
@@ -579,10 +579,9 @@ async function balanceCommand(message){
 
 // Initialize players array from given voice channel
 // activeGame set to true => for phases where you should prevent others from overwriting (not trivia)
-function findPlayersStart(message, channel: VoiceChannel, gameObject?){
+function findPlayersStart(message: Message, channel: VoiceChannel, gameObject?: Game){
 	const players = [];
 	// const fetchedMembers = channel.fetch({ force: true });
-	console.log(channel);
 	const members: GuildMember[] = Array.from(channel.members.values());
 	members.forEach((member) => {
 		// Only real users TODO Avoid bots in channel
@@ -590,9 +589,11 @@ function findPlayersStart(message, channel: VoiceChannel, gameObject?){
 		const tempPlayer = player_js.createPlayer(member.user.username, member.user.id);
 		players.push(tempPlayer);
 	});
-	if (!gameObject) {
+	if (gameObject) {
 		gameObject.setActiveMembers(members); // TODO Game
 		//activeMembers = members;
+	} else {
+		console.error('ERROR Failed to setActive members sine gameObject is not initalized');
 	}
 	console.log(`VoiceChannel ${channel.name} (id = ${channel.id}) active users: (Total: ${channel.members.size}) ${players.length} Members: ${players.map(player => player.userName)}`);
 	return players;
@@ -612,7 +613,7 @@ function testBalanceGeneric(game, gameObject){
 // Handling of voteMessageReactions
 // TODO: Refactor the following three methods
 // TODO Game: check for old variable usage, use from gameobject instead
-function voteMessageReaction(messageReaction, gameObject){
+function voteMessageReaction(messageReaction: MessageReaction, gameObject){
 	// Check if majority number contain enough players playing
 	if (messageReaction.emoji.toString() === emoji_agree){
 		voteMessageTextUpdate(messageReaction, gameObject)
@@ -628,7 +629,7 @@ function voteMessageReaction(messageReaction, gameObject){
 
 // Updates voteMessage on like / unlike the agree emoji
 // Is async to await the voteMessage.edit promise
-async function voteMessageTextUpdate(messageReaction, gameObject){
+async function voteMessageTextUpdate(messageReaction: MessageReaction, gameObject){
 	const amountRel = await countAmountUsersPlaying(gameObject.getBalanceInfo().team1, messageReaction.users) + countAmountUsersPlaying(gameObject.getBalanceInfo().team2, messageReaction.users);
 	const totalNeed = await (gameObject.getBalanceInfo().team1.length + 1);
 	//console.log('DEBUG: @messageReactionAdd, count =', amountRelevant, ', Majority number is =', totalNeeded);
@@ -678,10 +679,10 @@ const resetVoteStatus = (gameObject) => {
 }
 
 // Count amount of people who reacted that are part of this team
-function countAmountUsersPlaying(team, peopleWhoReacted){ 
+function countAmountUsersPlaying(team, peopleWhoReacted: ReactionUserManager){ 
 	let counter = 0;
 	//console.log('DEBUG: @countAmountUsersPlaying', team, peopleWhoReacted);
-	peopleWhoReacted.forEach(function(user){
+	peopleWhoReacted.cache.forEach(function(user){
 		for (let i = 0; i < team.length; i++){
 			if (user.id === team[i].uid){ // If person who reacted is in the game
 				counter++;
