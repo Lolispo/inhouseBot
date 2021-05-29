@@ -299,6 +299,26 @@ export const getUsers = async (listOfUsers) => {
 }
 
 // Gets Top 5 users ordered by mmr
+// 
+/*
+Latest: 
+SELECT COUNT(*) FROM playerMatches WHERE mmrChange IN (
+	SELECT playerMatches.mid, uid, mmrChange, gameName FROM playerMatches LEFT JOIN matches ON playerMatches.mid = matches.mid 
+	WHERE uid = "96293765001519104" AND gameName = "dota" ORDER BY playerMatches.mid DESC
+	)
+
++-----+-------------------+-----------+----------+
+| mid | uid               | mmrChange | gameName |
++-----+-------------------+-----------+----------+
+| 112 | 96293765001519104 |       -25 | dota     |
+| 111 | 96293765001519104 |       -25 | dota     |
+| 110 | 96293765001519104 |       -25 | dota     |
+| 105 | 96293765001519104 |       -25 | dota     |
+| 104 | 96293765001519104 |        25 | dota     |
+| 103 | 96293765001519104 |        25 | dota     |
++-----+-------------------+-----------+----------+
+
+*/
 export const getHighScore = async (game, size) => {
 	const result = await DatabaseSequelize.instance.Ratings.findAll({
 		limit: size,

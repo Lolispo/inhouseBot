@@ -26,6 +26,8 @@ import { rollAction } from './commands/memes/roll';
 import { GuildMember, Message, MessageReaction, ReactionUserManager, TextChannel, User, VoiceChannel } from 'discord.js';
 import { triviaStartCommand } from './commands/trivia/triviaCommand';
 import { pingAction } from './commands/memes/ping';
+import { statsAction } from './commands/stats/stats';
+import { leaderBoardAction } from './commands/stats/leaderboard';
 
 const { prefix, token, db } = getConfig(); // Load config data from env
 
@@ -36,7 +38,7 @@ const emoji_error = '❌'; 		// Error / Ban emoji. Alt: '🤚';
 const bot_name = 'inhouse-bot';
 const voteText = '**Majority of players that played the game need to confirm this result (Press ' + emoji_agree + ' or ' + emoji_disagree + ')**';
 const adminUids = ['96293765001519104', '107882667894124544']; // Admin ids, get access to specific admin rights
-const removeBotMessageDefaultTime = f.getDefaultRemoveTime() || 60000; // 300000
+export const removeBotMessageDefaultTime = f.getDefaultRemoveTime() || 60000; // 300000
 const maxPlayers = 14;
 
 const helpCommands = [prefix + 'h', prefix + 'help'];
@@ -98,6 +100,7 @@ const discordEventMessage = (message: Message) => {
 		} else { // Direct Message to Bot
 			console.log('DM msg = ' + message.author.username + ': ' + message.content);
 			// Help and stats commands are allowed
+			const options = message.content.split(' ');
 			if (helpCommands.includes(message.content)){
 				message.author.send(buildHelpString(message.author.id, 0))
 				.then(result => {
@@ -115,7 +118,7 @@ const discordEventMessage = (message: Message) => {
 					f.deleteDiscMessage(result, removeBotMessageDefaultTime * 4);
 				});
 			} else if (startsWith(message, statsCommands)){
-				stats(message);
+				statsAction(message, options);
 			} else if (connectSteamCommands.includes(message.content)) {
 				connectSteamEntry(message);
 			} else if (validateSteamID(message.content)) {
@@ -245,7 +248,7 @@ const handleMessage = async (message) => {
 	}
 	// Start game, through balance or Duel, balance for 2 players
 	else if (startsWith(message, balanceCommands) || startsWith(message, duelCommands)){
-		balanceCommand(message);
+		balanceCommand(message, options);
 	}
 	
 	else if (startsWith(message, triviaCommands)){
@@ -264,29 +267,11 @@ const handleMessage = async (message) => {
 	// Show top X MMR, default 5 
 	// TODO Games played only for cs, rating for otherRatings instead of mmr (as in player.js)
 	else if (startsWith(message, leaderboardCommands)){
-		const allModes = player_js.getAllModes();
-		const game = getModeChosen(message, allModes, allModes[0]);
-		let size = 5; 
-		if (options.length >= 2) {
-			const num = parseInt(options[1]);
-			size = options[1] > 0 && options[1] <= 100 ? num : 5;
-		}
-		const data = await db_sequelize.getHighScore(game, size);
-		// TODO: Print``
-		let s2 = '';
-		let counter = 0;
-		data.forEach((oneData) => {
-			counter++;
-			s2 += `${oneData.userName.replace('_', '\\_')}: \t**${oneData.mmr} ${player_js.ratingOrMMR(oneData.gameName)}**${oneData.gamesPlayed > 0 ? `\t(Games Played: ${oneData.gamesPlayed})` : ''}\n`;
-		});
-		let s = '**Leaderboard Top ' + size + (size !== counter ? ` (${counter})` : '') + ' for ' + game + ':**\n';
-		s += s2;
-		f.print(message, s);
-		f.deleteDiscMessage(message, 15000, 'leaderboard');
+		leaderBoardAction(message, options);
 	}
 	// Sends private information about your statistics
 	else if (startsWith(message, statsCommands)){
-		stats(message);
+		statsAction(message, options);
 		f.deleteDiscMessage(message, 15000, 'stats');
 	}
 	
@@ -312,7 +297,7 @@ const handleMessage = async (message) => {
 	else if (isActiveGameCommand(message)) {
 		const gameObject = getGame(message.author);
 		console.log('@isActive DEBUG:', message.author, gameObject);
-		if (!f.isUndefined(gameObject)){
+		if (gameObject) {
 			gameObject.updateFreshMessage(message);
 			if (team1wonCommands.includes(message.content)) {
 				const activeResultVote = gameObject.getTeamWon(); // team1Won crash
@@ -450,11 +435,10 @@ function startsWith(message, command){
 
 // Returns first valid gamemode from arguments
 // TODO: A way to set cs1v1 if cs is given or dota if dota1v1 is given (instead of default)
-function getModeChosen(message, modeCategory, defaultGame = null){
-	const options = message.content.split(' '); // Message input, [0] is command, after is potential arguments
+export const getModeChosen = (options, modeCategory, defaultGame = null) => {
 	let game = defaultGame // default command (Either cs or cs1v1)
 	for (let i = 1; i < options.length; i++){
-		if (modeCategory.includes(options[i])){
+		if (modeCategory.includes(options[i])) {
 			console.log('DEBUG @b Game chosen as: ' + options[i]);
 			game = options[i];
 			break;
@@ -466,37 +450,6 @@ function getModeChosen(message, modeCategory, defaultGame = null){
 async function cleanupExit(){
 	await f.onExitDelete();
 	await Game.getActiveGames().map(game => cleanOnGameEnd(game));
-}
-
-const stats = async (message) => {
-	const game = getModeChosen(message, player_js.getAllModes());
-	const data = await db_sequelize.getPersonalStats(message.author.id);
-	let s = '';
-	if (data.length === 0){
-		if (!game || game === '') {
-			s += "**User doesn't have any games played**";
-		} else {
-			s += `**User doesn't have any ${game} games played**`;
-		}
-	}
-	else {
-		if (!game) {
-			s += `**Your stats (${data[0].userName}):**\n`;
-			data.forEach((oneData) => {
-				s += `${oneData.gameName}: \t**${oneData.mmr} ${player_js.ratingOrMMR(oneData.gameName)}**\t(Games Played: ${oneData.gamesPlayed})\n`;
-			});
-		} else {
-			s += '**Your stats for ' + game + ':**\n';
-			const filteredData = data.filter((entry) => entry.gameName === game);
-			filteredData.forEach((oneData) => {
-				s += `${oneData.userName}(**${oneData.gameName}**): \t**${oneData.mmr} ${player_js.ratingOrMMR(game)}**\t(Games Played: ${oneData.gamesPlayed})\n`;
-			});
-		}
-	}
-	message.author.send(s)  // Private message
-	.then(result => {
-		f.deleteDiscMessage(result, removeBotMessageDefaultTime * 2);
-	}); 
 }
 
 // Start trivia game, sent from trivia when questions are fetched. 
@@ -517,13 +470,13 @@ export const triviaStart = (questions, message, author) => {
 
 // Here follows starting balanced game methods
 
-const getModeAndPlayers = (players, gameObject, options) => {
+const getModeAndPlayers = (players, gameObject, options, paramOptions) => {
 	const { message, allModes } = options;
 	let game;
 	if (!message && !allModes) {
 		game = options.game;
 	} else {
-		game = getModeChosen(message, allModes, allModes[0]);
+		game = getModeChosen(paramOptions, allModes, allModes[0]);
 	}
 	// console.log('getModeAndPlayers', game);
 	db_sequelize.initializePlayers(players, game, (playerList) => {
@@ -532,7 +485,7 @@ const getModeAndPlayers = (players, gameObject, options) => {
 }
 
 // Command used for starting a new game
-async function balanceCommand(message){
+async function balanceCommand(message, options){
 	const gameObjectExist = getGame(message.author);
 	if (f.isUndefined(gameObjectExist)){ // User is not already in a game
 		console.log('@DEBUG', message.guild.member(message.author));
@@ -547,14 +500,11 @@ async function balanceCommand(message){
 			// Initialize balancing, Result is printed and stage = 1 when done
 			let allModes = player_js.getGameModes();
 			if (numPlayers > 2 && numPlayers <= maxPlayers && numPlayers % 2 === 0){ // TODO: Allow uneven games? Requires testing to see if it works
-				getModeAndPlayers(players, gameObject, { message, allModes });
+				getModeAndPlayers(players, gameObject, { message, allModes }, options);
 			} else if (numPlayers === 2){
 				allModes = player_js.getGameModes1v1();
-				getModeAndPlayers(players, gameObject, { message, allModes });
+				getModeAndPlayers(players, gameObject, { message, allModes }, options);
 			} 
-			/*else if((numPlayers === 1) && (adminUids.includes(message.author.id))){
-				testBalanceGeneric(allModes[0], gameObject);
-			} */
 			else {
 				const amountVoiceChannel = voiceChannel.members.size;
 				const stringAmountConnected = amountVoiceChannel !== numPlayers ? 
@@ -597,17 +547,6 @@ function findPlayersStart(message: Message, channel: VoiceChannel, gameObject?: 
 	}
 	console.log(`VoiceChannel ${channel.name} (id = ${channel.id}) active users: (Total: ${channel.members.size}) ${players.length} Members: ${players.map(player => player.userName)}`);
 	return players;
-}
-
-// A Test for balancing and getting an active game without players available
-function testBalanceGeneric(game, gameObject){
-	console.log('\t<-- Testing Environment: 10 player game, res in console -->');
-	const players = [];
-	for (let i = 0; i < 10; i++){
-		const tempPlayer = player_js.createPlayer('Player ' + i, i.toString());
-		players.push(tempPlayer);
-	}
-	getModeAndPlayers(players, gameObject, { game });
 }
 
 // Handling of voteMessageReactions

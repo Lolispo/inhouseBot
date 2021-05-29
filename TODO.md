@@ -7,26 +7,28 @@ Add integration tests for main functionalities
 
 # Error message
 
-VOICE BROKEN - DOESNT GET CORRECT MEMBERS IN VOICE CHANNEL (works on restart)
-    branch for restart client - but doesn't clear everything. Instead check restart npm start command
-
-Issue revoting when downvote - Allow cancelling vote more clearly / make this cancel vote for real so you can do it afterwards
-👎 CONFIRMED!  (6/6) Removing voteText msg and team#Won msg
-...
-> Invalid command: Active result vote for this game already ongoing, for team 2
-    Adding reset of vote command, need testing
-
 MIGRATION TO 12 AND TYPESCRIPT:
     Fix birthday
-    Fix Ping command
+    Check trivia
+    check cs server
+    
 
+Fix Ping command - doesn't seem available easily anymore - either disable entirely or fix
+
+Show streak in leaderboard output
+
+Inhouse status check
+    Temperature check
+    DM in discord
+    SMS integration
 
 Load game from file
 
-Game balance not sorted after dota mmr
+Game balance not sorted after mmr when starting game
 
+User 96293765001519104 not currently in a game -> Do username
 
-Refactor commands to command folder
+INPROGRESS - Refactor commands to command folder
 
 LastGame command to help list
     Check generate collection from the command files
@@ -45,8 +47,6 @@ Verify:
 
 Store stats for game results (same table as map?)
 
-Add +mmr to leaderboard results?
-    Low prio
 
 rank overall (rank 1 highest mmr, 5 fifth highest)
 

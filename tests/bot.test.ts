@@ -28,3 +28,17 @@ describe('bot', function(){
         });
     });
 })
+
+/**
+ * 
+// A Test for balancing and getting an active game without players available
+function testBalanceGeneric(game, gameObject){
+	console.log('\t<-- Testing Environment: 10 player game, res in console -->');
+	const players = [];
+	for (let i = 0; i < 10; i++){
+		const tempPlayer = player_js.createPlayer('Player ' + i, i.toString());
+		players.push(tempPlayer);
+	}
+	getModeAndPlayers(players, gameObject, { game }, options);
+}
+ */
