@@ -1,12 +1,8 @@
 'use strict';
 // Author: Petter Andersson
 
-const player_js = require('../game/player')
 import * as f from '../tools/f';
-
-const Sequelize = require('sequelize');
-const player = require('../game/player');
-
+import * as Sequelize from 'sequelize';
 
 /*
 	This file handles database communication using sequelize
@@ -14,13 +10,24 @@ const player = require('../game/player');
 */
 
 // TODO: Cache of loaded players
-
 export class DatabaseSequelize {
+	sequelize;
+	static instance;
+
+	static setGlobalInstance(value) {
+		this.instance = value;
+	}
+
+	Users;
+	Ratings;
+	Matches;
+	PlayerMatches;
+	CSPlayerStats;
+	
 	constructor(database, user, dbpw, hostAddress, dialectDB) {
-		this.sequelize = new Sequelize(database, user, dbpw, {
+		this.sequelize = new Sequelize.Sequelize(database, user, dbpw, {
 			host: hostAddress,
-			dialect: dialectDB,
-			operatorsAliases: false
+			dialect: dialectDB
 		});
 
 		this.Users = this.sequelize.define('users', {
@@ -210,7 +217,7 @@ const syncTables = () => {
 
 export const initializeDBSequelize = (config) => {
 	const dbconn = initDb(config.name, config.user, config.password, config.host, config.dialect);
-	DatabaseSequelize.instance = dbconn;
+	DatabaseSequelize.setGlobalInstance(dbconn);
 	// syncTables(); // Run this when updating database structure
 	return dbconn;
 }
@@ -343,7 +350,7 @@ export const getPersonalStats = async (uid) => {
 }; 
 
 // Used to update a player in database, increasing matches and changing mmr
-export const updateDbMMR = async (uid, newMmr, game, won) => {
+export const updateDbMMR = async (uid, newMmr, game, won = false) => {
 	const rating = await DatabaseSequelize.instance.Ratings.findOne({
 		where: {
 			uid,
@@ -653,6 +660,7 @@ export const lastGame = async (uid, game = null) => {
 			gameName: gameValue.gameName,
 			...(gameValue.mapName && { mapName: gameValue.mapName }),
 			...(gameValue.score && { score: gameValue.score }),
+			players: undefined
 		}
 		const players = {
 			team1: [],

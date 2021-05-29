@@ -9,14 +9,23 @@ const modes1v1 = ['cs1v1', 'dota1v1'];
 const modesRatings = ['trivia', 'trivia_temp'];
 const startMMR = 2500;
 
-function Player(username, discId) {
-  this.userName = username;
-  this.uid = discId;
-  this.defaultMMR = startMMR;
-  this.steamId = '';
-  this.mmrs = new Map();
+export class Player {
+	userName;
+	uid;
+	defaultMMR;
+	steamId;
+	mmrs;
+	
+	constructor(username, discId) {
+		this.userName = username;
+		this.uid = discId;
+		this.defaultMMR = startMMR;
+		this.steamId = '';
+		this.mmrs = new Map();
+		this.initializeDefaultMMR();
+	}
   // Initializes mmr values to defaults. Ran instantly on creation
-  this.initializeDefaultMMR = function () {
+  initializeDefaultMMR = function () {
     for (let i = 0; i < modesGame.length; i++) {
       const struct = new mmrStruct(startMMR);
       this.mmrs.set(modesGame[i], struct);
@@ -31,37 +40,35 @@ function Player(username, discId) {
     }
   };
 
-  this.setMMR = function (game, value) {
+  setMMR = function (game, value) {
     const struct = this.mmrs.get(game);
     struct.prevMMR = struct.mmr; // Keeps track of last recorded mmr
     struct.mmr = value;
   };
 
-  this.getMMR = function (game) {
+  getMMR (game): number {
     return this.mmrs.get(game).mmr;
-  };
+  }
 
-  this.getGame = function (game) {
+  getGame = function (game) {
     return this.mmrs.get(game);
   };
 
-  this.setMMRChange = function (game, value) {
+  setMMRChange = function (game, value) {
     const struct = this.mmrs.get(game);
     struct.latestUpdate = value;
   };
 
-  this.setPlusMinus = function (game, value) {
+  setPlusMinus = function (game, value) {
     const struct = this.mmrs.get(game);
     struct.latestUpdatePrefix = value;
   };
 
-  this.setSteamId = (steamid) => {
+  setSteamId = (steamid) => {
     this.steamId = steamid;
   };
 
-  this.getSteamId = () => this.steamId;
-
-  this.initializeDefaultMMR();
+  getSteamId = () => this.steamId;
 }
 
 // MMR struct - holding information about mmr for a game, used in map to map game with struct
@@ -119,8 +126,8 @@ export const getPlayer = function (array, uid) {
 // TODO Add sort on DESC Game (Used in trivia result currently)
 export const getSortedRatingTrivia = function (players) {
   let s = '';
-  const game = 'trivia';
-  const game_temp = 'trivia_temp';
+  const game = 'trivia';						// Global Trivia Score
+  const game_temp = 'trivia_temp'; 	// Current game
   players = sortRating(players, game_temp);
   for (let i = 0; i < players.length; i++) {
     s += `${players[i].userName}'s **${game}** ${ratingOrMMR(game)}: **${players[i].getMMR(game_temp)}** (Total: ${players[i].getMMR(game)})\n`;
@@ -130,13 +137,10 @@ export const getSortedRatingTrivia = function (players) {
 
 // Insertion sort on the players on a given rating
 export const sortRating = function (players, game) {
-  for (let i = 0; i < players.length; i++) {
-    const tempPlayer = players[i];
-    for (let j = i - 1; j > -1 && players[j].getMMR(game) < tempPlayer.getMMR(game); j--) {
-      players[j + 1] = players[j];
-	    }
-	    players[j + 1] = tempPlayer;
-  }
+	// TODO: Verify working as intended in Trivia flow
+	players = players.sort((a, b) => {
+		return a.getMMR(game) - b.getMMR(game);
+	});
   return players;
 };
 

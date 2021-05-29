@@ -2,7 +2,7 @@
 // Author: Petter Andersson and Robert Wörlund
 
 import { printMessage } from '../bot';
-import { createMatch } from '../database/db_sequelize';
+import { createMatch, updateDbMMR } from '../database/db_sequelize';
 
 /*
 	Handles MMR calculations and updates
@@ -11,7 +11,7 @@ import { createMatch } from '../database/db_sequelize';
 */
 
 // Update mmr for all players and returns result to clients
-export const updateMMR = (winner, gameObject, callbackUpdate, stats) => { // winner = 0 -> draw, 1 -> team 1, 2 -> team 2
+export const updateMMR = (winner, gameObject, callbackUpdate, stats?) => { // winner = 0 -> draw, 1 -> team 1, 2 -> team 2
   const balanceInfo = gameObject.getBalanceInfo();
   const mmrChange = eloUpdate(balanceInfo.avgT1, balanceInfo.avgT2, winner);
   updateTeamMMR(balanceInfo.team1, mmrChange.t1, balanceInfo.game, winner === 1);
@@ -71,7 +71,7 @@ function updateTeamMMR(team, change, game, winner) {
     team[i].setMMRChange(game, change);
     team[i].setMMR(game, newMMR);
     team[i].setPlusMinus(game, (change > 0 ? '+' : ''));
-    db_sequelize.updateDbMMR(team[i].uid, newMMR, game, winner);
+    updateDbMMR(team[i].uid, newMMR, game, winner);
   }
 }
 

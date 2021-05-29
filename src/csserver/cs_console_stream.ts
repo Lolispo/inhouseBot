@@ -1,9 +1,9 @@
 
 import { handleMessageExported } from '../bot';
-const { writeConsole, getLatestConsoleLines } = require('./cs_console');
-const { getGameStats } = require('./cs_server_stats');
-const { clearIntervals } = require('../game/game');
-const { findPlayerWithGivenSteamId } = require('../steamid');
+import { writeConsole, getLatestConsoleLines } from './cs_console';
+import { getGameStats } from './cs_server_stats';
+import { clearIntervals } from '../game/game';
+import { findPlayerWithGivenSteamId } from '../steamid';
 
 /*
 hm, har en idé för att minska lite på mängden api spam. Man lär ju egentligen bara vilja skicka meddelanden till discord mellan matcher.

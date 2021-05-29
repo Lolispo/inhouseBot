@@ -9,14 +9,14 @@
 
 import * as f from './tools/f';
 
-const request = require('request');
 const Entities = require('html-entities').XmlEntities;
+import request from 'request';
 
 const entities = new Entities();
 
-const player_js = require('./game/player');
+import { getPlayer, createPlayer, getSortedRatingTrivia } from './game/player';
 import { getPrefix, getAdminUids, triviaStart } from './bot';
-const db_sequelize = require('./database/db_sequelize');
+import { initializePlayers, updateDbMMR } from './database/db_sequelize';
 
 let gameOnGoing = false;
 let author;
@@ -101,12 +101,12 @@ export const isCorrect = function (message) {
   }
   if (message.content.toLowerCase() === ans.toLowerCase() && message.content.toLowerCase() !== invalidInput && !lock) {
     lock = true;
-    const player = player_js.getPlayer(activePlayers, message.author.id);
+    const player = getPlayer(activePlayers, message.author.id);
     if (f.isUndefined(player)) {
-      const tempPlayer = player_js.createPlayer(message.author.username, message.author.id);
+      const tempPlayer = createPlayer(message.author.username, message.author.id);
       const tempPlayers = [tempPlayer];
       activePlayers.push(tempPlayer);
-      db_sequelize.initializePlayers(tempPlayers, 'trivia', (playerList) => {
+      initializePlayers(tempPlayers, 'trivia', (playerList) => {
         updateTriviaMMR(message, playerList[0]); // Only one player used here, since this user wasn't initialized
       });
     } else {
@@ -132,7 +132,7 @@ function updateTriviaMMR(message, player) {
   player.setMMR('trivia', newMmr);
   const newMmrSession = player.getMMR('trivia_temp') + pointsToIncrease;
   player.setMMR('trivia_temp', newMmrSession);
-  db_sequelize.updateDbMMR(message.author.id, newMmr, 'trivia');
+  updateDbMMR(message.author.id, newMmr, 'trivia');
   const answer_correct = `${message.author.username} answered correctly! Answer was: **${ans}**. Trivia Rating: ${newMmrSession
   } (+${pointsToIncrease}, Total: ${newMmr})`;
   if (isNaN(player.getMMR('trivia'))) {
@@ -177,7 +177,7 @@ export const startGame = function (message, questions, players) {
   const channel = message.guild.channels.cache.find('name', channelName);
   channel.send('Starting game of trivia!')
     .then((result) => {
-      messageconst = result;			// Initialize messageconst to be in correct chanel, used for print
+      messageVar = result;			// Initialize messageconst to be in correct chanel, used for print
       f.deleteDiscMessage(result);	// Delete start message after default time
       startQuestion();
     }).catch(err => console.log(`@startGame: ${err}`));
@@ -197,7 +197,7 @@ function startQuestion() {
       }
       let resultString = '';
       if (activePlayers.length > 0) {
-        resultString = `Results: \n${player_js.getSortedRatingTrivia(activePlayers)}`;
+        resultString = `Results: \n${getSortedRatingTrivia(activePlayers)}`;
       }
       f.print(messageVar, `Game Ended. ${resultString}`);
       gameOnGoing = false;
@@ -278,9 +278,9 @@ function nextLessCensored(array, index, message, qIndex, waitTime) {
 // https://opentdb.com/api_config.php
 export const getDataQuestions = function (message, amount = 15, category = 0, difficulty = 'easy') {
   console.log('@getDataQuestions', amount, category, difficulty);
-  f.print(message, `Trivia Mode: ${trivia_gamemodes.get(category)}, difficulty: ${difficulty === 0 ? 'all' : difficulty}`);
+  f.print(message, `Trivia Mode: ${trivia_gamemodes.get(category)}, difficulty: ${!difficulty ? 'all' : difficulty}`);
   author = message.author;
-  messageconst = message;
+  messageVar = message;
   let categories = '&category=';
   if (category === 0) {
     categories = '';
@@ -292,7 +292,7 @@ export const getDataQuestions = function (message, amount = 15, category = 0, di
     categories += category;
   }
   let difficulties = '&difficulty=';
-  if (difficulty === 0) {
+  if (!difficulty) {
     difficulties = '';
   } else {
     difficulties += difficulty;
@@ -306,7 +306,7 @@ export const getDataQuestions = function (message, amount = 15, category = 0, di
   });
 };
 
-function urlGenerate(a, c, d, t) {
+function urlGenerate(a, c, d, t?) {
   console.log('@urlGenerate');
   let url = `https://opentdb.com/api.php?amount=${a}${c}${d}&type=multiple`;
   if (!f.isUndefined(t)) {
@@ -340,10 +340,10 @@ function urlGenerate(a, c, d, t) {
           triviaStart(questions, message, author);
         });
       } else if (body.response_code === 1) { // Not Enough questions
-        if (parseInt(a / 2) === 1) {
+        if (Math.round(a / 2) === 1) {
           f.print(messageVar, 'Not enough questions for this mode');
         } else {
-          urlGenerate(parseInt(a / 2), c, d, t);
+          urlGenerate(Math.round(a / 2), c, d, t);
         }
       } else if (body.response_code === 2) { // Invalid parameters
         console.log('DEBUG: Check me', body.response_code);
@@ -419,20 +419,21 @@ function handleQuestions(questions, callback) {
     let index = 0;
     // console.log('DEBUG: ans, charcounter, indexes.length, ', ans.length, charCounter, indexes.length);
     while (charIndex < charCounter) { // Level of censorship, should break when word is shown
+			let newCens;
       for (let j = index; j < censored_word.length; j++) {
         const c = censored_word.charAt(indexes[j]);
         if (c !== '*') {
           // console.log(censored_word, charIndex, index, j, indexes[j], 'invalid char "' + c + '"', );
           index++;
         } else {
-          const newCens = censored_word.substr(0, indexes[j]) + ans.charAt(indexes[j]) + censored_word.substr(indexes[j] + 1);
+          newCens = censored_word.substr(0, indexes[j]) + ans.charAt(indexes[j]) + censored_word.substr(indexes[j] + 1);
           thisQuestion.lessCensored[charIndex] = censored_word; // Store in obj
           charIndex++;
           index++;
           break;
         }
       }
-      censored_word = newCens;
+      censored_word = newCens; // TODO: Check what is expected here - had broken code
       // console.log(censored_word, charIndex, index);
       if (censored_word === ans) {
         // console.log('We done!', censored_word);

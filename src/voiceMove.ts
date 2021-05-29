@@ -3,9 +3,11 @@
 
 // Handles changing voice channel logic for users: unite and split methods
 
+import { Message, VoiceChannel } from 'discord.js';
+import { IKosaTuppChannels } from './channels/channels';
 import * as f from './tools/f';
 
-let splitChannel;		// Channel we split in latest
+let splitChannel: VoiceChannel;		// Channel we split in latest
 
 export const unite = function (message, activeMembers) {
   const channel = getVoiceChannel(message);
@@ -35,9 +37,9 @@ export const uniteAll = function (message) {
   });
 };
 
-export const split = (message, balanceInfo, activeMembers) => {
-  const guildChannels = Array.from(message.guild.channels);
-  splitChannel = message.guild.member(message.author).voiceChannel;
+export const split = (message: Message, balanceInfo, activeMembers) => {
+  const guildChannels = message.guild.channels;
+  splitChannel = message.guild.member(message.author).voice.channel;
 
   // Get team players as GuildMember objects
   const t1players = f.teamToGuildMember(balanceInfo.team1, activeMembers); // Might give empty on test case (activeMember == undefined)
@@ -45,8 +47,11 @@ export const split = (message, balanceInfo, activeMembers) => {
 
   // Find channels to swap to -> Change conditions for other desired channels or to randomly take 2
   // Currently hardcoded 'Team1' and 'Team2'
-  const channel1 = guildChannels.cache.find(channel => channel[1].name === 'Team1');
-  const channel2 = guildChannels.cache.find(channel => channel[1].name === 'Team2');
+	const channel1 = guildChannels.cache.get(IKosaTuppChannels.Team1);
+	const channel2 = guildChannels.cache.get(IKosaTuppChannels.Team2);
+	// TODO: Verify that split is working
+  // const channel1 = guildChannels.cache.find(channel => channel[1].name === );
+  // const channel2 = guildChannels.cache.find(channel => channel[1].name === );
   if (!f.isUndefined(channel1) && !f.isUndefined(channel2)) {
     setTeamVoice(t1players, channel1[1].id);
     setTeamVoice(t2players, channel2[1].id);

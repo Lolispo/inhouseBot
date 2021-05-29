@@ -1,10 +1,22 @@
-const triviaStartCommand = (message, options) => {
+import { deleteDiscMessage } from "../../tools/f";
+import { getDataQuestions, getGameOnGoing } from "../../trivia";
+
+
+/**
+ * 
+ * Starts a trivia game for the people in voice channel
+ * getDataQuestions options: 
+ * (amount, 0, 'easy')	All categories, easy difficulty
+ * (amount, 1) 	Games, all difficulties
+ * (amount, 2, 'hard')  Generic knowledge questions, hard difficulty
+ */
+export const triviaStartCommand = (message, options) => {
   const amount = 15;
-  if (!trivia.getGameOnGoing()) {
+  if (!getGameOnGoing()) {
     if (options.length >= 2) {
       // Grabs second argument if available
       let category = 0;
-      let difficulty = 0;
+      let difficulty = '';
       switch (options[1]) {
         case 'allsubjectseasy':
           difficulty = 'easy';
@@ -53,13 +65,13 @@ const triviaStartCommand = (message, options) => {
           }
       }
       console.log(`Modes: category = ${category}, difficulty = ${difficulty}`);
-      trivia.getDataQuestions(message, amount, category, difficulty);
+      getDataQuestions(message, amount, category, difficulty);
     } else { // No mode chosen, use default
       console.log(`No mode chosen, use default (mode.length = ${options.length})`);
-      trivia.getDataQuestions(message, amount); // allsubjectseasy
+      getDataQuestions(message, amount); // allsubjectseasy
     }
   } else { // Game currently on, don't start another one
     console.log(`Duplicate Trivia starts, ignoring ${message.content} ...`);
   }
-  f.deleteDiscMessage(message, 15000, 'trivia');
+  deleteDiscMessage(message, 15000, 'trivia');
 };

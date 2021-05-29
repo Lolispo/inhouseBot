@@ -1,10 +1,13 @@
-const Discord = require('discord.js');
-const { getConfig } = require('./tools/load-environment');
+import { Client } from "discord.js";
+import { getTextTestChannel } from "./channels/channels";
+
+import * as Discord from 'discord.js';
+import { getConfig } from './tools/load-environment';
 
 const client = new Discord.Client();
 
 // Get Instance of discord client
-export const getClient = async (name, callbackReady = noop, callbackLogin = noop) => {
+export const getClient = async (name, callbackReady: Function = noop, callbackLogin: Function = noop): Promise<Client> => {
   client.on('ready', async () => {
     console.log('ready to rumble -', name);
   });
@@ -24,17 +27,12 @@ export const getClient = async (name, callbackReady = noop, callbackLogin = noop
 
 export const getClientReference = () => client;
 
-const generalId = '102097104322711552'; // General
-const testId = '424309421519142913'; // robot-playground
-
-export const getTextTestChannel = () => testId;
-export const getTextGeneralChannel = () => generalId;
-
-export const getTextChannel = (channelId = testId) =>
+export const getTextChannel = (channelId = getTextTestChannel()) => {
   // console.log('Client:', client);
   client.channels.fetch(channelId);
+}
 
 
 export const getChannels = () => client.channels;
 
-const noop = () => {};
+export const noop = () => {};

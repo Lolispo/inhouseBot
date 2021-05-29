@@ -5,7 +5,7 @@
   "main": "migration.js",
   "scripts": {
     "build": "tsc",
-    "test": "check-node-version --node \">= 14\" && mocha --exit",
+    "test": "check-node-version --node \">= 14\" && mocha -r ts-node/register tests/*.test.ts",
     "start": "check-node-version --node \">= 14\" && ts-node src/bot.ts",
     "start-remote": "check-node-version --node \">= 14\" && ts-node src/bot.ts >> OUTPUT.log 2>>ERROR.log",
     "mocha": "mocha -g",
@@ -48,6 +48,7 @@
     "util": "^0.12.3"
   },
   "devDependencies": {
+    "@types/jest": "^26.0.23",
     "@typescript-eslint/eslint-plugin": "^4.25.0",
     "@typescript-eslint/parser": "^4.25.0",
     "chai": "^4.3.4",

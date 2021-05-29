@@ -1,15 +1,18 @@
 
 // Author: Petter Andersson
 
-const { getEnvironment, getConfig } = require('./tools/load-environment');
+import { getEnvironment, getConfig } from './tools/load-environment';
+import {
+  getClient,
+} from './client';
+import { getPool, initializeMySQL } from './database/mysql_pool';
+import { Channel, Client } from 'discord.js';
+import { getTextGeneralChannel, getTextTestChannel, IKosaTuppChannels } from './channels/channels';
 
-const {
-  getClient, noop, getTextTestChannel, getTextGeneralChannel,
-} = require('./client');
-const { getPool, initializeMySQL } = require('./database/mysql_pool');
+let awaitedClient: Client;
 
 const birthdayStart = async () => {
-  client = await client;
+  awaitedClient = await client;
   let date = new Date();
   dailyCheck(date);
   setInterval(() => {
@@ -38,45 +41,47 @@ const getBirthdays = async (date) => {
 const generalId = getTextGeneralChannel(); // General
 const testId = getTextTestChannel(); // robot-playground
 
-const findTextChannel = () => {
+const findTextChannel = async () => {
   const channelId = getEnvironment() === 'DEVELOPMENT' ? testId : generalId;
-  if (!client.channels) {
+  if (!awaitedClient.channels) {
     console.log('Client not initialized!', client);
     return null;
   }
-  const channel = client.channels.get(channelId); // generalId
+  const channel = await awaitedClient.channels.fetch(channelId); // generalId
   // console.log('@findTextChannel', channel && channel.name);
   if (channel) {
     return channel;
   }
-  for (let i = 0; i < client.channels.length; i++) {
-    const channel = client.channels[i];
-    if (channel.name === 'kanal_general') {
-      console.log('RETURNING GENERAL');
-      return channel;
-    }
-  }
+
+	// Find requested channel as fallback if function didn't work
+	return awaitedClient.channels.cache.find(channel => {
+		return channel.id === IKosaTuppChannels.KanalGeneral;
+	})
 };
 
 const dailyCheck = async (date) => {
   console.log('@dailyCheck:', (date.getMonth() + 1), date.getDate());
   const result = await getBirthdays(date) || [];
   if (result.length > 0) {
-    const channel = findTextChannel();
+    const channel = await findTextChannel();
     if (!channel) return null;
-    console.log('@main TextChannel:', channel.name);
+    console.log('@main TextChannel:', channel.id);
     for (let i = 0; i < result.length; i++) {
       const entry = result[i];
       console.log('Entry', i, ':', entry.userName);
       const { uid, userName, birthday } = entry;
       // console.log('List:', channel.guild.members);
+			console.log('NEED TO FINISH DISCORD12 OF BIRTHDAY');
+			// TODO: Work with text channel to find Guild
+			/*
       const { members } = channel.guild;
       const user = members.get(uid);
       // console.log('Hej', uid, channel.guild.members.constructor.name, channel.id, members.get(uid)); //.members[uid]);
       const message = `:birthday: Happy Birthday to ${user.toString()}! :birthday: `; // <@' + uid + '>!';
       channel.send(message);
+			*/
     }
   }
 };
 
-let client = getClient('birthday', async () => initializeMySQL(getConfig().db), birthdayStart);
+const client = getClient('birthday', async () => initializeMySQL(getConfig().db), birthdayStart);

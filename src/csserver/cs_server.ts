@@ -1,11 +1,11 @@
-const fs = require('fs');
-const util = require('util');
-const FormData = require('form-data');
-const { assert } = require('console');
-const { getChosenMap } = require('./cs_map');
-const { writeConsole, loadConfigFile, getLatestConsoleLines } = require('./cs_console');
-const { datHostEndpoint } = require('./cs_server_http');
-const { readCSConsoleInput } = require('./cs_console_stream');
+import fs from 'fs';
+import util from 'util';
+import FormData from 'form-data';
+import { assert } from 'console';
+import { getChosenMap } from './cs_map';
+import { writeConsole, loadConfigFile, getLatestConsoleLines } from './cs_console';
+import { datHostEndpoint } from './cs_server_http';
+import { readCSConsoleInput } from './cs_console_stream';
 
 // const querystring = require('querystring'); // querystring.stringify({ foo: 'bar' })
 

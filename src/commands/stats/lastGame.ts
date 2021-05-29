@@ -1,6 +1,6 @@
-const db_sequelize = require('../../database/db_sequelize');
+import { lastGame } from '../../database/db_sequelize';
 import * as f from '../../tools/f';	
-const { getConfig } = require('../../tools/load-environment');
+import { getConfig } from '../../tools/load-environment';
 import { printMessage } from '../../bot';
 
 const { prefix } = getConfig();
@@ -21,9 +21,9 @@ export const lastGameAction = async (message, options) => {
   if (options.length >= 2) {
     const gameName = options[1];
     console.log('@lastGame gameName:', gameName);
-    result = await db_sequelize.lastGame(author, gameName);
+    result = await lastGame(author, gameName);
   } else {
-    result = await db_sequelize.lastGame(author);
+    result = await lastGame(author);
   }
   if (typeof result === 'string') {
     printMessage(result, message, (messageParam) => {
@@ -32,8 +32,8 @@ export const lastGameAction = async (message, options) => {
   } else {    
     let stringResult = '';
     stringResult += `**${result.gameName}**: ${result.result === 1 ? `**${result.team1Name}**` : `${result.team1Name}`} - ${result.result === 2 ? `**${result.team2Name}**` : `${result.team2Name} Results: ${result?.score || ''} ${result?.mapName || ''}`}
-  \`\`\`${printListOfPlayer(result.players.team1.map(el => playerString(el)))}
-${printListOfPlayer(result.players.team2.map(el => playerString(el)))}\`\`\`
+  \`\`\`${printListOfPlayer(result.players.team1.map(el => playerString(el, result.result === 1)))}
+${printListOfPlayer(result.players.team2.map(el => playerString(el, result.result === 2)))}\`\`\`
     `
     printMessage(stringResult, message, (messageParam) => {
       f.deleteDiscMessage(messageParam, 120000, 'lastGame');

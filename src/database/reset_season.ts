@@ -1,3 +1,4 @@
+import { truncateRating } from "./db_sequelize";
 
 
 // Truncate Rating
@@ -6,7 +7,7 @@ export const seasonResetTeamRating = (listOfPlayers, game) => {
     const player = listOfPlayers[i];
     const playerMmr = 'TEMP'; // TODO .getMMR(game)
     const newMMR = getTruncatedRating(playerMmr);
-    db_sequelize.truncateRating(listOfPlayers[i].uid, newMMR, game);
+    truncateRating(listOfPlayers[i].uid, newMMR, game);
   }
 };
 

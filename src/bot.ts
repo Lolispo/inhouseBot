@@ -11,7 +11,7 @@ import * as map_js from './mapVeto';					// MapVeto system
 import * as voiceMove_js from './voiceMove'; 			// Handles moving of users between voiceChannels
 import * as db_sequelize from './database/db_sequelize';			// Handles communication with db
 import { initializeDBSequelize } from './database/db_sequelize';	
-import * as trivia from './trivia';						// Trivia
+import { getChannelName, getGameOnGoing, isCorrect, startGame } from './trivia';						// Trivia
 import { getActiveGames, getGame, createGame, hasActiveGames, deleteGame } from './game/game';
 import { getConfig } from './tools/load-environment';
 import { getClient, getClientReference } from './client';
@@ -23,7 +23,8 @@ import { getGameStats } from './csserver/cs_server_stats';
 
 import { lastGameCommands, lastGameAction } from './commands/stats/lastGame';
 import { rollAction } from './commands/memes/roll';
-import { Message, MessageReaction, User, VoiceChannel } from 'discord.js';
+import { GuildMember, Message, MessageReaction, TextChannel, User, VoiceChannel } from 'discord.js';
+import { triviaStartCommand } from './commands/trivia/triviaCommand';
 
 const { prefix, token, db } = getConfig(); // Load config data from env
 
@@ -82,23 +83,26 @@ getClient('bot', async () => initializeDBSequelize(getConfig().db), (client) => 
 
 // Handle Discord Event Message
 const discordEventMessage = (message: Message) => {
-	if(!message.author.bot && message.author.username !== bot_name){ // Message sent from user
-		if(!f.isUndefined(message.channel.guild)){
+	if (!message.author.bot && message.author.username !== bot_name) { // Message sent from user
+		const isDmChannel = (message.channel as TextChannel).guild;
+		if (!isDmChannel) {
+			const textChannel = message.channel as TextChannel;
 			message.content = message.content.toLowerCase(); // Allows command to not care about case
-			if(message.channel.name === trivia.getChannelName() && trivia.getGameOnGoing()){
-				trivia.isCorrect(message);
+			if (textChannel.name === getChannelName() && getGameOnGoing()) { 
+				// Check if a message is sent in trivia channel when game is on going
+				isCorrect(message);
 			} else {
 				handleMessage(message); // Someone wrote in channel
 			}
-		}else{ // Direct Message to Bot
+		} else { // Direct Message to Bot
 			console.log('DM msg = ' + message.author.username + ': ' + message.content);
 			// Help and stats commands are allowed
-			if(helpCommands.includes(message.content)){
+			if (helpCommands.includes(message.content)){
 				message.author.send(buildHelpString(message.author.id, 0))
 				.then(result => {
 					f.deleteDiscMessage(result, removeBotMessageDefaultTime * 2);
 				});
-			} else if(helpAllCommands.includes(message.content)){
+			} else if (helpAllCommands.includes(message.content)){
 				// TODO: Find a better way to update readme
 				//console.log(buildHelpString(message.author.id, 1) + '\n' + buildHelpString(message.author.id, 2)); // Used to update readme
 				message.author.send(buildHelpString(message.author.id, 1))
@@ -109,7 +113,7 @@ const discordEventMessage = (message: Message) => {
 				.then(result => {
 					f.deleteDiscMessage(result, removeBotMessageDefaultTime * 4);
 				});
-			} else if(startsWith(message, statsCommands)){
+			} else if (startsWith(message, statsCommands)){
 				stats(message);
 			} else if (connectSteamCommands.includes(message.content)) {
 				connectSteamEntry(message);
@@ -117,7 +121,7 @@ const discordEventMessage = (message: Message) => {
 				storeSteamId(message.author.id, message);
 			} else if (steamidCommands.includes(message.content)) {
 				sendSteamId(message);
-			} else{
+			} else {
 				message.author.send('Send commands in a server - not to me!\nAllowed command here are: **[' + helpCommands + ',' + helpAllCommands + ',' + statsCommands + ']**\n')
 				.then(result => {
 					f.deleteDiscMessage(result, 10000, 'sendDMMessage');
@@ -129,29 +133,29 @@ const discordEventMessage = (message: Message) => {
 
 // Handle Discord Event Reaction Add
 const discordEventReactionAdd = (messageReaction, user) => {
-	if(!user.bot && hasActiveGames()){ // Bot adding reacts doesn't require our care
+	if (!user.bot && hasActiveGames()){ // Bot adding reacts doesn't require our care
 		// Reacted on voteMessage
 		//console.log('DEBUG: @messageReactionAdd by', user.username, 'on', messageReaction.message.author.username + ': ' + messageReaction.message.content, messageReaction.count);
 		const gameObject = getGame(user);
 		// Check if emojiReaction is on voteMessage, voteMessage != undefined
-		if(!f.isUndefined(gameObject) && !f.isUndefined(gameObject.getVoteMessage()) && messageReaction.message.id === gameObject.getVoteMessage().id){
+		if (!f.isUndefined(gameObject) && !f.isUndefined(gameObject.getVoteMessage()) && messageReaction.message.id === gameObject.getVoteMessage().id){
 			voteMessageReaction(messageReaction, gameObject);
 		} else { // TODO Game: Check 
 			// console.log('@messageReactionAdd', messageReaction.emoji.name);
 			//const gameObjectMapMessage = game_js.getGameMapMessages(messageReaction);
 			//if(!f.isUndefined(gameObjectMapMessage)){ // Reacted on a messageReaction
-			if(!f.isUndefined(gameObject)) {
+			if (!f.isUndefined(gameObject)) {
 				// const gameMapMessages = gameObject.getMapMessages();
 				const mapMessage = gameObject.getMapMessages().find(function(mapMsg){
 					return messageReaction.message.id === mapMsg.id
 				});
-				if(!f.isUndefined(mapMessage)) {
+				if (!f.isUndefined(mapMessage)) {
 					console.log('@messageReactionAdd Found message.id', mapMessage.id, user.username)
-					if(messageReaction.emoji.toString() === emoji_error){
+					if (messageReaction.emoji.toString() === emoji_error){
 						map_js.captainVote(messageReaction, user, mapMessage, gameObject);
-					} else if(messageReaction.emoji.toString() === emoji_agree){ // If not captains, can only react with emoji_agree or emoji_disagree
+					} else if (messageReaction.emoji.toString() === emoji_agree){ // If not captains, can only react with emoji_agree or emoji_disagree
 						map_js.otherMapVote(messageReaction, user, gameObject.getActiveMembers());
-					} else if(messageReaction.emoji.toString() === emoji_disagree){ // If not captains, can only react with emoji_agree or emoji_disagree
+					} else if (messageReaction.emoji.toString() === emoji_disagree){ // If not captains, can only react with emoji_agree or emoji_disagree
 						map_js.otherMapVote(messageReaction, user, gameObject.getActiveMembers());
 					}
 				}
@@ -166,13 +170,13 @@ const discordEventReactionAdd = (messageReaction, user) => {
 
 // Handle Discord Event Reaction Remove
 const discordEventReactionRemove = (messageReaction, user) => {
-	if(!user.bot){
-		if(game_js.hasActiveGames()){
+	if (!user.bot){
+		if (hasActiveGames()) {
 			// React removed on voteMessage
 			//console.log('DEBUG: @messageReactionRemove by', user.username, 'on', messageReaction.message.author.username + ': ' + messageReaction.message.content, messageReaction.count);
-			const gameObject = game_js.getGame(user);
+			const gameObject = getGame(user);
 			// Check if emojiReaction is on voteMessage, voteMessage != undefined
-			if(!f.isUndefined(gameObject) && !f.isUndefined(gameObject.getVoteMessage()) && messageReaction.message.id === gameObject.getVoteMessage().id){
+			if (!f.isUndefined(gameObject) && !f.isUndefined(gameObject.getVoteMessage()) && messageReaction.message.id === gameObject.getVoteMessage().id){
 				voteMessageTextUpdate(messageReaction, gameObject);
 			}
 			// React removed on something else
@@ -195,20 +199,20 @@ const handleMessage = async (message) => {
 			f.print(message, 'Hej ' + message.author.username, noop); // Not removing hej messages
 		}
 	}
-	else if(lennyCommands.includes(message.content)){
+	else if (lennyCommands.includes(message.content)){
 		f.print(message, '( ͡° ͜ʖ ͡°)');
 		f.deleteDiscMessage(message, 15000, 'lenny');
 	}
-	else if(!startsWith(message, prefix)){ // Every command after here need to start with prefix
+	else if (!startsWith(message, prefix)){ // Every command after here need to start with prefix
 		return;
 	}
-	else if(pingCommands.includes(message.content)){ // Good for testing prefix and connection to bot
+	else if (pingCommands.includes(message.content)){ // Good for testing prefix and connection to bot
 		const client = await getClientReference();
 		console.log('PingAlert, user had !ping as command', client.pings);
 		f.print(message, 'Time of response ' + client.pings[0] + ' ms');
 		f.deleteDiscMessage(message, removeBotMessageDefaultTime, 'ping');
 	}
-	else if(startsWith(message, rollCommands)){ // Roll command for luls
+	else if (startsWith(message, rollCommands)){ // Roll command for luls
 		rollAction(message, options);
 	}
 	else if (csServerCommands.includes(message.content)) {
@@ -230,35 +234,28 @@ const handleMessage = async (message) => {
 		});
 		f.deleteDiscMessage(message, 10000, 'help');
 	}
-	else if(helpAllCommands.includes(message.content)){
+	else if (helpAllCommands.includes(message.content)){
 		message.author.send(buildHelpString(message.author.id, 1))
 		.then(result => {
 			f.deleteDiscMessage(result, removeBotMessageDefaultTime * 4);
-		});;
+		});
 		message.author.send(buildHelpString(message.author.id, 2))
 		.then(result => {
 			f.deleteDiscMessage(result, removeBotMessageDefaultTime * 4);
-		});;
+		});
 		f.deleteDiscMessage(message, 10000, 'helpAll');
 	}
 	// Start game, through balance or Duel, balance for 2 players
-	else if(startsWith(message, balanceCommands) || startsWith(message, duelCommands)){
+	else if (startsWith(message, balanceCommands) || startsWith(message, duelCommands)){
 		balanceCommand(message);
 	}
 	
-	/*
-		Starts a trivia game for the people in voice channel
-		getDataQuestions options: 
-			(amount, 0, 'easy')	All categories, easy difficulty
-			(amount, 1) 	Games, all difficulties
-			(amount, 2, 'hard')  Generic knowledge questions, hard difficulty
-	*/
-	else if(startsWith(message, triviaCommands)){
-		
+	else if (startsWith(message, triviaCommands)){
+		triviaStartCommand(message, options);
 	}
 
 	// Trivia modes - gives list of categories
-	else if(triviaModesCommands.includes(message.content)){
+	else if (triviaModesCommands.includes(message.content)){
 		message.author.send(buildTriviaHelpCommands())
 		.then(result => {
 			f.deleteDiscMessage(result, removeBotMessageDefaultTime * 2);
@@ -268,12 +265,12 @@ const handleMessage = async (message) => {
 
 	// Show top X MMR, default 5 
 	// TODO Games played only for cs, rating for otherRatings instead of mmr (as in player.js)
-	else if(startsWith(message, leaderboardCommands)){
+	else if (startsWith(message, leaderboardCommands)){
 		const allModes = player_js.getAllModes();
 		const game = getModeChosen(message, allModes, allModes[0]);
 		let size = 5; 
-		if(options.length >= 2) {
-			let num = parseInt(options[1]);
+		if (options.length >= 2) {
+			const num = parseInt(options[1]);
 			size = options[1] > 0 && options[1] <= 100 ? num : 5;
 		}
 		const data = await db_sequelize.getHighScore(game, size);
@@ -290,14 +287,14 @@ const handleMessage = async (message) => {
 		f.deleteDiscMessage(message, 15000, 'leaderboard');
 	}
 	// Sends private information about your statistics
-	else if(startsWith(message, statsCommands)){
+	else if (startsWith(message, statsCommands)){
 		stats(message);
 		f.deleteDiscMessage(message, 15000, 'stats');
 	}
 	
 	// Used for tests
-	else if(exitCommands.includes(message.content)){
-		if(adminUids.includes(message.author.id)){
+	else if (exitCommands.includes(message.content)){
+		if (adminUids.includes(message.author.id)){
 			// Do tests:
 			cleanupExit();
 		}
@@ -305,18 +302,18 @@ const handleMessage = async (message) => {
 	}
 	// Unites all channels, INDEPENDENT of game ongoing
 	// Optional additional argument to choose name of voiceChannel to uniteIn, otherwise same as balance was called from
-	else if(startsWith(message, uniteAllCommands)){
+	else if (startsWith(message, uniteAllCommands)){
 		voiceMove_js.uniteAll(message);
 		f.deleteDiscMessage(message, 15000, 'ua');
 	} 
-	else if(startsWith(message, lastGameCommands)){
+	else if (startsWith(message, lastGameCommands)){
 		lastGameAction(message, options);
 		f.deleteDiscMessage(message, 15000, 'lastGame');
 	} 
 	// Active Game commands: (After balance is made)
 	else if (isActiveGameCommand(message)) {
 		const gameObject = getGame(message.author);
-		if(!f.isUndefined(gameObject)){
+		if (!f.isUndefined(gameObject)){
 			gameObject.updateFreshMessage(message);
 			if (team1wonCommands.includes(message.content)) {
 				const activeResultVote = gameObject.getTeamWon(); // team1Won crash
@@ -337,8 +334,8 @@ const handleMessage = async (message) => {
 			}
 			else if (team2wonCommands.includes(message.content)) {
 				const activeResultVote = gameObject.getTeamWon(); // not a function
-				if(activeResultVote === 2 || activeResultVote === 1 || activeResultVote === 0){
-					if(activeResultVote != 0){
+				if (activeResultVote === 2 || activeResultVote === 1 || activeResultVote === 0){
+					if (activeResultVote != 0){
 						f.print(message, 'Invalid command: Active result vote for this game already ongoing, for team ' + activeResultVote, callbackInvalidCommand);
 					} else {
 						f.print(message, 'Invalid command: Active result vote for this game already ongoing, for a tie', callbackInvalidCommand);
@@ -352,10 +349,10 @@ const handleMessage = async (message) => {
 					f.print(message, `**${teamName} won!** ` + voteText + ' (0/' + totalNeeded + ')', callbackVoteText);
 				}
 			}
-			else if(tieCommands.includes(message.content)){
+			else if (tieCommands.includes(message.content)){
 				const activeResultVote = gameObject.getTeamWon();
-				if(activeResultVote === 2 || activeResultVote === 1 || activeResultVote === 0){
-					if(activeResultVote != 0){
+				if (activeResultVote === 2 || activeResultVote === 1 || activeResultVote === 0){
+					if (activeResultVote != 0){
 						f.print(message, 'Invalid command: Active result vote for this game already ongoing, for team ' + activeResultVote, callbackInvalidCommand);
 					} else {
 						f.print(message, 'Invalid command: Active result vote for this game already ongoing, for a tie', callbackInvalidCommand);
@@ -368,34 +365,34 @@ const handleMessage = async (message) => {
 					f.print(message, `**Tie!** ` + voteText + ' (0/' + totalNeeded + ')', callbackVoteText);
 				}
 			}
-			else if(cancelCommands.includes(message.content)){
+			else if (cancelCommands.includes(message.content)){
 				// Only creator of game or admin can cancel it
 				const matchupMessage = gameObject.getMatchupMessage();
-				if(message.author.id === matchupMessage.author.id || adminUids.includes(message.author.id)){
+				if (message.author.id === matchupMessage.author.id || adminUids.includes(message.author.id)){
 					f.print(message, 'Game cancelled', (message) => {
 						f.deleteDiscMessage(message, 15000, 'gameCancelled');
 						cleanOnGameEnd(gameObject);
 					});
 					f.deleteDiscMessage(message, 15000, 'c'); // prefix+c
-				}else{
+				} else {
 					f.print(message, 'Invalid command: Only the person who started the game can cancel it (' + matchupMessage.author.username + ')', callbackInvalidCommand);
 				}
 			}
 	
 			// Splits the players playing into the Voice Channels 'Team1' and 'Team2'
-			else if(splitCommands.includes(message.content)){
+			else if (splitCommands.includes(message.content)){
 				voiceMove_js.split(message, gameObject.getBalanceInfo(), gameObject.getActiveMembers());
 				f.deleteDiscMessage(message, 15000, 'split');
 			}
 			// Take every user in 'Team1' and 'Team2' and move them to the same voice chat
 			// Optional additional argument to choose name of voiceChannel to uniteIn, otherwise same as balance was called from
-			else if(startsWith(message, uniteCommands)){ 
+			else if (startsWith(message, uniteCommands)){ 
 				voiceMove_js.unite(message, gameObject.getActiveMembers());
 				f.deleteDiscMessage(message, 15000, 'u');
 			}
 	
 			// mapVeto made between one captain from each team
-			else if(mapvetostartCommands.includes(message.content)){
+			else if (mapvetostartCommands.includes(message.content)){
 				const client = await getClientReference();
 				console.log('mapvetoStart: Emojis:', client.emojis, client);
 				map_js.mapVetoStart(message, gameObject, client.emojis);
@@ -404,7 +401,7 @@ const handleMessage = async (message) => {
 				});*/
 				f.deleteDiscMessage(message, 15000, 'mapveto'); // Remove mapVeto text
 			}
-			else if(getMatchResultCommand.includes(message.content)) {
+			else if (getMatchResultCommand.includes(message.content)) {
 				// Shouldn't be required anymore but good to have
 				// If game stats exist but it wasn't detected automatically to check stats, use command
 				const serverId = gameObject.getServerId();
@@ -414,7 +411,7 @@ const handleMessage = async (message) => {
 				f.deleteDiscMessage(message, 15000, 'getmatchresult');
 			}
 			// Cant reach this after game
-			else if(playerStatusCommands.includes(message.content) && adminUids.includes(message.author)) {
+			else if (playerStatusCommands.includes(message.content) && adminUids.includes(message.author)) {
 				console.log('DEBUG playerStatusCommands', gameObject.getActiveMembers());
 				f.deleteDiscMessage(message, 15000, 'playerStatusCommands');
 			}
@@ -422,7 +419,7 @@ const handleMessage = async (message) => {
 			f.print(message, 'Invalid command: User ' + message.author + ' not currently in a game', callbackInvalidCommand);
 		}
 	}
-	else if(startsWith(message, prefix)){ // Message start with prefix
+	else if (startsWith(message, prefix)){ // Message start with prefix
 		f.print(message, 'Invalid command: List of available commands at **' + prefix + 'help**', callbackInvalidCommand);
 		f.deleteDiscMessage(message, 3000, 'invalidCommand'); // Overlaps delete call from callbackInvalidCommand above^
 	}
@@ -440,14 +437,14 @@ const isActiveGameCommand = (message) => {
 // Can also accept command to be array, then if any command in array is start of msg, return true
 function startsWith(message, command){
 	//console.log('DEBUG @startsWith', command, Array.isArray(command));
-	if(Array.isArray(command)){
+	if (Array.isArray(command)){
 		for (let i = 0; i < command.length; i++){
-			if(message.content.lastIndexOf(command[i], 0) === 0){
+			if (message.content.lastIndexOf(command[i], 0) === 0){
 				return true;
 			}
 		}
 		return false;
-	}else {
+	} else {
 		return (message.content.lastIndexOf(command, 0) === 0);	
 	}
 }
@@ -456,9 +453,9 @@ function startsWith(message, command){
 // TODO: A way to set cs1v1 if cs is given or dota if dota1v1 is given (instead of default)
 function getModeChosen(message, modeCategory, defaultGame = null){
 	const options = message.content.split(' '); // Message input, [0] is command, after is potential arguments
-	const game = defaultGame // default command (Either cs or cs1v1)
-	for(let i = 1; i < options.length; i++){
-		if(modeCategory.includes(options[i])){
+	let game = defaultGame // default command (Either cs or cs1v1)
+	for (let i = 1; i < options.length; i++){
+		if (modeCategory.includes(options[i])){
 			console.log('DEBUG @b Game chosen as: ' + options[i]);
 			game = options[i];
 			break;
@@ -476,7 +473,7 @@ const stats = async (message) => {
 	const game = getModeChosen(message, player_js.getAllModes());
 	const data = await db_sequelize.getPersonalStats(message.author.id);
 	let s = '';
-	if(data.length === 0){
+	if (data.length === 0){
 		if (!game || game === '') {
 			s += "**User doesn't have any games played**";
 		} else {
@@ -484,7 +481,7 @@ const stats = async (message) => {
 		}
 	}
 	else {
-		if(!game) {
+		if (!game) {
 			s += `**Your stats (${data[0].userName}):**\n`;
 			data.forEach((oneData) => {
 				s += `${oneData.gameName}: \t**${oneData.mmr} ${player_js.ratingOrMMR(oneData.gameName)}**\t(Games Played: ${oneData.gamesPlayed})\n`;
@@ -507,14 +504,14 @@ const stats = async (message) => {
 export const triviaStart = (questions, message, author) => {
 	// Start game in text channel with these questions
 	const voiceChannel = message.guild.member(message.author).voiceChannel;
-	if(voiceChannel !== null && !f.isUndefined(voiceChannel)){ // Sets initial player array to user in disc channel if available
+	if (voiceChannel !== null && !f.isUndefined(voiceChannel)){ // Sets initial player array to user in disc channel if available
 		const players = findPlayersStart(message, voiceChannel);
 		db_sequelize.initializePlayers(players, 'trivia', (playerList) => {
-			trivia.startGame(message, questions, playerList); 
+			startGame(message, questions, playerList); 
 		});
-	} else{ // No users in voice channel who wrote trivia
+	} else { // No users in voice channel who wrote trivia
 		db_sequelize.initializePlayers([player_js.createPlayer(author.username, author.id)], 'trivia', (playerList) => {
-			trivia.startGame(message, questions, playerList); // Initialize players as one who wrote message
+			startGame(message, questions, playerList); // Initialize players as one who wrote message
 		});
 	}
 }
@@ -538,27 +535,27 @@ const getModeAndPlayers = (players, gameObject, options) => {
 // Command used for starting a new game
 async function balanceCommand(message){
 	const gameObjectExist = getGame(message.author);
-	if(f.isUndefined(gameObjectExist)){ // User is not already in a game
+	if (f.isUndefined(gameObjectExist)){ // User is not already in a game
 		console.log('@DEBUG', message.guild.member(message.author));
 		const voiceChannel = message.guild.member(message.author).voice.channel;
 		// console.log('@voiceChannel:', voiceChannel);
-		if(voiceChannel !== null && !f.isUndefined(voiceChannel)){ // Makes sure user is in a voice channel
+		if (voiceChannel !== null && !f.isUndefined(voiceChannel)){ // Makes sure user is in a voice channel
 			// Initialize Game object
 			const gameObject = createGame(message.id, message);
 			const players = findPlayersStart(message, voiceChannel, gameObject); // initalize players objects with playerInformation
 			const numPlayers = players.length;
 			// Initialize balancing, Result is printed and stage = 1 when done
 			let allModes = player_js.getGameModes();
-			if(numPlayers > 2 && numPlayers <= maxPlayers && numPlayers % 2 === 0){ // TODO: Allow uneven games? Requires testing to see if it works
+			if (numPlayers > 2 && numPlayers <= maxPlayers && numPlayers % 2 === 0){ // TODO: Allow uneven games? Requires testing to see if it works
 				getModeAndPlayers(players, gameObject, { message, allModes });
-			} else if(numPlayers === 2){
+			} else if (numPlayers === 2){
 				allModes = player_js.getGameModes1v1();
 				getModeAndPlayers(players, gameObject, { message, allModes });
 			} 
 			/*else if((numPlayers === 1) && (adminUids.includes(message.author.id))){
 				testBalanceGeneric(allModes[0], gameObject);
 			} */
-			else{
+			else {
 				const amountVoiceChannel = voiceChannel.members.size;
 				const stringAmountConnected = amountVoiceChannel !== numPlayers ? 
 				`Loaded amount differ from connected in voice channel: ${amountVoiceChannel} in channel vs ${numPlayers} loaded` : 
@@ -573,7 +570,7 @@ async function balanceCommand(message){
 		f.deleteDiscMessage(message, 10000, 'channelMessage (callback adding "<removed>")', function(msg){ // Remove the message, but let is remain in memory?
 			msg.content += '<removed>';
 		});
-	} else{
+	} else {
 		f.print(message, 'Invalid command: ' + message.author + ' is already in a game (' + gameObjectExist.getGameID() + ')', callbackInvalidCommand); 
 		console.log('Existing game object:', gameObjectExist);
 		f.deleteDiscMessage(message, 10000, 'matchupMessage');
@@ -586,15 +583,14 @@ function findPlayersStart(message, channel: VoiceChannel, gameObject?){
 	const players = [];
 	// const fetchedMembers = channel.fetch({ force: true });
 	console.log(channel);
-	const members = Array.from(channel.members.values());
-	members.forEach(function(member){
-		if(!member.bot){ // Only real users
-			console.log('\t' + member.user.username + '(' + member.user.id + ')'); // Printar alla activa users i denna voice chat
-			const tempPlayer = player_js.createPlayer(member.user.username, member.user.id);
-			players.push(tempPlayer);
-		}
+	const members: GuildMember[] = Array.from(channel.members.values());
+	members.forEach((member) => {
+		// Only real users TODO Avoid bots in channel
+		console.log('\t' + member.user.username + '(' + member.user.id + ')'); // Printar alla activa users i denna voice chat
+		const tempPlayer = player_js.createPlayer(member.user.username, member.user.id);
+		players.push(tempPlayer);
 	});
-	if(!f.isUndefined(gameObject)){
+	if (!gameObject) {
 		gameObject.setActiveMembers(members); // TODO Game
 		//activeMembers = members;
 	}
@@ -605,9 +601,9 @@ function findPlayersStart(message, channel: VoiceChannel, gameObject?){
 // A Test for balancing and getting an active game without players available
 function testBalanceGeneric(game, gameObject){
 	console.log('\t<-- Testing Environment: 10 player game, res in console -->');
-	let players = [];
-	for(let i = 0; i < 10; i++){
-		let tempPlayer = player_js.createPlayer('Player ' + i, i.toString());
+	const players = [];
+	for (let i = 0; i < 10; i++){
+		const tempPlayer = player_js.createPlayer('Player ' + i, i.toString());
 		players.push(tempPlayer);
 	}
 	getModeAndPlayers(players, gameObject, { game });
@@ -618,12 +614,12 @@ function testBalanceGeneric(game, gameObject){
 // TODO Game: check for old variable usage, use from gameobject instead
 function voteMessageReaction(messageReaction, gameObject){
 	// Check if majority number contain enough players playing
-	if(messageReaction.emoji.toString() === emoji_agree){
+	if (messageReaction.emoji.toString() === emoji_agree){
 		voteMessageTextUpdate(messageReaction, gameObject)
 		.then(result => {
 			handleRelevantEmoji(true, gameObject.getTeamWon(), messageReaction, result.amountRelevant, result.totalNeeded, gameObject);	
 		});
-	} else if(messageReaction.emoji.toString() === emoji_disagree){
+	} else if (messageReaction.emoji.toString() === emoji_disagree){
 		const amountRelevant = countAmountUsersPlaying(gameObject.getBalanceInfo().team1, messageReaction.users) + countAmountUsersPlaying(gameObject.getBalanceInfo().team2, messageReaction.users);
 		const totalNeeded = (gameObject.getBalanceInfo().team1.length + 1);
 		handleRelevantEmoji(false, gameObject.getTeamWon(), messageReaction, amountRelevant, totalNeeded, gameObject);
@@ -641,18 +637,18 @@ async function voteMessageTextUpdate(messageReaction, gameObject){
 	const teamNameWon = winner === 1 ? gameObject.getBalanceInfo().team1Name : winner === 2 ? gameObject.getBalanceInfo().team2Name : '';
 	const teamWonMessage = winner === 0 ? '**Tie!** ' : `**${teamNameWon} won!** `;
 	const newVoteMessage = (teamWonMessage + voteText + voteAmountString);
-	let newVoteMessageconst = gameObject.getVoteMessage();
+	const newVoteMessageVar = gameObject.getVoteMessage();
 	newVoteMessageVar.content = newVoteMessage; 
 	await newVoteMessageVar.edit(newVoteMessage);
 	// await voteMessage.edit(newVoteMessage);
 	gameObject.setVoteMessage(newVoteMessageVar); // Not needed if await on edit? TODO: Check
-	return {amountRelevant: amountRel, totalNeeded: totalNeed}
+	return { amountRelevant: amountRel, totalNeeded: totalNeed }
 }
 
 // Handle relevant emoji
 function handleRelevantEmoji(emojiConfirm, winner, messageReaction, amountRelevant, totalNeeded, gameObject){
 	//console.log('DEBUG: @handleRelevantEmoji', amountRelevant, totalNeeded, emojiConfirm);
-	if(amountRelevant === totalNeeded){
+	if (amountRelevant === totalNeeded){
 		if (emojiConfirm) {
 			console.log(emoji_agree + ' CONFIRMED! ' + ' (' + amountRelevant + '/' + totalNeeded + ') Removing voteText msg and team#Won msg');
 			// Update mmr for both teams
@@ -683,11 +679,11 @@ const resetVoteStatus = (gameObject) => {
 
 // Count amount of people who reacted that are part of this team
 function countAmountUsersPlaying(team, peopleWhoReacted){ 
-	const counter = 0;
+	let counter = 0;
 	//console.log('DEBUG: @countAmountUsersPlaying', team, peopleWhoReacted);
 	peopleWhoReacted.forEach(function(user){
 		for (let i = 0; i < team.length; i++){
-			if(user.id === team[i].uid){ // If person who reacted is in the game
+			if (user.id === team[i].uid){ // If person who reacted is in the game
 				counter++;
 			}
 		}
@@ -697,7 +693,7 @@ function countAmountUsersPlaying(team, peopleWhoReacted){
 
 // Build String of trivia help commands
 function buildTriviaHelpCommands(){
-	const s = '*Available modes for trivia:* \n';
+	let s = '*Available modes for trivia:* \n';
 	s += prefix + 'trivia [category] [difficulty]\n';
 	s += 'Arguments are optional\n';
 	s += '**Difficulties:** *easy*, *medium*, *hard*, *all*\n';
@@ -731,16 +727,16 @@ function buildTriviaHelpCommands(){
 
 // TODO commandHelp: Keep updated with recent information
 function buildHelpString(userID, messageNum){
-	if(messageNum === 0){
+	if (messageNum === 0){
 		// TODO: More simple help without detailed explanation, add this option to helpCommands line
-		const s = '*Available commands for ' + bot_name + ':* \n';
+		let s = '*Available commands for ' + bot_name + ':* \n';
 		s += '**' + helpAllCommands.toString().replace(/,/g, ' | ') + '** Shows information about all commands in detail\n';
 		s += '**' + prefix + 'ping** Returns time of response to server\n';
 		s += '**' + helpCommands.toString().replace(/,/g, ' | ') + '** Shows the available commands\n';
 		s += '**' + leaderboardCommands.toString().replace(/,/g, ' | ') + '** Returns Top 5 MMR holders\n';
 		s += '**' + statsCommands.toString().replace(/,/g, ' | ') + '** Returns your own rating\n';
 		s += '**' + prefix + 'roll [high] [low, high]** Rolls a number (0 - 100)\n';
-		s += '**' + triviaCommands.toString().replace(/,/g, ' | ') + '** Starts a trivia game in the textchannel *' + trivia.getChannelName() + '*\n';
+		s += '**' + triviaCommands.toString().replace(/,/g, ' | ') + '** Starts a trivia game in the textchannel *' + getChannelName() + '*\n';
 		s += '**' + triviaModesCommands.toString().replace(/,/g, ' | ') + '** Shows options for trivia mode\n';
 		s += '**' + balanceCommands.toString().replace(/,/g, ' | ') + '** Starts an inhouse game with the players in the same voice chat as the message author.\n';
 		s += '**' + team1wonCommands.toString().replace(/,/g, ' | ') + ' | ' + team2wonCommands.toString().replace(/,/g, ' | ') 
@@ -752,13 +748,13 @@ function buildHelpString(userID, messageNum){
 		s += '**' + uniteAllCommands.toString().replace(/,/g, ' | ') + ' [channel]** Unite all users active in voice to same channel\n';
 		s += '**' + mapvetostartCommands.toString().replace(/,/g, ' | ') + '** Starts a map veto (*cs only*)\n';
 		s += '**' + duelCommands.toString().replace(/,/g, ' | ') + '** Starts a duel, a 1v1 match between 2 people\n';
-		if(adminUids.includes(userID)){
+		if (adminUids.includes(userID)){
 			s += '**' + exitCommands.toString().replace(/,/g, ' | ') + '** *Admin Command* Clear all messages, exit games, prepares for restart\n';
 		}
 		return s;	
 	}
-	if(messageNum === 1){
-		const s = '*Available commands for ' + bot_name + ' (All Options):* \n';
+	if (messageNum === 1){
+		let s = '*Available commands for ' + bot_name + ' (All Options):* \n';
 		s += '(**[opt = default]** Syntax for optional arguments)\n\n';
 		s += '**' + prefix + 'ping** Returns time of response to server\n\n'; // 
 		s += '**' + helpCommands.toString().replace(/,/g, ' | ') + '** Shows the available commands\n\n';
@@ -770,15 +766,15 @@ function buildHelpString(userID, messageNum){
 		s += '**' + prefix + 'roll [high] [low, high]** Rolls a number (0 - 100)\n' 
 		// TODO: More logical way of writing the parameters, since high change place depending on #args. Change in simple above as well
 			+ '**[high]** (0 - high) \t\t**[low, high]** (low - high)\n\n';
-		s += '**' + triviaCommands.toString().replace(/,/g, ' | ') + ' [questions = allsubjectseasy]** Starts a trivia game in the textchannel *' + trivia.getChannelName() + '*\n'
+		s += '**' + triviaCommands.toString().replace(/,/g, ' | ') + ' [questions = allsubjectseasy]** Starts a trivia game in the textchannel *' + getChannelName() + '*\n'
 			+ '**[questions]** Opt. argument: name of question field and difficulty.\n\n';
 		s += '**' + triviaModesCommands.toString().replace(/,/g, ' | ') + '** Shows options for trivia mode\n';
-		if(adminUids.includes(userID)){
+		if (adminUids.includes(userID)){
 			s += '**' + exitCommands.toString().replace(/,/g, ' | ') + '** *Admin Command* Clear all messages, exit games, prepares for restart\n\n';
 		}
 		return s;	
-	} else if(messageNum === 2){
-		const s = '**Start Game commands**\n\n';
+	} else if (messageNum === 2){
+		let s = '**Start Game commands**\n\n';
 		s += '**' + balanceCommands.toString().replace(/,/g, ' | ') + ' [game = cs]** Starts an inhouse game with the players in the same voice chat as the message author. '
 			+ 'Requires 2, 4, 6, 8 or 10 players in voice chat to work.\n'
 			+ '**[game]** Opt. argument: name of the game being played. Available games are [' + player_js.getGameModes() + ']\n\n';

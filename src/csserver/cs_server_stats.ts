@@ -5,9 +5,9 @@ import { fetchFile } from './cs_console';
 
 import { printMessage } from '../bot';
 
-const mmr_js = require('../game/mmr');
-const { cleanOnGameEnd } = require('../game/game');
-const { convertIdFrom64 } = require('../steamid');
+import { updateMMR } from '../game/mmr';
+import { cleanOnGameEnd } from '../game/game';
+import { convertIdFrom64 } from '../steamid';
 
 const fetchStatsFile = async (serverId, matchId = '1') => {
   // let filePath = 'cfg%2Fget5%2Fget5_matchstats_$$XXX$$.cfg';
@@ -99,7 +99,9 @@ const shortenName = (name, maxsize = 10) => {
   return name;
 };
 
-const highestScoreObject = {};
+const highestScoreObject = {
+  index: undefined
+};
 
 const setHighestScore = (array, arrayIndex) => {
   array.forEach((value, index) => {
@@ -194,7 +196,8 @@ const buildMapStatsMessage = (mapTeam) => {
         name, kills, deaths, assists,
       } = player;
       const adr = Math.floor(player.damage / player.roundsplayed); // + ' DPR';
-      const hsPerc = Math.floor(((parseInt(player.headshot_kills) || 0) / kills).toFixed(2) * 100);
+      const hsPercentage = (parseInt(player.headshot_kills) || 0) / kills;
+      const hsPerc = Math.floor((Number(hsPercentage.toFixed(2)) * 100));
       const {
         firstkill_t, firstdeath_t, firstkill_ct, firstdeath_ct,
       } = player;
@@ -370,7 +373,10 @@ const remapTeam = (players, mapTeam) => {
 const playerMapSteamIdStats = (gameObject, stats) => {
   let obj;
   for (let i = 0; i < 1; i++) { // Should only be 1 map for now
-    const tempMap = {};
+    const tempMap = {
+      team1: undefined,
+      team2: undefined
+    };
     const map = stats[`map${i}`];
     if (map) {
       const t1 = map.team1;
@@ -397,7 +403,7 @@ const setResults = (gameObject, stats) => {
   gameObject.scoreString = `${stats.map0.team1.score}-${stats.map0.team2.score}`;
   if (winner !== '' && samePlayersInTeams(gameObject, stats)) {
     console.log('@getGameStatsDiscord Winning team:', winnerTeam, gameObject.scoreString, gameObject.chosenMap);
-    mmr_js.updateMMR(winner, gameObject, (message) => {
+    updateMMR(winner, gameObject, (message) => {
       console.log('DEBUG @callbackGameFinished - Calls on exit after delete on this message');
       f.deleteDiscMessage(message, f.getDefaultRemoveTime() * 4, 'gameFinished');
       cleanOnGameEnd(gameObject);

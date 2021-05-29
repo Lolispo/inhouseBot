@@ -1,3 +1,5 @@
+import { Player } from "./game/player";
+
 const teamNameCombination = [
   "$player1$'s $plural-lul$",
   '$player1$ + $num-1$ $plural-lul$',
@@ -76,6 +78,9 @@ const specialNames = [
 ];
 
 class Team {
+  name;
+  teamMembers;
+
   constructor(name, teamMembers) {
     this.teamMembers = teamMembers;
     this.name = name;
@@ -148,8 +153,10 @@ const almostSpecial5Squad = (team, specialgroup) => {
 
 
 // Generate a team name based on the teamnames
-export const getTeamName = (team, game) => {
-  const sortedTeam = team.sort((el1, el2) => el1.getMMR(game) < el2.getMMR(game));
+export const getTeamName = (team: Player[], game) => {
+  const sortedTeam = team.sort((el1, el2) => {
+    return el1.getMMR(game) - el2.getMMR(game);
+  });
   console.log('@SortedTeam DEBUG:', team.map(player => player.mmrs[game]), sortedTeam.map(player => player.mmrs[game]));
   if (sortedTeam.length === 1) {
     return `Team ${sortedTeam[0].userName}`;
@@ -204,11 +211,12 @@ export const getTeamName = (team, game) => {
   }
 
   if (randomTeamOption.includes('$num-1$')) {
-    randomTeamOption = randomTeamOption.replace('$num-1$', sortedTeam.length - 1);
+    const num = sortedTeam.length - 1;
+    randomTeamOption = randomTeamOption.replace('$num-1$', String(num));
   }
 
   if (randomTeamOption.includes('$num$')) {
-    randomTeamOption = randomTeamOption.replace('$num$', sortedTeam.length);
+    randomTeamOption = randomTeamOption.replace('$num$', String(sortedTeam.length));
   }
   return randomTeamOption;
 };

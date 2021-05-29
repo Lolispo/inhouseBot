@@ -1,4 +1,5 @@
-
+import { noop } from '../../client';
+import { print, deleteDiscMessage } from '../../tools/f';
 
 export const rollAction = (message, options) => {
   console.log('RollCommand');
@@ -15,11 +16,11 @@ export const rollAction = (message, options) => {
 function roll(message, start, end) {
   const roll = Math.floor((Math.random() * (end - start))) + start;
   if (end === roll && (end - start) > 50) { // Only saves message if diff at least 50
-    f.print(message, `**${message.author.username} rolled a ${roll} (${start} - ${end})**`, noop);
+    print(message, `**${message.author.username} rolled a ${roll} (${start} - ${end})**`, noop);
   } else if (roll > (start + (end - start) / 2)) { // Majority roll gets bold
-    f.print(message, `${message.author.username} rolled a **${roll}** (${start} - ${end})`);
+    print(message, `${message.author.username} rolled a **${roll}** (${start} - ${end})`);
   } else {
-    f.print(message, `${message.author.username} rolled a ${roll} (${start} - ${end})`);
+    print(message, `${message.author.username} rolled a ${roll} (${start} - ${end})`);
   }
-  f.deleteDiscMessage(message, 10000, 'roll');
+  deleteDiscMessage(message, 10000, 'roll');
 }
