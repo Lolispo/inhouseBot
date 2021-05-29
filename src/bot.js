@@ -10,7 +10,6 @@ const player_js = require('./game/player');					// Handles player storage in ses
 const map_js = require('./mapVeto');					// MapVeto system
 const voiceMove_js = require('./voiceMove'); 			// Handles moving of users between voiceChannels
 const db_sequelize = require('./database/db_sequelize');			// Handles communication with db
-const { lastGameCommands, lastGameAction } = require('./commands/lastGame')
 const { initializeDBSequelize } = require('./database/db_sequelize');	
 const trivia = require('./trivia');						// Trivia
 const game_js = require('./game/game');
@@ -21,6 +20,9 @@ const { connectSteamEntry, validateSteamID, storeSteamId, sendSteamId } = requir
 const { getCsIp } = require('./csserver/server_info');
 const { cleanOnGameEnd } = require('./game/game');
 const { getGameStats } = require('./csserver/cs_server_stats');
+
+const { lastGameCommands, lastGameAction } = require('./commands/stats/lastGame')
+const { rollAction } = require('./commands/memes/roll');
 
 const { prefix, token, db } = getConfig(); // Load config data from env
 
@@ -206,14 +208,7 @@ const handleMessage = async (message) => {
 		f.deleteDiscMessage(message, removeBotMessageDefaultTime, 'ping');
 	}
 	else if(startsWith(message, rollCommands)){ // Roll command for luls
-		console.log('RollCommand');
-		if(options.length === 2 && !isNaN(parseInt(options[1]))){ // Valid input
-			roll(message, 0, options[1])
-		}else if(options.length === 3 && !isNaN(parseInt(options[1])) && !isNaN(parseInt(options[2]))){ // Valid input
-			roll(message, parseInt(options[1]), parseInt(options[2]))
-		}else {
-			roll(message, 0, 100);
-		}
+		rollAction(message, options);
 	}
 	else if (csServerCommands.includes(message.content)) {
 		console.log('CSServer Command');
@@ -258,70 +253,7 @@ const handleMessage = async (message) => {
 			(amount, 2, 'hard')  Generic knowledge questions, hard difficulty
 	*/
 	else if(startsWith(message, triviaCommands)){
-		var amount = 15;
-		var mode = message.content.split(' '); 
-		if(!trivia.getGameOnGoing()){
-			if(mode.length >= 2){
-				// Grabs second argument if available
-				var category = 0;
-				var difficulty = 0;
-				switch(mode[1]){
-					case 'allsubjectseasy':
-						difficulty = 'easy';
-						break;
-					case 'all':
-					case 'allquestions':
-					case 'anything':
-						break;
-					case 'game':
-					case 'games':
-					case 'gamesall':
-						category = 1;
-						break;
-					case 'gameseasy':
-					case 'gameeasy':
-						category = 1;
-						difficulty = 'easy';
-						break;
-					case 'gamesmedium':
-						category = 1;
-						difficulty = 'medium';
-						break;
-					case 'gameshard':
-						category = 1;
-						difficulty = 'hard';
-						break;
-					case 'generic':
-					case 'genericeasy':
-						category = 2;
-						difficulty = 'easy';
-						break;
-					case 'genericall':
-						category = 2;
-						break;
-					default: // Check for all modes
-						var categoryNum = parseInt(mode[1]);
-						if(!isNaN(categoryNum) && categoryNum >= 9 && categoryNum <= 32){
-							category = categoryNum;
-							if(mode.length >= 3){
-								if(mode[2] === 'easy' || mode[2] === 'medium' || mode[2] === 'hard'){
-									difficulty = mode[2];
-								}
-							}
-						} else {
-							difficulty = 'easy';			
-						}
-				}
-				console.log('Modes: category = ' + category + ', difficulty = ' + difficulty);
-				trivia.getDataQuestions(message, amount, category, difficulty);
-			} else{ // No mode chosen, use default
-				console.log('No mode chosen, use default (mode.length = ' + mode.length + ')');
-				trivia.getDataQuestions(message, amount); // allsubjectseasy
-			}
-		} else { // Game currently on, don't start another one
-			console.log('Duplicate Trivia starts, ignoring ' + message.content + ' ...');
-		}
-		f.deleteDiscMessage(message, 15000, 'trivia');
+		
 	}
 
 	// Trivia modes - gives list of categories
@@ -584,21 +516,6 @@ exports.triviaStart = (questions, message, author) => {
 			trivia.startGame(message, questions, playerList); // Initialize players as one who wrote message
 		});
 	}
-}
-
-// Roll functionality
-function roll(message, start, end){
-	var roll = Math.floor((Math.random() * (end-start))) + start;
-	if(end === roll && (end-start) > 50){ // Only saves message if diff at least 50
-		f.print(message, '**' + message.author.username + ' rolled a ' + roll + ' (' + start + ' - ' + end + ')**', noop);
-	}else{
-		if(roll > (start + (end-start)/ 2)){ // Majority roll gets bold
-			f.print(message, message.author.username + ' rolled a **' + roll + '** (' + start + ' - ' + end + ')');
-		} else{
-			f.print(message, message.author.username + ' rolled a ' + roll + ' (' + start + ' - ' + end + ')');
-		}
-	}
-	f.deleteDiscMessage(message, 10000, 'roll');
 }
 
 // Here follows starting balanced game methods
