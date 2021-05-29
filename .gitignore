@@ -10,3 +10,4 @@ node_modules/
 trivia.token
 
 *-gen.cfg
+dist/

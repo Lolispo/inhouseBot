@@ -222,7 +222,7 @@ Store only message id instead of entire messages
     Allow any order between subject and difficulty
 
     Check Bug:
-        If you answer question -> between questions => 2 questions, since ans var is still active
+        If you answer question -> between questions => 2 questions, since ans const is still active
             Check
         NaN results fixed? Might still exist on -exit command + user that didn't start the trivia
         If spam bot, it can print new questions result with last responses answer

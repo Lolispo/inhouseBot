@@ -4,11 +4,15 @@
   "description": "inhouse matchmaking",
   "main": "migration.js",
   "scripts": {
-    "test": "check-node-version --node \">= 8\" && mocha --exit",
-    "start": "check-node-version --node \">= 8\" && node src/bot.js",
-    "start-remote": "check-node-version --node \">= 8\" && node src/bot.js >> OUTPUT.log 2>>ERROR.log",
+    "build": "tsc",
+    "test": "check-node-version --node \">= 14\" && mocha --exit",
+    "start": "check-node-version --node \">= 14\" && ts-node src/bot.ts",
+    "start-remote": "check-node-version --node \">= 14\" && ts-node src/bot.ts >> OUTPUT.log 2>>ERROR.log",
     "mocha": "mocha -g",
-    "migration": "node src/database/migration.js"
+    "migration": "node src/database/migration.ts",
+    "lint": "eslint . --ext .ts",
+    "lint-fix": "eslint . --ext .ts --fix",
+    "prettier-format": "prettier --config .prettierrc 'src/**/*.ts' --write"
   },
   "repository": {
     "type": "git",
@@ -40,12 +44,18 @@
     "sequelize": "^5.15.1",
     "simple-vdf": "^1.1.1",
     "steamid": "^1.1.3",
+    "ts-node": "^10.0.0",
     "util": "^0.12.3"
   },
   "devDependencies": {
-    "rewire": "^4.0.1",
-    "eslint": "^5.16.0",
+    "@typescript-eslint/eslint-plugin": "^4.25.0",
+    "@typescript-eslint/parser": "^4.25.0",
+    "chai": "^4.3.4",
+    "eslint": "^7.27.0",
     "eslint-config-airbnb-base": "^13.2.0",
-    "eslint-plugin-import": "^2.20.2"
+    "eslint-plugin-import": "^2.20.2",
+    "prettier": "^2.3.0",
+    "rewire": "^4.0.1",
+    "typescript": "^4.3.2"
   }
 }
