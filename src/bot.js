@@ -187,8 +187,10 @@ const handleMessage = async (message) => {
 	console.log('< MSG (' + message.channel.guild.name + '.' + message.channel.name + ') ' + message.author.username + ':', message.content); 
 	const options = message.content.split(' ');
 	// All stages commands, Commands that should always work, from every stage
-	if(startsWith(message, 'hej')){
-		f.print(message, 'Hej ' + message.author.username, noop); // Not removing hej messages
+	if (startsWith(message, 'hej')) {
+		if (message.author.username) {
+			f.print(message, 'Hej ' + message.author.username, noop); // Not removing hej messages
+		}
 	}
 	else if(lennyCommands.includes(message.content)){
 		f.print(message, '( ͡° ͜ʖ ͡°)');
@@ -379,14 +381,14 @@ const handleMessage = async (message) => {
 		f.deleteDiscMessage(message, 15000, 'lastGame');
 	} 
 	// Active Game commands: (After balance is made)
-	else if(isActiveGameCommand(message)){
+	else if (isActiveGameCommand(message)) {
 		var gameObject = game_js.getGame(message.author);
 		if(!f.isUndefined(gameObject)){
 			gameObject.updateFreshMessage(message);
-			if(team1wonCommands.includes(message.content)){
+			if (team1wonCommands.includes(message.content)) {
 				var activeResultVote = gameObject.getTeamWon(); // team1Won crash
-				if(activeResultVote === 2 || activeResultVote === 1 || activeResultVote === 0){
-					if(activeResultVote != 0){
+				if (activeResultVote === 2 || activeResultVote === 1 || activeResultVote === 0) {
+					if (activeResultVote != 0) {
 						f.print(message, 'Invalid command: Active result vote for this game already ongoing, for team ' + activeResultVote, callbackInvalidCommand);
 					} else {
 						f.print(message, 'Invalid command: Active result vote for this game already ongoing, for a tie', callbackInvalidCommand);
@@ -400,7 +402,7 @@ const handleMessage = async (message) => {
 					f.print(message, `**${teamName} won!** ` + voteText + ' (0/' + totalNeeded + ')', callbackVoteText);
 				}
 			}
-			else if(team2wonCommands.includes(message.content)){
+			else if (team2wonCommands.includes(message.content)) {
 				var activeResultVote = gameObject.getTeamWon(); // not a function
 				if(activeResultVote === 2 || activeResultVote === 1 || activeResultVote === 0){
 					if(activeResultVote != 0){
@@ -733,7 +735,7 @@ async function voteMessageTextUpdate(messageReaction, gameObject){
 function handleRelevantEmoji(emojiConfirm, winner, messageReaction, amountRelevant, totalNeeded, gameObject){
 	//console.log('DEBUG: @handleRelevantEmoji', amountRelevant, totalNeeded, emojiConfirm);
 	if(amountRelevant === totalNeeded){
-		if(emojiConfirm){
+		if (emojiConfirm) {
 			console.log(emoji_agree + ' CONFIRMED! ' + ' (' + amountRelevant + '/' + totalNeeded + ') Removing voteText msg and team#Won msg');
 			// Update mmr for both teams
 			mmr_js.updateMMR(winner, gameObject, (message) => {
@@ -744,12 +746,21 @@ function handleRelevantEmoji(emojiConfirm, winner, messageReaction, amountReleva
 			//console.log('DEBUG CHECK ME: ARE THE TWO FOLLOWING THE SAME: ', messageReaction.message.content, voteMessage.content); // TODO Check: are these the same
 			f.deleteDiscMessage(messageReaction.message, 3000, 'voteMessage');
 			f.deleteDiscMessage(gameObject.getTeamWonMessage(), 3000, 'teamWonMessage');
-		} else{
+		} else {
 			console.log(emoji_disagree + ' CONFIRMED! ' + ' (' + amountRelevant + '/' + totalNeeded + ') Removing voteText msg and team#Won msg');
+			resetVoteStatus(gameObject);
 			f.deleteDiscMessage(messageReaction.message, 3000, 'voteMessage');
 			f.deleteDiscMessage(gameObject.getTeamWonMessage(), 3000, 'teamWonMessage');
 		}
 	}
+}
+
+/**
+ * Used when cancelling current vote
+ */
+const resetVoteStatus = (gameObject) => {
+	// gameObject.setTeamWonMessage(message);
+	gameObject.setTeamWon(undefined);
 }
 
 // Count amount of people who reacted that are part of this team

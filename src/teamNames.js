@@ -154,6 +154,7 @@ const almostSpecial5Squad = (team, specialgroup) => {
 // Generate a team name based on the teamnames
 exports.getTeamName = (team, game) => {
   const sortedTeam = team.sort((el1, el2) => el1.getMMR(game) < el2.getMMR(game));
+  console.log('@SortedTeam DEBUG:', team.map(player => player.mmrs[game]), sortedTeam.map(player => player.mmrs[game]));
   if (sortedTeam.length === 1) {
     return 'Team ' + sortedTeam[0].userName;
   }

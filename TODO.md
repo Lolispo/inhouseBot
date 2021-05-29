@@ -8,24 +8,18 @@ Add integration tests for main functionalities
 # Error message
 
 VOICE BROKEN - DOESNT GET CORRECT MEMBERS IN VOICE CHANNEL (works on restart)
+    branch for restart client - but doesn't clear everything. Instead check restart npm start command
 
 Issue revoting when downvote - Allow cancelling vote more clearly / make this cancel vote for real so you can do it afterwards
 👎 CONFIRMED!  (6/6) Removing voteText msg and team#Won msg
 ...
 > Invalid command: Active result vote for this game already ongoing, for team 2
+    Adding reset of vote command, need testing
 
+
+Load game from file
 
 Game balance not sorted after dota mmr
-
-Hej undefined
-
-Fix crash
-/home/ubuntu/Projects/inhouseBot/src/steamid.js:49
-  const steamid = users[0].dataValues.steamid;
-                           ^
-
-TypeError: Cannot read property 'dataValues' of undefined
-    at sendSteamId (/home/ubuntu/Projects/inhouseBot/src/steamid.js:49:28)
 
 
 Refactor commands to command folder
