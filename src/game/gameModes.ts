@@ -4,7 +4,7 @@ import { balanceTeams } from "./balance";
 // Default choices is the first indexed mode
 export const modesGame = ['cs', 'dota', 'valorant', 'test'];
 export const modes1v1 = ['cs1v1', 'dota1v1'];
-export const modesRatings = ['trivia', 'trivia_temp'];
+export const modesRatings = ['trivia', 'trivia_temp']; // Trivia temp is used for ongoing games
 
 
 export const getGameModes = function () {

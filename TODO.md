@@ -26,7 +26,15 @@ Load game from file
 
 Game balance not sorted after mmr when starting game
 
-User 96293765001519104 not currently in a game -> Do username
+User 96293765001519104 not currently in a game -> Do username - Verify
+
+Move voting to gameobject
+
+Move logic related to games to gameModes file (work with sending functions instead)
+
+Move printing game information when starting and ending game to game object (balance info -> gameobject?)
+
+Commands to MainCommand logic
 
 INPROGRESS - Refactor commands to command folder
 

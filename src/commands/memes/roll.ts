@@ -1,5 +1,9 @@
 import { noop } from '../../client';
 import { print, deleteDiscMessage } from '../../tools/f';
+import { getConfig } from '../../tools/load-environment';
+
+const { prefix } = getConfig();
+export const rollCommands = [prefix + 'roll'];
 
 export const rollAction = (message, options) => {
   console.log('RollCommand');

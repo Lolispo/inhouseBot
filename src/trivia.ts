@@ -15,8 +15,9 @@ import request from 'request';
 const entities = new Entities();
 
 import { getPlayer, createPlayer, getSortedRatingTrivia } from './game/player';
-import { getPrefix, getAdminUids, triviaStart } from './bot';
+import { getAdminUids, triviaStart } from './bot';
 import { initializePlayers, updateDbMMR } from './database/db_sequelize';
+import { getPrefix } from './tools/load-environment';
 
 let gameOnGoing = false;
 let author;
@@ -276,7 +277,7 @@ function nextLessCensored(array, index, message, qIndex, waitTime) {
 
 // Start getting questions from db
 // https://opentdb.com/api_config.php
-export const getDataQuestions = function (message, amount = 15, category = 0, difficulty = 'easy') {
+export const getDataQuestions = async (message, amount = 15, category = 0, difficulty = 'easy') => {
   console.log('@getDataQuestions', amount, category, difficulty);
   f.print(message, `Trivia Mode: ${trivia_gamemodes.get(category)}, difficulty: ${!difficulty ? 'all' : difficulty}`);
   author = message.author;
@@ -297,13 +298,14 @@ export const getDataQuestions = function (message, amount = 15, category = 0, di
   } else {
     difficulties += difficulty;
   }
-  f.readFromFile(token_fileName, 'Token Trivia: ', (tokenVar) => {
+  try {
+    const tokenVar = await f.readFromFile(token_fileName, 'Token Trivia: ');
     console.log('@getDataQuestions Read Token: ', tokenVar);
     urlGenerate(amount, categories, difficulties, tokenVar);
-  }, () => {
+  } catch (err) {
     console.log('@getDataQuestions fileRead failed - Getting new token');
     getToken(amount, categories, difficulties);
-  });
+  };
 };
 
 function urlGenerate(a, c, d, t?) {

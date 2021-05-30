@@ -22,7 +22,7 @@ import { cleanOnGameEnd } from './game/game';
 import { getGameStats } from './csserver/cs_server_stats';
 
 import { lastGameCommands, lastGameAction } from './commands/stats/lastGame';
-import { rollAction } from './commands/memes/roll';
+import { rollAction, rollCommands } from './commands/memes/roll';
 import { GuildMember, Message, MessageReaction, ReactionUserManager, TextChannel, User, VoiceChannel } from 'discord.js';
 import { triviaStartCommand } from './commands/trivia/triviaCommand';
 import { pingAction } from './commands/memes/ping';
@@ -30,6 +30,8 @@ import { statsAction } from './commands/stats/stats';
 import { leaderBoardAction } from './commands/stats/leaderboard';
 import { getAllModes, getGameModes, getGameModes1v1, getModeAndPlayers } from './game/gameModes';
 import { temperatureCheckCommand } from './commands/game/temperatureCheck';
+import { allAvailableCommands, buildStringHelpAllCommands } from './mainCommand';
+import { startsWith } from './BaseCommand';
 
 const { prefix, token, db } = getConfig(); // Load config data from env
 
@@ -65,7 +67,6 @@ const queueCommands = [prefix + 'soloqueue', prefix + 'queue'];
 const lennyCommands = ['lenny', 'lennyface', prefix + 'lenny', prefix + 'lennyface'];
 const csServerCommands = [prefix + 'praccserver', prefix + 'server', prefix + 'csserver'];
 const pingCommands = [prefix + 'ping'];
-const rollCommands = [prefix + 'roll'];
 const connectSteamCommands = [prefix + 'connectsteam', prefix+'connectsteamid'];
 const steamidCommands = [prefix + 'getsteamid', prefix + 'steamid'];
 const getMatchResultCommand = [prefix + 'getresult', prefix + 'getmatchresult'];
@@ -140,7 +141,7 @@ const discordEventMessage = (message: Message) => {
 }
 
 // Handle Discord Event Reaction Add
-const discordEventReactionAdd = (messageReaction, user) => {
+const discordEventReactionAdd = (messageReaction: MessageReaction, user: User) => {
 	if (!user.bot && hasActiveGames()){ // Bot adding reacts doesn't require our care
 		// Reacted on voteMessage
 		//console.log('DEBUG: @messageReactionAdd by', user.username, 'on', messageReaction.message.author.username + ': ' + messageReaction.message.content, messageReaction.count);
@@ -200,6 +201,17 @@ export const handleMessageExported = (message) => handleMessage(message);
 // Main message handling function 
 const handleMessage = async (message: Message) => {
 	const options = message.content.split(' ');
+
+	let didAnAction = false;
+	const loadedCommands = allAvailableCommands();
+	for (let i = 0; i < loadedCommands.length; i++) {
+		const command = loadedCommands[i];
+		if (command.isThisCommand(message)) {
+			command.action(message, options);
+			didAnAction = true;
+		}
+	}
+
 	// All stages commands, Commands that should always work, from every stage
 	if (startsWith(message, 'hej')) {
 		if (message.author.username) {
@@ -410,7 +422,7 @@ const handleMessage = async (message: Message) => {
 			f.print(message, 'Invalid command: User ' + message.author.username + ' not currently in a game', callbackInvalidCommand);
 		}
 	}
-	else if (startsWith(message, prefix)){ // Message start with prefix
+	else if (startsWith(message, prefix) && !didAnAction){ // Message start with prefix
 		f.print(message, 'Invalid command: List of available commands at **' + prefix + 'help**', callbackInvalidCommand);
 		f.deleteDiscMessage(message, 3000, 'invalidCommand'); // Overlaps delete call from callbackInvalidCommand above^
 	}
@@ -422,22 +434,6 @@ const isActiveGameCommand = (message) => {
 			cancelCommands.includes(message.content) || splitCommands.includes(message.content) || startsWith(message, uniteCommands) 
 			|| mapvetostartCommands.includes(message.content) || getMatchResultCommand.includes(message.content) || 
 			playerStatusCommands.includes(message.content));
-}
-
-// Returns boolean of if message starts with string
-// Can also accept command to be array, then if any command in array is start of msg, return true
-function startsWith(message, command){
-	//console.log('DEBUG @startsWith', command, Array.isArray(command));
-	if (Array.isArray(command)){
-		for (let i = 0; i < command.length; i++){
-			if (message.content.lastIndexOf(command[i], 0) === 0){
-				return true;
-			}
-		}
-		return false;
-	} else {
-		return (message.content.lastIndexOf(command, 0) === 0);	
-	}
 }
 
 async function cleanupExit(){
@@ -670,6 +666,7 @@ function buildHelpString(userID, messageNum){
 		if (adminUids.includes(userID)){
 			s += '**' + exitCommands.toString().replace(/,/g, ' | ') + '** *Admin Command* Clear all messages, exit games, prepares for restart\n';
 		}
+		s += buildStringHelpAllCommands();
 		return s;	
 	}
 	if (messageNum === 1){
@@ -737,10 +734,6 @@ const noop = (message) => { // callback used when no operation is wanted
 
 export const printMessage = (message, channelMessage, callback = noop) => { // Default: NOT removing message
 	f.print(channelMessage, message, callback);
-}
-
-export const getPrefix = () => {
-	return prefix;
 }
 
 export const getAdminUids = function(){

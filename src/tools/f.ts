@@ -2,7 +2,7 @@
 // Author: Petter Andersson
 
 // Should handle general help functions
-import * as fs from 'fs';
+import { promises as fs } from 'fs';
 
 export const getDefaultRemoveTime = () => 60000;
 
@@ -105,25 +105,26 @@ function callbackPrintDefault(message) {
   deleteDiscMessage(message);
 }
 
-export const writeToFile = (filePath, contentToWrite, messageOnSuccess) => {
-  fs.writeFile(filePath, contentToWrite, (err) => {
-	    if (err) {
-	        return console.log(err);
-	    }
-	    console.log(messageOnSuccess);
-  });
+export const writeToFile = async (filePath: string, contentToWrite, messageOnSuccess: string) => {
+  try {
+    const writeResult = await fs.writeFile(filePath, contentToWrite);
+    console.log('@writeToFile:', messageOnSuccess, writeResult);
+    return writeResult;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
 };
 
-export const readFromFile = function (filePath, messageRead, callback, callbackError) {
-  fs.readFile(filePath, 'utf8', (err, data) => {
-    if (err || isUndefined(data)) {
-      console.log(err);
-      callbackError();
-    } else {
-      console.log(messageRead + data);
-      callback(data);
-    }
-  });
+export const readFromFile = async (filePath: string, messageRead: string) => {
+  try {
+    const data = await fs.readFile(filePath, 'utf8');
+    console.log('@readFromFile:', messageRead + data);
+    return data;
+  } catch (err) {
+    console.log(err);
+    throw err;
+  }
 };
 
 // Takes an Array of Players and returns an Array of GuildMembers with same ids

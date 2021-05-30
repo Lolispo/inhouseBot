@@ -11,10 +11,10 @@ import { Player } from './player';
 import { GuildMember } from 'discord.js';
 
 
-
 export class Game {
   static activeGames = [];
   static getActiveGames = () => Game.activeGames;
+  static activeGamesFilePath = 'activeGame.json';
 
   gameID;
   channelMessage;
@@ -149,6 +149,21 @@ export const createGame = (gameID, channelMessage): Game => {
   const game = new Game(gameID, channelMessage);
   return game;
 };
+
+export const loadFromFile = (): Game => {
+  try {
+    const data = f.readFromFile(Game.activeGamesFilePath, 'Successfully loaded game:');
+    console.log('@LOADED', data);
+    // TODO Initalize entire game from file / Json
+    return undefined;
+  } catch (e) {
+    console.error('@Failed to load game');
+  }
+}
+
+export const saveGame = (gameObject: Game) => {
+  f.writeToFile(Game.activeGamesFilePath, JSON.stringify(gameObject, null, 2), 'Sucessfully saved game to file: ' + Game.activeGamesFilePath);
+}
 
 // Returns the game where the author is
 export const getGame = author => Game.activeGames.find(game => {

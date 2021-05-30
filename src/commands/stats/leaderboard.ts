@@ -7,8 +7,15 @@ export const leaderBoardAction = async (message, options) => {
   const game = getModeChosen(options, allModes, allModes[0]);
   let size = 5; 
   if (options.length >= 2) {
-    const num = parseInt(options[1]);
-    size = options[1] > 0 && options[1] <= 100 ? num : 5;
+    let num;
+    for (let i = 0; i < options.length; i++) {
+      try {
+        num = parseInt(options[i]);
+        size = num > 0 && num <= 100 ? num : 5;
+      } catch (e) {
+        // Do nothing
+      }
+    }
   }
   const data = await getHighScore(game, size);
   // TODO: Print``
