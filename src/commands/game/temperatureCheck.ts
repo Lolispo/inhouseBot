@@ -1,6 +1,6 @@
 import { Message } from "discord.js";
 import { getActiveGameModes, getModeChosen } from "../../game/gameModes";
-import { print, shuffle } from '../../tools/f';
+import { deleteDiscMessage, print, shuffle } from '../../tools/f';
 
 
 
@@ -69,12 +69,15 @@ export const getTimePeriods = (options: string[]) => {
     let option = options[i];
     let hours = [];
     try {
+      if (Array.isArray(option)) continue;
       let num = parseInt(option);
       if (!startHour || num < startHour) startHour = num;
-      if (!endHour || num < endHour) endHour = num;
+      if (!endHour || num > endHour) endHour = num;
+      console.log('@Option', option, num, startHour, endHour);
       hours.push(num);
     } catch (e) {
       // Do nothing
+      console.log('@Unable to parseInt', option);
     }
   }
   return {
@@ -99,17 +102,20 @@ export const temperatureCheckCommand = (message: Message, options) => {
   const startTime = startHour || 20;
   let hours = 3;
   if (endHour && startHour) {
-    hours = endHour - startHour;
+    hours = endHour - startHour + 1;
   }
+  console.log('@temperatureCheck Times:', startTime, hours, startHour, endHour);
 
   // Set global emoji reactions
-  activeGlobalEmojiList = globalEmojiList.slice(0, hours * gameOptions.length);
-
-  const temperatureMessage = generateGameTimeString(gameOptions, startTime, hours);
-  print(message, temperatureMessage, callbackMessageTemperature);
-  // TODO: Store reference to temperatureMessage
-
-  
+  const emojiAmount = hours * gameOptions.length
+  if (emojiAmount > globalEmojiList.length) {
+    print(message, '(Not enough emojis to support this amount)');
+  } else {
+    activeGlobalEmojiList = globalEmojiList.slice(0, emojiAmount);
+    const temperatureMessage = generateGameTimeString(gameOptions, startTime, hours);
+    print(message, temperatureMessage, callbackMessageTemperature);
+    // TODO: Store reference to temperatureMessage
+  }  
 }
 
 const callbackMessageTemperature = (message) => {
@@ -117,4 +123,5 @@ const callbackMessageTemperature = (message) => {
   activeGlobalEmojiList.forEach(emoji => {
     message.react(emoji.icon);
   })
+  deleteDiscMessage(message, 24 * 3600 * 1000, 'messageTemperature');
 }
