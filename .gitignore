@@ -1,4 +1,4 @@
-*.json
+.vscode/
 *.in
 !package.json
 !package-lock.json
@@ -10,3 +10,7 @@ node_modules/
 trivia.token
 
 *-gen.cfg
+dist/
+
+activeGame.json
+activeGameStorage.json

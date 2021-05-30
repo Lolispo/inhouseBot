@@ -7,22 +7,36 @@ Add integration tests for main functionalities
 
 # Error message
 
-VOICE BROKEN - DOESNT GET CORRECT MEMBERS IN VOICE CHANNEL (works on restart)
-    branch for restart client - but doesn't clear everything. Instead check restart npm start command
+MIGRATION TO 12 AND TYPESCRIPT:
+    Fix birthday
+    Check trivia
 
-Issue revoting when downvote - Allow cancelling vote more clearly / make this cancel vote for real so you can do it afterwards
-👎 CONFIRMED!  (6/6) Removing voteText msg and team#Won msg
-...
-> Invalid command: Active result vote for this game already ongoing, for team 2
-    Adding reset of vote command, need testing
+Fix Ping command - doesn't seem available easily anymore - either disable entirely or fix
 
+Show streak in leaderboard output
+
+Inhouse Temperature check
+    Fix shuffle
+    Fix time options as input
+    Fix event when hitting 10 players
+    DM in discord
+    SMS integration
 
 Load game from file
 
-Game balance not sorted after dota mmr
+Game balance not sorted after mmr when starting game
 
+User 96293765001519104 not currently in a game -> Do username - Verify
 
-Refactor commands to command folder
+Move voting to gameobject
+
+Move logic related to games to gameModes file (work with sending functions instead)
+
+Move printing game information when starting and ending game to game object (balance info -> gameobject?)
+
+Commands to MainCommand logic
+
+INPROGRESS - Refactor commands to command folder
 
 LastGame command to help list
     Check generate collection from the command files
@@ -41,8 +55,6 @@ Verify:
 
 Store stats for game results (same table as map?)
 
-Add +mmr to leaderboard results?
-    Low prio
 
 rank overall (rank 1 highest mmr, 5 fifth highest)
 
@@ -222,7 +234,7 @@ Store only message id instead of entire messages
     Allow any order between subject and difficulty
 
     Check Bug:
-        If you answer question -> between questions => 2 questions, since ans var is still active
+        If you answer question -> between questions => 2 questions, since ans const is still active
             Check
         NaN results fixed? Might still exist on -exit command + user that didn't start the trivia
         If spam bot, it can print new questions result with last responses answer
