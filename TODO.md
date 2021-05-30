@@ -10,15 +10,15 @@ Add integration tests for main functionalities
 MIGRATION TO 12 AND TYPESCRIPT:
     Fix birthday
     Check trivia
-    check cs server
-    
 
 Fix Ping command - doesn't seem available easily anymore - either disable entirely or fix
 
 Show streak in leaderboard output
 
-Inhouse status check
-    Temperature check
+Inhouse Temperature check
+    Fix shuffle
+    Fix time options as input
+    Fix event when hitting 10 players
     DM in discord
     SMS integration
 

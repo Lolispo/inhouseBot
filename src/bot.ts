@@ -6,7 +6,7 @@
 import * as f from './tools/f';							// Function class used by many classes, ex. isUndefined, messagesDeletion
 import * as balance from './game/balance';					// Balances and starts game between 2 teams
 import * as mmr_js from './game/mmr';						// Handles balanced mmr update
-import { createPlayer }from './game/player';					// Handles player storage in session, the database in action
+import { createPlayer } from './game/player';					// Handles player storage in session, the database in action
 import * as map_js from './mapVeto';					// MapVeto system
 import * as voiceMove_js from './voiceMove'; 			// Handles moving of users between voiceChannels
 import * as db_sequelize from './database/db_sequelize';			// Handles communication with db
@@ -29,6 +29,7 @@ import { pingAction } from './commands/memes/ping';
 import { statsAction } from './commands/stats/stats';
 import { leaderBoardAction } from './commands/stats/leaderboard';
 import { getAllModes, getGameModes, getGameModes1v1, getModeAndPlayers } from './game/gameModes';
+import { temperatureCheckCommand } from './commands/game/temperatureCheck';
 
 const { prefix, token, db } = getConfig(); // Load config data from env
 
@@ -69,6 +70,7 @@ const connectSteamCommands = [prefix + 'connectsteam', prefix+'connectsteamid'];
 const steamidCommands = [prefix + 'getsteamid', prefix + 'steamid'];
 const getMatchResultCommand = [prefix + 'getresult', prefix + 'getmatchresult'];
 const playerStatusCommands = [prefix + 'playersstatus'];
+const temperatureCheckCommands = [prefix + 'temperature', prefix + 'daily', prefix + 'temperaturecheck', prefix + 'temp']
 
 
 // Initialize Client
@@ -96,6 +98,7 @@ const discordEventMessage = (message: Message) => {
 				// Check if a message is sent in trivia channel when game is on going
 				isCorrect(message);
 			} else {
+				console.log('< MSG (' + textChannel.guild.name + '.' + textChannel.name + ') ' + message.author.username + ':', message.content); 
 				handleMessage(message); // Someone wrote in channel
 			}
 		} else { // Direct Message to Bot
@@ -195,8 +198,7 @@ let currentTeamWonGameObject; // TODO: Refactor usage to use global scope in bet
 export const handleMessageExported = (message) => handleMessage(message);
 
 // Main message handling function 
-const handleMessage = async (message) => {
-	console.log('< MSG (' + message.channel.guild.name + '.' + message.channel.name + ') ' + message.author.username + ':', message.content); 
+const handleMessage = async (message: Message) => {
 	const options = message.content.split(' ');
 	// All stages commands, Commands that should always work, from every stage
 	if (startsWith(message, 'hej')) {
@@ -276,6 +278,11 @@ const handleMessage = async (message) => {
 		f.deleteDiscMessage(message, 15000, 'stats');
 	}
 	
+	else if (startsWith(message, temperatureCheckCommands)){
+		temperatureCheckCommand(message, options);
+		f.deleteDiscMessage(message, 15000, 'temperatureCheck');
+	}
+
 	// Used for tests
 	else if (exitCommands.includes(message.content)){
 		if (adminUids.includes(message.author.id)){
@@ -395,12 +402,12 @@ const handleMessage = async (message) => {
 				f.deleteDiscMessage(message, 15000, 'getmatchresult');
 			}
 			// Cant reach this after game
-			else if (playerStatusCommands.includes(message.content) && adminUids.includes(message.author)) {
+			else if (playerStatusCommands.includes(message.content) && adminUids.includes(message.author.id)) {
 				console.log('DEBUG playerStatusCommands', gameObject.getActiveMembers());
 				f.deleteDiscMessage(message, 15000, 'playerStatusCommands');
 			}
 		} else {
-			f.print(message, 'Invalid command: User ' + message.author + ' not currently in a game', callbackInvalidCommand);
+			f.print(message, 'Invalid command: User ' + message.author.username + ' not currently in a game', callbackInvalidCommand);
 		}
 	}
 	else if (startsWith(message, prefix)){ // Message start with prefix

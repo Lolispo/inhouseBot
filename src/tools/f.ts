@@ -184,3 +184,17 @@ const getTabsForName = function (nameLength, longestName) {
   }
   return s;
 };
+
+// Fisher yates shuffle list
+export const shuffle = (listParam) => {
+  let list = listParam.slice();
+  for (let i = list.size - 1; i > 0; i--) {
+    const randomIndex = Math.floor(Math.random() * (i + 1));
+    // console.log('@shuffleFisher', i, randomIndex, 'Swapping', list.get(randomIndex), list.get(i), list)
+    const last = list.get(i);
+    list = list.set(i, list.get(randomIndex));
+    list = list.set(randomIndex, last);
+  }
+  // console.log('shuffleFisher', list);
+  return list;
+};

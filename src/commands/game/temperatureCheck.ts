@@ -1,49 +1,59 @@
 import { Message } from "discord.js";
 import { getActiveGameModes, getModeChosen } from "../../game/gameModes";
-import { print } from '../../tools/f';
+import { print, shuffle } from '../../tools/f';
 
 
 
-const startMessage = 'Inhouse temperature Check:\n';
+const startMessage = 'Inhouse Temperature Check:\n';
 const endMessage = 'React on all timeslots which work for you and then we look for the most suitable time';
-const rowMessage = '\t- $$emoji$$ for $$game$$ Inhouse (Start $$start-time$$$$end-time$$)';
+const rowMessage = '\t- $$emoji$$ for $$game$$ Inhouse (Start $$start-time$$$$end-time$$)\n';
 const withEnd = '-$$end-time$$';
 const withNoEnd = ' +';
 
 const globalEmojiList = [
-  ':Mirage:',
-  ':Overpass:',
-  ':Dust2:',
-  ':PetterHands:',
-  ':monkaS:',
-  ':PeppeMods:',
-  ':Pog:',
-  ':Poggers:',
-  ':tada:',
-  ':sadpog:',
-  ':luldab2:',
-  ':PepeMods:',
-  ':RobinEgh:'
+  { icon: '🐒', title: 'monkey' },
+  { icon: '🐯', title: 'tiger' },
+  { icon: '🦓', title: 'zebra' },
+  { icon: '🐪', title: 'camel' },
+  { icon: '🐇', title: 'rabbit' },
+  { icon: '🦁', title: 'lion' },
+  { icon: '👌', title: 'ok_hand' },
+  { icon: '👾', title: 'space_invader' },
+  { icon: '🤖', title: 'robot' },
+  { icon: '🎃', title: 'jack_o_lantern' },
+  { icon: '😺', title: 'smiley_cat' },
+  { icon: '🙀', title: 'heart_eyes_cat' },
 ];
 
-const getOneRow = (game, time, emojiList): string => {
-  let s = rowMessage.replace('/\$\$emoji\$\$/g', emojiList[0]);
-  s = s.replace('/\$\$game\$\$/g', game);
-  s = s.replace('/\$\$start-time\$\$/g', time);
+let activeGlobalEmojiList;
+
+const getOneRow = (game, time, emojiList, isLast = false): string => {
+  console.log('@getOneRow: Start', rowMessage, emojiList, game, time);
+  let s = rowMessage.replace(/\$\$emoji\$\$/g, `:${emojiList.title}:`);
+  s = s.replace(/\$\$game\$\$/g, game);
+  s = s.replace(/\$\$start-time\$\$/g, time);
+  if (isLast) {
+    s = s.replace(/\$\$end-time\$\$/g, withNoEnd);
+  } else {
+    s = s.replace(/\$\$end-time\$\$/g, withEnd.replace(/\$\$end-time\$\$/g, time + 1));
+  }
+  console.log('@getOneRow: End', s);
   return s;
 }
 
 const gameString = (game, startTime, index, hours): string => {
-  const emojiList = globalEmojiList.slice(0 + (index * hours), hours + (index * hours))
+  const emojiList = shuffle(globalEmojiList.slice(0 + (index * hours), hours + (index * hours)));
   let s = '';
   for (let i = 0; i < hours; i++) {
-    s += getOneRow(game, startTime + i, emojiList[i]);
+    const isLast = i === (hours - 1);
+    s += getOneRow(game, startTime + i, emojiList[i], isLast);
   }
   return s;
 }
 
-const generateGameTimeString = (gameOptions: string[], startTime = 20, hours = 3): string => {
+const generateGameTimeString = (gameOptions: string[], startTime, hours): string => {
   let s = startMessage;
+  console.log('@generateGameTimeString', gameOptions, startTime, hours);
   gameOptions.forEach((gameName, index) => {
     s += gameString(gameName, startTime, index, hours);
   });
@@ -53,16 +63,32 @@ const generateGameTimeString = (gameOptions: string[], startTime = 20, hours = 3
 
 export const temperatureCheckCommand = (message: Message, options) => {
   const activeModes = getActiveGameModes();
-  const game = getModeChosen(options, activeModes);
+  const gameName = getModeChosen(options, activeModes);
   let gameOptions = [];
-  if (!game) {
-    gameOptions.concat(activeModes);
+  if (!gameName) {
+    gameOptions = gameOptions.concat(activeModes);
   } else {
-    gameOptions.push(game);
+    gameOptions.push(gameName);
   }
+  console.log('@temperatureCheckCommand:', activeModes, gameName, gameOptions);
 
   // TODO: Allow inputting starttime and hours
+  const startTime = 20;
+  const hours = 3;
 
-  const temperatureMessage = generateGameTimeString(gameOptions);
-  print(message, temperatureMessage);
+  // Set global emoji reactions
+  activeGlobalEmojiList = globalEmojiList.slice(0, hours * gameOptions.length);
+
+  const temperatureMessage = generateGameTimeString(gameOptions, startTime, hours);
+  print(message, temperatureMessage, callbackMessageTemperature);
+  // TODO: Store reference to temperatureMessage
+
+  
+}
+
+const callbackMessageTemperature = (message) => {
+  // Add reactions
+  activeGlobalEmojiList.forEach(emoji => {
+    message.react(emoji.icon);
+  })
 }
