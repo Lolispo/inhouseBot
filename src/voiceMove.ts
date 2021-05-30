@@ -3,13 +3,13 @@
 
 // Handles changing voice channel logic for users: unite and split methods
 
-import { GuildChannel, Message, VoiceChannel } from 'discord.js';
+import { GuildChannel, GuildMember, Message, VoiceChannel } from 'discord.js';
 import { IKosaTuppChannels } from './channels/channels';
 import * as f from './tools/f';
 
 let splitChannel: VoiceChannel;		// Channel we split in latest
 
-export const unite = function (message, activeMembers) {
+export const unite = function (message: Message, activeMembers: GuildMember[]) {
   const channel = getVoiceChannel(message);
   console.log('DEBUG unite on channel', channel.name); // TODO Check if work as wanted
   if (f.isUndefined(activeMembers)) {
@@ -17,27 +17,28 @@ export const unite = function (message, activeMembers) {
   } else {
     activeMembers.forEach((member) => {
       // As long as they are still in some voice chat
-      if (!f.isUndefined(member.voiceChannel)) {
-        member.setVoiceChannel(channel);
+      if (!f.isUndefined(member.voice.channel)) {
+        member.voice.setChannel(channel);
       }
     });
   }
 };
 
-export const uniteAll = function (message) {
+export const uniteAll = (message: Message) => {
   const channel = getVoiceChannel(message);
   // TODO: Find all users active in a voiceChannel, currently iterates over all members of guild
   // client.voiceConnections, doesnt seem to exist
   console.log('DEBUG uniteAll', channel.name);
-  message.guild.members.forEach((member) => {
+  message.guild.members.cache.forEach((member) => {
     // As long as they are still in some voice chat
-    if (!f.isUndefined(member.voiceChannel) && member.voiceChannelID !== message.guild.afkChannelID) { // As long as user is in a voiceChannel (Should be)
-      member.setVoiceChannel(channel);
+    if (!f.isUndefined(member.voice.channel) && member.voice.channelID !== message.guild.afkChannelID) { // As long as user is in a voiceChannel (Should be)
+      console.log('@unitAll DEBUG:', member.user.username, member.voice.channelID);
+      member.voice.setChannel(channel);
     }
   });
 };
 
-export const split = (message: Message, balanceInfo, activeMembers) => {
+export const split = (message: Message, balanceInfo, activeMembers: GuildMember[]) => {
   const guildChannels = message.guild.channels;
   splitChannel = message.guild.member(message.author).voice.channel;
 
@@ -49,12 +50,11 @@ export const split = (message: Message, balanceInfo, activeMembers) => {
   // Currently hardcoded 'Team1' and 'Team2'
 	const channel1: GuildChannel = guildChannels.cache.get(IKosaTuppChannels.Team1);
 	const channel2: GuildChannel = guildChannels.cache.get(IKosaTuppChannels.Team2);
-	// TODO: Verify that split is working
   // const channel1 = guildChannels.cache.find(channel => channel[1].name === );
   // const channel2 = guildChannels.cache.find(channel => channel[1].name === );
   if (!f.isUndefined(channel1) && !f.isUndefined(channel2)) {
-    setTeamVoice(t1players, channel1[1]?.id);
-    setTeamVoice(t2players, channel2[1]?.id);
+    setTeamVoice(t1players, channel1.id);
+    setTeamVoice(t2players, channel2.id);
   } else {
     f.print(message, 'Channels: Team1 & Team2 does not exist');
     // TODO: Choose two random voice channels available as long as total EMPTY voiceChannels > 2
@@ -64,9 +64,9 @@ export const split = (message: Message, balanceInfo, activeMembers) => {
 };
 
 // Set VoiceChannel for an array of GuildMembers
-function setTeamVoice(team, channel) {
+const setTeamVoice = (team, channelId) => {
   team.forEach((player) => {
-    player.setVoiceChannel(channel);
+    player.voice.setChannel(channelId);
   });
 }
 

@@ -296,7 +296,6 @@ const handleMessage = async (message) => {
 	// Active Game commands: (After balance is made)
 	else if (isActiveGameCommand(message)) {
 		const gameObject = getGame(message.author);
-		console.log('@isActive DEBUG:', message.author, gameObject);
 		if (gameObject) {
 			gameObject.updateFreshMessage(message);
 			if (team1wonCommands.includes(message.content)) {

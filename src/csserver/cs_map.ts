@@ -29,6 +29,9 @@ export const getChosenMap = (chosenMap) => {
   }
   // TODO: skip_veto 0/1
   console.log('No map chosen');
+  /*return { // Temp office setting
+    chosenMap: `"cs_office"`, skipVeto: 1
+  }*/
   return {
     chosenMap: `
       "de_dust2" \t""
@@ -39,6 +42,7 @@ export const getChosenMap = (chosenMap) => {
       "de_train" \t""
       "de_vertigo" \t""
       "de_cache" \t""
+      "de_ancient" \t""
     `,
     skipVeto: 0,
   };

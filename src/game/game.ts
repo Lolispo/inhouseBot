@@ -7,6 +7,8 @@
 
 import * as f from '../tools/f';
 import { cancelGameCSServer } from '../csserver/cs_console';
+import { Player } from './player';
+import { GuildMember } from 'discord.js';
 
 
 
@@ -16,7 +18,7 @@ export class Game {
 
   gameID;
   channelMessage;
-  activeMembers;
+  activeMembers: GuildMember[];
   balanceInfo;
   serverId: string;
   matchId: string;
@@ -94,7 +96,7 @@ export class Game {
   getTeamWon = () => this.teamWon;
 
   getMatchupServerMessage = () => this.matchupServerMsg;
-  getActiveMembers = () => this.activeMembers;
+  getActiveMembers = (): GuildMember[] => this.activeMembers;
 
   getChannelMessage = () => this.channelMessage;
 
@@ -145,13 +147,11 @@ export class Game {
 
 export const createGame = (gameID, channelMessage): Game => {
   const game = new Game(gameID, channelMessage);
-  console.log('@createGame DEBUG:', game);
   return game;
 };
 
 // Returns the game where the author is
 export const getGame = author => Game.activeGames.find(game => {
-  console.log('@GETGAME', game, author.id)
   return game.containsPlayer(author.id);
 });
 

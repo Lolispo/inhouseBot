@@ -130,17 +130,18 @@ export const readFromFile = function (filePath, messageRead, callback, callbackE
 export const teamToGuildMember = (team, activeMembers) => {
   const teamMembers = [];
   if (isUndefined(activeMembers)) {
-    console.log('Error: activeMembers not initialized in @teamToGuildMember (Test case = ok)'); // Since it is assumed to always be initialized, throw error otherwise
+    console.error('Error: activeMembers not initialized in @teamToGuildMember (Test case = ok)'); // Since it is assumed to always be initialized, throw error otherwise
   } else {
     team.forEach((player) => {
       const guildMember = activeMembers.find(guildMember => player.uid === guildMember.id);
+      // console.log('@teamToGuildMember member:', player.uid, guildMember.id);
       if (!isUndefined(guildMember)) {
         teamMembers.push(guildMember);
       }
     });
   }
-  console.log('@teamToGuildMember SIZE', teamMembers.length, activeMembers.length);
-  if (teamMembers.length !== activeMembers.length) console.log('DEBUG teamToGuildMember ERROR different size');
+  console.log('@teamToGuildMember SIZE', teamMembers.length, activeMembers.length, team.length);
+  if (teamMembers.length !== activeMembers.length) console.error('DEBUG teamToGuildMember ERROR different size');
   return teamMembers;
 };
 
