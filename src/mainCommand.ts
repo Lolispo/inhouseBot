@@ -6,8 +6,8 @@ import { SaveAction } from "./commands/game/save";
 export const allAvailableCommands = (): BaseCommandClass[] => {
   let listOfCommands = [];
   // TODO Load all commands
-  listOfCommands.push(LoadAction.instance);
-  listOfCommands.push(SaveAction.instance);
+  listOfCommands.push(LoadAction.instance, false);
+  listOfCommands.push(SaveAction.instance, false);
   return listOfCommands;
 }
 

@@ -1,6 +1,6 @@
 import { Message } from "discord.js";
 import { BaseCommandClass } from "../../BaseCommand";
-import { loadFromFile } from "../../game/game";
+import { Game, loadFromFile } from "../../game/game";
 import { print } from "../../tools/f";
 
 const loadCommands = ['load']
@@ -8,8 +8,9 @@ const loadCommands = ['load']
 export class LoadAction extends BaseCommandClass {
   static instance: LoadAction = new LoadAction(loadCommands);
 
-  action = (message: Message, options: string[]) => {
-    const game = loadFromFile();
+  action = async (message: Message, options: string[]) => {
+    const game = await loadFromFile();
+    console.log('@loadAction:', Game.getActiveGamesToString());
     print(message, 'Loaded Game from local storage');
   }
 

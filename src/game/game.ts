@@ -7,69 +7,83 @@
 
 import * as f from '../tools/f';
 import { cancelGameCSServer } from '../csserver/cs_console';
-import { Player } from './player';
-import { GuildMember } from 'discord.js';
+import { GuildMember, Message } from 'discord.js';
 
-
+interface IOptionalParameters extends Omit<Partial<Game>, 'gameID' | 'channelMessage'> {
+  // Type used for constructor
+}
 export class Game {
   static activeGames = [];
   static getActiveGames = () => Game.activeGames;
+  static getActiveGamesToString = (): string => {
+    return `ActiveGames(${Game.activeGames.length}):\n${JSON.stringify(Game.activeGames, null, 2)}`;
+  }
   static activeGamesFilePath = 'activeGame.json';
+  static savedGamesStoragePath = 'activeGameStorage.json';
 
-  gameID;
-  channelMessage;
+  gameID: string;
+  channelMessage: Message;
   activeMembers: GuildMember[];
   balanceInfo;
   serverId: string;
   matchId: string;
   csConsoleIntervalPassive;
   csConsoleIntervalActive;
-  matchupMessage;
-  matchupServerMsg
-  voteMessage
-  teamWonMessage
+  matchupMessage: Message;
+  matchupServerMsg: Message;
+  voteMessage: Message;
+  teamWonMessage: Message;
   teamWon;			// Keeps track on which team won
-  freshMessage; // Fresh message in same channel
+  freshMessage: Message; // Fresh message in same channel
   
-  mapStatusMessage; // Message that keep track of which maps are banned and whose turn is it
-  mapMessages = []; // Keeps track of the discord messages for the different maps
+  mapStatusMessage: Message; // Message that keep track of which maps are banned and whose turn is it
+  mapMessages: Message[] = []; // Keeps track of the discord messages for the different maps
   mapVetoTurn; // Turn variable, whose turn it is
   captain1;			// Captain for team 1
   captain2;			// Captain for team 2
   bannedMaps;
 
-  constructor(gameID, channelMessage) {
+  constructor(
+    gameID: string, 
+    channelMessage: Message,
+    options?: IOptionalParameters
+  ) {
     this.gameID = gameID; // Unique id for game, set as the balance message id in the discord channel
     this.channelMessage = channelMessage; // Controls which channel to make prints in
-    this.activeMembers = []; // Active members playing (team1 players + team2 players)
-    this.balanceInfo; // Object: {team1, team2, difference, avgT1, avgT2, avgDiff, game} Initialized on creation of game object
+
+    // TODO: Fix so it takes the IDs etc and loads the correct information again
+    // This doesn't correctly load functions etc which breaks the cleaning flow
+    this.activeMembers = options?.activeMembers || []; // Active members playing (team1 players + team2 players)
+    this.balanceInfo = options?.balanceInfo; // Object: {team1, team2, difference, avgT1, avgT2, avgDiff, game} Initialized on creation of game object
   
-    this.serverId; // ServerId
-    this.matchId; // MatchId for server
-    this.csConsoleIntervalPassive; // between games - lower time
-    this.csConsoleIntervalActive; // active gameInterval
+    this.serverId = options?.serverId; // ServerId
+    this.matchId = options?.matchId; // MatchId for server
+    this.csConsoleIntervalPassive = options?.csConsoleIntervalPassive; // between games - lower time
+    this.csConsoleIntervalActive = options?.csConsoleIntervalActive; // active gameInterval
   
-    this.matchupMessage = channelMessage; // One who started game's balance's message (-b)
-    this.matchupServerMsg; 	// Discord message for showing matchup, members in both teams and mmr difference
-    this.voteMessage;		// When voting on who won, this holds the voteText discord message
-    this.teamWonMessage;	// The typed teamWon message, used to vote on agreeing as well as remove on finished vote
-    this.teamWon;			// Keeps track on which team won
-    this.freshMessage = channelMessage; // Fresh message in same channel
+    this.matchupMessage = options?.matchupMessage || channelMessage; // One who started game's balance's message (-b)
+    this.matchupServerMsg = options?.matchupServerMsg; 	// Discord message for showing matchup, members in both teams and mmr difference
+    this.voteMessage = options?.voteMessage;		// When voting on who won, this holds the voteText discord message
+    this.teamWonMessage = options?.teamWonMessage;	// The typed teamWon message, used to vote on agreeing as well as remove on finished vote
+    this.teamWon = options?.teamWon;			// Keeps track on which team won
+    this.freshMessage = options?.freshMessage || channelMessage; // Fresh message in same channel
   
-    this.mapStatusMessage; // Message that keep track of which maps are banned and whose turn is it
-    this.mapMessages = []; // Keeps track of the discord messages for the different maps
-    this.mapVetoTurn; // Turn variable, whose turn it is
-    this.captain1;			// Captain for team 1
-    this.captain2;			// Captain for team 2
-    this.bannedMaps = [];	// String array holding who banned which map, is used in mapStatusMessage
+    this.mapStatusMessage = options?.mapStatusMessage; // Message that keep track of which maps are banned and whose turn is it
+    this.mapMessages = options?.mapMessages || []; // Keeps track of the discord messages for the different maps
+    this.mapVetoTurn = options?.mapVetoTurn; // Turn variable, whose turn it is
+    this.captain1 = options?.captain1;			// Captain for team 1
+    this.captain2 = options?.captain2;			// Captain for team 2
+    this.bannedMaps = options?.bannedMaps || [];	// String array holding who banned which map, is used in mapStatusMessage
+
+    console.log('Game created!', this);
     Game.activeGames.push(this);
   }
 
-
   // Returns true if userid is contained in activeMembers in this game
-  containsPlayer = uid => this.activeMembers.some(guildMember => {
-    return guildMember.id === uid
-  });
+  containsPlayer = uid => {
+    console.log('@containsPlayer:', uid, this.activeMembers); // .map(mem => mem.id)
+    return this.activeMembers.some(guildMember => guildMember.id === uid); //  || guildMember.userID === uid
+  };
 
   getBalanceInfo = () => this.balanceInfo;
 
@@ -150,19 +164,47 @@ export const createGame = (gameID, channelMessage): Game => {
   return game;
 };
 
-export const loadFromFile = (): Game => {
+export const loadFromFile = async (): Promise<Game> => {
   try {
-    const data = f.readFromFile(Game.activeGamesFilePath, 'Successfully loaded game:');
-    console.log('@LOADED', data);
-    // TODO Initalize entire game from file / Json
+    const data = await f.readFromFile(Game.activeGamesFilePath, 'Successfully loaded game:');
+    try {
+      const parsedData = JSON.parse(data);
+      console.log('@LOADED', data, parsedData);
+      return new Game(parsedData.gameID, parsedData.channelMessage, parsedData);
+    } catch (e) {
+      console.error('Unable to parse JSON from data:', data);
+    }
     return undefined;
   } catch (e) {
     console.error('@Failed to load game');
   }
 }
 
+export const moveSavedGameToFile = async (gameObject) => {
+  const data = await f.readFromFile(Game.savedGamesStoragePath);
+  let preparedDataFormat;
+  if (data) { // Data loaded
+    const parsedData = JSON.parse(data);
+    console.log('@MoveSavedGameToFile:', parsedData);
+    preparedDataFormat = {
+      listOfGames: [gameObject].concat(parsedData?.listOfGames)
+    }
+  } else {
+    // No data loaded
+    preparedDataFormat = {
+      listOfGames: [gameObject]
+    };
+  }
+  await f.writeToFile(Game.savedGamesStoragePath, preparedDataFormat);
+}
+
 export const saveGame = (gameObject: Game) => {
-  f.writeToFile(Game.activeGamesFilePath, JSON.stringify(gameObject, null, 2), 'Successfully saved game to file: ' + Game.activeGamesFilePath);
+  try {
+    moveSavedGameToFile(gameObject); // Allows overwriting activeGame
+    f.writeToFile(Game.activeGamesFilePath, JSON.stringify(gameObject, null, 2), 'Successfully saved game to file: ' + Game.activeGamesFilePath);
+  } catch (e) {
+    console.error('@SaveGame Issue saving game:', e);
+  }
 }
 
 // Returns the game where the author is

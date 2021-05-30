@@ -1,20 +1,20 @@
 {
   "mapMessages": [],
-  "gameID": "848529744567336981",
+  "gameID": "848540173860077618",
   "channelMessage": {
     "channelID": "424309421519142913",
     "deleted": true,
-    "id": "848529744567336981",
+    "id": "848540173860077618",
     "type": "DEFAULT",
     "system": false,
     "content": "-b dota1v1<removed>",
     "authorID": "96293765001519104",
     "pinned": false,
     "tts": false,
-    "nonce": "848529736639447040",
+    "nonce": "848540166048972800",
     "embeds": [],
     "attachments": [],
-    "createdTimestamp": 1622375656025,
+    "createdTimestamp": 1622378142562,
     "editedTimestamp": 0,
     "webhookID": null,
     "applicationID": null,
@@ -37,62 +37,15 @@
     },
     {
       "guildID": "102097104322711552",
-      "joinedTimestamp": 1582755044136,
+      "joinedTimestamp": 1447192892259,
       "lastMessageChannelID": null,
-      "premiumSinceTimestamp": null,
+      "premiumSinceTimestamp": 0,
       "deleted": false,
-      "nickname": null,
-      "userID": "234395307759108106",
-      "displayName": "Groovy"
+      "nickname": "Caesar",
+      "userID": "107205764044599296",
+      "displayName": "Caesar"
     }
   ],
-  "matchupMessage": {
-    "channelID": "424309421519142913",
-    "deleted": true,
-    "id": "848529744567336981",
-    "type": "DEFAULT",
-    "system": false,
-    "content": "-b dota1v1<removed>",
-    "authorID": "96293765001519104",
-    "pinned": false,
-    "tts": false,
-    "nonce": "848529736639447040",
-    "embeds": [],
-    "attachments": [],
-    "createdTimestamp": 1622375656025,
-    "editedTimestamp": 0,
-    "webhookID": null,
-    "applicationID": null,
-    "activity": null,
-    "flags": 0,
-    "reference": null,
-    "guildID": "102097104322711552",
-    "cleanContent": "-b dota1v1<removed>"
-  },
-  "freshMessage": {
-    "channelID": "424309421519142913",
-    "deleted": true,
-    "id": "848529789782327326",
-    "type": "DEFAULT",
-    "system": false,
-    "content": "-u",
-    "authorID": "96293765001519104",
-    "pinned": false,
-    "tts": false,
-    "nonce": "848529781870821376",
-    "embeds": [],
-    "attachments": [],
-    "createdTimestamp": 1622375666805,
-    "editedTimestamp": 0,
-    "webhookID": null,
-    "applicationID": null,
-    "activity": null,
-    "flags": 0,
-    "reference": null,
-    "guildID": "102097104322711552",
-    "cleanContent": "-u"
-  },
-  "bannedMaps": [],
   "balanceInfo": {
     "team1": [
       {
@@ -105,10 +58,10 @@
     ],
     "team2": [
       {
-        "userName": "Groovy",
-        "uid": "234395307759108106",
+        "userName": "Xavantex",
+        "uid": "107205764044599296",
         "defaultMMR": 2500,
-        "steamId": "",
+        "steamId": "STEAM_1:0:31051784",
         "mmrs": {}
       }
     ],
@@ -118,12 +71,35 @@
     "avgDiff": 0,
     "game": "dota1v1",
     "team1Name": "Team Petter",
-    "team2Name": "Team Groovy"
+    "team2Name": "Team Xavantex"
+  },
+  "matchupMessage": {
+    "channelID": "424309421519142913",
+    "deleted": true,
+    "id": "848540173860077618",
+    "type": "DEFAULT",
+    "system": false,
+    "content": "-b dota1v1<removed>",
+    "authorID": "96293765001519104",
+    "pinned": false,
+    "tts": false,
+    "nonce": "848540166048972800",
+    "embeds": [],
+    "attachments": [],
+    "createdTimestamp": 1622378142562,
+    "editedTimestamp": 0,
+    "webhookID": null,
+    "applicationID": null,
+    "activity": null,
+    "flags": 0,
+    "reference": null,
+    "guildID": "102097104322711552",
+    "cleanContent": "-b dota1v1<removed>"
   },
   "matchupServerMsg": {
     "channelID": "424309421519142913",
     "deleted": false,
-    "id": "848529749374664734",
+    "id": "848540178557566997",
     "type": "DEFAULT",
     "system": false,
     "content": "",
@@ -146,8 +122,8 @@
             "inline": false
           },
           {
-            "value": "*Groovy (2500)*",
-            "name": "**Team Groovy** \t(Avg: 2500 mmr):",
+            "value": "*Xavantex (2500)*",
+            "name": "**Team Xavantex** \t(Avg: 2500 mmr):",
             "inline": false
           }
         ],
@@ -159,7 +135,7 @@
       }
     ],
     "attachments": [],
-    "createdTimestamp": 1622375657171,
+    "createdTimestamp": 1622378143682,
     "editedTimestamp": 0,
     "webhookID": null,
     "applicationID": null,
@@ -168,5 +144,29 @@
     "reference": null,
     "guildID": "102097104322711552",
     "cleanContent": ""
-  }
+  },
+  "freshMessage": {
+    "channelID": "424309421519142913",
+    "deleted": true,
+    "id": "848540173860077618",
+    "type": "DEFAULT",
+    "system": false,
+    "content": "-b dota1v1<removed>",
+    "authorID": "96293765001519104",
+    "pinned": false,
+    "tts": false,
+    "nonce": "848540166048972800",
+    "embeds": [],
+    "attachments": [],
+    "createdTimestamp": 1622378142562,
+    "editedTimestamp": 0,
+    "webhookID": null,
+    "applicationID": null,
+    "activity": null,
+    "flags": 0,
+    "reference": null,
+    "guildID": "102097104322711552",
+    "cleanContent": "-b dota1v1<removed>"
+  },
+  "bannedMaps": []
 }

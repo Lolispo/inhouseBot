@@ -105,10 +105,10 @@ function callbackPrintDefault(message) {
   deleteDiscMessage(message);
 }
 
-export const writeToFile = async (filePath: string, contentToWrite, messageOnSuccess: string): Promise<boolean> => {
+export const writeToFile = async (filePath: string, contentToWrite, messageOnSuccess?: string): Promise<boolean> => {
   try {
     await fs.writeFile(filePath, contentToWrite);
-    console.log('@writeToFile:', messageOnSuccess);
+    if (messageOnSuccess) console.log('@writeToFile:', messageOnSuccess);
     return true;
   } catch (err) {
     console.error(err);
@@ -116,10 +116,10 @@ export const writeToFile = async (filePath: string, contentToWrite, messageOnSuc
   }
 };
 
-export const readFromFile = async (filePath: string, messageRead: string) => {
+export const readFromFile = async (filePath: string, messageRead?: string) => {
   try {
     const data = await fs.readFile(filePath, 'utf8');
-    console.log('@readFromFile:', messageRead + data);
+    if (messageRead) console.log('@readFromFile:', messageRead + data);
     return data;
   } catch (err) {
     console.log(err);

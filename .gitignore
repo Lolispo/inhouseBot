@@ -11,3 +11,5 @@ trivia.token
 
 *-gen.cfg
 dist/
+
+activeGame*
