@@ -1,6 +1,5 @@
-import { getModeChosen } from "../../bot";
 import { getHighScore } from "../../database/db_sequelize";
-import { getAllModes, ratingOrMMR } from "../../game/player";
+import { getAllModes, getModeChosen, ratingOrMMR } from "../../game/gameModes";
 import { deleteDiscMessage, print } from "../../tools/f";
 
 export const leaderBoardAction = async (message, options) => {

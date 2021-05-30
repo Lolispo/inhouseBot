@@ -1,6 +1,6 @@
-import { getModeChosen, removeBotMessageDefaultTime } from "../../bot";
+import { removeBotMessageDefaultTime } from "../../bot";
 import { getPersonalStats } from "../../database/db_sequelize";
-import { getAllModes, ratingOrMMR } from "../../game/player";
+import { getAllModes, getModeChosen, ratingOrMMR } from "../../game/gameModes";
 import { deleteDiscMessage } from "../../tools/f";
 
 export const statsAction = async (message, options) => {

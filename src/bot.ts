@@ -6,7 +6,7 @@
 import * as f from './tools/f';							// Function class used by many classes, ex. isUndefined, messagesDeletion
 import * as balance from './game/balance';					// Balances and starts game between 2 teams
 import * as mmr_js from './game/mmr';						// Handles balanced mmr update
-import * as player_js from './game/player';					// Handles player storage in session, the database in action
+import { createPlayer }from './game/player';					// Handles player storage in session, the database in action
 import * as map_js from './mapVeto';					// MapVeto system
 import * as voiceMove_js from './voiceMove'; 			// Handles moving of users between voiceChannels
 import * as db_sequelize from './database/db_sequelize';			// Handles communication with db
@@ -28,6 +28,7 @@ import { triviaStartCommand } from './commands/trivia/triviaCommand';
 import { pingAction } from './commands/memes/ping';
 import { statsAction } from './commands/stats/stats';
 import { leaderBoardAction } from './commands/stats/leaderboard';
+import { getAllModes, getGameModes, getGameModes1v1, getModeAndPlayers } from './game/gameModes';
 
 const { prefix, token, db } = getConfig(); // Load config data from env
 
@@ -432,20 +433,6 @@ function startsWith(message, command){
 	}
 }
 
-// Returns first valid gamemode from arguments
-// TODO: A way to set cs1v1 if cs is given or dota if dota1v1 is given (instead of default)
-export const getModeChosen = (options, modeCategory, defaultGame = null) => {
-	let game = defaultGame // default command (Either cs or cs1v1)
-	for (let i = 1; i < options.length; i++){
-		if (modeCategory.includes(options[i])) {
-			console.log('DEBUG @b Game chosen as: ' + options[i]);
-			game = options[i];
-			break;
-		}
-	}
-	return game;
-}
-
 async function cleanupExit(){
 	await f.onExitDelete();
 	await Game.getActiveGames().map(game => cleanOnGameEnd(game));
@@ -461,27 +448,13 @@ export const triviaStart = (questions, message, author) => {
 			startGame(message, questions, playerList); 
 		});
 	} else { // No users in voice channel who wrote trivia
-		db_sequelize.initializePlayers([player_js.createPlayer(author.username, author.id)], 'trivia', (playerList) => {
+		db_sequelize.initializePlayers([createPlayer(author.username, author.id)], 'trivia', (playerList) => {
 			startGame(message, questions, playerList); // Initialize players as one who wrote message
 		});
 	}
 }
 
 // Here follows starting balanced game methods
-
-const getModeAndPlayers = (players, gameObject, options, paramOptions) => {
-	const { message, allModes } = options;
-	let game;
-	if (!message && !allModes) {
-		game = options.game;
-	} else {
-		game = getModeChosen(paramOptions, allModes, allModes[0]);
-	}
-	// console.log('getModeAndPlayers', game);
-	db_sequelize.initializePlayers(players, game, (playerList) => {
-		balance.balanceTeams(playerList, game, gameObject);
-	});
-}
 
 // Command used for starting a new game
 async function balanceCommand(message, options){
@@ -497,11 +470,11 @@ async function balanceCommand(message, options){
 			const players = findPlayersStart(message, voiceChannel, gameObject); // initalize players objects with playerInformation
 			const numPlayers = players.length;
 			// Initialize balancing, Result is printed and stage = 1 when done
-			let allModes = player_js.getGameModes();
+			let allModes = getGameModes();
 			if (numPlayers > 2 && numPlayers <= maxPlayers && numPlayers % 2 === 0){ // TODO: Allow uneven games? Requires testing to see if it works
 				getModeAndPlayers(players, gameObject, { message, allModes }, options);
 			} else if (numPlayers === 2){
-				allModes = player_js.getGameModes1v1();
+				allModes = getGameModes1v1();
 				getModeAndPlayers(players, gameObject, { message, allModes }, options);
 			} 
 			else {
@@ -535,7 +508,7 @@ function findPlayersStart(message: Message, channel: VoiceChannel, gameObject?: 
 	members.forEach((member) => {
 		// Only real users TODO Avoid bots in channel
 		console.log('\t' + member.user.username + '(' + member.user.id + ')'); // Printar alla activa users i denna voice chat
-		const tempPlayer = player_js.createPlayer(member.user.username, member.user.id);
+		const tempPlayer = createPlayer(member.user.username, member.user.id);
 		players.push(tempPlayer);
 	});
 	if (gameObject) {
@@ -699,9 +672,9 @@ function buildHelpString(userID, messageNum){
 		s += '**' + helpCommands.toString().replace(/,/g, ' | ') + '** Shows the available commands\n\n';
 		s += '**' + helpAllCommands.toString().replace(/,/g, ' | ') + '** Shows information about all commands in detail\n\n';
 		s += '**' + leaderboardCommands.toString().replace(/,/g, ' | ') + ' [game = cs]** Returns Top 5 MMR holders\n'
-			+ '**[game]** Opt. argument: name of the mode to retrieve top leaderboard for. Available modes are [' + player_js.getAllModes() + ']\n\n';
+			+ '**[game]** Opt. argument: name of the mode to retrieve top leaderboard for. Available modes are [' + getAllModes() + ']\n\n';
 		s += '**' + statsCommands.toString().replace(/,/g, ' | ') + ' [game = cs]** Returns your own rating\n'
-			+ '**[game]** Opt. argument: name of the mode to retrieve stats for. Available modes are [' + player_js.getAllModes() + ']\n\n';
+			+ '**[game]** Opt. argument: name of the mode to retrieve stats for. Available modes are [' + getAllModes() + ']\n\n';
 		s += '**' + prefix + 'roll [high] [low, high]** Rolls a number (0 - 100)\n' 
 		// TODO: More logical way of writing the parameters, since high change place depending on #args. Change in simple above as well
 			+ '**[high]** (0 - high) \t\t**[low, high]** (low - high)\n\n';
@@ -716,7 +689,7 @@ function buildHelpString(userID, messageNum){
 		let s = '**Start Game commands**\n\n';
 		s += '**' + balanceCommands.toString().replace(/,/g, ' | ') + ' [game = cs]** Starts an inhouse game with the players in the same voice chat as the message author. '
 			+ 'Requires 2, 4, 6, 8 or 10 players in voice chat to work.\n'
-			+ '**[game]** Opt. argument: name of the game being played. Available games are [' + player_js.getGameModes() + ']\n\n';
+			+ '**[game]** Opt. argument: name of the game being played. Available games are [' + getGameModes() + ']\n\n';
 		s += '**' + team1wonCommands.toString().replace(/,/g, ' | ') + ' | ' + team2wonCommands.toString().replace(/,/g, ' | ') 
 			+ '** Starts report of match result, requires majority of players to upvote from game for stats to be recorded. '
 			+ 'If majority of players downvote, this match result report disappears, use **' + prefix + 'cancel** for canceling the match after this\n\n';

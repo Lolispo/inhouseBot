@@ -3,10 +3,9 @@
 /*
 	Class handles player objects which take care of player data
 */
-// Default choices is the first indexed mode
-const modesGame = ['cs', 'dota', 'valorant', 'test'];
-const modes1v1 = ['cs1v1', 'dota1v1'];
-const modesRatings = ['trivia', 'trivia_temp'];
+
+import { modes1v1, modesGame, modesRatings, ratingOrMMR } from "./gameModes";
+
 const startMMR = 2500;
 
 export class Player {
@@ -84,23 +83,6 @@ export const createPlayer = function (username, discId) {
   return new Player(username, discId);
 };
 
-export const getGameModes = function () {
-  return modesGame;
-};
-
-export const getGameModes1v1 = function () {
-  return modes1v1;
-};
-
-export const getOtherRatings = function () {
-  return modesRatings;
-};
-
-export const getAllModes = function () { // Default option should still be 'cs', TODO Check
-  return modesGame.concat(modes1v1).concat(modesRatings);
-};
-
-
 // Returns highest mmr player object from team
 export const getHighestMMR = function (team, game) {
   let highestMMR = -1;
@@ -144,11 +126,11 @@ export const sortRating = function (players, game) {
   return players;
 };
 
-export const ratingOrMMR = function (game) {
-  if (modesGame.includes(game) || modes1v1.includes(game)) {
-    return 'mmr';
-  } if (modesRatings.includes(game)) {
-    return 'rating';
-  }
-  throw new Error(`Invalid game @getSortedRating:${game}`);
-};
+export function getAllModes() {
+	throw new Error('Function not implemented.');
+}
+
+export function getGameModes() {
+	throw new Error('Function not implemented.');
+}
+

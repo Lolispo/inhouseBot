@@ -3,7 +3,7 @@
 
 import { assert } from 'chai';
 const rewire = require('rewire');
-const balanceModule = rewire('../src/game/balance.js');
+const balanceModule = rewire('../src/game/balance.ts');
 const recursiveFor = balanceModule.__get__('recursiveFor');
 const unival = balanceModule.__get__('uniVal');
 const reverseUniqueSum = balanceModule.__get__('reverseUniqueSum');
