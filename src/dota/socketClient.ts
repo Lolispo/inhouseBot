@@ -13,12 +13,12 @@ export const configureSocket = () => {
   });
 
   socket.on('disconnect', () => {
-    console.log('disconnected');
+    console.log('Socket disconnected');
   });
 
   socket.on('MATCH_FINISHED', (gameId, gameResults) => {
+    console.log('@MATCHFINISHED', gameId, gameResults);
     const game = getGame(gameId);
-
   });
 }
 

@@ -9,15 +9,34 @@ export class ConnectDotaAction extends BaseCommandClass {
   static instance: ConnectDotaAction = new ConnectDotaAction(commands);
   static socketConfiguration;
 
-  action = async (message: Message, options: string[]) => {
-    console.log('@dota action:', )
+  static getSocket = async () => {
+    if (ConnectDotaAction.socketConfiguration) return ConnectDotaAction.socketConfiguration;
     try {
       const configureSocket = initSocketConnection();
       ConnectDotaAction.socketConfiguration = configureSocket();
+      return ConnectDotaAction.socketConfiguration;
+    } catch (e) {
+      console.error('Issue with socket connection ...', e);
+    }
+  }
+
+  startMatch = async (teams) => {
+    try {
+      await ConnectDotaAction.getSocket();
+      console.log('Sending Teams ...');
+      startMatch(teams);
+    } catch (e) {
+      console.error('Issue emitting startMatch Event ...', e);
+    }
+  }
+
+  action = async (message: Message, options: string[]) => {
+    try {
+      await ConnectDotaAction.getSocket();
       console.log('Sending Hello World event ...');
       startMatch({ hello: 'world' });
     } catch (e) {
-      console.error('Issue with socket connection ...', e);
+      console.error('Issue emitting startMatch test ...', e);
     }
   }
 

@@ -20,7 +20,7 @@ import { gameIsCS, gameIsDota, gameIsCSMain } from './game';
 */
 
 // @param players should contain Array of initialized Players of people playing
-export const balanceTeams = (players, game, gameObject) => {
+export const balanceTeams = (players, game, gameObject, skipServer = false) => {
   // Generate team combs, all possibilities of the 10 players
   const teamCombs = generateTeamCombs(players);
   const result = findBestTeamComb(players, teamCombs, game);
@@ -49,7 +49,7 @@ export const balanceTeams = (players, game, gameObject) => {
   });
 
   // TODO: Only if no other active games using server
-  if (gameIsCS(game)) {
+  if (gameIsCS(game) && !skipServer) {
     const playersMissingSteamIds = checkMissingSteamIds(players);
     // console.log('Check missing steam ids:', players, players.map(player => player.getSteamId()).join(", "), playersMissingSteamIds.map(player => player.getSteamId()).join(", "));
     if (playersMissingSteamIds.length > 0) {
@@ -61,6 +61,8 @@ export const balanceTeams = (players, game, gameObject) => {
       });
     }
     configureServer(gameObject);
+  } else if (gameIsDota(game) && !skipServer) {
+    
   }
 };
 

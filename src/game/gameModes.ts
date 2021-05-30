@@ -54,7 +54,7 @@ export const getModeChosen = (options, modeCategory, defaultGame = null) => {
 	return game;
 }
 
-export const getModeAndPlayers = (players, gameObject, options, paramOptions) => {
+export const getModeAndPlayers = (players, gameObject, options, paramOptions: string[]) => {
 	const { message, allModes } = options;
 	let game;
 	if (!message && !allModes) {
@@ -62,8 +62,9 @@ export const getModeAndPlayers = (players, gameObject, options, paramOptions) =>
 	} else {
 		game = getModeChosen(paramOptions, allModes, allModes[0]);
 	}
+	const skipServer = paramOptions.includes('noserver');
 	// console.log('getModeAndPlayers', game);
 	initializePlayers(players, game, (playerList) => {
-		balanceTeams(playerList, game, gameObject);
+		balanceTeams(playerList, game, gameObject, skipServer);
 	});
 }
