@@ -25,13 +25,15 @@ export const configureSocket = () => {
 export const ready = () =>
   socket.emit('READY');
 
-export const startMatch = teams => 
-  socket.emit('START_MATCH', teams);
+export const startMatch = teams => {
+  socket.emit('start match', teams);
+  console.log('@startMatch Sent event', teams);
+}
 
 
 export const initSocketConnection = () => {
   console.log('@Socket Initializing Connection ...');
   socket = io(ipAdress);
-  console.log('Socket established!', socket);
+  console.log('Socket established!', socket.id);
   return configureSocket;
 }
