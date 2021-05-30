@@ -3,7 +3,7 @@ import io from 'socket.io-client';
 import { getGame } from '../game/game';
 import { Socket } from "socket.io-client";
 
-const ipAdress = '127.0.0.1:4545'
+const ipAdress = 'http://127.0.0.1:4545';
 let socket: Socket;
 
 export const configureSocket = () => {
@@ -32,5 +32,6 @@ export const startMatch = teams =>
 export const initSocketConnection = () => {
   console.log('@Socket Initializing Connection ...');
   socket = io(ipAdress);
+  console.log('Socket established!', socket);
   return configureSocket;
 }

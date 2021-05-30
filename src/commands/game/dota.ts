@@ -14,6 +14,7 @@ export class ConnectDotaAction extends BaseCommandClass {
     try {
       const configureSocket = initSocketConnection();
       ConnectDotaAction.socketConfiguration = configureSocket();
+      console.log('Sending Hello World event ...');
       startMatch({ hello: 'world' });
     } catch (e) {
       console.error('Issue with socket connection ...', e);
