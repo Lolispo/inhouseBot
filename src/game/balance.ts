@@ -73,7 +73,7 @@ export const balanceTeams = (players, game, gameObject, skipServer = false) => {
         f.deleteDiscMessage(messageParam, 120000, 'missingSteamIds');
       });
     }
-    ConnectDotaAction.startMatch([gameObject.team1, gameObject.team2]);
+    ConnectDotaAction.startMatch([gameObject.getBalanceInfo().team1, gameObject.getBalanceInfo().team2]);
   }
 };
 
