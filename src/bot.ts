@@ -206,6 +206,7 @@ const handleMessage = async (message: Message) => {
 	const loadedCommands = allAvailableCommands();
 	for (let i = 0; i < loadedCommands.length; i++) {
 		const command = loadedCommands[i];
+		// console.log('@LoadedCommand:', command);
 		if (command.isThisCommand(message)) {
 			command.action(message, options);
 			didAnAction = true;

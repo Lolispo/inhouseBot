@@ -42,7 +42,7 @@ const getOneRow = (game, time, emojiList, isLast = false): string => {
 }
 
 const gameString = (game, startTime, index, hours): string => {
-  const emojiList = shuffle(globalEmojiList.slice(0 + (index * hours), hours + (index * hours)));
+  const emojiList = globalEmojiList.slice(0 + (index * hours), hours + (index * hours)); // shuffle
   let s = '';
   for (let i = 0; i < hours; i++) {
     const isLast = i === (hours - 1);
@@ -61,6 +61,28 @@ const generateGameTimeString = (gameOptions: string[], startTime, hours): string
   return s;
 }
 
+// Returns the time periods from the given options
+export const getTimePeriods = (options: string[]) => {
+  let startHour;
+  let endHour;
+  for (let i = 0; i < options.length; i++) {
+    let option = options[i];
+    let hours = [];
+    try {
+      let num = parseInt(option);
+      if (!startHour || num < startHour) startHour = num;
+      if (!endHour || num < endHour) endHour = num;
+      hours.push(num);
+    } catch (e) {
+      // Do nothing
+    }
+  }
+  return {
+    ...(startHour && { startHour }),
+    ...(endHour && { endHour }),
+  }
+}
+
 export const temperatureCheckCommand = (message: Message, options) => {
   const activeModes = getActiveGameModes();
   const gameName = getModeChosen(options, activeModes);
@@ -70,11 +92,15 @@ export const temperatureCheckCommand = (message: Message, options) => {
   } else {
     gameOptions.push(gameName);
   }
+  const { startHour, endHour } = getTimePeriods(options);
   console.log('@temperatureCheckCommand:', activeModes, gameName, gameOptions);
 
   // TODO: Allow inputting starttime and hours
-  const startTime = 20;
-  const hours = 3;
+  const startTime = startHour || 20;
+  let hours = 3;
+  if (endHour && startHour) {
+    hours = endHour - startHour;
+  }
 
   // Set global emoji reactions
   activeGlobalEmojiList = globalEmojiList.slice(0, hours * gameOptions.length);

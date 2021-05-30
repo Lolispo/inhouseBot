@@ -6,7 +6,7 @@ import { print } from "../../tools/f";
 const loadCommands = ['load']
 
 export class LoadAction extends BaseCommandClass {
-  static instance: LoadAction = new LoadAction(loadCommands);
+  static instance: LoadAction = new LoadAction(loadCommands, false);
 
   action = async (message: Message, options: string[]) => {
     const game = await loadFromFile();

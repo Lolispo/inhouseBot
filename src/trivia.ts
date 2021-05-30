@@ -411,7 +411,7 @@ function handleQuestions(questions, callback) {
     for (let i = 0; i < ans.length; i++) {
       indexes.push(i);
     }
-    indexes = shuffle(indexes);
+    indexes = f.shuffle(indexes);
     // console.log('indexes =', indexes)
     thisQuestion.censored_ans = censored_ans;
     thisQuestion.lessCensored = [];
@@ -443,7 +443,7 @@ function handleQuestions(questions, callback) {
       }
     }
     const charArray = Array.from(ans).filter(word => word !== ' ');
-    thisQuestion.shuffledAns = shuffle(charArray).join('').toLowerCase(); // lower case
+    thisQuestion.shuffledAns = f.shuffle(charArray).join('').toLowerCase(); // lower case
     /*
 		console.log('Question: ' + thisQuestion.question);
 		console.log('Ans:', thisQuestion.correct_answer);
@@ -452,25 +452,6 @@ function handleQuestions(questions, callback) {
 		*/
   });
   callback(questions, messageVar);
-}
-
-// Shuffle array
-function shuffle(array) {
-  let currentIndex = array.length; let temporaryValue; let
-    randomIndex;
-
-  // While there remain elements to shuffle...
-  while (currentIndex !== 0) {
-    // Pick a remaining element...
-    randomIndex = Math.floor(Math.random() * currentIndex);
-    currentIndex -= 1;
-
-    // And swap it with the current element.
-    temporaryValue = array[currentIndex];
-    array[currentIndex] = array[randomIndex];
-    array[randomIndex] = temporaryValue;
-  }
-  return array;
 }
 
 function getCensored(ans) {

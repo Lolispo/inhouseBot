@@ -6,7 +6,7 @@ import { print } from "../../tools/f";
 const loadCommands = ['save']
 
 export class SaveAction extends BaseCommandClass {
-  static instance: SaveAction = new SaveAction(loadCommands);
+  static instance: SaveAction = new SaveAction(loadCommands, false);
 
   action = (message: Message, options: string[]) => {
     const gameObject = getGame(message.author);
