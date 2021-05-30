@@ -9,6 +9,7 @@ import { configureServer } from '../csserver/cs_server';
 import { getCsIp, getCsUrl } from '../csserver/server_info';
 import { checkMissingSteamIds, notifyPlayersMissingSteamId } from '../steamid';
 import { gameIsCS, gameIsDota, gameIsCSMain } from './game';
+import { ConnectDotaAction } from '../commands/game/dota';
 
 /*
 	Handles getting the most balanced team matchup for the given 10 players
@@ -62,7 +63,17 @@ export const balanceTeams = (players, game, gameObject, skipServer = false) => {
     }
     configureServer(gameObject);
   } else if (gameIsDota(game) && !skipServer) {
-    
+    const playersMissingSteamIds = checkMissingSteamIds(players);
+    // console.log('Check missing steam ids:', players, players.map(player => player.getSteamId()).join(", "), playersMissingSteamIds.map(player => player.getSteamId()).join(", "));
+    if (playersMissingSteamIds.length > 0) {
+      // People are missing steamids
+      notifyPlayersMissingSteamId(playersMissingSteamIds);
+      const playersString = playersMissingSteamIds.map(player => player.userName).join(', ');
+      printMessage(`Note: Missing SteamIds for: ${playersString}`, gameObject.getChannelMessage(), (messageParam) => {
+        f.deleteDiscMessage(messageParam, 120000, 'missingSteamIds');
+      });
+    }
+    ConnectDotaAction.startMatch([gameObject.team1, gameObject.team2]);
   }
 };
 
