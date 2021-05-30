@@ -35,8 +35,8 @@ export class ConnectDotaAction extends BaseCommandClass {
   static convertTeamsToDotaApiFormat = (teams): IDotaStartMatch => {
     console.log('@convert:', teams);
     return {
-      [DOTA_GC_TEAM.GOOD_GUYS]: teams.team1,
-      [DOTA_GC_TEAM.BAD_GUYS]: teams.team2,
+      [DOTA_GC_TEAM.GOOD_GUYS]: teams[0],
+      [DOTA_GC_TEAM.BAD_GUYS]: teams[1],
     };
   }
 
