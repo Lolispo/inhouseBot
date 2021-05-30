@@ -12,4 +12,5 @@ trivia.token
 *-gen.cfg
 dist/
 
-activeGame*
+activeGame.json
+activeGameStorage.json
