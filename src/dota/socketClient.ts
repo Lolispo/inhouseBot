@@ -16,7 +16,12 @@ export const configureSocket = () => {
     console.log('Socket disconnected');
   });
 
+  socket.on('player ready', () => {
+    // TODO
+  });
+
   socket.on('MATCH_FINISHED', (gameId, gameResults) => {
+    // TODO
     console.log('@MATCHFINISHED', gameId, gameResults);
     const game = getGame(gameId);
   });
