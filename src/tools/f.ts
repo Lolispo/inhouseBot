@@ -105,11 +105,11 @@ function callbackPrintDefault(message) {
   deleteDiscMessage(message);
 }
 
-export const writeToFile = async (filePath: string, contentToWrite, messageOnSuccess: string) => {
+export const writeToFile = async (filePath: string, contentToWrite, messageOnSuccess: string): Promise<boolean> => {
   try {
-    const writeResult = await fs.writeFile(filePath, contentToWrite);
-    console.log('@writeToFile:', messageOnSuccess, writeResult);
-    return writeResult;
+    await fs.writeFile(filePath, contentToWrite);
+    console.log('@writeToFile:', messageOnSuccess);
+    return true;
   } catch (err) {
     console.error(err);
     throw err;

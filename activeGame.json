@@ -1,0 +1,172 @@
+{
+  "mapMessages": [],
+  "gameID": "848529744567336981",
+  "channelMessage": {
+    "channelID": "424309421519142913",
+    "deleted": true,
+    "id": "848529744567336981",
+    "type": "DEFAULT",
+    "system": false,
+    "content": "-b dota1v1<removed>",
+    "authorID": "96293765001519104",
+    "pinned": false,
+    "tts": false,
+    "nonce": "848529736639447040",
+    "embeds": [],
+    "attachments": [],
+    "createdTimestamp": 1622375656025,
+    "editedTimestamp": 0,
+    "webhookID": null,
+    "applicationID": null,
+    "activity": null,
+    "flags": 0,
+    "reference": null,
+    "guildID": "102097104322711552",
+    "cleanContent": "-b dota1v1<removed>"
+  },
+  "activeMembers": [
+    {
+      "guildID": "102097104322711552",
+      "joinedTimestamp": 1444763529103,
+      "lastMessageChannelID": "424309421519142913",
+      "premiumSinceTimestamp": 0,
+      "deleted": false,
+      "nickname": null,
+      "userID": "96293765001519104",
+      "displayName": "Petter"
+    },
+    {
+      "guildID": "102097104322711552",
+      "joinedTimestamp": 1582755044136,
+      "lastMessageChannelID": null,
+      "premiumSinceTimestamp": null,
+      "deleted": false,
+      "nickname": null,
+      "userID": "234395307759108106",
+      "displayName": "Groovy"
+    }
+  ],
+  "matchupMessage": {
+    "channelID": "424309421519142913",
+    "deleted": true,
+    "id": "848529744567336981",
+    "type": "DEFAULT",
+    "system": false,
+    "content": "-b dota1v1<removed>",
+    "authorID": "96293765001519104",
+    "pinned": false,
+    "tts": false,
+    "nonce": "848529736639447040",
+    "embeds": [],
+    "attachments": [],
+    "createdTimestamp": 1622375656025,
+    "editedTimestamp": 0,
+    "webhookID": null,
+    "applicationID": null,
+    "activity": null,
+    "flags": 0,
+    "reference": null,
+    "guildID": "102097104322711552",
+    "cleanContent": "-b dota1v1<removed>"
+  },
+  "freshMessage": {
+    "channelID": "424309421519142913",
+    "deleted": true,
+    "id": "848529789782327326",
+    "type": "DEFAULT",
+    "system": false,
+    "content": "-u",
+    "authorID": "96293765001519104",
+    "pinned": false,
+    "tts": false,
+    "nonce": "848529781870821376",
+    "embeds": [],
+    "attachments": [],
+    "createdTimestamp": 1622375666805,
+    "editedTimestamp": 0,
+    "webhookID": null,
+    "applicationID": null,
+    "activity": null,
+    "flags": 0,
+    "reference": null,
+    "guildID": "102097104322711552",
+    "cleanContent": "-u"
+  },
+  "bannedMaps": [],
+  "balanceInfo": {
+    "team1": [
+      {
+        "userName": "Petter",
+        "uid": "96293765001519104",
+        "defaultMMR": 2500,
+        "steamId": "STEAM_1:0:24603593",
+        "mmrs": {}
+      }
+    ],
+    "team2": [
+      {
+        "userName": "Groovy",
+        "uid": "234395307759108106",
+        "defaultMMR": 2500,
+        "steamId": "",
+        "mmrs": {}
+      }
+    ],
+    "difference": 0,
+    "avgT1": 2500,
+    "avgT2": 2500,
+    "avgDiff": 0,
+    "game": "dota1v1",
+    "team1Name": "Team Petter",
+    "team2Name": "Team Groovy"
+  },
+  "matchupServerMsg": {
+    "channelID": "424309421519142913",
+    "deleted": false,
+    "id": "848529749374664734",
+    "type": "DEFAULT",
+    "system": false,
+    "content": "",
+    "authorID": "441636719284977665",
+    "pinned": false,
+    "tts": false,
+    "nonce": null,
+    "embeds": [
+      {
+        "type": "rich",
+        "title": "**New Game!** Playing **dota1v1**. MMR diff: 0 mmr",
+        "description": null,
+        "url": null,
+        "color": 2431681,
+        "timestamp": null,
+        "fields": [
+          {
+            "value": "*Petter (2500)*",
+            "name": "**Team Petter** \t(Avg: 2500 mmr):",
+            "inline": false
+          },
+          {
+            "value": "*Groovy (2500)*",
+            "name": "**Team Groovy** \t(Avg: 2500 mmr):",
+            "inline": false
+          }
+        ],
+        "thumbnail": null,
+        "video": null,
+        "author": null,
+        "provider": null,
+        "files": []
+      }
+    ],
+    "attachments": [],
+    "createdTimestamp": 1622375657171,
+    "editedTimestamp": 0,
+    "webhookID": null,
+    "applicationID": null,
+    "activity": null,
+    "flags": 0,
+    "reference": null,
+    "guildID": "102097104322711552",
+    "cleanContent": ""
+  }
+}

@@ -162,7 +162,7 @@ export const loadFromFile = (): Game => {
 }
 
 export const saveGame = (gameObject: Game) => {
-  f.writeToFile(Game.activeGamesFilePath, JSON.stringify(gameObject, null, 2), 'Sucessfully saved game to file: ' + Game.activeGamesFilePath);
+  f.writeToFile(Game.activeGamesFilePath, JSON.stringify(gameObject, null, 2), 'Successfully saved game to file: ' + Game.activeGamesFilePath);
 }
 
 // Returns the game where the author is
