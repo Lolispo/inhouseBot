@@ -6,7 +6,7 @@
 import * as f from './tools/f';							// Function class used by many classes, ex. isUndefined, messagesDeletion
 import * as balance from './game/balance';					// Balances and starts game between 2 teams
 import * as mmr_js from './game/mmr';						// Handles balanced mmr update
-import { createPlayer } from './game/player';					// Handles player storage in session, the database in action
+import { createPlayer, Player } from './game/player';					// Handles player storage in session, the database in action
 import * as map_js from './mapVeto';					// MapVeto system
 import * as voiceMove_js from './voiceMove'; 			// Handles moving of users between voiceChannels
 import * as db_sequelize from './database/db_sequelize';			// Handles communication with db
@@ -448,7 +448,7 @@ export const triviaStart = (questions, message, author) => {
 	const voiceChannel = message.guild.member(message.author).voiceChannel;
 	if (voiceChannel !== null && !f.isUndefined(voiceChannel)){ // Sets initial player array to user in disc channel if available
 		const players = findPlayersStart(message, voiceChannel);
-		db_sequelize.initializePlayers(players, 'trivia', (playerList) => {
+		db_sequelize.initializePlayers(players, 'trivia', (playerList: Player[]) => {
 			startGame(message, questions, playerList); 
 		});
 	} else { // No users in voice channel who wrote trivia
@@ -505,7 +505,7 @@ async function balanceCommand(message, options){
 
 // Initialize players array from given voice channel
 // activeGame set to true => for phases where you should prevent others from overwriting (not trivia)
-function findPlayersStart(message: Message, channel: VoiceChannel, gameObject?: Game){
+const findPlayersStart = (message: Message, channel: VoiceChannel, gameObject?: Game): Player[] => {
 	const players = [];
 	// const fetchedMembers = channel.fetch({ force: true });
 	const members: GuildMember[] = Array.from(channel.members.values());

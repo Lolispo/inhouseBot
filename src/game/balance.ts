@@ -10,6 +10,7 @@ import { getCsIp, getCsUrl } from '../csserver/server_info';
 import { checkMissingSteamIds, notifyPlayersMissingSteamId } from '../steamid';
 import { gameIsCS, gameIsDota, gameIsCSMain } from './game';
 import { ConnectDotaAction } from '../commands/game/dota';
+import { Player } from './player';
 
 /*
 	Handles getting the most balanced team matchup for the given 10 players
@@ -21,7 +22,7 @@ import { ConnectDotaAction } from '../commands/game/dota';
 */
 
 // @param players should contain Array of initialized Players of people playing
-export const balanceTeams = (players, game, gameObject, skipServer = false) => {
+export const balanceTeams = (players: Player[], game, gameObject, skipServer = false) => {
   // Generate team combs, all possibilities of the 10 players
   const teamCombs = generateTeamCombs(players);
   const result = findBestTeamComb(players, teamCombs, game);

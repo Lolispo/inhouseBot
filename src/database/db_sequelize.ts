@@ -3,6 +3,7 @@
 
 import * as f from '../tools/f';
 import * as Sequelize from 'sequelize';
+import { Player } from '../game/player';
 
 /*
 	This file handles database communication using sequelize
@@ -222,9 +223,9 @@ export const initializeDBSequelize = (config) => {
 	return dbconn;
 }
 
-export const initializePlayers = async (players, game, callback) => {
+export const initializePlayers = async (players: Player[], game, callback) => {
 	const specificUsers = await getUsers(players); // Specific users
-	addMissingUsers(players, specificUsers, game, (playerList) => { // players are updated from within method
+	addMissingUsers(players, specificUsers, game, (playerList: Player[]) => { // players are updated from within method
 		callback(playerList);
 	}); 
 }
@@ -293,7 +294,7 @@ export const getUsersUids = async (uidList) => {
 }
 
 // Method to only get users with uid in uids (received error when attempted) instead of every user
-export const getUsers = async (listOfUsers) => {
+export const getUsers = async (listOfUsers: Player[]) => {
 	const uidList = listOfUsers.map(user => user.uid);
 	return getUsersUids(uidList);
 }

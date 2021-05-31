@@ -1,5 +1,6 @@
 import { initializePlayers } from "../database/db_sequelize";
 import { balanceTeams } from "./balance";
+import { Player } from "./player";
 
 // Default choices is the first indexed mode
 export const modesGame = ['cs', 'dota', 'valorant', 'test'];
@@ -54,7 +55,7 @@ export const getModeChosen = (options, modeCategory, defaultGame = null) => {
 	return game;
 }
 
-export const getModeAndPlayers = (players, gameObject, options, paramOptions: string[]) => {
+export const getModeAndPlayers = (players: Player[], gameObject, options, paramOptions: string[]) => {
 	const { message, allModes } = options;
 	let game;
 	if (!message && !allModes) {
@@ -64,7 +65,7 @@ export const getModeAndPlayers = (players, gameObject, options, paramOptions: st
 	}
 	const skipServer = paramOptions.includes('noserver');
 	// console.log('getModeAndPlayers', game);
-	initializePlayers(players, game, (playerList) => {
+	initializePlayers(players, game, (playerList: Player[]) => {
 		balanceTeams(playerList, game, gameObject, skipServer);
 	});
 }

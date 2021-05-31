@@ -2,6 +2,7 @@ import * as f from './tools/f';
 import { getUser, storeSteamIdDb } from './database/db_sequelize';
 import { getClientReference } from './client';
 import * as SteamID from 'steamid';
+import { Player } from './game/player';
 
 // Return boolean if valid steam id format or not
 export const validateSteamID = (msgContent) => {
@@ -70,14 +71,16 @@ export const checkMissingSteamIds = (players) => {
   return players.filter((player) => !player.getSteamId());
 }
 
-export const notifyPlayersMissingSteamId = async (players) => {
+export const notifyPlayersMissingSteamId = async (players: Player[]) => {
   const client = getClientReference();
   players.forEach((player) => {
     const uid = player.uid;
-    try {
-      client.users.cache.get(uid).send(enterSteamIdString);
-    } catch (e) {
-      console.error('Unable to send steamid fetch to user with uid' + uid + ':', e);
+    if (player.userName !== 'Groovy') {
+      try {
+        client.users.cache.get(uid).send(enterSteamIdString);
+      } catch (e) {
+        console.error('Unable to send steamid fetch to user with uid' + uid + ':', e);
+      }
     }
   });
 }
