@@ -15,6 +15,23 @@ const adjective = [
   'tiny',
   'edgy',
   'spawn camping',
+  'lucky',
+  'moist',
+  'nerdy',
+  'hopeful',
+  'aspiring',
+  'sleepy',
+  'dedicated',
+  'blind',
+  'strong',
+  'swole',
+  'confident',
+  'vengeful',
+  'also',
+  'clip hungry',
+  'big',
+  'small',
+  'smol',
   // '', // Need to handle space to work
   // 'ugly',
   // 'filthy',
@@ -68,6 +85,42 @@ const pluralLuls = [
   'foxes',
   'dogs',
   'doggos',
+  'spicy chili dogs',
+  'spaghetti carbonaras',
+  'buddies',
+  'scrubs',
+  'bikini streamers',
+  'chads',
+  'fanboys',
+  'fangirls',
+  'trolls',
+  'YouTubers',
+  'simps',
+  'beginners',
+  'masters',
+  'spreadsheets',
+  'critters',
+  'apex predators',
+  'windows',
+  'artists',
+  'demons',
+  'angles',
+  'encyclopedias',
+  'tetrominos',
+  'traders',
+  'aces',
+  'fungi',
+  'fun guys',
+  'goats',
+  'owls',
+  'sweethearts',
+  'darlings',
+  'clippers',
+  'supports',
+  'monsters',
+  'OwO',
+  'pps',
+  
 ];
 
 
@@ -75,6 +128,8 @@ const specialNames = [
   'Petter',
   'Pippin',
   'Robin',
+  'Bambi',
+  'Banza1',
 ];
 
 class Team {
@@ -188,6 +243,8 @@ export const getTeamName = (team: Player[], game) => {
     if (team.some(player => player.userName === 'Petter')) specialOptions.push('Petter och hans fyra getter');
     if (team.some(player => player.userName === 'Pippin')) specialOptions.push('El Banditos');
     if (team.some(player => player.userName === 'Robin')) specialOptions.push('Knife Squad');
+    if (team.some(player => player.userName === 'Bambi')) specialOptions.push('Alla Barnen');
+    if (team.some(player => player.userName === 'Banza1')) specialOptions.push('Lodarna');
     // if(team.some((player) => player.userName === 'Lacktjo')) specialOptions.push(''); // Axel meme
     return specialOptions.length === 1 ? specialOptions[0] : specialOptions[getRndInt(specialOptions.length)];
   }
