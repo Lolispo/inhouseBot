@@ -19,6 +19,7 @@ Show streak in leaderboard output
 
 Inhouse Temperature check
     Emoji for showing that you are unavailable today
+        Feature request på "temp": En emoji för att markera att man sett men inte kan :slight_smile:
     Fix shuffle
     Fix time options as input
     Fix event when hitting 10 players
