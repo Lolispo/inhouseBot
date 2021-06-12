@@ -6,7 +6,7 @@
 import * as f from './tools/f';							// Function class used by many classes, ex. isUndefined, messagesDeletion
 import * as balance from './game/balance';					// Balances and starts game between 2 teams
 import * as mmr_js from './game/mmr';						// Handles balanced mmr update
-import { createPlayer } from './game/player';					// Handles player storage in session, the database in action
+import { createPlayer, Player } from './game/player';					// Handles player storage in session, the database in action
 import * as map_js from './mapVeto';					// MapVeto system
 import * as voiceMove_js from './voiceMove'; 			// Handles moving of users between voiceChannels
 import * as db_sequelize from './database/db_sequelize';			// Handles communication with db
@@ -447,7 +447,7 @@ export const triviaStart = (questions, message, author) => {
 	// Start game in text channel with these questions
 	const voiceChannel = message.guild.member(message.author).voiceChannel;
 	if (voiceChannel !== null && !f.isUndefined(voiceChannel)){ // Sets initial player array to user in disc channel if available
-		const players = findPlayersStart(message, voiceChannel);
+		const players: Player[] = findPlayersStart(voiceChannel); // TODO: Add gameObject
 		db_sequelize.initializePlayers(players, 'trivia', (playerList) => {
 			startGame(message, questions, playerList); 
 		});
@@ -471,7 +471,7 @@ async function balanceCommand(message, options){
 			// Initialize Game object
 			const gameObject = await createGame(message.id, message);
 			if (!gameObject) console.error('GameObject Failed to initialize after creategame');
-			const players = findPlayersStart(message, voiceChannel, gameObject); // initalize players objects with playerInformation
+			const players: Player[] = findPlayersStart(voiceChannel, gameObject); // initalize players objects with playerInformation
 			const numPlayers = players.length;
 			// Initialize balancing, Result is printed and stage = 1 when done
 			let allModes = getGameModes();
@@ -503,21 +503,21 @@ async function balanceCommand(message, options){
 	}
 }
 
+function isNotBot(member: GuildMember) {
+	return !member.user.bot;
+}
+
 // Initialize players array from given voice channel
 // activeGame set to true => for phases where you should prevent others from overwriting (not trivia)
-function findPlayersStart(message: Message, channel: VoiceChannel, gameObject?: Game){
-	const players = [];
-	// const fetchedMembers = channel.fetch({ force: true });
-	const members: GuildMember[] = Array.from(channel.members.values());
+export function findPlayersStart(channel: VoiceChannel, gameObject?: Game): Player[] {
+	const players: Player[] = [];
+	const members: GuildMember[] = Array.from(channel.members.values()).filter(isNotBot);
 	members.forEach((member) => {
-		// Only real users TODO Avoid bots in channel
-		console.log('\t' + member.user.username + '(' + member.user.id + ')'); // Printar alla activa users i denna voice chat
-		const tempPlayer = createPlayer(member.user.username, member.user.id);
-		players.push(tempPlayer);
+		console.log('\t' + member.user.username + '(' + member.user.id + ')'); // Printar alla activa users (ej bots) i denna voice chat
+		players.push(createPlayer(member.user.username, member.user.id));
 	});
 	if (gameObject) {
 		gameObject.setActiveMembers(members); // TODO Game
-		//activeMembers = members;
 	} else {
 		console.error('ERROR Failed to setActive members sine gameObject is not initalized');
 	}
