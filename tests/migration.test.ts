@@ -2,6 +2,7 @@
 // Author: Petter Andersson
 
 import { assert } from 'chai';
+import { describe, it, before } from 'mocha';
 import { getConfig } from '../src/tools/load-environment';
 import { getAllUsers, initializeDBSequelize, getPersonalStats } from "../src/database/db_sequelize";
 import rewire from 'rewire';

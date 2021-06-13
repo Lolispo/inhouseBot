@@ -2,6 +2,7 @@
 // Author: Petter Andersson
 
 import { assert } from 'chai';
+import { describe, it } from 'mocha';
 const rewire = require('rewire');
 const balanceModule = rewire('../src/game/balance.ts');
 const recursiveFor = balanceModule.__get__('recursiveFor');

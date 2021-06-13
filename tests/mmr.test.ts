@@ -1,7 +1,7 @@
 'use strict';
 // Author: Petter Andersson
 
-import { assert } from 'chai';
+import { describe, it} from 'mocha';
 const rewire = require('rewire');
 
 const fileModule = rewire('../src/game/mmr.js');

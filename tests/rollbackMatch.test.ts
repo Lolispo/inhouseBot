@@ -2,6 +2,7 @@
 // Author: Petter Andersson
 
 import { assert } from 'chai';
+import { describe, it, before } from 'mocha';
 const { getConfig } = require('../src/tools/load-environment');
 const { getAllUsers, initializeDBSequelize, getPersonalStats } = require("../src/database/db_sequelize");
 const player_js = require('../src/game/player');

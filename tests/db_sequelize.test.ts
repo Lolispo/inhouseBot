@@ -2,6 +2,7 @@
 // Author: Petter Andersson
 
 import { assert } from 'chai';
+import { describe, it, before, after } from 'mocha';
 import rewire from 'rewire';
 import { initializeDBSequelize } from '../src/database/db_sequelize';
 import { createPlayer } from '../src/game/player';

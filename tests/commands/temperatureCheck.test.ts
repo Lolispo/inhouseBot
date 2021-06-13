@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+import { describe, it } from 'mocha';
 import * as rewire from 'rewire';
 
 const x = rewire('../../src/commands/game/temperatureCheck.ts');

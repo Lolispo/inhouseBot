@@ -2,6 +2,7 @@
 // Author: Petter Andersson
 
 import { assert } from 'chai';
+import { describe, it } from 'mocha';
 const rewire = require('rewire');
 const { initializeMySQL } = require('../src/database/mysql_pool');
 const { getConfig } = require('../src/tools/load-environment');

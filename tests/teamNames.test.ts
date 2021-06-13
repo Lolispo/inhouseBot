@@ -2,6 +2,7 @@
 // Author: Petter Andersson
 
 import { assert } from 'chai';
+import { describe, it } from 'mocha';
 import rewire from 'rewire';
 import { createPlayer } from '../src/game/player';
 import { getTeamName } from '../src/teamNames';

@@ -2,6 +2,7 @@
 // Author: Petter Andersson
 
 import { assert } from 'chai';
+import { describe, it, before } from 'mocha';
 const rewire = require('rewire');
 const { getConfig } = require('../src/tools/load-environment');
 const { gameServers, configureServer } = require('../src/csserver/cs_server');

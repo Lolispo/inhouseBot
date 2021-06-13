@@ -1,5 +1,6 @@
 import { createPlayer } from '../src/game/player';
 import { assert } from 'chai';
+import { describe, it } from 'mocha';
 import { checkMissingSteamIds } from '../src/steamid'; 
 
  describe('checkMissingSteamIds', () => {

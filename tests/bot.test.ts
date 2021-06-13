@@ -2,10 +2,11 @@
 // Author: Petter Andersson
 
 import { assert } from 'chai';
+import { describe, it } from 'mocha';
 const rewire = require('rewire');
 
 const fileModule = rewire('../src/bot.js');
-import { handleMessageExported } from '../src/bot';
+import { handleMessageExported, findPlayersStart } from '../src/bot';
 const { getTextChannel } = require('../src/client');
 
 // TODO

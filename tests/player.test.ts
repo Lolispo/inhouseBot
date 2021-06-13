@@ -2,6 +2,7 @@
 // Author: Petter Andersson
 
 import { assert, expect } from 'chai';
+import { describe, it } from 'mocha';
 import { sortRating } from '../src/game/player';
 const rewire = require('rewire');
 
