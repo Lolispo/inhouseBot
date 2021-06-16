@@ -157,7 +157,7 @@ export const getTeamName = (team: Player[], game) => {
   const sortedTeam = team.sort((el1, el2) => {
     return el1.getMMR(game) - el2.getMMR(game);
   });
-  console.log('@SortedTeam DEBUG:', team.map(player => player.mmrs[game]), sortedTeam.map(player => player.mmrs[game]));
+  // console.log('@SortedTeam DEBUG:', team.map(player => player.mmrs[game]), sortedTeam.map(player => player.mmrs[game]));
   if (sortedTeam.length === 1) {
     return `Team ${sortedTeam[0].userName}`;
   }

@@ -81,7 +81,7 @@ export class Game {
 
   // Returns true if userid is contained in activeMembers in this game
   containsPlayer = uid => {
-    console.log('@containsPlayer:', uid, this.activeMembers); // .map(mem => mem.id)
+    // console.log('@containsPlayer:', uid, this.activeMembers); // .map(mem => mem.id)
     return this.activeMembers.some(guildMember => guildMember.id === uid); //  || guildMember.userID === uid
   };
 

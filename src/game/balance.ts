@@ -207,6 +207,13 @@ function getBothTeams(teamComb, players) {
   return { t1: team1, t2: team2 };
 }
 
+export const testNormalize = (mmr) => {
+  const x = 1.5;
+  const y = 10;
+  const startMmr = 2500;
+  return (((mmr - startMmr)/(mmr-startMmr)^x) * y) + startMmr;
+}
+
 /**
  * Normalize MMR when summing to make it simpler
  * @param mmr 

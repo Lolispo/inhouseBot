@@ -15,18 +15,31 @@ export const unite = function (message: Message, activeMembers: GuildMember[]) {
   if (f.isUndefined(activeMembers)) {
     console.log('Error: activeMembers not initialized in @unite (Test case = ok)'); // Since it is assumed to always be initialized, throw error otherwise
   } else {
+    const guildChannels = message.guild.channels;
+    const { channel1, channel2 } = getInhouseChannels(guildChannels);
+    try {
+      channel1.members.forEach(member => {
+        member.voice.setChannel(channel);
+      })
+      channel2.members.forEach(member => {
+        member.voice.setChannel(channel);
+      })
+    } catch (e) {
+      console.error('@unite Issue uniting users');
+    }
+    /*
     activeMembers.forEach((member) => {
       // TODO: This crashes bot - unite when someone disconnects
       // As long as they are still in some voice chat
       if (!f.isUndefined(member.voice.channel)) {
         try {
-          console.log(member.voice);
           member.voice.setChannel(channel);
         } catch (e) {
           console.error('Error moving user by unite command:', member.user.username, e);
         }
       }
     });
+    */
   }
 };
 
@@ -35,6 +48,8 @@ export const uniteAll = (message: Message) => {
   // TODO: Find all users active in a voiceChannel, currently iterates over all members of guild
   // client.voiceConnections, doesnt seem to exist
   console.log('DEBUG uniteAll', channel.name);
+  return unite(message, []);
+  /*
   message.guild.members.cache.forEach((member) => {
     // As long as they are still in some voice chat
     if (!f.isUndefined(member.voice.channel) && member.voice.channelID !== message.guild.afkChannelID) { // As long as user is in a voiceChannel (Should be)
@@ -46,7 +61,21 @@ export const uniteAll = (message: Message) => {
       }
     }
   });
+  */
 };
+
+/**
+ * 
+ * @param guildChannels 
+ * @returns 
+ */
+const getInhouseChannels = (guildChannels) => {
+  // Find channels to swap to -> Change conditions for other desired channels or to randomly take 2
+  // Currently hardcoded 'Team1' and 'Team2'
+	const channel1: GuildChannel = guildChannels.cache.get(IKosaTuppChannels.Team1);
+	const channel2: GuildChannel = guildChannels.cache.get(IKosaTuppChannels.Team2);
+  return { channel1, channel2 };
+}
 
 export const split = (message: Message, balanceInfo, activeMembers: GuildMember[]) => {
   const guildChannels = message.guild.channels;
@@ -56,10 +85,8 @@ export const split = (message: Message, balanceInfo, activeMembers: GuildMember[
   const t1players = f.teamToGuildMember(balanceInfo.team1, activeMembers); // Might give empty on test case (activeMember == undefined)
   const t2players = f.teamToGuildMember(balanceInfo.team2, activeMembers);
 
-  // Find channels to swap to -> Change conditions for other desired channels or to randomly take 2
-  // Currently hardcoded 'Team1' and 'Team2'
-	const channel1: GuildChannel = guildChannels.cache.get(IKosaTuppChannels.Team1);
-	const channel2: GuildChannel = guildChannels.cache.get(IKosaTuppChannels.Team2);
+  const { channel1, channel2 } = getInhouseChannels(guildChannels);
+
   // const channel1 = guildChannels.cache.find(channel => channel[1].name === );
   // const channel2 = guildChannels.cache.find(channel => channel[1].name === );
   if (!f.isUndefined(channel1) && !f.isUndefined(channel2)) {
