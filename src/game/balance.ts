@@ -24,8 +24,12 @@ import { Player } from './player';
 // @param players should contain Array of initialized Players of people playing
 export const balanceTeams = (players: Player[], game, gameObject, skipServer = false) => {
   // Generate team combs, all possibilities of the 10 players
+  const tempPlayers = players.slice();
   const teamCombs = generateTeamCombs(players);
   const result = findBestTeamComb(players, teamCombs, game);
+
+  // Take original mmr values from sort function
+
 
   // Return string to message to clients
   let message;
@@ -74,7 +78,7 @@ export const balanceTeams = (players: Player[], game, gameObject, skipServer = f
         f.deleteDiscMessage(messageParam, 120000, 'missingSteamIds');
       });
     }
-    ConnectDotaAction.startMatch([gameObject.getBalanceInfo().team1, gameObject.getBalanceInfo().team2]);
+    ConnectDotaAction.startMatch(gameObject.gameID, [gameObject.getBalanceInfo().team1, gameObject.getBalanceInfo().team2]);
   }
 };
 
@@ -112,7 +116,7 @@ function recursiveFor(startIndex, indexes, len, forloopindex, teamCombs, uniqueC
 
 // Store combinations for the given player indexes (players) and stores it in teamcombs
 // uniqueCombs holds a number that represent equal combinations of players, as well as their reverseComb
-function combinationAdder(teamCombs, uniqueCombs, players) {
+const combinationAdder = (teamCombs, uniqueCombs, players): void => {
   const adder = (accumulator, currentValue) => accumulator + currentValue;
   const uniqueSum = players.map(uniVal).reduce(adder); // Sum over uniVal for each player index, creating unique sum
   if (!uniqueCombs.has(uniqueSum)) {
@@ -203,6 +207,23 @@ function getBothTeams(teamComb, players) {
   return { t1: team1, t2: team2 };
 }
 
+/**
+ * Normalize MMR when summing to make it simpler
+ * @param mmr 
+ */
+const normalizeMmr = (mmr) => {
+  const upperLimit = 2700;
+  const lowerLimit = 2300;
+  const startMmr = 2500;
+  if (mmr > upperLimit) {
+    mmr = ((mmr - startMmr) / 2) + startMmr;
+  } else if (mmr < lowerLimit) {
+    mmr = ((mmr - startMmr) / 2) + startMmr;
+  }
+  // TODO: Verify the teams BETA
+  return mmr;
+}
+
 // @param two teams of players
 // @return total mmr difference
 function mmrCompare(t1, t2, game) {
@@ -215,7 +236,9 @@ function mmrCompare(t1, t2, game) {
 function addTeamMMR(team, game) { // Function to be used in summing over players
   let sum = 0;
   for (let i = 0; i < team.length; i++) {
-    sum += team[i].getMMR(game);
+    const mmr = team[i].getMMR(game);
+    const normalizedMmr = normalizeMmr(mmr);
+    sum += normalizedMmr;
   }
   // console.log('DEBUG: @addTeamMMR, team = ', team, 'TeamMMR:', sum);
   return sum;

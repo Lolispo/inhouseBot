@@ -16,9 +16,11 @@ export const unite = function (message: Message, activeMembers: GuildMember[]) {
     console.log('Error: activeMembers not initialized in @unite (Test case = ok)'); // Since it is assumed to always be initialized, throw error otherwise
   } else {
     activeMembers.forEach((member) => {
+      // TODO: This crashes bot - unite when someone disconnects
       // As long as they are still in some voice chat
       if (!f.isUndefined(member.voice.channel)) {
         try {
+          console.log(member.voice);
           member.voice.setChannel(channel);
         } catch (e) {
           console.error('Error moving user by unite command:', member.user.username, e);

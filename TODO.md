@@ -7,7 +7,8 @@ Add integration tests for main functionalities
 
 # Error message
 
-Fix missing game https://gyazo.com/cc109ae42a1914b9fdd8ab9b0d1645fc
+Balance MMR (matter more on lower or higher mmr)
+    Beta
 
 MIGRATION TO 12 AND TYPESCRIPT:
     Fix birthday

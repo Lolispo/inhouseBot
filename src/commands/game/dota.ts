@@ -1,25 +1,23 @@
 
 import { Message } from "discord.js";
 import { BaseCommandClass } from "../../BaseCommand";
+import { DOTA_GC_TEAM, IDotaStartMatch } from "../../dota/dotatypes";
 import { initSocketConnection, startMatch } from "../../dota/socketClient";
 
 const commands = ['connectdota']
 
-enum DOTA_GC_TEAM {
-  GOOD_GUYS = 0,
-  BAD_GUYS = 1,
-  BROADCASTER = 2,
-  SPECTATOR = 3,
-  PLAYER_POOL = 4,
-  NOTEAM = 5
-}
-interface IDotaStartMatch {
-  [DOTA_GC_TEAM.GOOD_GUYS]: number[],
-  [DOTA_GC_TEAM.BAD_GUYS]: number[],
-}
 export class ConnectDotaAction extends BaseCommandClass {
   static instance: ConnectDotaAction = new ConnectDotaAction(commands);
   static socketConfiguration;
+  static gameId: string;
+
+  static setGameId = (value: string) => {
+    ConnectDotaAction.gameId = value;
+  }
+
+  static getGameId = () => {
+    return ConnectDotaAction.gameId;
+  }
 
   static getSocket = async () => {
     if (ConnectDotaAction.socketConfiguration) return ConnectDotaAction.socketConfiguration;
@@ -40,16 +38,19 @@ export class ConnectDotaAction extends BaseCommandClass {
     };
   }
 
-  static startMatch = async (teams) => {
+  static startMatch = async (gameId, teams) => {
     try {
       await ConnectDotaAction.getSocket();
       const convertedTeams = ConnectDotaAction.convertTeamsToDotaApiFormat(teams);
       console.log('Sending Teams ...');
+      ConnectDotaAction.setGameId(gameId);
       startMatch(convertedTeams);
     } catch (e) {
       console.error('Issue emitting startMatch Event ...', e);
     }
   }
+
+
 
   action = async (message: Message, options: string[]) => {
     try {

@@ -212,6 +212,12 @@ export const getGame = author => Game.activeGames.find(game => {
   return game.containsPlayer(author.id);
 });
 
+export const getGameByGameId = gameId => {
+  return Game.activeGames.find(game => {
+    return game.gameID === gameId;
+  });
+}
+
 export const hasActiveGames = () => Game.activeGames.length !== 0;
 
 // Finds the game with the mapMessage reacted to or null
