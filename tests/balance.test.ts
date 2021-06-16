@@ -8,7 +8,7 @@ const recursiveFor = balanceModule.__get__('recursiveFor');
 const unival = balanceModule.__get__('uniVal');
 const reverseUniqueSum = balanceModule.__get__('reverseUniqueSum');
 const roundValue = balanceModule.__get__('roundValue');
-
+import { testNormalize } from '../src/game/balance';
 
 describe('balance', function(){
     describe('unival', function(){
@@ -83,6 +83,13 @@ describe('balance', function(){
             const num = 5.29;
             const res = roundValue(num);
             assert.equal(res, '5.29');
+        });
+    })
+    describe('normalizevalue', () => {
+        it('normalize test', () => {
+            const x = testNormalize(2600);
+            console.log('@x', x);
+            assert.equal(x, '5.23');
         });
     })
 });
