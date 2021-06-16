@@ -17,7 +17,7 @@ export const getActiveGameModes = () => {
   const array = modesGame.slice();
   array.splice(modesGame.indexOf('test'), 1);
   array.splice(modesGame.indexOf('valorant'), 1);
-  return array;
+  return ['dota'];
 }
 
 export const getGameModes1v1 = function () {

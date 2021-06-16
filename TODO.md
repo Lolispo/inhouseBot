@@ -10,6 +10,8 @@ Add integration tests for main functionalities
 Balance MMR (matter more on lower or higher mmr)
     Beta
 
+Add players that play inhouse to @InhouseFighter
+
 MIGRATION TO 12 AND TYPESCRIPT:
     Fix birthday
     Check trivia

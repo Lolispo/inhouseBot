@@ -6,7 +6,7 @@ export const leaderBoardAction = async (message, options) => {
   const allModes = getAllModes();
   const game = getModeChosen(options, allModes, allModes[0]);
   let size = 5; 
-  if (options.length >= 2) {
+  if (options.length >= 2) { // TODO: Test 1
     let num;
     for (let i = 0; i < options.length; i++) {
       try {

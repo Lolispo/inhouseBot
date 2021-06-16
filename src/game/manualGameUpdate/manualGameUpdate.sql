@@ -71,17 +71,17 @@ OLD: INSERT INTO playerMatches (mid, uid, team, mmrChange) VALUES (91, "96306231
 INSERT INTO playerMatches (mid, uid, team, mmrChange) VALUES (108, "96293765001519104", 2, 25);
 */
 /* Update rating */ 
-INSERT INTO playerMatches (mid, uid, team, mmrChange) VALUES (157, "96293765001519104", 1, -25);
-INSERT INTO playerMatches (mid, uid, team, mmrChange) VALUES (157, "151085266885410818", 1, -25);
-INSERT INTO playerMatches (mid, uid, team, mmrChange) VALUES (157, "356184240859250698", 1, -25);
+INSERT INTO playerMatches (mid, uid, team, mmrChange) VALUES (157, "107205764044599296", 1, -25);
+INSERT INTO playerMatches (mid, uid, team, mmrChange) VALUES (157, "149244631010377728", 1, -25);
 INSERT INTO playerMatches (mid, uid, team, mmrChange) VALUES (157, "96306231043432448", 1, -25);
 INSERT INTO playerMatches (mid, uid, team, mmrChange) VALUES (157, "97026023387848704", 1, -25);
+INSERT INTO playerMatches (mid, uid, team, mmrChange) VALUES (157, "175001994321330177", 1, -25);
 
-INSERT INTO playerMatches (mid, uid, team, mmrChange) VALUES (157, "149244631010377728", 2, 25);
 INSERT INTO playerMatches (mid, uid, team, mmrChange) VALUES (157, "150517088295976960", 2, 25);
-INSERT INTO playerMatches (mid, uid, team, mmrChange) VALUES (157, "149835181149257728", 2, 25);
+INSERT INTO playerMatches (mid, uid, team, mmrChange) VALUES (157, "96293765001519104", 2, 25);
 INSERT INTO playerMatches (mid, uid, team, mmrChange) VALUES (157, "307653218031239168", 2, 25);
 INSERT INTO playerMatches (mid, uid, team, mmrChange) VALUES (157, "96941150824329216", 2, 25);
+INSERT INTO playerMatches (mid, uid, team, mmrChange) VALUES (157, "151085266885410818", 2, 25);
 
 
 UPDATE ratings SET mmr = ?, gamesPlayed = gamesPlayed + 1, wins = wins + 1 WHERE uid = ? AND gameName = ?; 
@@ -94,30 +94,30 @@ UPDATE ratings SET mmr = ?, gamesPlayed = gamesPlayed + 1 WHERE userName = ? AND
 
 
 +--------------------+-------------------+------+
-| 96293765001519104  | Petter            | 2874 |
-| 151085266885410818 | Lucky Luke        | 2375 |
-| 356184240859250698 | ErjanDaMan        | 2325 |
-| 96306231043432448  | Lacktjo           | 2526 |
-| 97026023387848704  | Cheesedad         | 2500 |
+| 107205764044599296 | Xavantex          | 2751 |
+| 149244631010377728 | Knas              | 2724 |
+| 96306231043432448  | Lacktjo           | 2476 |
+| 97026023387848704  | Cheesedad         | 2450 |
+| 175001994321330177 | Gaggg             | 2250 |
 +--------------------+-------------------+------+
-| 149244631010377728 | Knas              | 2674 |
 | 150517088295976960 | CATKNIFE          | 2626 |
-| 149835181149257728 | Pippin            | 2625 |
+| 96293765001519104  | Petter            | 2924 |
 | 307653218031239168 | livaitan          | 2476 |
-| 96941150824329216  | Von Dobblen       | 2425 |
+| 96941150824329216  | Von Dobblen       | 2475 |
+| 151085266885410818 | Lucky Luke        | 2400 |
 +--------------------+-------------------+------+
 
-UPDATE ratings SET mmr = "2874", gamesPlayed = gamesPlayed + 1 WHERE uid = "96293765001519104" AND gameName = "dota"; 
-UPDATE ratings SET mmr = "2375", gamesPlayed = gamesPlayed + 1 WHERE uid = "151085266885410818" AND gameName = "dota"; 
-UPDATE ratings SET mmr = "2325", gamesPlayed = gamesPlayed + 1 WHERE uid = "356184240859250698" AND gameName = "dota"; 
-UPDATE ratings SET mmr = "2526", gamesPlayed = gamesPlayed + 1 WHERE uid = "96306231043432448" AND gameName = "dota"; 
-UPDATE ratings SET mmr = "2500", gamesPlayed = gamesPlayed + 1 WHERE uid = "97026023387848704" AND gameName = "dota"; 
+UPDATE ratings SET mmr = "2751", gamesPlayed = gamesPlayed + 1 WHERE uid = "107205764044599296" AND gameName = "dota"; 
+UPDATE ratings SET mmr = "2724", gamesPlayed = gamesPlayed + 1 WHERE uid = "149244631010377728" AND gameName = "dota"; 
+UPDATE ratings SET mmr = "2476", gamesPlayed = gamesPlayed + 1 WHERE uid = "96306231043432448" AND gameName = "dota"; 
+UPDATE ratings SET mmr = "2450", gamesPlayed = gamesPlayed + 1 WHERE uid = "97026023387848704" AND gameName = "dota"; 
+UPDATE ratings SET mmr = "2250", gamesPlayed = gamesPlayed + 1 WHERE uid = "175001994321330177" AND gameName = "dota"; 
 
-UPDATE ratings SET mmr = "2674", gamesPlayed = gamesPlayed + 1, wins = wins + 1 WHERE uid = "149244631010377728" AND gameName = "dota"; 
 UPDATE ratings SET mmr = "2626", gamesPlayed = gamesPlayed + 1, wins = wins + 1 WHERE uid = "150517088295976960" AND gameName = "dota"; 
-UPDATE ratings SET mmr = "2625", gamesPlayed = gamesPlayed + 1, wins = wins + 1 WHERE uid = "149835181149257728" AND gameName = "dota"; 
+UPDATE ratings SET mmr = "2924", gamesPlayed = gamesPlayed + 1, wins = wins + 1 WHERE uid = "96293765001519104" AND gameName = "dota"; 
 UPDATE ratings SET mmr = "2476", gamesPlayed = gamesPlayed + 1, wins = wins + 1 WHERE uid = "307653218031239168" AND gameName = "dota"; 
-UPDATE ratings SET mmr = "2425", gamesPlayed = gamesPlayed + 1, wins = wins + 1 WHERE uid = "96941150824329216" AND gameName = "dota"; 
+UPDATE ratings SET mmr = "2475", gamesPlayed = gamesPlayed + 1, wins = wins + 1 WHERE uid = "96941150824329216" AND gameName = "dota"; 
+UPDATE ratings SET mmr = "2400", gamesPlayed = gamesPlayed + 1, wins = wins + 1 WHERE uid = "151085266885410818" AND gameName = "dota"; 
 /*
 OLD: UPDATE ratings SET mmr = "2650", gamesPlayed = gamesPlayed + 1 WHERE userName = "Petter" AND gameName = "dota"; 
 */

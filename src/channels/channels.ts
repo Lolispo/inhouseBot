@@ -10,3 +10,5 @@ const testId = '424309421519142913'; // robot-playground
 
 export const getTextTestChannel = () => testId;
 export const getTextGeneralChannel = () => generalId;
+
+export const getInhouseFighter = () => 'Inhouse Fighter';

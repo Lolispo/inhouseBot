@@ -24,7 +24,6 @@ import { Player } from './player';
 // @param players should contain Array of initialized Players of people playing
 export const balanceTeams = (players: Player[], game, gameObject, skipServer = false) => {
   // Generate team combs, all possibilities of the 10 players
-  const tempPlayers = players.slice();
   const teamCombs = generateTeamCombs(players);
   const result = findBestTeamComb(players, teamCombs, game);
 
@@ -211,7 +210,12 @@ export const testNormalize = (mmr) => {
   const x = 1.5;
   const y = 10;
   const startMmr = 2500;
-  return (((mmr - startMmr)/(mmr-startMmr)^x) * y) + startMmr;
+  if (mmr > startMmr) {
+    mmr = startMmr - (((mmr - startMmr)/(mmr - startMmr)^x) * y);
+  } else if (mmr < startMmr) {
+    mmr = startMmr - (((startMmr - mmr)/(startMmr - mmr)^x) * y);
+  }
+  return mmr;  
 }
 
 /**
@@ -248,6 +252,7 @@ function addTeamMMR(team, game) { // Function to be used in summing over players
     sum += normalizedMmr;
   }
   // console.log('DEBUG: @addTeamMMR, team = ', team, 'TeamMMR:', sum);
+  // TODO: return normalize values aswell?
   return sum;
 }
 
