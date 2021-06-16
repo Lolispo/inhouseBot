@@ -223,9 +223,9 @@ const normalizeMmr = (mmr) => {
   const lowerLimit = 2300;
   const startMmr = 2500;
   if (mmr > upperLimit) {
-    mmr = ((mmr - startMmr) / 2) + startMmr;
+    mmr = ((mmr - upperLimit) / 2) + upperLimit;
   } else if (mmr < lowerLimit) {
-    mmr = ((mmr - startMmr) / 2) + startMmr;
+    mmr = ((mmr - lowerLimit) / 2) + lowerLimit;
   }
   // TODO: Verify the teams BETA
   return mmr;
