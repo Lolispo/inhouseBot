@@ -19,6 +19,11 @@ export enum ITeamWon {
   Unknown = 'Unknown'
 }
 
+export interface IMatchFinished {
+  whoWon: ITeamWon,
+  matchid: string
+}
+
 // 0 => tie, 1 => team1, 2 => team2
 export const DotaBotResultTranslate = (result: ITeamWon): number => {
   if (result === ITeamWon.RADIANT) return 1;

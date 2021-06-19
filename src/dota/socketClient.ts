@@ -2,7 +2,7 @@
 import io from 'socket.io-client';
 import { cleanOnGameEnd, Game, getGame, getGameByGameId } from '../game/game';
 import { Socket } from "socket.io-client";
-import { DotaBotResultTranslate, ITeamWon } from './dotatypes';
+import { DotaBotResultTranslate, IMatchFinished, ITeamWon } from './dotatypes';
 import { ConnectDotaAction } from '../commands/game/dota';
 import { split, unite } from '../voiceMove';
 import { updateMMR } from '../game/mmr';
@@ -44,8 +44,9 @@ export const configureSocket = () => {
    * Radiant = Team1 Victory
    * Dire = Team2 Victory
    */
-  socket.on('MATCH_FINISHED', (matchId: string, gameResult: ITeamWon) => {
-    console.log('@MATCHFINISHED', matchId, gameResult);
+  socket.on('MATCH_FINISHED', (gameResult: IMatchFinished) => {
+    console.log('@MATCHFINISHED', gameResult);
+    const { whoWon } = gameResult;
     const gameId = ConnectDotaAction.getGameId();
     console.log('@MATCH FINISHED GAMEID:', gameId);
     const gameObject = getGameByGameId(ConnectDotaAction.getGameId());
@@ -53,7 +54,7 @@ export const configureSocket = () => {
       console.log('@MATCHFINISHED', !!gameObject);
       unite(gameObject.getChannelMessage(), [], gameObject.getActiveMembers());
       console.log('Fetching result ...');
-      const winner = DotaBotResultTranslate(gameResult);
+      const winner = DotaBotResultTranslate(whoWon);
       console.log('winner =', winner);
       if (winner) {
         console.log('@Updating MMR after bot results:', winner);
@@ -63,7 +64,7 @@ export const configureSocket = () => {
           cleanOnGameEnd(gameObject);
         });
       } else {
-        console.error('Unknown result returned by the Dota bot:', winner, gameResult, matchId);
+        console.error('Unknown result returned by the Dota bot:', winner, gameResult);
       }
     } catch (e) {
       console.error('Failed to get game results:', gameObject);
