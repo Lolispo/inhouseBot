@@ -1,9 +1,13 @@
 
 import io from 'socket.io-client';
-import { getGame, getGameByGameId } from '../game/game';
+import { cleanOnGameEnd, Game, getGame, getGameByGameId } from '../game/game';
 import { Socket } from "socket.io-client";
-import { ITeamWon } from './dotatypes';
+import { DotaBotResultTranslate, ITeamWon } from './dotatypes';
 import { ConnectDotaAction } from '../commands/game/dota';
+import { split, unite } from '../voiceMove';
+import { updateMMR } from '../game/mmr';
+import { removeBotMessageDefaultTime } from '../bot';
+import { deleteDiscMessage } from '../tools/f';
 
 const ipAdress = 'http://127.0.0.1:4545';
 let socket: Socket;
@@ -23,7 +27,7 @@ export const configureSocket = () => {
     const gameId = ConnectDotaAction.getGameId();
     console.log('@MATCH FINISHED GAMEID:', gameId);
     const gameObject = getGameByGameId(ConnectDotaAction.getGameId());
-    // TODO: SPLIT
+    split(gameObject.getChannelMessage(), [], gameObject.getBalanceInfo(), gameObject.getActiveMembers());
   });
 
   socket.on('MATCH', (whoWon: ITeamWon, matchId: string) => {
@@ -41,10 +45,18 @@ export const configureSocket = () => {
     const gameId = ConnectDotaAction.getGameId();
     console.log('@MATCH FINISHED GAMEID:', gameId);
     const gameObject = getGameByGameId(ConnectDotaAction.getGameId());
-
-    // TODO
-    // Unite team
-    // Update mmr
+    unite(gameObject.getChannelMessage(), [], gameObject.getActiveMembers());
+    const winner = DotaBotResultTranslate(gameResult);
+    if (winner) {
+      console.log('@Updating MMR after bot results:', winner);
+      updateMMR(winner, gameObject, (message) => {
+        console.log('DEBUG @callbackGameFinished - Calls on exit after delete on this message');
+        deleteDiscMessage(message, removeBotMessageDefaultTime * 4, 'gameFinished');
+        cleanOnGameEnd(gameObject);
+      });
+    } else {
+      console.error('Unknown result returned by the Dota bot:', winner, gameResult, matchId);
+    }
   });
 }
 

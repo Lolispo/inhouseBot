@@ -118,9 +118,8 @@ export const getSortedRatingTrivia = function (players) {
 };
 
 // Insertion sort on the players on a given rating
-export const sortRating = function (players, game) {
-	// TODO: Verify working as intended in Trivia flow
-	players = players.sort((a, b) => {
+export const sortRating = (players: Player[], game: string) => {
+	players = players.sort((a: Player, b: Player) => {
 		return a.getMMR(game) - b.getMMR(game);
 	});
   return players;

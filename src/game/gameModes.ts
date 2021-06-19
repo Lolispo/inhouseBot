@@ -8,7 +8,7 @@ export const modes1v1 = ['cs1v1', 'dota1v1'];
 export const modesRatings = ['trivia', 'trivia_temp']; // Trivia temp is used for ongoing games
 
 
-export const getGameModes = function () {
+export const getGameModes = () => {
   return modesGame;
 };
 

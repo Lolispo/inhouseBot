@@ -8,9 +8,9 @@ import { getTeamName } from '../teamNames';
 import { configureServer } from '../csserver/cs_server';
 import { getCsIp, getCsUrl } from '../csserver/server_info';
 import { checkMissingSteamIds, notifyPlayersMissingSteamId } from '../steamid';
-import { gameIsCS, gameIsDota, gameIsCSMain } from './game';
+import { gameIsCS, gameIsDota, gameIsCSMain, Game } from './game';
 import { ConnectDotaAction } from '../commands/game/dota';
-import { Player } from './player';
+import { Player, sortRating } from './player';
 
 /*
 	Handles getting the most balanced team matchup for the given 10 players
@@ -22,7 +22,7 @@ import { Player } from './player';
 */
 
 // @param players should contain Array of initialized Players of people playing
-export const balanceTeams = (players: Player[], game, gameObject, skipServer = false) => {
+export const balanceTeams = (players: Player[], game: string, gameObject: Game, skipServer = false) => {
   // Generate team combs, all possibilities of the 10 players
   const teamCombs = generateTeamCombs(players);
   const result = findBestTeamComb(players, teamCombs, game);
@@ -84,7 +84,7 @@ export const balanceTeams = (players: Player[], game, gameObject, skipServer = f
 // Generates the combinations for different team sizes
 // uniqueCombs makes sure that duplicates aren't saved
 // @return teamCombs is returned with all possible matchups
-function generateTeamCombs(players) {
+const generateTeamCombs = (players: Player[]): number[][] => {
   // console.log('DEBUG: @generateTeamCombs');
   const teamCombs = []; // Saves all team combination, as arrays of indexes of one team (other team is implied)
   const uniqueCombs = new Set(); // A number combination for each comb, to prevent saving duplicates.
@@ -105,7 +105,7 @@ function recursiveFor(startIndex, indexes, len, forloopindex, teamCombs, uniqueC
   for (let i = startIndex; i < len; i++) {
     const indexesArray = indexes.slice(); // Copy of array
     if (forloopindex < len / 2) {
-      indexesArray.push(i);		 	// Add current index to indexes
+      indexesArray.push(i);	// Add current index to indexes
       recursiveFor(i + 1, indexesArray, len, forloopindex + 1, teamCombs, uniqueCombs);
     } else {
       combinationAdder(teamCombs, uniqueCombs, indexesArray);
@@ -115,7 +115,7 @@ function recursiveFor(startIndex, indexes, len, forloopindex, teamCombs, uniqueC
 
 // Store combinations for the given player indexes (players) and stores it in teamcombs
 // uniqueCombs holds a number that represent equal combinations of players, as well as their reverseComb
-const combinationAdder = (teamCombs, uniqueCombs, players): void => {
+const combinationAdder = (teamCombs, uniqueCombs, players: number[]): void => {
   const adder = (accumulator, currentValue) => accumulator + currentValue;
   const uniqueSum = players.map(uniVal).reduce(adder); // Sum over uniVal for each player index, creating unique sum
   if (!uniqueCombs.has(uniqueSum)) {
@@ -146,7 +146,7 @@ function reverseUniqueSum(list, len) {
 }
 
 // Compare elo matchup between teamCombinations, lowest difference wins
-function findBestTeamComb(players, teamCombs, game) {
+const findBestTeamComb = (players: Player[], teamCombs: number[][], game: string) => {
   let bestPossibleTeamComb = Number.MAX_VALUE;
   let t1 = [];
   let t2 = [];
@@ -179,6 +179,10 @@ function findBestTeamComb(players, teamCombs, game) {
     t2 = multiple_t2[index];
   }
 
+  // Sort based on MMR Descending
+  t1 = sortRating(t1, game);
+  t2 = sortRating(t2, game);
+
   // Retrieved most fair teamComb
   return {
     team1: t1, team2: t2, difference: bestPossibleTeamComb, avgT1: avgTeam1, avgT2: avgTeam2, avgDiff: Math.abs(avgTeam1 - avgTeam2), game,
@@ -186,17 +190,11 @@ function findBestTeamComb(players, teamCombs, game) {
 }
 
 // Get the two teams of players from the teamComb
-function getBothTeams(teamComb, players) {
+const getBothTeams = (teamComb: number[], players: Player[]): { t1: Player[], t2: Player[] } => {
   const team1 = [];
   const team2 = [];
-  for (let i = 0; i < players.length; i++) {
-    let contains = false;
-    for (let j = 0; j < teamComb.length; j++) { // TODO Refactor/Redo. Do better check for this contain check, teamComb = list ([])
-      if (i === teamComb[j]) {
-        contains = true;
-      }
-    }
-    if (contains) {
+  for (let i = 0; i < players.length; i++) { // Iterates over players and adds to each team
+    if (teamComb.includes(i)) {
       team1.push(players[i]);
     } else {
       team2.push(players[i]);

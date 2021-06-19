@@ -18,3 +18,11 @@ export enum ITeamWon {
   DIRE = 'Dire',
   Unknown = 'Unknown'
 }
+
+// 0 => tie, 1 => team1, 2 => team2
+export const DotaBotResultTranslate = (result: ITeamWon): number => {
+  if (result === ITeamWon.RADIANT) return 1;
+  if (result === ITeamWon.DIRE) return 2;
+  if (result === ITeamWon.Unknown)
+    return undefined;
+}

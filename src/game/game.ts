@@ -42,6 +42,8 @@ export class Game {
   captain1;			// Captain for team 1
   captain2;			// Captain for team 2
   bannedMaps;
+  chosenMap;
+  scoreString;
 
   constructor(
     gameID: string, 
@@ -157,6 +159,12 @@ export class Game {
   setServerId = value => this.serverId = value;
 
   getServerId = () => this.serverId;
+
+  getChosenMap = () => this.chosenMap;
+  getScoreString = () => this.scoreString;
+
+  setChosenMap = (value) => this.chosenMap = value;
+  setScoreString = (value) => this.scoreString = value;
 }
 
 export const createGame = (gameID, channelMessage): Game => {
@@ -212,7 +220,7 @@ export const getGame = author => Game.activeGames.find(game => {
   return game.containsPlayer(author.id);
 });
 
-export const getGameByGameId = gameId => {
+export const getGameByGameId = (gameId: string): Game => {
   return Game.activeGames.find(game => {
     return game.gameID === gameId;
   });

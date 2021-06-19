@@ -1,4 +1,4 @@
-import { Player } from "./game/player";
+import { Player, sortRating } from "./game/player";
 
 const teamNameCombination = [
   "$player1$'s $plural-lul$",
@@ -154,9 +154,7 @@ const almostSpecial5Squad = (team, specialgroup) => {
 
 // Generate a team name based on the teamnames
 export const getTeamName = (team: Player[], game) => {
-  const sortedTeam = team.sort((el1, el2) => {
-    return el1.getMMR(game) - el2.getMMR(game);
-  });
+  const sortedTeam = sortRating(team, game);
   // console.log('@SortedTeam DEBUG:', team.map(player => player.mmrs[game]), sortedTeam.map(player => player.mmrs[game]));
   if (sortedTeam.length === 1) {
     return `Team ${sortedTeam[0].userName}`;

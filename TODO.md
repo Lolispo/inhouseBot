@@ -1,11 +1,15 @@
 # TODO:
 ## Tests
 
+Fix tests for typescript
+
 Add unit tests for all files
 
 Add integration tests for main functionalities
 
 # Error message
+
+Unite only getting 10 users
 
 Balance MMR (matter more on lower or higher mmr)
     Beta
@@ -21,39 +25,17 @@ Fix Ping command - doesn't seem available easily anymore - either disable entire
 Show streak in leaderboard output
 
 Inhouse Temperature check
-    Emoji for showing that you are unavailable today
-        Feature request på "temp": En emoji för att markera att man sett men inte kan :slight_smile:
     Fix shuffle
     Fix time options as input
     Fix event when hitting 10 players
     DM in discord
     SMS integration
+    Group of users that you can tag
 
 Load game from file
 
 Game balance not sorted after mmr when starting game
-
-User 96293765001519104 not currently in a game -> Do username - Verify
-
-DEBUG teamToGuildMember ERROR different size
-DEBUG teamToGuildMember ERROR different size
-DEBUG Multiple Removal: matchupMessage.id=848627461029101608
-DEBUG teamToGuildMember ERROR different size
-DEBUG teamToGuildMember ERROR different size
-DEBUG Multiple Removal: matchupMessage.id=848642543792291841
-DEBUG teamToGuildMember ERROR different size
-DEBUG teamToGuildMember ERROR different size
-
-/home/ubuntu/Projects/inhouseBot/node_modules/discord.js/src/rest/RequestHandler.js:154
-      throw new DiscordAPIError(request.path, data, request.method, res.status);
-            ^
-DiscordAPIError: Target user is not connected to voice.
-    at RequestHandler.execute (/home/ubuntu/Projects/inhouseBot/node_modules/discord.js/src/rest/RequestHandler.js:154:13)
-    at runMicrotasks (<anonymous>)
-    at processTicksAndRejections (node:internal/process/task_queues:96:5)
-    at RequestHandler.push (/home/ubuntu/Projects/inhouseBot/node_modules/discord.js/src/rest/RequestHandler.js:39:14)
-    at GuildMember.edit (/home/ubuntu/Projects/inhouseBot/node_modules/discord.js/src/structures/GuildMember.js:312:5)
-
+    Verify
 
 Move voting to gameobject
 

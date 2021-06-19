@@ -118,7 +118,7 @@ const getPredictionTeam1 = (balanceInfo) => {
 };
 
 export const configureServer = async (gameObject) => {
-  console.log('@configureServer: Map =', gameObject.chosenMap); // , gameObject.getBalanceInfo());
+  console.log('@configureServer: Map =', gameObject.getChosenMap()); // , gameObject.getBalanceInfo());
   const gameServersList = await gameServers();
   const serverId = gameServersList[0].id;
   // Update gameObject with serverId
@@ -128,7 +128,7 @@ export const configureServer = async (gameObject) => {
   assert(gameObject.getServerId(), serverId);
   const team1Players = generateTeamPlayersBody(gameObject.getBalanceInfo().team1);
   const team2Players = generateTeamPlayersBody(gameObject.getBalanceInfo().team2);
-  const mapVetoChosenMap = gameObject.chosenMap;
+  const mapVetoChosenMap = gameObject.getChosenMap();
   const { chosenMap, skipVeto } = getChosenMap(mapVetoChosenMap);
   const predictionTeam1 = getPredictionTeam1(gameObject.getBalanceInfo());
   const replacements = {

@@ -307,7 +307,7 @@ const handleMessage = async (message: Message) => {
 	// Unites all channels, INDEPENDENT of game ongoing
 	// Optional additional argument to choose name of voiceChannel to uniteIn, otherwise same as balance was called from
 	else if (startsWith(message, uniteAllCommands)){
-		voiceMove_js.uniteAll(message);
+		voiceMove_js.uniteAll(message, options);
 		f.deleteDiscMessage(message, 15000, 'ua');
 	} 
 	else if (startsWith(message, lastGameCommands)){
@@ -385,13 +385,13 @@ const handleMessage = async (message: Message) => {
 	
 			// Splits the players playing into the Voice Channels 'Team1' and 'Team2'
 			else if (splitCommands.includes(message.content)){
-				voiceMove_js.split(message, gameObject.getBalanceInfo(), gameObject.getActiveMembers());
+				voiceMove_js.split(message, options, gameObject.getBalanceInfo(), gameObject.getActiveMembers());
 				f.deleteDiscMessage(message, 15000, 'split');
 			}
 			// Take every user in 'Team1' and 'Team2' and move them to the same voice chat
 			// Optional additional argument to choose name of voiceChannel to uniteIn, otherwise same as balance was called from
 			else if (startsWith(message, uniteCommands)){ 
-				voiceMove_js.unite(message, gameObject.getActiveMembers());
+				voiceMove_js.unite(message, options, gameObject.getActiveMembers());
 				f.deleteDiscMessage(message, 15000, 'u');
 			}
 	

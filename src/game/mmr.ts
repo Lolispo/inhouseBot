@@ -3,6 +3,7 @@
 
 import { printMessage } from '../bot';
 import { createMatch, updateDbMMR } from '../database/db_sequelize';
+import { Game } from './game';
 
 /*
 	Handles MMR calculations and updates
@@ -11,7 +12,7 @@ import { createMatch, updateDbMMR } from '../database/db_sequelize';
 */
 
 // Update mmr for all players and returns result to clients
-export const updateMMR = (winner, gameObject, callbackUpdate, stats?) => { // winner = 0 -> draw, 1 -> team 1, 2 -> team 2
+export const updateMMR = (winner: number, gameObject: Game, callbackUpdate: Function, stats?) => { // winner = 0 -> draw, 1 -> team 1, 2 -> team 2
   const balanceInfo = gameObject.getBalanceInfo();
   const mmrChange = eloUpdate(balanceInfo.avgT1, balanceInfo.avgT2, winner);
   updateTeamMMR(balanceInfo.team1, mmrChange.t1, balanceInfo.game, winner === 1);
@@ -20,7 +21,7 @@ export const updateMMR = (winner, gameObject, callbackUpdate, stats?) => { // wi
   createMatch(winner, balanceInfo, {
     t1: mmrChange.t1,
     t2: mmrChange.t2,
-  }, gameObject.chosenMap, gameObject.scoreString, stats);
+  }, gameObject.getChosenMap(), gameObject.getScoreString(), stats);
   buildMMRUpdateString(winner, callbackResult, balanceInfo, callbackUpdate, gameObject);
 };
 
