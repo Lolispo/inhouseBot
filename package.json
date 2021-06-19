@@ -2,7 +2,7 @@
   "name": "inhouse-disc-bot",
   "version": "1.0.0",
   "description": "inhouse matchmaking",
-  "main": "migration.js",
+  "main": "index.js",
   "scripts": {
     "build": "tsc",
     "test": "check-node-version --node \">= 14\" && mocha -r ts-node/register tests/*.test.ts --exit",
