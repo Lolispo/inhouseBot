@@ -10,6 +10,7 @@ export class ConnectDotaAction extends BaseCommandClass {
   static instance: ConnectDotaAction = new ConnectDotaAction(commands);
   static socketConfiguration;
   static gameId: string;
+  static matchIdResults: { [key: string]: boolean }; // Match id results;
 
   static setGameId = (value: string) => {
     ConnectDotaAction.gameId = value;

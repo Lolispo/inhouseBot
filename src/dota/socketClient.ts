@@ -46,25 +46,32 @@ export const configureSocket = () => {
    */
   socket.on('MATCH_FINISHED', (gameResult: IMatchFinished) => {
     console.log('@MATCHFINISHED', gameResult);
-    const { whoWon } = gameResult;
+    const { whoWon, matchid } = gameResult;
     const gameId = ConnectDotaAction.getGameId();
     console.log('@MATCH FINISHED GAMEID:', gameId);
     const gameObject = getGameByGameId(ConnectDotaAction.getGameId());
     try {
-      console.log('@MATCHFINISHED', !!gameObject);
-      unite(gameObject.getChannelMessage(), [], gameObject.getActiveMembers());
-      console.log('Fetching result ...');
-      const winner = DotaBotResultTranslate(whoWon);
-      console.log('winner =', winner);
-      if (winner) {
-        console.log('@Updating MMR after bot results:', winner);
-        updateMMR(winner, gameObject, (message) => {
-          console.log('DEBUG @callbackGameFinished - Calls on exit after delete on this message');
-          deleteDiscMessage(message, removeBotMessageDefaultTime * 4, 'gameFinished');
-          cleanOnGameEnd(gameObject);
-        });
+      if (!ConnectDotaAction.matchIdResults[matchid]) {
+        console.log('@MATCHFINISHED', !!gameObject);
+        ConnectDotaAction.matchIdResults[matchid] = true
+        unite(gameObject.getChannelMessage(), [], gameObject.getActiveMembers());
+        console.log('Fetching result ...');
+        const winner = DotaBotResultTranslate(whoWon);
+        console.log('winner =', winner);
+        if (winner) {
+          console.log('@Updating MMR after bot results:', winner);
+          updateMMR(winner, gameObject, (message) => {
+            console.log('DEBUG @callbackGameFinished - Calls on exit after delete on this message');
+            deleteDiscMessage(message, removeBotMessageDefaultTime * 4, 'gameFinished');
+            cleanOnGameEnd(gameObject);
+          });
+          // Reset active game
+          ConnectDotaAction.gameId = undefined;
+        } else {
+          console.error('Unknown result returned by the Dota bot:', winner, gameResult);
+        }
       } else {
-        console.error('Unknown result returned by the Dota bot:', winner, gameResult);
+        console.log('Game result already received:', gameResult);
       }
     } catch (e) {
       console.error('Failed to get game results:', gameObject);

@@ -24,10 +24,42 @@ SELECT * FROM matches ORDER BY mid DESC LIMIT 1;
 157
 /* Players */
 /*
-5 Spawn Camping Lads     (Avg: 2555.20 mmr):
-Gaggg (2275), Cheesedad (2475), Lacktjo (2501), Knas (2749), Xavantex (2776)
-Lucky Luke + 4 Pepegas     (Avg: 2555.20 mmr):
-Lucky Luke (2375), David_ (2450), livaitan (2451), CATKNIFE (2601), Petter (2899)
+The Edgy Spicy Meatballs won! Played game: dota. Updated mmr is: 
+4 Idiots and confused Samev: 
+    Xavantex (2651 mmr, 2676 -25)
+    CATKNIFE (2601 mmr, 2626 -25)
+    Siimon (2526 mmr, 2551 -25)
+    David_ (2450 mmr, 2475 -25)
+    Samev (2324 mmr, 2349 -25)
+The Edgy Spicy Meatballs: 
+    Petter (2924 mmr, 2899 +25)
+    Knas (2874 mmr, 2849 +25)
+    livaitan (2601 mmr, 2576 +25)
+    Robin (2250 mmr, 2225 +25)
+    Jimi (2250 mmr, 2225 +25)
+The Edgy Spicy Meatballs won! Played game: dota. Updated mmr is: 
+
+REVERT THIS!!!!
+4 Idiots and confused Samev: 
+    Xavantex (2626 mmr, 2651 -25)
+    CATKNIFE (2576 mmr, 2601 -25)
+    Siimon (2501 mmr, 2526 -25)
+    David_ (2425 mmr, 2450 -25)
+    Samev (2299 mmr, 2324 -25)
+The Edgy Spicy Meatballs: 
+    Petter (2949 mmr, 2924 +25)
+    Knas (2899 mmr, 2874 +25)
+    livaitan (2626 mmr, 2601 +25)
+    Robin (2275 mmr, 2250 +25)
+    Jimi (2275 mmr, 2250 +25)
+
+    @MATCHFINISHED { whoWon: 'Dire', matchid: 6049611222 }
+@MATCH FINISHED GAMEID: 855888058045825095
+
+@MATCHFINISHED { whoWon: 'Dire', matchid: 6049611222 }
+@MATCH FINISHED GAMEID: 855888058045825095
+
+
 */
 SELECT users.uid, users.userName, ratings.mmr FROM users LEFT JOIN ratings ON users.uid = ratings.uid WHERE gameName = "dota" ORDER BY mmr DESC;
 
