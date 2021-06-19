@@ -430,9 +430,9 @@ async function cleanupExit(){
 // Start trivia game, sent from trivia when questions are fetched. 
 export const triviaStart = (questions, message, author) => {
 	// Start game in text channel with these questions
-	const voiceChannel = message.guild.member(message.author).voiceChannel;
+	const voiceChannel: VoiceChannel = message.guild.member(message.author).voiceChannel;
 	if (voiceChannel !== null && !f.isUndefined(voiceChannel)){ // Sets initial player array to user in disc channel if available
-		const players = findPlayersStart(message, voiceChannel);
+		const players = findPlayersStart(voiceChannel);
 		db_sequelize.initializePlayers(players, 'trivia', (playerList: Player[]) => {
 			startGame(message, questions, playerList); 
 		});
@@ -456,7 +456,7 @@ async function balanceCommand(message, options){
 			// Initialize Game object
 			const gameObject = await createGame(message.id, message);
 			if (!gameObject) console.error('GameObject Failed to initialize after creategame');
-			const players = findPlayersStart(message, voiceChannel, gameObject); // initalize players objects with playerInformation
+			const players: Player[] = findPlayersStart(voiceChannel, gameObject); // initalize players objects with playerInformation
 			const numPlayers = players.length;
 			// Initialize balancing, Result is printed and stage = 1 when done
 			let allModes = getGameModes();
@@ -488,21 +488,21 @@ async function balanceCommand(message, options){
 	}
 }
 
+const isNotBot = (member: GuildMember): boolean => {
+	return !member.user.bot;
+}
+
 // Initialize players array from given voice channel
 // activeGame set to true => for phases where you should prevent others from overwriting (not trivia)
-const findPlayersStart = (message: Message, channel: VoiceChannel, gameObject?: Game): Player[] => {
-	const players = [];
-	// const fetchedMembers = channel.fetch({ force: true });
-	const members: GuildMember[] = Array.from(channel.members.values());
+const findPlayersStart = (channel: VoiceChannel, gameObject?: Game): Player[] => {
+	const players: Player[] = [];
+	const members: GuildMember[] = Array.from(channel.members.values()).filter(isNotBot);
 	members.forEach((member) => {
-		// Only real users TODO Avoid bots in channel
-		console.log('\t' + member.user.username + '(' + member.user.id + ')'); // Printar alla activa users i denna voice chat
-		const tempPlayer = createPlayer(member.user.username, member.user.id);
-		players.push(tempPlayer);
+		console.log('\t' + member.user.username + '(' + member.user.id + ')'); // Printar alla activa users (ej bots) i denna voice chat
+		players.push(createPlayer(member.user.username, member.user.id));
 	});
 	if (gameObject) {
 		gameObject.setActiveMembers(members); // TODO Game
-		//activeMembers = members;
 	} else {
 		console.error('ERROR Failed to setActive members sine gameObject is not initalized');
 	}
