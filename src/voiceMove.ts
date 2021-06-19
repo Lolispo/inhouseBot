@@ -10,18 +10,10 @@ import * as f from './tools/f';
 let splitChannel: VoiceChannel;		// Channel we split in latest
 
 const moveUsers = (fromChannels: GuildChannel[], toChannel) => {
-  let fromMembers = [];
-  fromChannels.forEach(fromChannel => {
-    fromMembers.concat(fromChannel.members.array());
-  })
-  console.log('@moveUsers: FromMembers:', fromMembers.length);
-  if (fromMembers.length === 0) {
+  try {
     fromChannels.forEach(fromChannel => {
       setMemberVoice(fromChannel.members, toChannel);
     });
-  }
-  try {
-    setMemberVoice(fromMembers, toChannel);
   } catch (e) {
     console.error('@unite Issue uniting users');
   }
@@ -102,6 +94,7 @@ const getVoiceChannel = (message: Message, options: string[]): GuildChannel => {
   }
 
   // Otherwise use same voiceChannel as we split in if its empty
+  console.log('@DEBUG splitChannel:', splitChannel.members, splitChannel.members.array(), splitChannel.members.array().length);
   if (!channel1 && splitChannel && splitChannel.members.array().length === 0) { 
     return splitChannel;
   }

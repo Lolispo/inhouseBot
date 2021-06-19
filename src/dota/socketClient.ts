@@ -50,8 +50,11 @@ export const configureSocket = () => {
     console.log('@MATCH FINISHED GAMEID:', gameId);
     const gameObject = getGameByGameId(ConnectDotaAction.getGameId());
     try {
+      console.log('@MATCHFINISHED', !!gameObject);
       unite(gameObject.getChannelMessage(), [], gameObject.getActiveMembers());
+      console.log('Fetching result ...');
       const winner = DotaBotResultTranslate(gameResult);
+      console.log('winner =', winner);
       if (winner) {
         console.log('@Updating MMR after bot results:', winner);
         updateMMR(winner, gameObject, (message) => {
@@ -91,6 +94,6 @@ export const cancelMatch = () => {
 export const initSocketConnection = () => {
   console.log('@Socket Initializing Connection ...');
   socket = io(ipAdress);
-  console.log('Socket established!', socket.id);
+  console.log('Socket established!');
   return configureSocket;
 }
