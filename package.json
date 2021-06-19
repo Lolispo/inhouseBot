@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
-    "test": "check-node-version --node \">= 14\" && mocha -r ts-node/register tests/**/*.test.ts --exit",
+    "test": "check-node-version --node \">= 14\" && mocha -r ts-node/register 'tests/**/*.test.ts' --exit",
+    "test-no-db": "check-node-version --node \">= 14\" && TEST_ENV=testwithoutdb mocha -r ts-node/register 'tests/**/*.test.ts' --exit",
     "start": "check-node-version --node \">= 14\" && ts-node src/index.ts",
     "start-remote": "check-node-version --node \">= 14\" && ts-node src/index.ts >> OUTPUT.log 2>>ERROR.log",
     "mocha": "mocha",
