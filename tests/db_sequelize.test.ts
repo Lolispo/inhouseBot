@@ -2,6 +2,7 @@
 // Author: Petter Andersson
 
 import { assert } from 'chai';
+import { describe } from 'mocha';
 import { addMissingUsers, initializeDBSequelize } from '../src/database/db_sequelize';
 import { createPlayer } from '../src/game/player';
 import { getConfig } from '../src/tools/load-environment';
@@ -15,8 +16,9 @@ const test_username = 'Test';
 const test_id = '1';
 const test_game = 'cs1v1';
 const test_mmr = 2500;
+const contextualDescribe = (process.env.TEST_ENV == "testwithoutdb" ? describe.skip : describe);
 
-describe('db_sequelize', () => {
+contextualDescribe('db_sequelize', () => {
   let databaseConnection;
   // TODO: Move player dependent tests into one describe
   before(async () => {
