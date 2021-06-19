@@ -94,7 +94,7 @@ const getVoiceChannel = (message: Message, options: string[]): GuildChannel => {
   }
 
   // Otherwise use same voiceChannel as we split in if its empty
-  console.log('@DEBUG splitChannel:', splitChannel.members, splitChannel.members.array(), splitChannel.members.array().length);
+  console.log('@DEBUG splitChannel:', splitChannel.members.array().length);
   if (!channel1 && splitChannel && splitChannel.members.array().length === 0) { 
     return splitChannel;
   }
