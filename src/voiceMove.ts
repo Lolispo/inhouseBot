@@ -15,6 +15,11 @@ const moveUsers = (fromChannels: GuildChannel[], toChannel) => {
     fromMembers.concat(fromChannel.members.array());
   })
   console.log('@moveUsers: FromMembers:', fromMembers.length);
+  if (fromMembers.length === 0) {
+    fromChannels.forEach(fromChannel => {
+      setMemberVoice(fromChannel.members, toChannel);
+    });
+  }
   try {
     setMemberVoice(fromMembers, toChannel);
   } catch (e) {
