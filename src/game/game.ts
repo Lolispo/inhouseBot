@@ -8,9 +8,23 @@
 import * as f from '../tools/f';
 import { cancelGameCSServer } from '../csserver/cs_console';
 import { GuildMember, Message } from 'discord.js';
+import { Player } from './player';
+import { gameIsCS } from './gameModes';
 
 interface IOptionalParameters extends Omit<Partial<Game>, 'gameID' | 'channelMessage'> {
   // Type used for constructor
+}
+
+export interface IBalanceInfo {
+  team1: Player[],
+  team2: Player[], 
+  difference: number, 
+  avgT1: number, 
+  avgT2: number, 
+  avgDiff: number, 
+  game: string,
+  team1Name?: string,
+  team2Name?: string,  
 }
 export class Game {
   static activeGames = [];
@@ -24,7 +38,7 @@ export class Game {
   gameID: string;
   channelMessage: Message;
   activeMembers: GuildMember[];
-  balanceInfo;
+  balanceInfo: IBalanceInfo;
   serverId: string;
   matchId: string;
   csConsoleIntervalPassive;
@@ -42,6 +56,8 @@ export class Game {
   captain1;			// Captain for team 1
   captain2;			// Captain for team 2
   bannedMaps;
+  chosenMap;
+  scoreString;
 
   constructor(
     gameID: string, 
@@ -81,7 +97,7 @@ export class Game {
 
   // Returns true if userid is contained in activeMembers in this game
   containsPlayer = uid => {
-    console.log('@containsPlayer:', uid, this.activeMembers); // .map(mem => mem.id)
+    // console.log('@containsPlayer:', uid, this.activeMembers); // .map(mem => mem.id)
     return this.activeMembers.some(guildMember => guildMember.id === uid); //  || guildMember.userID === uid
   };
 
@@ -150,13 +166,19 @@ export class Game {
 
   setActiveMembers = members => this.activeMembers = members;
 
-  setBalanceInfo = value => this.balanceInfo = value;
+  setBalanceInfo = (value: IBalanceInfo) => this.balanceInfo = value;
 
   setMatchupMessage = message => this.matchupMessage = message;
 
   setServerId = value => this.serverId = value;
 
   getServerId = () => this.serverId;
+
+  getChosenMap = () => this.chosenMap;
+  getScoreString = () => this.scoreString;
+
+  setChosenMap = (value) => this.chosenMap = value;
+  setScoreString = (value) => this.scoreString = value;
 }
 
 export const createGame = (gameID, channelMessage): Game => {
@@ -211,6 +233,12 @@ export const saveGame = (gameObject: Game) => {
 export const getGame = author => Game.activeGames.find(game => {
   return game.containsPlayer(author.id);
 });
+
+export const getGameByGameId = (gameId: string): Game => {
+  return Game.activeGames.find(game => {
+    return game.gameID === gameId;
+  });
+}
 
 export const hasActiveGames = () => Game.activeGames.length !== 0;
 
@@ -291,7 +319,3 @@ export const cleanOnGameEnd = (gameObject) => {
   // Remove game from ongoing games
   deleteGame(gameObject);
 };
-
-export const gameIsCS = gameName => gameName === 'cs' || gameName === 'cs1v1';
-export const gameIsCSMain = gameName => gameName === 'cs';
-export const gameIsDota = gameName => gameName === 'dota' || gameName === 'dota1v1';

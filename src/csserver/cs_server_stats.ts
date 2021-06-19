@@ -257,7 +257,7 @@ const buildMapStatsMessage = (mapTeam) => {
 };
 
 // Builds the stats string to send in discord
-const buildStatsMessage = (stats) => {
+export const buildStatsMessage = (stats) => {
   let s = '';
   for (let i = 0; i < 1; i++) {
     // Check only give results for one game
@@ -282,7 +282,7 @@ const buildStatsMessage = (stats) => {
 };
 
 // Send stats message to discord in the correct channel
-const sendStatsDiscord = (gameObject, statsMessage) => {
+export const sendStatsDiscord = (gameObject, statsMessage) => {
   // Sends in channel
   printMessage(statsMessage, gameObject.getChannelMessage(), (message) => {
     f.deleteDiscMessage(message, 3600000, `statsresultsgame${Math.floor(Math.random() * 10)}`);
@@ -310,11 +310,11 @@ const samePlayersInTeams = (gameObject, stats) => {
 
 const remapTeam = (players, mapTeam) => {
   const obj = {};
-  console.log('@remapTeam Debug players:', players);
+  // console.log('@remapTeam Debug players:', players);
   for (const key in mapTeam) {
     if (mapTeam.hasOwnProperty(key)) {
       const player = mapTeam[key];
-      console.log('Debug player', player);
+      // console.log('Debug player', player);
       if (key === 'score' || key === 'v1' || key === 'v2') continue;
       const { convertedId, altConvertedId } = convertIdFrom64(key);
       const playerDisc = players.find(player => player.getSteamId() === convertedId || player.getSteamId() === altConvertedId);
@@ -370,7 +370,7 @@ const remapTeam = (players, mapTeam) => {
 };
 
 // Update mapping from Steam64ID to DiscordId
-const playerMapSteamIdStats = (gameObject, stats) => {
+export const playerMapSteamIdStats = (gameObject, stats) => {
   let obj;
   for (let i = 0; i < 1; i++) { // Should only be 1 map for now
     const tempMap = {
@@ -397,12 +397,12 @@ const setResults = (gameObject, stats) => {
   const winner = winnerTeam === 'team1' ? 1 : (winnerTeam === 'team2' ? 2 : '');
   // console.log('@setResults DEBUG:', winnerTeam, '"' + winner + '"');
   const playerMappedStats = playerMapSteamIdStats(gameObject, stats);
-  if (!gameObject.chosenMap) {
-    gameObject.chosenMap = stats.map0.mapname;
+  if (!gameObject.getChosenMap()) {
+    gameObject.setChosenMap(stats.map0.mapname);
   }
-  gameObject.scoreString = `${stats.map0.team1.score}-${stats.map0.team2.score}`;
+  gameObject.setScoreString(`${stats.map0.team1.score}-${stats.map0.team2.score}`);
   if (winner !== '' && samePlayersInTeams(gameObject, stats)) {
-    console.log('@getGameStatsDiscord Winning team:', winnerTeam, gameObject.scoreString, gameObject.chosenMap);
+    console.log('@getGameStatsDiscord Winning team:', winnerTeam, gameObject.getScoreString(), gameObject.getChosenMap());
     updateMMR(winner, gameObject, (message) => {
       console.log('DEBUG @callbackGameFinished - Calls on exit after delete on this message');
       f.deleteDiscMessage(message, f.getDefaultRemoveTime() * 4, 'gameFinished');

@@ -6,7 +6,7 @@
 import * as f from './tools/f';							// Function class used by many classes, ex. isUndefined, messagesDeletion
 import * as balance from './game/balance';					// Balances and starts game between 2 teams
 import * as mmr_js from './game/mmr';						// Handles balanced mmr update
-import { createPlayer } from './game/player';					// Handles player storage in session, the database in action
+import { createPlayer, Player } from './game/player';					// Handles player storage in session, the database in action
 import * as map_js from './mapVeto';					// MapVeto system
 import * as voiceMove_js from './voiceMove'; 			// Handles moving of users between voiceChannels
 import * as db_sequelize from './database/db_sequelize';			// Handles communication with db
@@ -73,23 +73,8 @@ const getMatchResultCommand = [prefix + 'getresult', prefix + 'getmatchresult'];
 const playerStatusCommands = [prefix + 'playersstatus'];
 const temperatureCheckCommands = [prefix + 'temperature', prefix + 'daily', prefix + 'temperaturecheck', prefix + 'temp']
 
-
-// Initialize Client
-getClient('bot', async () => initializeDBSequelize(getConfig().db), (client) => {
-	// Listener on message
-	client.on('message', (message: Message) => discordEventMessage(message));
-
-	// Listener on reactions added to messages
-	client.on('messageReactionAdd', (messageReaction: MessageReaction, user: User) => discordEventReactionAdd(messageReaction, user));
-
-	// Listener on reactions removed from messages
-	client.on('messageReactionRemove', (messageReaction: MessageReaction, user: User) => discordEventReactionRemove(messageReaction, user));
-
-	client.on('error', console.error);
-});
-
 // Handle Discord Event Message
-const discordEventMessage = (message: Message) => {
+export const discordEventMessage = (message: Message) => {
 	if (!message.author.bot && message.author.username !== bot_name) { // Message sent from user
 		const isTextChannel = (message.channel as TextChannel).guild;
 		if (isTextChannel) {
@@ -141,7 +126,7 @@ const discordEventMessage = (message: Message) => {
 }
 
 // Handle Discord Event Reaction Add
-const discordEventReactionAdd = (messageReaction: MessageReaction, user: User) => {
+export const discordEventReactionAdd = (messageReaction: MessageReaction, user: User) => {
 	if (!user.bot && hasActiveGames()){ // Bot adding reacts doesn't require our care
 		// Reacted on voteMessage
 		//console.log('DEBUG: @messageReactionAdd by', user.username, 'on', messageReaction.message.author.username + ': ' + messageReaction.message.content, messageReaction.count);
@@ -178,7 +163,7 @@ const discordEventReactionAdd = (messageReaction: MessageReaction, user: User) =
 }
 
 // Handle Discord Event Reaction Remove
-const discordEventReactionRemove = (messageReaction, user) => {
+export const discordEventReactionRemove = (messageReaction, user) => {
 	if (!user.bot){
 		if (hasActiveGames()) {
 			// React removed on voteMessage
@@ -307,7 +292,7 @@ const handleMessage = async (message: Message) => {
 	// Unites all channels, INDEPENDENT of game ongoing
 	// Optional additional argument to choose name of voiceChannel to uniteIn, otherwise same as balance was called from
 	else if (startsWith(message, uniteAllCommands)){
-		voiceMove_js.uniteAll(message);
+		voiceMove_js.uniteAll(message, options);
 		f.deleteDiscMessage(message, 15000, 'ua');
 	} 
 	else if (startsWith(message, lastGameCommands)){
@@ -385,13 +370,13 @@ const handleMessage = async (message: Message) => {
 	
 			// Splits the players playing into the Voice Channels 'Team1' and 'Team2'
 			else if (splitCommands.includes(message.content)){
-				voiceMove_js.split(message, gameObject.getBalanceInfo(), gameObject.getActiveMembers());
+				voiceMove_js.split(message, options, gameObject.getBalanceInfo(), gameObject.getActiveMembers());
 				f.deleteDiscMessage(message, 15000, 'split');
 			}
 			// Take every user in 'Team1' and 'Team2' and move them to the same voice chat
 			// Optional additional argument to choose name of voiceChannel to uniteIn, otherwise same as balance was called from
 			else if (startsWith(message, uniteCommands)){ 
-				voiceMove_js.unite(message, gameObject.getActiveMembers());
+				voiceMove_js.unite(message, options, gameObject.getActiveMembers());
 				f.deleteDiscMessage(message, 15000, 'u');
 			}
 	
@@ -448,7 +433,7 @@ export const triviaStart = (questions, message, author) => {
 	const voiceChannel = message.guild.member(message.author).voiceChannel;
 	if (voiceChannel !== null && !f.isUndefined(voiceChannel)){ // Sets initial player array to user in disc channel if available
 		const players = findPlayersStart(message, voiceChannel);
-		db_sequelize.initializePlayers(players, 'trivia', (playerList) => {
+		db_sequelize.initializePlayers(players, 'trivia', (playerList: Player[]) => {
 			startGame(message, questions, playerList); 
 		});
 	} else { // No users in voice channel who wrote trivia
@@ -505,7 +490,7 @@ async function balanceCommand(message, options){
 
 // Initialize players array from given voice channel
 // activeGame set to true => for phases where you should prevent others from overwriting (not trivia)
-function findPlayersStart(message: Message, channel: VoiceChannel, gameObject?: Game){
+const findPlayersStart = (message: Message, channel: VoiceChannel, gameObject?: Game): Player[] => {
 	const players = [];
 	// const fetchedMembers = channel.fetch({ force: true });
 	const members: GuildMember[] = Array.from(channel.members.values());

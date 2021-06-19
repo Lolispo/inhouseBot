@@ -14,7 +14,7 @@ import request from 'request';
 
 const entities = new Entities();
 
-import { getPlayer, createPlayer, getSortedRatingTrivia } from './game/player';
+import { getPlayer, createPlayer, getSortedRatingTrivia, Player } from './game/player';
 import { getAdminUids, triviaStart } from './bot';
 import { initializePlayers, updateDbMMR } from './database/db_sequelize';
 import { getPrefix } from './tools/load-environment';
@@ -159,7 +159,7 @@ function callbackFinishMessage(message, messageString) {
 }
 
 // Starts game, requires messageconst (from correct textchannel) and questions
-export const startGame = function (message, questions, players) {
+export const startGame = function (message, questions, players: Player[]) {
   gameOnGoing = true;
   activePlayers = players;
   pointMap = new Map();

@@ -1,5 +1,6 @@
 import { initializePlayers } from "../database/db_sequelize";
 import { balanceTeams } from "./balance";
+import { Player } from "./player";
 
 // Default choices is the first indexed mode
 export const modesGame = ['cs', 'dota', 'valorant', 'test'];
@@ -7,7 +8,7 @@ export const modes1v1 = ['cs1v1', 'dota1v1'];
 export const modesRatings = ['trivia', 'trivia_temp']; // Trivia temp is used for ongoing games
 
 
-export const getGameModes = function () {
+export const getGameModes = () => {
   return modesGame;
 };
 
@@ -16,7 +17,7 @@ export const getActiveGameModes = () => {
   const array = modesGame.slice();
   array.splice(modesGame.indexOf('test'), 1);
   array.splice(modesGame.indexOf('valorant'), 1);
-  return array;
+  return ['dota'];
 }
 
 export const getGameModes1v1 = function () {
@@ -54,7 +55,7 @@ export const getModeChosen = (options, modeCategory, defaultGame = null) => {
 	return game;
 }
 
-export const getModeAndPlayers = (players, gameObject, options, paramOptions) => {
+export const getModeAndPlayers = (players: Player[], gameObject, options, paramOptions: string[]) => {
 	const { message, allModes } = options;
 	let game;
 	if (!message && !allModes) {
@@ -62,8 +63,14 @@ export const getModeAndPlayers = (players, gameObject, options, paramOptions) =>
 	} else {
 		game = getModeChosen(paramOptions, allModes, allModes[0]);
 	}
+	const skipServer = paramOptions.includes('noserver');
 	// console.log('getModeAndPlayers', game);
-	initializePlayers(players, game, (playerList) => {
-		balanceTeams(playerList, game, gameObject);
+	initializePlayers(players, game, (playerList: Player[]) => {
+		balanceTeams(playerList, game, gameObject, skipServer);
 	});
 }
+
+export const gameIsCS = gameName => gameName === 'cs' || gameName === 'cs1v1';
+export const gameIsCSMain = gameName => gameName === 'cs';
+export const gameIsDota = gameName => gameName === 'dota' || gameName === 'dota1v1';
+export const gameIsTest = gameName => gameName === 'test';

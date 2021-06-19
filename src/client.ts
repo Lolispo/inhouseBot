@@ -3,6 +3,7 @@ import { getTextTestChannel } from "./channels/channels";
 
 import * as Discord from 'discord.js';
 import { getConfig } from './tools/load-environment';
+import * as util from 'util';
 
 const client = new Discord.Client();
 
@@ -21,15 +22,15 @@ export const getClient = async (name, callbackReady: Function = noop, callbackLo
   // Call Callback
   await callbackReady();
   callbackLogin(client);
-  // console.log('@getClient Return Promise<Client>')
+  // console.log('@getClient Return Promise<Client>:', util.inspect(client, {showHidden: false, depth: null}));
   return client;
 };
 
 export const getClientReference = () => client;
 
-export const getTextChannel = (channelId = getTextTestChannel()) => {
+export const getTextChannel = async (channelId: string = getTextTestChannel()): Promise<Discord.Channel> => {
   // console.log('Client:', client);
-  client.channels.fetch(channelId);
+  return client.channels.fetch(channelId);
 }
 
 

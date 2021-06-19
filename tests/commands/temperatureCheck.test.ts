@@ -1,12 +1,10 @@
 import { expect } from 'chai';
 import * as rewire from 'rewire';
-
-const x = rewire('../../src/commands/game/temperatureCheck.ts');
-const generateGameTimeString = x.__GET__('generateGameTimeString');
+import { generateGameTimeString } from '../../src/commands/game/temperatureCheck';
 
 describe('temperatureCheck', () => {
   it('generateGameTimeString', () => {
-    const result = generateGameTimeString();
+    const result = generateGameTimeString(['dota', 'cs'], 19, 3);
     console.log('@generateGameTimeString:', result);
     expect(result).to.exist;
   })

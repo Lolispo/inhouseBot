@@ -1,11 +1,12 @@
 import { Message } from "discord.js";
+import { getInhouseFighter } from "../../channels/channels";
 import { getActiveGameModes, getModeChosen } from "../../game/gameModes";
 import { deleteDiscMessage, print, shuffle } from '../../tools/f';
 
 
-
-const startMessage = 'Inhouse Temperature Check:\n';
-const endMessage = 'React on all timeslots which work for you and then we look for the most suitable time';
+// @${getInhouseFighter()}
+const startMessage = `Inhouse Temperature Check:\n`;
+const endMessage = 'React on all timeslots which work for you and then we look for the most suitable time.\nIf you read this but can\'t play today, react with :x:';
 const rowMessage = '\t- $$emoji$$ for $$game$$ Inhouse (Start $$start-time$$$$end-time$$)\n';
 const withEnd = '-$$end-time$$';
 const withNoEnd = ' +';
@@ -14,8 +15,8 @@ const globalEmojiList = [
   { icon: '🐒', title: 'monkey' },
   { icon: '🐯', title: 'tiger' },
   { icon: '🦓', title: 'zebra' },
-  { icon: '🐪', title: 'camel' },
-  { icon: '🐇', title: 'rabbit' },
+  { icon: '🐪', title: 'dromedary_camel' },
+  { icon: '🐇', title: 'rabbit2' },
   { icon: '🦁', title: 'lion' },
   { icon: '👌', title: 'ok_hand' },
   { icon: '👾', title: 'space_invader' },
@@ -24,6 +25,8 @@ const globalEmojiList = [
   { icon: '😺', title: 'smiley_cat' },
   { icon: '🙀', title: 'heart_eyes_cat' },
 ];
+
+const emoji_error = '❌';
 
 let activeGlobalEmojiList;
 
@@ -51,7 +54,7 @@ const gameString = (game, startTime, index, hours): string => {
   return s;
 }
 
-const generateGameTimeString = (gameOptions: string[], startTime, hours): string => {
+export const generateGameTimeString = (gameOptions: string[], startTime, hours): string => {
   let s = startMessage;
   console.log('@generateGameTimeString', gameOptions, startTime, hours);
   gameOptions.forEach((gameName, index) => {
@@ -120,6 +123,7 @@ export const temperatureCheckCommand = (message: Message, options) => {
 
 const callbackMessageTemperature = (message) => {
   // Add reactions
+  message.react(emoji_error);
   activeGlobalEmojiList.forEach(emoji => {
     message.react(emoji.icon);
   })

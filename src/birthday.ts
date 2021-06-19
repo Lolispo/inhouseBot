@@ -22,7 +22,7 @@ const birthdayStart = async () => {
 };
 
 // TODO: Compare to Month & Day instead of CURDATE
-const getBirthdays = async (date) => {
+export const getBirthdays = async (date) => {
   const month = date.getMonth() + 1;
   const day = date.getDate();
   // console.log('@getBirthdays month', month, 'day', day);

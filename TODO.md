@@ -1,11 +1,22 @@
 # TODO:
 ## Tests
 
+Fix tests for typescript
+
 Add unit tests for all files
 
 Add integration tests for main functionalities
 
 # Error message
+
+Unite only getting 10 users
+
+Check that only one bot is active on startup
+
+Balance MMR (matter more on lower or higher mmr)
+    Beta
+
+Add players that play inhouse to @InhouseFighter
 
 MIGRATION TO 12 AND TYPESCRIPT:
     Fix birthday
@@ -21,12 +32,12 @@ Inhouse Temperature check
     Fix event when hitting 10 players
     DM in discord
     SMS integration
+    Group of users that you can tag
 
 Load game from file
 
 Game balance not sorted after mmr when starting game
-
-User 96293765001519104 not currently in a game -> Do username - Verify
+    Verify
 
 Move voting to gameobject
 

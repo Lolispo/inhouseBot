@@ -1,4 +1,5 @@
 import { BaseCommandClass } from "./BaseCommand";
+import { ConnectDotaAction } from "./commands/game/dota";
 import { LoadAction } from "./commands/game/load";
 import { SaveAction } from "./commands/game/save";
 
@@ -8,6 +9,7 @@ export const allAvailableCommands = (): BaseCommandClass[] => {
   // TODO Load all commands
   listOfCommands.push(LoadAction.instance);
   listOfCommands.push(SaveAction.instance);
+  listOfCommands.push(ConnectDotaAction.instance);
   return listOfCommands;
 }
 

@@ -15,7 +15,7 @@ export abstract class BaseCommandClass {
       // Take commands raw, more customization
       this.commands = commands;
     } else {
-      console.log('debug', getPrefix(), commands);
+      // console.log('debug', getPrefix(), commands);
       this.commands = commands.map(command => getPrefix() + command);
     }
     if (options?.name) {
@@ -27,7 +27,7 @@ export abstract class BaseCommandClass {
 
   isThisCommand(message): boolean {
     if (!this.isActive) return false;
-    console.log('@isThisCommand:', this.name, this.commands, this.isActive, this.matchMode);
+    // console.log('@isThisCommand:', this.name, this.commands, this.isActive, this.matchMode);
     if (this.matchMode === 0) {
       return this.commands.includes(message.content);
     } else if (this.matchMode === 1) {

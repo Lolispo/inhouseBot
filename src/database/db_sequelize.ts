@@ -3,6 +3,8 @@
 
 import * as f from '../tools/f';
 import * as Sequelize from 'sequelize';
+import { Player } from '../game/player';
+import { IBalanceInfo } from '../game/game';
 
 /*
 	This file handles database communication using sequelize
@@ -222,16 +224,16 @@ export const initializeDBSequelize = (config) => {
 	return dbconn;
 }
 
-export const initializePlayers = async (players, game, callback) => {
+export const initializePlayers = async (players: Player[], game, callback) => {
 	const specificUsers = await getUsers(players); // Specific users
-	addMissingUsers(players, specificUsers, game, (playerList) => { // players are updated from within method
+	addMissingUsers(players, specificUsers, game, (playerList: Player[]) => { // players are updated from within method
 		callback(playerList);
 	}); 
 }
 
 // Adds missing users to database 
 // Updates players mmr entry correctly
-const addMissingUsers = async (players, specificUsers, game, callback) => {
+export const addMissingUsers = async (players, specificUsers, game, callback) => {
 	const adjustedPlayers = await Promise.all(players.map(async (player) => {
 		const existingUser = specificUsers.find((oneData) => { 
 			return player.uid === oneData.uid;
@@ -293,7 +295,7 @@ export const getUsersUids = async (uidList) => {
 }
 
 // Method to only get users with uid in uids (received error when attempted) instead of every user
-export const getUsers = async (listOfUsers) => {
+export const getUsers = async (listOfUsers: Player[]) => {
 	const uidList = listOfUsers.map(user => user.uid);
 	return getUsersUids(uidList);
 }
@@ -511,7 +513,7 @@ export const storePlayerResults = async (team, teamIndex, mmrChange, mid, stats)
 
 // Used to createMatch
 // Note: Requires players in database
-export const createMatch = async (result, balanceInfo, mmrChange, map, scoreString, stats) => {
+export const createMatch = async (result, balanceInfo: IBalanceInfo, mmrChange: { t1: number, t2: number }, map, scoreString, stats) => {
 	// TODO: Use stats data
 	//  - get cs stats and save them
 	//  - match id get

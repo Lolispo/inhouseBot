@@ -43,5 +43,6 @@ export const getConfig = () => {
 };
 
 export const getPrefix = () => {
+  if (!Config.instance) getConfig();
   return Config.instance.prefix;
 }

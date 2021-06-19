@@ -1,7 +1,8 @@
 'use strict';
 // Author: Petter Andersson
-
+/*
 import { assert } from 'chai';
+import 'jest';
 import { getConfig } from '../src/tools/load-environment';
 import { getAllUsers, initializeDBSequelize, getPersonalStats } from "../src/database/db_sequelize";
 import rewire from 'rewire';
@@ -14,6 +15,7 @@ const foo = (uid, userName, mmr, game, gamesPlayed = 0) => {
   // console.log(s);
   return s;
 }
+
 
 describe('migration', () => {
   let databaseConnection;
@@ -52,17 +54,7 @@ describe('migration', () => {
         if (trivia !== 0) {
           stringRes.push(await foo(uid, userName, trivia, 'trivia'));
         }
-        /*
-        const data = await getPersonalStats(uid);
-        let s = '';
-        if(data.length === 0) {
-          console.log('NO DATA FOR ' + userName);
-        }
-        data.forEach((oneData) => {
-          s += `${oneData.userName}(**${oneData.gameName}**): \t**${oneData.mmr} ${player_js.ratingOrMMR(oneData.gameName)}**\t(Games Played: ${oneData.gamesPlayed})\n`;
-        });
-        return s;
-        */
+    
         stringRes.length > 0 ? console.log(stringRes.join("\n")) : '';
       // }));
       }
@@ -71,3 +63,17 @@ describe('migration', () => {
     }).timeout(30000);
   })
 });
+
+*/
+
+/*
+  const data = await getPersonalStats(uid);
+  let s = '';
+  if(data.length === 0) {
+    console.log('NO DATA FOR ' + userName);
+  }
+  data.forEach((oneData) => {
+    s += `${oneData.userName}(**${oneData.gameName}**): \t**${oneData.mmr} ${player_js.ratingOrMMR(oneData.gameName)}**\t(Games Played: ${oneData.gamesPlayed})\n`;
+  });
+  return s;
+*/

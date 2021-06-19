@@ -48,7 +48,7 @@ export const readCSConsoleInput = async (serverId, gameObject) => {
   gameObject.setIntervalPassive(localInterval);
 };
 
-const isSayMessage = (message) => {
+export const isSayMessage = (message) => {
   if (message.match(/.*STEAM_\d:\d:\d+.*" say.*/g)) {
     return message.substring(message.indexOf('say "') + 5, message.length - 1);
   }
@@ -57,7 +57,7 @@ const isSayMessage = (message) => {
 
 // L 06/23/2020 - 22:25:30: Game Over: competitive mg_active de_inferno score 16:9 after 43 min
 // Jun 27 21:48:07:  L 06/27/2020 - 21:48:07: Game Over: competitive mg_active de_vertigo score 16:13 after 22 min
-const gameOverMessage = message => message.match(/(.{3} \d+ \d\d:\d\d:\d\d:)?\s* L \d\d\/\d\d\/\d\d\d\d - \d\d:\d\d:\d\d: Game Over: competitive mg_active .* score \d+:\d+ after \d+ min/g);
+export const gameOverMessage = message => message.match(/(.{3} \d+ \d\d:\d\d:\d\d:)?\s* L \d\d\/\d\d\/\d\d\d\d - \d\d:\d\d:\d\d: Game Over: competitive mg_active .* score \d+:\d+ after \d+ min/g);
 
 // Read console for "say" lines every 5 seconds
 const readConsoleSayLines = async (serverId, gameObject) => {

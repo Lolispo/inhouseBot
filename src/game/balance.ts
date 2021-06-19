@@ -8,7 +8,10 @@ import { getTeamName } from '../teamNames';
 import { configureServer } from '../csserver/cs_server';
 import { getCsIp, getCsUrl } from '../csserver/server_info';
 import { checkMissingSteamIds, notifyPlayersMissingSteamId } from '../steamid';
-import { gameIsCS, gameIsDota, gameIsCSMain } from './game';
+import { Game, IBalanceInfo } from './game';
+import { ConnectDotaAction } from '../commands/game/dota';
+import { Player, sortRating } from './player';
+import { gameIsCS, gameIsCSMain, gameIsDota, gameIsTest } from './gameModes';
 
 /*
 	Handles getting the most balanced team matchup for the given 10 players
@@ -19,37 +22,49 @@ import { gameIsCS, gameIsDota, gameIsCSMain } from './game';
 	TODO: Check if this would work if restrictions for team sizes are removed, generateTeamCombs changes required
 */
 
+interface EmbeddedMessage { // TODO: Refine
+  content: any,
+  embed: any,
+  files?: any;
+}
+
+interface ReturnMessage {
+  message: string | EmbeddedMessage,
+  balanceInfo: IBalanceInfo
+}
+
 // @param players should contain Array of initialized Players of people playing
-export const balanceTeams = (players, game, gameObject) => {
+export const balanceTeams = (players: Player[], game: string, gameObject: Game, skipServer = false) => {
   // Generate team combs, all possibilities of the 10 players
   const teamCombs = generateTeamCombs(players);
   const result = findBestTeamComb(players, teamCombs, game);
 
+  // Take original mmr values from sort function
+
+
   // Return string to message to clients
-  let message;
-  let balanceInfo;
+  let message: string | EmbeddedMessage;
+  let balanceInfo: IBalanceInfo;
 
   console.log('@Starting Game:', JSON.stringify(result, null, 2));
+  let object: ReturnMessage;
   try {
-    const object = buildReturnStringEmbed(result);
-    message = object.message;
-    console.log(message);
-    balanceInfo = object.balanceInfo;
-    gameObject.setBalanceInfo(balanceInfo);
+    object = buildReturnStringEmbed(result);
+    console.log('Embedded message successfully:', message);
   } catch (e) {
     console.error('Embed failed', e);
-    const object = buildReturnString(result);
-    message = object.message;
-    balanceInfo = object.balanceInfo;
-    gameObject.setBalanceInfo(balanceInfo);
+    object = buildReturnString(result);
   }
+  message = object.message;
+  balanceInfo = object.balanceInfo;
+  gameObject.setBalanceInfo(balanceInfo);
 
   printMessage(message, gameObject.getChannelMessage(), (message) => {
     gameObject.setMatchupServerMessage(message);
   });
 
   // TODO: Only if no other active games using server
-  if (gameIsCS(game)) {
+  if (gameIsCS(game) && !skipServer) {
     const playersMissingSteamIds = checkMissingSteamIds(players);
     // console.log('Check missing steam ids:', players, players.map(player => player.getSteamId()).join(", "), playersMissingSteamIds.map(player => player.getSteamId()).join(", "));
     if (playersMissingSteamIds.length > 0) {
@@ -61,13 +76,25 @@ export const balanceTeams = (players, game, gameObject) => {
       });
     }
     configureServer(gameObject);
+  } else if ((gameIsDota(game) || gameIsTest(game)) && !skipServer) {
+    const playersMissingSteamIds = checkMissingSteamIds(players);
+    // console.log('Check missing steam ids:', players, players.map(player => player.getSteamId()).join(", "), playersMissingSteamIds.map(player => player.getSteamId()).join(", "));
+    if (playersMissingSteamIds.length > 0) {
+      // People are missing steamids
+      notifyPlayersMissingSteamId(playersMissingSteamIds);
+      const playersString = playersMissingSteamIds.map(player => player.userName).join(', ');
+      printMessage(`Note: Missing SteamIds for: ${playersString}`, gameObject.getChannelMessage(), (messageParam) => {
+        f.deleteDiscMessage(messageParam, 120000, 'missingSteamIds');
+      });
+    }
+    ConnectDotaAction.startMatch(gameObject.gameID, [gameObject.getBalanceInfo().team1, gameObject.getBalanceInfo().team2]);
   }
 };
 
 // Generates the combinations for different team sizes
 // uniqueCombs makes sure that duplicates aren't saved
 // @return teamCombs is returned with all possible matchups
-function generateTeamCombs(players) {
+const generateTeamCombs = (players: Player[]): number[][] => {
   // console.log('DEBUG: @generateTeamCombs');
   const teamCombs = []; // Saves all team combination, as arrays of indexes of one team (other team is implied)
   const uniqueCombs = new Set(); // A number combination for each comb, to prevent saving duplicates.
@@ -84,11 +111,11 @@ function generateTeamCombs(players) {
 }
 
 // Fills teamCombs with the teamcombination given amount of players
-function recursiveFor(startIndex, indexes, len, forloopindex, teamCombs, uniqueCombs) {
+export const recursiveFor = (startIndex, indexes, len, forloopindex, teamCombs, uniqueCombs) => {
   for (let i = startIndex; i < len; i++) {
     const indexesArray = indexes.slice(); // Copy of array
     if (forloopindex < len / 2) {
-      indexesArray.push(i);		 	// Add current index to indexes
+      indexesArray.push(i);	// Add current index to indexes
       recursiveFor(i + 1, indexesArray, len, forloopindex + 1, teamCombs, uniqueCombs);
     } else {
       combinationAdder(teamCombs, uniqueCombs, indexesArray);
@@ -98,7 +125,7 @@ function recursiveFor(startIndex, indexes, len, forloopindex, teamCombs, uniqueC
 
 // Store combinations for the given player indexes (players) and stores it in teamcombs
 // uniqueCombs holds a number that represent equal combinations of players, as well as their reverseComb
-function combinationAdder(teamCombs, uniqueCombs, players) {
+export const combinationAdder = (teamCombs, uniqueCombs, players: number[]): void => {
   const adder = (accumulator, currentValue) => accumulator + currentValue;
   const uniqueSum = players.map(uniVal).reduce(adder); // Sum over uniVal for each player index, creating unique sum
   if (!uniqueCombs.has(uniqueSum)) {
@@ -111,12 +138,12 @@ function combinationAdder(teamCombs, uniqueCombs, players) {
 
 // Unique number combinations for combinations of 5.
 // Should give (check): 0: 0, 1: 10, 2: 200, 3: 3000, 4: 40000, 5: 5, 6: 60, 7: 700, 8: 8000; 9: 90000
-function uniVal(x) {
+export const uniVal = (x: number): number => {
   return (x * Math.pow(10, (x % 5)));
 }
 
 // Fixar så [0,1,2,3,4] combos = [5,6,7,8,9] combos, no duplicates for them
-function reverseUniqueSum(list, len) {
+export const reverseUniqueSum = (list: number[], len: number): number => {
   // console.log('DEBUG: @reverseUniqueSum', list, len);
   let sum = 0;
   for (let i = 0; i < len; i++) {
@@ -129,7 +156,7 @@ function reverseUniqueSum(list, len) {
 }
 
 // Compare elo matchup between teamCombinations, lowest difference wins
-function findBestTeamComb(players, teamCombs, game) {
+const findBestTeamComb = (players: Player[], teamCombs: number[][], game: string): IBalanceInfo => {
   let bestPossibleTeamComb = Number.MAX_VALUE;
   let t1 = [];
   let t2 = [];
@@ -162,6 +189,10 @@ function findBestTeamComb(players, teamCombs, game) {
     t2 = multiple_t2[index];
   }
 
+  // Sort based on MMR Descending
+  t1 = sortRating(t1, game);
+  t2 = sortRating(t2, game);
+
   // Retrieved most fair teamComb
   return {
     team1: t1, team2: t2, difference: bestPossibleTeamComb, avgT1: avgTeam1, avgT2: avgTeam2, avgDiff: Math.abs(avgTeam1 - avgTeam2), game,
@@ -169,17 +200,11 @@ function findBestTeamComb(players, teamCombs, game) {
 }
 
 // Get the two teams of players from the teamComb
-function getBothTeams(teamComb, players) {
+const getBothTeams = (teamComb: number[], players: Player[]): { t1: Player[], t2: Player[] } => {
   const team1 = [];
   const team2 = [];
-  for (let i = 0; i < players.length; i++) {
-    let contains = false;
-    for (let j = 0; j < teamComb.length; j++) { // TODO Refactor/Redo. Do better check for this contain check, teamComb = list ([])
-      if (i === teamComb[j]) {
-        contains = true;
-      }
-    }
-    if (contains) {
+  for (let i = 0; i < players.length; i++) { // Iterates over players and adds to each team
+    if (teamComb.includes(i)) {
       team1.push(players[i]);
     } else {
       team2.push(players[i]);
@@ -187,6 +212,35 @@ function getBothTeams(teamComb, players) {
   }
   // console.log('DEBUG: @getBothTeams, team1 = ', team1, '\nteam2 = ', team2, 'teamComb', teamComb);
   return { t1: team1, t2: team2 };
+}
+
+export const testNormalize = (mmr) => {
+  const x = 1.5;
+  const y = 10;
+  const startMmr = 2500;
+  if (mmr > startMmr) {
+    mmr = startMmr - (((mmr - startMmr)/(mmr - startMmr)^x) * y);
+  } else if (mmr < startMmr) {
+    mmr = startMmr - (((startMmr - mmr)/(startMmr - mmr)^x) * y);
+  }
+  return mmr;  
+}
+
+/**
+ * Normalize MMR when summing to make it simpler
+ * @param mmr 
+ */
+const normalizeMmr = (mmr) => {
+  const upperLimit = 2700;
+  const lowerLimit = 2300;
+  const startMmr = 2500;
+  if (mmr > upperLimit) {
+    mmr = ((mmr - upperLimit) / 2) + upperLimit;
+  } else if (mmr < lowerLimit) {
+    mmr = ((mmr - lowerLimit) / 2) + lowerLimit;
+  }
+  // TODO: Verify the teams BETA
+  return mmr;
 }
 
 // @param two teams of players
@@ -201,19 +255,29 @@ function mmrCompare(t1, t2, game) {
 function addTeamMMR(team, game) { // Function to be used in summing over players
   let sum = 0;
   for (let i = 0; i < team.length; i++) {
-    sum += team[i].getMMR(game);
+    const mmr = team[i].getMMR(game);
+    const normalizedMmr = normalizeMmr(mmr);
+    sum += normalizedMmr;
   }
   // console.log('DEBUG: @addTeamMMR, team = ', team, 'TeamMMR:', sum);
+  // TODO: return normalize values aswell?
   return sum;
 }
 
-const roundValue = (num) => {
+/**
+ * Prettify the number output
+ * Whole integer if integer
+ * Otherwise float with 2 values
+ * @param num 
+ * @returns the prettified number
+ */
+export const roundValue = (num) => {
   // console.log('@roundValue:', num);
   if (num % 1 === 0) return num;
   return parseFloat(num).toFixed(2);
 };
 
-const buildReturnStringEmbed = (obj) => {
+const buildReturnStringEmbed = (obj: IBalanceInfo): ReturnMessage => {
   let title = `**New Game!** Playing **${obj.game}**. `;
   if (obj.team1.length === 1) { // No average for 2 player matchup
     title += `MMR diff: ${obj.difference} mmr`;
@@ -262,7 +326,7 @@ const buildReturnStringEmbed = (obj) => {
     }];
     s += 'Lobby Name: Dank\nPassword: 123';
   }
-  const messageEmbedded = {
+  const messageEmbedded: EmbeddedMessage = {
     // content: title,
     content: '',
     // TODO: Check embeds instead of embed
@@ -280,7 +344,7 @@ const buildReturnStringEmbed = (obj) => {
 };
 
 // Build a string to return to print as message
-const buildReturnString = (obj) => { // TODO: Print``
+const buildReturnString = (obj: IBalanceInfo): ReturnMessage => { // TODO: Print``
   let s = '';
   // console.log('@buildReturnString', obj)
   s += `**New Game!** Playing **${obj.game}**. `;
