@@ -31,39 +31,11 @@ export const unite = (message: Message, options: string[], activeMembers: GuildM
     const guildChannels = message.guild.channels;
     const { channel1, channel2 } = getInhouseChannels(guildChannels);
     moveUsers([channel1, channel2], channel);
-    /*
-    activeMembers.forEach((member) => {
-      // TODO: This crashes bot - unite when someone disconnects
-      // As long as they are still in some voice chat
-      if (!f.isUndefined(member.voice.channel)) {
-        try {
-          member.voice.setChannel(channel);
-        } catch (e) {
-          console.error('Error moving user by unite command:', member.user.username, e);
-        }
-      }
-    });
-    */
   }
 };
 
 export const uniteAll = (message: Message, options: string[]) => {
-  // TODO: Find all users active in a voiceChannel, currently iterates over all members of guild
-  // client.voiceConnections, doesnt seem to exist
   return unite(message, options, []);
-  /*
-  message.guild.members.cache.forEach((member) => {
-    // As long as they are still in some voice chat
-    if (!f.isUndefined(member.voice.channel) && member.voice.channelID !== message.guild.afkChannelID) { // As long as user is in a voiceChannel (Should be)
-      console.log('@unitAll DEBUG:', member.user.username, member.voice.channelID);
-      try {
-        member.voice.setChannel(channel);
-      } catch (e) {
-        console.error('Error moving user by unite command:', member.user.username, e);
-      }
-    }
-  });
-  */
 };
 
 /**
