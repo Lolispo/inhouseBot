@@ -257,7 +257,7 @@ const buildMapStatsMessage = (mapTeam) => {
 };
 
 // Builds the stats string to send in discord
-const buildStatsMessage = (stats) => {
+export const buildStatsMessage = (stats) => {
   let s = '';
   for (let i = 0; i < 1; i++) {
     // Check only give results for one game
@@ -282,7 +282,7 @@ const buildStatsMessage = (stats) => {
 };
 
 // Send stats message to discord in the correct channel
-const sendStatsDiscord = (gameObject, statsMessage) => {
+export const sendStatsDiscord = (gameObject, statsMessage) => {
   // Sends in channel
   printMessage(statsMessage, gameObject.getChannelMessage(), (message) => {
     f.deleteDiscMessage(message, 3600000, `statsresultsgame${Math.floor(Math.random() * 10)}`);
@@ -310,11 +310,11 @@ const samePlayersInTeams = (gameObject, stats) => {
 
 const remapTeam = (players, mapTeam) => {
   const obj = {};
-  console.log('@remapTeam Debug players:', players);
+  // console.log('@remapTeam Debug players:', players);
   for (const key in mapTeam) {
     if (mapTeam.hasOwnProperty(key)) {
       const player = mapTeam[key];
-      console.log('Debug player', player);
+      // console.log('Debug player', player);
       if (key === 'score' || key === 'v1' || key === 'v2') continue;
       const { convertedId, altConvertedId } = convertIdFrom64(key);
       const playerDisc = players.find(player => player.getSteamId() === convertedId || player.getSteamId() === altConvertedId);
@@ -370,7 +370,7 @@ const remapTeam = (players, mapTeam) => {
 };
 
 // Update mapping from Steam64ID to DiscordId
-const playerMapSteamIdStats = (gameObject, stats) => {
+export const playerMapSteamIdStats = (gameObject, stats) => {
   let obj;
   for (let i = 0; i < 1; i++) { // Should only be 1 map for now
     const tempMap = {

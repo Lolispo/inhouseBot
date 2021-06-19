@@ -11,6 +11,8 @@ Add integration tests for main functionalities
 
 Unite only getting 10 users
 
+Check that only one bot is active on startup
+
 Balance MMR (matter more on lower or higher mmr)
     Beta
 

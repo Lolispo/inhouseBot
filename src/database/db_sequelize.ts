@@ -4,6 +4,7 @@
 import * as f from '../tools/f';
 import * as Sequelize from 'sequelize';
 import { Player } from '../game/player';
+import { IBalanceInfo } from '../game/game';
 
 /*
 	This file handles database communication using sequelize
@@ -232,7 +233,7 @@ export const initializePlayers = async (players: Player[], game, callback) => {
 
 // Adds missing users to database 
 // Updates players mmr entry correctly
-const addMissingUsers = async (players, specificUsers, game, callback) => {
+export const addMissingUsers = async (players, specificUsers, game, callback) => {
 	const adjustedPlayers = await Promise.all(players.map(async (player) => {
 		const existingUser = specificUsers.find((oneData) => { 
 			return player.uid === oneData.uid;
@@ -512,7 +513,7 @@ export const storePlayerResults = async (team, teamIndex, mmrChange, mid, stats)
 
 // Used to createMatch
 // Note: Requires players in database
-export const createMatch = async (result, balanceInfo, mmrChange, map, scoreString, stats) => {
+export const createMatch = async (result, balanceInfo: IBalanceInfo, mmrChange: { t1: number, t2: number }, map, scoreString, stats) => {
 	// TODO: Use stats data
 	//  - get cs stats and save them
 	//  - match id get

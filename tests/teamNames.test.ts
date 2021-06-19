@@ -2,11 +2,8 @@
 // Author: Petter Andersson
 
 import { assert } from 'chai';
-import rewire from 'rewire';
 import { createPlayer } from '../src/game/player';
-import { getTeamName } from '../src/teamNames';
-const teamNameModule = rewire('../src/teamNames.js');
-const capitalize = teamNameModule.__get__('capitalize');
+import { capitalize, getTeamName } from '../src/teamNames';
 
 describe('teamNames', () => {
   describe('capitalize', () => {

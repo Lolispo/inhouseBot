@@ -9,7 +9,8 @@
     "declaration": true,
     "typeRoots": [
       "./node_modules/@types"
-    ]
+    ],
+    "types": ["node", "jest"]
   },
   "include": [
     "./src/**/*"

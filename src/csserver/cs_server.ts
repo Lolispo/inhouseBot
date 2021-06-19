@@ -96,7 +96,7 @@ const generateTeamPlayersBody = (players) => {
 };
 
 // Fix prediction
-const getPredictionTeam1 = (balanceInfo) => {
+export const getPredictionTeam1 = (balanceInfo) => {
   /*
     difference: 31,
     avgT1: 2572,

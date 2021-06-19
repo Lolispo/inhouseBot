@@ -89,7 +89,7 @@ class Team {
 
 const getRndInt = num => Math.floor(Math.random() * num);
 
-const capitalize = (selectedOption) => {
+export const capitalize = (selectedOption) => {
   const list = selectedOption.split(/\s+/g);
   return list.map(s => s.charAt(0).toUpperCase() + (s.length > 1 ? s.substring(1) : '')).join(' ');
 };

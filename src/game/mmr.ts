@@ -26,7 +26,7 @@ export const updateMMR = (winner: number, gameObject: Game, callbackUpdate: Func
 };
 
 // Calculates the mmr change for two teams with given average team mmr and winner
-function eloUpdate(t1mmr, t2mmr, winner) {
+export const eloUpdate = (t1mmr, t2mmr, winner) => {
   const K = 50;
   // transformed ratings for t1 and t2
   const t1_trans = Math.pow(10, t1mmr / 400);

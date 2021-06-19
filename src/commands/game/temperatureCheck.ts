@@ -54,7 +54,7 @@ const gameString = (game, startTime, index, hours): string => {
   return s;
 }
 
-const generateGameTimeString = (gameOptions: string[], startTime, hours): string => {
+export const generateGameTimeString = (gameOptions: string[], startTime, hours): string => {
   let s = startMessage;
   console.log('@generateGameTimeString', gameOptions, startTime, hours);
   gameOptions.forEach((gameName, index) => {

@@ -73,23 +73,8 @@ const getMatchResultCommand = [prefix + 'getresult', prefix + 'getmatchresult'];
 const playerStatusCommands = [prefix + 'playersstatus'];
 const temperatureCheckCommands = [prefix + 'temperature', prefix + 'daily', prefix + 'temperaturecheck', prefix + 'temp']
 
-
-// Initialize Client
-getClient('bot', async () => initializeDBSequelize(getConfig().db), (client) => {
-	// Listener on message
-	client.on('message', (message: Message) => discordEventMessage(message));
-
-	// Listener on reactions added to messages
-	client.on('messageReactionAdd', (messageReaction: MessageReaction, user: User) => discordEventReactionAdd(messageReaction, user));
-
-	// Listener on reactions removed from messages
-	client.on('messageReactionRemove', (messageReaction: MessageReaction, user: User) => discordEventReactionRemove(messageReaction, user));
-
-	client.on('error', console.error);
-});
-
 // Handle Discord Event Message
-const discordEventMessage = (message: Message) => {
+export const discordEventMessage = (message: Message) => {
 	if (!message.author.bot && message.author.username !== bot_name) { // Message sent from user
 		const isTextChannel = (message.channel as TextChannel).guild;
 		if (isTextChannel) {
@@ -141,7 +126,7 @@ const discordEventMessage = (message: Message) => {
 }
 
 // Handle Discord Event Reaction Add
-const discordEventReactionAdd = (messageReaction: MessageReaction, user: User) => {
+export const discordEventReactionAdd = (messageReaction: MessageReaction, user: User) => {
 	if (!user.bot && hasActiveGames()){ // Bot adding reacts doesn't require our care
 		// Reacted on voteMessage
 		//console.log('DEBUG: @messageReactionAdd by', user.username, 'on', messageReaction.message.author.username + ': ' + messageReaction.message.content, messageReaction.count);
@@ -178,7 +163,7 @@ const discordEventReactionAdd = (messageReaction: MessageReaction, user: User) =
 }
 
 // Handle Discord Event Reaction Remove
-const discordEventReactionRemove = (messageReaction, user) => {
+export const discordEventReactionRemove = (messageReaction, user) => {
 	if (!user.bot){
 		if (hasActiveGames()) {
 			// React removed on voteMessage

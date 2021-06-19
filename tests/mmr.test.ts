@@ -2,11 +2,6 @@
 // Author: Petter Andersson
 
 import { assert } from 'chai';
-const rewire = require('rewire');
-
-const fileModule = rewire('../src/game/mmr.js');
-
-const eloUpdate = fileModule.__get__('eloUpdate');
 
 describe('mmr', function(){
 	describe('eloupdate', function(){

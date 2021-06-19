@@ -8,9 +8,23 @@
 import * as f from '../tools/f';
 import { cancelGameCSServer } from '../csserver/cs_console';
 import { GuildMember, Message } from 'discord.js';
+import { Player } from './player';
+import { gameIsCS } from './gameModes';
 
 interface IOptionalParameters extends Omit<Partial<Game>, 'gameID' | 'channelMessage'> {
   // Type used for constructor
+}
+
+export interface IBalanceInfo {
+  team1: Player[],
+  team2: Player[], 
+  difference: number, 
+  avgT1: number, 
+  avgT2: number, 
+  avgDiff: number, 
+  game: string,
+  team1Name?: string,
+  team2Name?: string,  
 }
 export class Game {
   static activeGames = [];
@@ -24,7 +38,7 @@ export class Game {
   gameID: string;
   channelMessage: Message;
   activeMembers: GuildMember[];
-  balanceInfo;
+  balanceInfo: IBalanceInfo;
   serverId: string;
   matchId: string;
   csConsoleIntervalPassive;
@@ -152,7 +166,7 @@ export class Game {
 
   setActiveMembers = members => this.activeMembers = members;
 
-  setBalanceInfo = value => this.balanceInfo = value;
+  setBalanceInfo = (value: IBalanceInfo) => this.balanceInfo = value;
 
   setMatchupMessage = message => this.matchupMessage = message;
 
@@ -305,7 +319,3 @@ export const cleanOnGameEnd = (gameObject) => {
   // Remove game from ongoing games
   deleteGame(gameObject);
 };
-
-export const gameIsCS = gameName => gameName === 'cs' || gameName === 'cs1v1';
-export const gameIsCSMain = gameName => gameName === 'cs';
-export const gameIsDota = gameName => gameName === 'dota' || gameName === 'dota1v1';

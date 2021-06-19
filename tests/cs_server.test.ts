@@ -2,16 +2,12 @@
 // Author: Petter Andersson
 
 import { assert } from 'chai';
-const rewire = require('rewire');
+import { describe, it, before } from 'mocha';
 const { getConfig } = require('../src/tools/load-environment');
 const { gameServers, configureServer } = require('../src/csserver/cs_server');
 const { createPlayer } = require('../src/game/player');
-const csserverModule = rewire('../src/csserver/cs_server.js');
-const cs_console_stream = rewire('../src/csserver/cs_console_stream.js');
-const getPredictionTeam1 = csserverModule.__get__('getPredictionTeam1');
-const { readCSConsoleInput } = require('../src/csserver/cs_console');
-const isSayMessage = cs_console_stream.__get__('isSayMessage'); 
-const gameOverMessage = cs_console_stream.__get__('gameOverMessage');
+import { getPredictionTeam1 } from '../src/csserver/cs_server';
+import { isSayMessage, gameOverMessage, readCSConsoleInput } from '../src/csserver/cs_console_stream';
 
 let serverId;
 let gameObject;
@@ -40,7 +36,9 @@ describe('dathost', () => {
           team1Name: 'Team1NameFromFunc',
           team2Name: 'Team2NameFromFunc'
         }
-      }
+      },
+      getChosenMap: () => 'de_inferno',
+      setIntervalPassive: (value) => console.log('X'),
     }
   })
   describe('isSayMessage', () => {
@@ -72,10 +70,12 @@ describe('dathost', () => {
     });
   });
   describe('configureServer', () => {
+    /*
     it('configureServer', async () => {
       const res = await configureServer(gameObject);
       console.log('@test.configureServer:', res);
     })
+    */
   })
   describe('getPredictionTeam1', () => {
     it('getPredictionTeam1', async () => {

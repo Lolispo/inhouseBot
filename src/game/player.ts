@@ -5,6 +5,7 @@
 */
 
 import { modes1v1, modesGame, modesRatings, ratingOrMMR } from "./gameModes";
+import { MMRStruct } from "./mmrStruct";
 
 const startMMR = 2500;
 
@@ -13,53 +14,53 @@ export class Player {
 	uid;
 	defaultMMR;
 	steamId;
-	mmrs;
+	mmrs: { [key: string] : MMRStruct };
 	
 	constructor(username, discId) {
 		this.userName = username;
 		this.uid = discId;
 		this.defaultMMR = startMMR;
 		this.steamId = '';
-		this.mmrs = new Map();
+		this.mmrs = { };
 		this.initializeDefaultMMR();
 	}
   // Initializes mmr values to defaults. Ran instantly on creation
   initializeDefaultMMR = function () {
     for (let i = 0; i < modesGame.length; i++) {
-      const struct = new mmrStruct(startMMR);
-      this.mmrs.set(modesGame[i], struct);
+      const struct = MMRStruct.generateMmrStruct(startMMR);
+      this.mmrs[modesGame[i]] = struct;
     }
     for (let i = 0; i < modes1v1.length; i++) {
-      const struct = new mmrStruct(startMMR);
-      this.mmrs.set(modes1v1[i], struct);
+      const struct = MMRStruct.generateMmrStruct(startMMR);
+      this.mmrs[modes1v1[i]] = struct;
     }
     for (let i = 0; i < modesRatings.length; i++) {
-      const struct = new mmrStruct(0);
-      this.mmrs.set(modesRatings[i], struct);
+      const struct = MMRStruct.generateMmrStruct(0);
+      this.mmrs[modesRatings[i]], struct;
     }
   };
 
-  setMMR = function (game, value) {
-    const struct = this.mmrs.get(game);
-    struct.prevMMR = struct.mmr; // Keeps track of last recorded mmr
+  setMMR = (game, value) => {
+    const struct = this.mmrs[game] || MMRStruct.generateMmrStruct(undefined);
+    struct.prevMMR = struct?.mmr; // Keeps track of last recorded mmr
     struct.mmr = value;
   };
 
   getMMR (game): number {
-    return this.mmrs.get(game).mmr;
+    return this.mmrs[game].mmr;
   }
 
   getGame = function (game) {
-    return this.mmrs.get(game);
+    return this.mmrs[game];
   };
 
   setMMRChange = function (game, value) {
-    const struct = this.mmrs.get(game);
+    const struct = this.mmrs[game];
     struct.latestUpdate = value;
   };
 
   setPlusMinus = function (game, value) {
-    const struct = this.mmrs.get(game);
+    const struct = this.mmrs[game];
     struct.latestUpdatePrefix = value;
   };
 
@@ -68,14 +69,6 @@ export class Player {
   };
 
   getSteamId = () => this.steamId;
-}
-
-// MMR struct - holding information about mmr for a game, used in map to map game with struct
-function mmrStruct(startMmr) {
-  this.mmr = startMmr;
-  this.prevMMR = startMmr; 		// MMR at previous instance
-  this.latestUpdate = 0;			// How much mmr was changed
-  this.latestUpdatePrefix = ''; 	// A '+' or ''?
 }
 
 // Used to initiate players, returns a player 'object'
@@ -120,8 +113,9 @@ export const getSortedRatingTrivia = function (players) {
 // Insertion sort on the players on a given rating
 export const sortRating = (players: Player[], game: string) => {
 	players = players.sort((a: Player, b: Player) => {
-		return a.getMMR(game) - b.getMMR(game);
+		return b.getMMR(game) - a.getMMR(game);
 	});
+  // console.log('@sortRating:', players.map(player => player.getMMR(game)));
   return players;
 };
 

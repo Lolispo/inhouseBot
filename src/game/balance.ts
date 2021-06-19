@@ -8,9 +8,10 @@ import { getTeamName } from '../teamNames';
 import { configureServer } from '../csserver/cs_server';
 import { getCsIp, getCsUrl } from '../csserver/server_info';
 import { checkMissingSteamIds, notifyPlayersMissingSteamId } from '../steamid';
-import { gameIsCS, gameIsDota, gameIsCSMain, Game } from './game';
+import { Game, IBalanceInfo } from './game';
 import { ConnectDotaAction } from '../commands/game/dota';
 import { Player, sortRating } from './player';
+import { gameIsCS, gameIsCSMain, gameIsDota, gameIsTest } from './gameModes';
 
 /*
 	Handles getting the most balanced team matchup for the given 10 players
@@ -20,6 +21,17 @@ import { Player, sortRating } from './player';
 	Current implementation support addition of other factors, language support/known players etc
 	TODO: Check if this would work if restrictions for team sizes are removed, generateTeamCombs changes required
 */
+
+interface EmbeddedMessage { // TODO: Refine
+  content: any,
+  embed: any,
+  files?: any;
+}
+
+interface ReturnMessage {
+  message: string | EmbeddedMessage,
+  balanceInfo: IBalanceInfo
+}
 
 // @param players should contain Array of initialized Players of people playing
 export const balanceTeams = (players: Player[], game: string, gameObject: Game, skipServer = false) => {
@@ -31,23 +43,21 @@ export const balanceTeams = (players: Player[], game: string, gameObject: Game, 
 
 
   // Return string to message to clients
-  let message;
-  let balanceInfo;
+  let message: string | EmbeddedMessage;
+  let balanceInfo: IBalanceInfo;
 
   console.log('@Starting Game:', JSON.stringify(result, null, 2));
+  let object: ReturnMessage;
   try {
-    const object = buildReturnStringEmbed(result);
-    message = object.message;
-    console.log(message);
-    balanceInfo = object.balanceInfo;
-    gameObject.setBalanceInfo(balanceInfo);
+    object = buildReturnStringEmbed(result);
+    console.log('Embedded message successfully:', message);
   } catch (e) {
     console.error('Embed failed', e);
-    const object = buildReturnString(result);
-    message = object.message;
-    balanceInfo = object.balanceInfo;
-    gameObject.setBalanceInfo(balanceInfo);
+    object = buildReturnString(result);
   }
+  message = object.message;
+  balanceInfo = object.balanceInfo;
+  gameObject.setBalanceInfo(balanceInfo);
 
   printMessage(message, gameObject.getChannelMessage(), (message) => {
     gameObject.setMatchupServerMessage(message);
@@ -66,7 +76,7 @@ export const balanceTeams = (players: Player[], game: string, gameObject: Game, 
       });
     }
     configureServer(gameObject);
-  } else if (gameIsDota(game) && !skipServer) {
+  } else if ((gameIsDota(game) || gameIsTest(game)) && !skipServer) {
     const playersMissingSteamIds = checkMissingSteamIds(players);
     // console.log('Check missing steam ids:', players, players.map(player => player.getSteamId()).join(", "), playersMissingSteamIds.map(player => player.getSteamId()).join(", "));
     if (playersMissingSteamIds.length > 0) {
@@ -101,7 +111,7 @@ const generateTeamCombs = (players: Player[]): number[][] => {
 }
 
 // Fills teamCombs with the teamcombination given amount of players
-function recursiveFor(startIndex, indexes, len, forloopindex, teamCombs, uniqueCombs) {
+export const recursiveFor = (startIndex, indexes, len, forloopindex, teamCombs, uniqueCombs) => {
   for (let i = startIndex; i < len; i++) {
     const indexesArray = indexes.slice(); // Copy of array
     if (forloopindex < len / 2) {
@@ -115,7 +125,7 @@ function recursiveFor(startIndex, indexes, len, forloopindex, teamCombs, uniqueC
 
 // Store combinations for the given player indexes (players) and stores it in teamcombs
 // uniqueCombs holds a number that represent equal combinations of players, as well as their reverseComb
-const combinationAdder = (teamCombs, uniqueCombs, players: number[]): void => {
+export const combinationAdder = (teamCombs, uniqueCombs, players: number[]): void => {
   const adder = (accumulator, currentValue) => accumulator + currentValue;
   const uniqueSum = players.map(uniVal).reduce(adder); // Sum over uniVal for each player index, creating unique sum
   if (!uniqueCombs.has(uniqueSum)) {
@@ -128,12 +138,12 @@ const combinationAdder = (teamCombs, uniqueCombs, players: number[]): void => {
 
 // Unique number combinations for combinations of 5.
 // Should give (check): 0: 0, 1: 10, 2: 200, 3: 3000, 4: 40000, 5: 5, 6: 60, 7: 700, 8: 8000; 9: 90000
-function uniVal(x) {
+export const uniVal = (x: number): number => {
   return (x * Math.pow(10, (x % 5)));
 }
 
 // Fixar så [0,1,2,3,4] combos = [5,6,7,8,9] combos, no duplicates for them
-function reverseUniqueSum(list, len) {
+export const reverseUniqueSum = (list: number[], len: number): number => {
   // console.log('DEBUG: @reverseUniqueSum', list, len);
   let sum = 0;
   for (let i = 0; i < len; i++) {
@@ -146,7 +156,7 @@ function reverseUniqueSum(list, len) {
 }
 
 // Compare elo matchup between teamCombinations, lowest difference wins
-const findBestTeamComb = (players: Player[], teamCombs: number[][], game: string) => {
+const findBestTeamComb = (players: Player[], teamCombs: number[][], game: string): IBalanceInfo => {
   let bestPossibleTeamComb = Number.MAX_VALUE;
   let t1 = [];
   let t2 = [];
@@ -254,13 +264,20 @@ function addTeamMMR(team, game) { // Function to be used in summing over players
   return sum;
 }
 
-const roundValue = (num) => {
+/**
+ * Prettify the number output
+ * Whole integer if integer
+ * Otherwise float with 2 values
+ * @param num 
+ * @returns the prettified number
+ */
+export const roundValue = (num) => {
   // console.log('@roundValue:', num);
   if (num % 1 === 0) return num;
   return parseFloat(num).toFixed(2);
 };
 
-const buildReturnStringEmbed = (obj) => {
+const buildReturnStringEmbed = (obj: IBalanceInfo): ReturnMessage => {
   let title = `**New Game!** Playing **${obj.game}**. `;
   if (obj.team1.length === 1) { // No average for 2 player matchup
     title += `MMR diff: ${obj.difference} mmr`;
@@ -309,7 +326,7 @@ const buildReturnStringEmbed = (obj) => {
     }];
     s += 'Lobby Name: Dank\nPassword: 123';
   }
-  const messageEmbedded = {
+  const messageEmbedded: EmbeddedMessage = {
     // content: title,
     content: '',
     // TODO: Check embeds instead of embed
@@ -327,7 +344,7 @@ const buildReturnStringEmbed = (obj) => {
 };
 
 // Build a string to return to print as message
-const buildReturnString = (obj) => { // TODO: Print``
+const buildReturnString = (obj: IBalanceInfo): ReturnMessage => { // TODO: Print``
   let s = '';
   // console.log('@buildReturnString', obj)
   s += `**New Game!** Playing **${obj.game}**. `;

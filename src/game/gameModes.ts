@@ -69,3 +69,8 @@ export const getModeAndPlayers = (players: Player[], gameObject, options, paramO
 		balanceTeams(playerList, game, gameObject, skipServer);
 	});
 }
+
+export const gameIsCS = gameName => gameName === 'cs' || gameName === 'cs1v1';
+export const gameIsCSMain = gameName => gameName === 'cs';
+export const gameIsDota = gameName => gameName === 'dota' || gameName === 'dota1v1';
+export const gameIsTest = gameName => gameName === 'test';

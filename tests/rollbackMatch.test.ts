@@ -1,14 +1,12 @@
 'use strict';
 // Author: Petter Andersson
 
+/*
 import { assert } from 'chai';
 const { getConfig } = require('../src/tools/load-environment');
 const { getAllUsers, initializeDBSequelize, getPersonalStats } = require("../src/database/db_sequelize");
 const player_js = require('../src/game/player');
-const rewire = require('rewire');
-const db_sequelize = rewire('../src/database/db_sequelize');
-const DatabaseSequelize = db_sequelize.__get__('DatabaseSequelize');
-const rollbackMatch = db_sequelize.__get__('rollbackMatch');
+import { DatabaseSequelize, rollbackMatch } from '../src/database/db_sequelize';
 
 const foo = (uid, userName, mmr, game, gamesPlayed = 0) => {
   const s = `INSERT INTO ratings (uid, gameName, userName, mmr, gamesPlayed, wins) VALUES ("${uid}","${game}","${userName}",${mmr},${gamesPlayed},0);`;
@@ -37,3 +35,4 @@ describe('migration', () => {
     }).timeout(30000);
   })
 });
+*/
