@@ -9,7 +9,8 @@ import * as f from '../tools/f';
 import { cancelGameCSServer } from '../csserver/cs_console';
 import { GuildMember, Message } from 'discord.js';
 import { Player } from './player';
-import { gameIsCS } from './gameModes';
+import { gameIsCS, gameIsDota, gameIsTest } from './gameModes';
+import { cancelMatch } from '../dota/socketClient';
 
 interface IOptionalParameters extends Omit<Partial<Game>, 'gameID' | 'channelMessage'> {
   // Type used for constructor
@@ -235,6 +236,7 @@ export const getGame = author => Game.activeGames.find(game => {
 });
 
 export const getGameByGameId = (gameId: string): Game => {
+  console.log('@Debug getGamebyGameId:', Game.activeGames);
   return Game.activeGames.find(game => {
     return game.gameID === gameId;
   });
@@ -308,6 +310,8 @@ export const cleanOnGameEnd = (gameObject) => {
       console.log('@cleanOnGameEnd GameName:', gameName);
       if (gameIsCS(gameName)) {
         cancelGameCSServer(gameObject);
+      } else if (gameIsDota(gameName) || gameIsTest(gameName)) {
+        cancelMatch(); // Verify
       }
       // Clear csserver interval listeners
       clearIntervals(gameObject);

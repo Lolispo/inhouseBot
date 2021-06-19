@@ -4,7 +4,7 @@ import { Player } from "./player";
 
 // Default choices is the first indexed mode
 export const modesGame = ['cs', 'dota', 'valorant', 'test'];
-export const modes1v1 = ['cs1v1', 'dota1v1'];
+export const modes1v1 = ['cs1v1', 'dota1v1', 'test1v1'];
 export const modesRatings = ['trivia', 'trivia_temp']; // Trivia temp is used for ongoing games
 
 
@@ -17,7 +17,7 @@ export const getActiveGameModes = () => {
   const array = modesGame.slice();
   array.splice(modesGame.indexOf('test'), 1);
   array.splice(modesGame.indexOf('valorant'), 1);
-  return ['dota'];
+  return ['dota']; // Dota is default
 }
 
 export const getGameModes1v1 = function () {
@@ -46,7 +46,7 @@ export const ratingOrMMR = function (game) {
 export const getModeChosen = (options, modeCategory, defaultGame = null) => {
 	let game = defaultGame; // default command (Either cs or cs1v1)
 	for (let i = 1; i < options.length; i++){
-		if (modeCategory.includes(options[i])) {
+		if (modeCategory.includes(options[i]) || modeCategory.includes(options[i] + '1v1')) {
 			console.log('DEBUG @b Game chosen as: ' + options[i]);
 			game = options[i];
 			break;
@@ -58,12 +58,13 @@ export const getModeChosen = (options, modeCategory, defaultGame = null) => {
 export const getModeAndPlayers = (players: Player[], gameObject, options, paramOptions: string[]) => {
 	const { message, allModes } = options;
 	let game;
+	let skipServer;
 	if (!message && !allModes) {
 		game = options.game;
 	} else {
 		game = getModeChosen(paramOptions, allModes, allModes[0]);
 	}
-	const skipServer = paramOptions.includes('noserver');
+	skipServer = paramOptions.includes('noserver'); // Fix so default game does get noserver TODO
 	// console.log('getModeAndPlayers', game);
 	initializePlayers(players, game, (playerList: Player[]) => {
 		balanceTeams(playerList, game, gameObject, skipServer);
@@ -73,4 +74,4 @@ export const getModeAndPlayers = (players: Player[], gameObject, options, paramO
 export const gameIsCS = gameName => gameName === 'cs' || gameName === 'cs1v1';
 export const gameIsCSMain = gameName => gameName === 'cs';
 export const gameIsDota = gameName => gameName === 'dota' || gameName === 'dota1v1';
-export const gameIsTest = gameName => gameName === 'test';
+export const gameIsTest = gameName => gameName === 'test' || gameName === 'test1v1';

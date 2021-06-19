@@ -25,9 +25,13 @@ export const configureSocket = () => {
   socket.on('SPLIT_DISCORD', () => {
     // Split teams
     const gameId = ConnectDotaAction.getGameId();
-    console.log('@MATCH FINISHED GAMEID:', gameId);
+    console.log('@MATCH GAMEID:', gameId);
     const gameObject = getGameByGameId(ConnectDotaAction.getGameId());
-    split(gameObject.getChannelMessage(), [], gameObject.getBalanceInfo(), gameObject.getActiveMembers());
+    try {
+      split(gameObject.getChannelMessage(), [], gameObject.getBalanceInfo(), gameObject.getActiveMembers());
+    } catch (e) {
+      console.error('Failed to split: GameObject not initialized:', gameObject);
+    }
   });
 
   socket.on('MATCH', (whoWon: ITeamWon, matchId: string) => {
@@ -45,17 +49,21 @@ export const configureSocket = () => {
     const gameId = ConnectDotaAction.getGameId();
     console.log('@MATCH FINISHED GAMEID:', gameId);
     const gameObject = getGameByGameId(ConnectDotaAction.getGameId());
-    unite(gameObject.getChannelMessage(), [], gameObject.getActiveMembers());
-    const winner = DotaBotResultTranslate(gameResult);
-    if (winner) {
-      console.log('@Updating MMR after bot results:', winner);
-      updateMMR(winner, gameObject, (message) => {
-        console.log('DEBUG @callbackGameFinished - Calls on exit after delete on this message');
-        deleteDiscMessage(message, removeBotMessageDefaultTime * 4, 'gameFinished');
-        cleanOnGameEnd(gameObject);
-      });
-    } else {
-      console.error('Unknown result returned by the Dota bot:', winner, gameResult, matchId);
+    try {
+      unite(gameObject.getChannelMessage(), [], gameObject.getActiveMembers());
+      const winner = DotaBotResultTranslate(gameResult);
+      if (winner) {
+        console.log('@Updating MMR after bot results:', winner);
+        updateMMR(winner, gameObject, (message) => {
+          console.log('DEBUG @callbackGameFinished - Calls on exit after delete on this message');
+          deleteDiscMessage(message, removeBotMessageDefaultTime * 4, 'gameFinished');
+          cleanOnGameEnd(gameObject);
+        });
+      } else {
+        console.error('Unknown result returned by the Dota bot:', winner, gameResult, matchId);
+      }
+    } catch (e) {
+      console.error('Failed to get game results:', gameObject);
     }
   });
 }
