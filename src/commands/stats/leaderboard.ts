@@ -9,12 +9,10 @@ export const leaderBoardAction = async (message, options) => {
   if (options.length >= 2) { // TODO: Test 1
     let num;
     for (let i = 0; i < options.length; i++) {
-      try {
-        num = parseInt(options[i]);
-        size = num > 0 && num <= 100 ? num : 5;
-      } catch (e) {
-        // Do nothing
-      }
+      num = parseInt(options[i]);
+      if (isNaN(num)) continue;
+      size = num > 0 && num <= 100 ? num : 5;
+      break;
     }
   }
   const data = await getHighScore(game, size);
