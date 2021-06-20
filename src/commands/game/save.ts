@@ -6,7 +6,7 @@ import { print } from "../../tools/f";
 const loadCommands = ['save']
 
 export class SaveAction extends BaseCommandClass {
-  static instance: SaveAction = new SaveAction(loadCommands, false);
+  static instance: SaveAction = new SaveAction(loadCommands, { isActive: false });
 
   action = (message: Message, options: string[]) => {
     const gameObject = getGame(message.author);
@@ -19,6 +19,6 @@ export class SaveAction extends BaseCommandClass {
   }
 
   help = () => {
-    return '**' + this.commands.toString().replace(/,/g, ' | ') + ' Save current game to file\n';
+    return '**' + this.commands.toString().replace(/,/g, ' | ') + '** Save current game to file';
   }
 }

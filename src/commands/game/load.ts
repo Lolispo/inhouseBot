@@ -6,7 +6,7 @@ import { print } from "../../tools/f";
 const loadCommands = ['load']
 
 export class LoadAction extends BaseCommandClass {
-  static instance: LoadAction = new LoadAction(loadCommands, false);
+  static instance: LoadAction = new LoadAction(loadCommands, { isActive: false });
 
   action = async (message: Message, options: string[]) => {
     const game = await loadFromFile();
@@ -15,6 +15,6 @@ export class LoadAction extends BaseCommandClass {
   }
 
   help = () => {
-    return '**' + this.commands.toString().replace(/,/g, ' | ') + ' Load game from file\n';
+    return '**' + this.commands.toString().replace(/,/g, ' | ') + '** Load game from file';
   }
 }

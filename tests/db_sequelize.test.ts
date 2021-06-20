@@ -128,8 +128,15 @@ describe('db_sequelize', () => {
     })
   })
   describe('bestTeammates', () => {
+    const game = 'dota';
+    const uid = '96293765001519104';
     it('bestTeammates', async () => {
-      // const res = await bestTeammates(test_id, test_game);
+      const res = await bestTeammates(uid, game);
+      console.log('@test res:', res);
+    })
+    it('bestTeammates', async () => {
+      const res = await bestTeammates('123', game);
+      console.log('@test res:', res);
     })
   })
   after(async () => {

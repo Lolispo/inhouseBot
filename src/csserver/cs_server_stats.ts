@@ -197,7 +197,7 @@ const buildMapStatsMessage = (mapTeam) => {
       } = player;
       const adr = Math.floor(player.damage / player.roundsplayed); // + ' DPR';
       const hsPercentage = (parseInt(player.headshot_kills) || 0) / kills;
-      const hsPerc = Math.floor((Number(hsPercentage.toFixed(2)) * 100));
+      const hsPerc = f.prettifyPercentage(hsPercentage);
       const {
         firstkill_t, firstdeath_t, firstkill_ct, firstdeath_ct,
       } = player;

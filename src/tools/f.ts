@@ -21,6 +21,12 @@ export const isUndefined = function (obj) {
   return (typeof obj === 'undefined');
 };
 
+export const prettifyPercentage = (value) => Math.floor((Number(value.toFixed(2)) * 100));
+
+export const padString = (value, expectedMaxLength = '100%'.length) => {
+  return value + ' '.repeat(expectedMaxLength - String(value).length);
+}
+
 // Used to print message in channel, use for every use of channel.send for consistency
 // Returns promise for use in async functions
 export const print = function (messageVar, message, callback = callbackPrintDefault) {

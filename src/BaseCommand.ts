@@ -2,26 +2,31 @@ import { Message } from "discord.js";
 import { getPrefix } from "./tools/load-environment";
 
 interface BaseCommandOptions {
-  extenderSetsPrefix?: boolean;
-  name: string;
+  isActive?: boolean;
+  matchMode?: number;
+  extenderSetsPrefix?: boolean; // Take commands raw, more customization
+  name?: string;
 }
 
 export abstract class BaseCommandClass {
-  name: string;
-  commands: string[];
+  name: string = this.constructor.name;
+  commands: string[];       // Commands to use this action
+  matchMode: number = 0;    // 0 => Exact match, 1 => options available
+  isActive: boolean = true;
 
-  constructor(commands, public isActive: boolean = true, public matchMode: number = 0, options?: BaseCommandOptions) {
+  constructor(commands: string[], options?: BaseCommandOptions) {
+    // Add commands
     if (options?.extenderSetsPrefix) {
-      // Take commands raw, more customization
-      this.commands = commands;
-    } else {
-      // console.log('debug', getPrefix(), commands);
+      this.commands = commands; // Prefix is set by extender
+    } else { // Append prefix to all commands
       this.commands = commands.map(command => getPrefix() + command);
     }
-    if (options?.name) {
-      this.name = options.name;
-    } else {
-      this.name = this.constructor.name;
+    // Save optional arguments
+    if (options) {
+      const { isActive, name, matchMode } = options;
+      if (name) this.name = name;
+      if (isActive) this.isActive = isActive;
+      if (matchMode) this.matchMode = matchMode;
     }
   }
 
@@ -31,7 +36,7 @@ export abstract class BaseCommandClass {
     if (this.matchMode === 0) {
       return this.commands.includes(message.content);
     } else if (this.matchMode === 1) {
-      startsWith(message, this.commands)
+      return startsWith(message, this.commands);
     } else {
       console.error('Invalid match mode provided!', this.name);
     }

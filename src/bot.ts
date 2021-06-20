@@ -21,7 +21,6 @@ import { getCsIp } from './csserver/server_info';
 import { cleanOnGameEnd } from './game/game';
 import { getGameStats } from './csserver/cs_server_stats';
 
-import { lastGameCommands, lastGameAction } from './commands/stats/lastGame';
 import { rollAction, rollCommands } from './commands/memes/roll';
 import { GuildMember, Message, MessageReaction, ReactionUserManager, TextChannel, User, VoiceChannel } from 'discord.js';
 import { triviaStartCommand } from './commands/trivia/triviaCommand';
@@ -29,7 +28,6 @@ import { pingAction } from './commands/memes/ping';
 import { statsAction } from './commands/stats/stats';
 import { leaderBoardAction } from './commands/stats/leaderboard';
 import { getAllModes, getGameModes, getGameModes1v1, getModeAndPlayers } from './game/gameModes';
-import { temperatureCheckCommand } from './commands/game/temperatureCheck';
 import { allAvailableCommands, buildStringHelpAllCommands } from './mainCommand';
 import { startsWith } from './BaseCommand';
 
@@ -61,9 +59,6 @@ const triviaModesCommands = [prefix + 'modestrivia', prefix + 'helptrivia'];
 const leaderboardCommands = [prefix + 'leaderboard'];
 const statsCommands = [prefix + 'stats'];
 const exitCommands = [prefix + 'exit', prefix + 'clear', prefix + 'e'];
-const duelCommands = [prefix + 'duel'];
-const challengeCommands = [prefix + 'challenge'];
-const queueCommands = [prefix + 'soloqueue', prefix + 'queue'];
 const lennyCommands = ['lenny', 'lennyface', prefix + 'lenny', prefix + 'lennyface'];
 const csServerCommands = [prefix + 'praccserver', prefix + 'server', prefix + 'csserver'];
 const pingCommands = [prefix + 'ping'];
@@ -71,7 +66,6 @@ const connectSteamCommands = [prefix + 'connectsteam', prefix+'connectsteamid'];
 const steamidCommands = [prefix + 'getsteamid', prefix + 'steamid'];
 const getMatchResultCommand = [prefix + 'getresult', prefix + 'getmatchresult'];
 const playerStatusCommands = [prefix + 'playersstatus'];
-const temperatureCheckCommands = [prefix + 'temperature', prefix + 'daily', prefix + 'temperaturecheck', prefix + 'temp']
 
 // Handle Discord Event Message
 export const discordEventMessage = (message: Message) => {
@@ -195,6 +189,7 @@ const handleMessage = async (message: Message) => {
 		if (command.isThisCommand(message)) {
 			command.action(message, options);
 			didAnAction = true;
+			f.deleteDiscMessage(message, 30000, command.name);
 		}
 	}
 
@@ -248,7 +243,7 @@ const handleMessage = async (message: Message) => {
 		f.deleteDiscMessage(message, 10000, 'helpAll');
 	}
 	// Start game, through balance or Duel, balance for 2 players
-	else if (startsWith(message, balanceCommands) || startsWith(message, duelCommands)){
+	else if (startsWith(message, balanceCommands)){
 		balanceCommand(message, options);
 	}
 	
@@ -275,11 +270,6 @@ const handleMessage = async (message: Message) => {
 		statsAction(message, options);
 		f.deleteDiscMessage(message, 15000, 'stats');
 	}
-	
-	else if (startsWith(message, temperatureCheckCommands)){
-		temperatureCheckCommand(message, options);
-		f.deleteDiscMessage(message, 15000, 'temperatureCheck');
-	}
 
 	// Used for tests
 	else if (exitCommands.includes(message.content)){
@@ -294,10 +284,6 @@ const handleMessage = async (message: Message) => {
 	else if (startsWith(message, uniteAllCommands)){
 		voiceMove_js.uniteAll(message, options);
 		f.deleteDiscMessage(message, 15000, 'ua');
-	} 
-	else if (startsWith(message, lastGameCommands)){
-		lastGameAction(message, options);
-		f.deleteDiscMessage(message, 15000, 'lastGame');
 	} 
 	// Active Game commands: (After balance is made)
 	else if (isActiveGameCommand(message)) {
@@ -648,7 +634,6 @@ function buildHelpString(userID, messageNum){
 		s += '**' + uniteCommands.toString().replace(/,/g, ' | ') + ' [channel]** Unite voice chat after game\n';
 		s += '**' + uniteAllCommands.toString().replace(/,/g, ' | ') + ' [channel]** Unite all users active in voice to same channel\n';
 		s += '**' + mapvetostartCommands.toString().replace(/,/g, ' | ') + '** Starts a map veto (*cs only*)\n';
-		s += '**' + duelCommands.toString().replace(/,/g, ' | ') + '** Starts a duel, a 1v1 match between 2 people\n';
 		if (adminUids.includes(userID)){
 			s += '**' + exitCommands.toString().replace(/,/g, ' | ') + '** *Admin Command* Clear all messages, exit games, prepares for restart\n';
 		}
@@ -692,11 +677,10 @@ function buildHelpString(userID, messageNum){
 		s += '**' + uniteAllCommands.toString().replace(/,/g, ' | ') + ' [channel]** Unite all users active in voice to same channel\n'
 			+ '**[channel]** Opt. argument: name of channel to unite in\n\n';
 		s += '**' + mapvetostartCommands.toString().replace(/,/g, ' | ') + '** Starts a map veto (*cs only*)\n\n';
-		s += '**' + duelCommands.toString().replace(/,/g, ' | ') + '** Starts a duel, a 1v1 match between 2 people\n'
-			+ 'If only two people are in voiceChannel, start duel between them.\n';
 			/*
 			+ '**[player]** Required if more than 2 players in voiceChannel. Person who is challenged\n'
 			+ '**[game]** Opt. argument: name of the game being played. Available games are [' + player_js.getGameModes1v1() + ']\n\n';*/
+		s += buildStringHelpAllCommands();
 		return s;	
 	}
 }

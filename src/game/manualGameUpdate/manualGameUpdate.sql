@@ -52,6 +52,7 @@ The Edgy Spicy Meatballs:
     livaitan (2626 mmr, 2601 +25)
     Robin (2275 mmr, 2250 +25)
     Jimi (2275 mmr, 2250 +25)
+MATCHID: 180
 
     @MATCHFINISHED { whoWon: 'Dire', matchid: 6049611222 }
 @MATCH FINISHED GAMEID: 855888058045825095
@@ -65,34 +66,33 @@ SELECT users.uid, users.userName, ratings.mmr FROM users LEFT JOIN ratings ON us
 
 
 
-+--------------------+-------------------+------+
-| 107205764044599296 | Xavantex          | 2776 |
-| 149244631010377728 | Knas              | 2749 |
-| 96306231043432448  | Lacktjo           | 2501 |
-| 97026023387848704  | Cheesedad         | 2475 |
-| 175001994321330177 | Gaggg             | 2275 |
-+--------------------+-------------------+------+
-| 150517088295976960 | CATKNIFE          | 2601 |
-| 96293765001519104  | Petter            | 2899 |
-| 307653218031239168 | livaitan          | 2451 |
-| 96941150824329216  | Von Dobblen       | 2450 |
-| 151085266885410818 | Lucky Luke        | 2375 |
-+--------------------+-------------------+------+
-
-
 
 +--------------------+-------------------+------+
-| 107205764044599296 | Xavantex          | 2751 |
-| 149244631010377728 | Knas              | 2724 |
-| 96306231043432448  | Lacktjo           | 2476 |
-| 97026023387848704  | Cheesedad         | 2450 |
-| 175001994321330177 | Gaggg             | 2250 |
-+--------------------+-------------------+------+
+| 107205764044599296 | Xavantex          | 2626 |
+| 96272337585831936  | Spoder            | 2551 |
+| 96941150824329216  | Von Dobblen       | 2425 |
+| 209047905909080065 | Samev             | 2299 |
 | 150517088295976960 | CATKNIFE          | 2626 |
++--------------------+-------------------+------+
+| 149244631010377728 | Knas              | 2849 |
+| 96293765001519104  | Petter            | 2949 |
+| 307653218031239168 | livaitan          | 2626 |
+| 356184240859250698 | ErjanDaMan        | 2250 |
+| 96378638261317632  | Robin             | 2225 |
++--------------------+-------------------+------+
+
++--------------------+-------------------+------+
+| 107205764044599296 | Xavantex          | 2651 |
+| 96272337585831936  | Spoder            | 2576 |
+| 96941150824329216  | Von Dobblen       | 2450 |
+| 209047905909080065 | Samev             | 2324 |
+| 150517088295976960 | CATKNIFE          | 2651 |
++--------------------+-------------------+------+
+| 149244631010377728 | Knas              | 2824 |
 | 96293765001519104  | Petter            | 2924 |
-| 307653218031239168 | livaitan          | 2476 |
-| 96941150824329216  | Von Dobblen       | 2475 |
-| 151085266885410818 | Lucky Luke        | 2400 |
+| 307653218031239168 | livaitan          | 2601 |
+| 356184240859250698 | ErjanDaMan        | 2225 |
+| 96378638261317632  | Robin             | 2200 |
 +--------------------+-------------------+------+
 
 
@@ -115,6 +115,9 @@ INSERT INTO playerMatches (mid, uid, team, mmrChange) VALUES (157, "307653218031
 INSERT INTO playerMatches (mid, uid, team, mmrChange) VALUES (157, "96941150824329216", 2, 25);
 INSERT INTO playerMatches (mid, uid, team, mmrChange) VALUES (157, "151085266885410818", 2, 25);
 
+/*
+DELETE FROM playerMatches WHERE mid = 180;
+*/
 
 UPDATE ratings SET mmr = ?, gamesPlayed = gamesPlayed + 1, wins = wins + 1 WHERE uid = ? AND gameName = ?; 
 /*
@@ -126,30 +129,44 @@ UPDATE ratings SET mmr = ?, gamesPlayed = gamesPlayed + 1 WHERE userName = ? AND
 
 
 +--------------------+-------------------+------+
-| 107205764044599296 | Xavantex          | 2751 |
-| 149244631010377728 | Knas              | 2724 |
-| 96306231043432448  | Lacktjo           | 2476 |
-| 97026023387848704  | Cheesedad         | 2450 |
-| 175001994321330177 | Gaggg             | 2250 |
+| 107205764044599296 | Xavantex          | 2651 |
+| 96272337585831936  | Spoder            | 2576 |
+| 96941150824329216  | Von Dobblen       | 2450 |
+| 209047905909080065 | Samev             | 2324 |
+| 150517088295976960 | CATKNIFE          | 2651 |
 +--------------------+-------------------+------+
-| 150517088295976960 | CATKNIFE          | 2626 |
+| 149244631010377728 | Knas              | 2824 |
 | 96293765001519104  | Petter            | 2924 |
-| 307653218031239168 | livaitan          | 2476 |
-| 96941150824329216  | Von Dobblen       | 2475 |
-| 151085266885410818 | Lucky Luke        | 2400 |
+| 307653218031239168 | livaitan          | 2601 |
+| 356184240859250698 | ErjanDaMan        | 2225 |
+| 96378638261317632  | Robin             | 2200 |
 +--------------------+-------------------+------+
 
 UPDATE ratings SET mmr = "2751", gamesPlayed = gamesPlayed + 1 WHERE uid = "107205764044599296" AND gameName = "dota"; 
-UPDATE ratings SET mmr = "2724", gamesPlayed = gamesPlayed + 1 WHERE uid = "149244631010377728" AND gameName = "dota"; 
-UPDATE ratings SET mmr = "2476", gamesPlayed = gamesPlayed + 1 WHERE uid = "96306231043432448" AND gameName = "dota"; 
-UPDATE ratings SET mmr = "2450", gamesPlayed = gamesPlayed + 1 WHERE uid = "97026023387848704" AND gameName = "dota"; 
-UPDATE ratings SET mmr = "2250", gamesPlayed = gamesPlayed + 1 WHERE uid = "175001994321330177" AND gameName = "dota"; 
+UPDATE ratings SET mmr = "2724", gamesPlayed = gamesPlayed + 1 WHERE uid = "96272337585831936" AND gameName = "dota"; 
+UPDATE ratings SET mmr = "2476", gamesPlayed = gamesPlayed + 1 WHERE uid = "96941150824329216" AND gameName = "dota"; 
+UPDATE ratings SET mmr = "2450", gamesPlayed = gamesPlayed + 1 WHERE uid = "209047905909080065" AND gameName = "dota"; 
+UPDATE ratings SET mmr = "2250", gamesPlayed = gamesPlayed + 1 WHERE uid = "150517088295976960" AND gameName = "dota"; 
 
-UPDATE ratings SET mmr = "2626", gamesPlayed = gamesPlayed + 1, wins = wins + 1 WHERE uid = "150517088295976960" AND gameName = "dota"; 
+UPDATE ratings SET mmr = "2626", gamesPlayed = gamesPlayed + 1, wins = wins + 1 WHERE uid = "149244631010377728" AND gameName = "dota"; 
 UPDATE ratings SET mmr = "2924", gamesPlayed = gamesPlayed + 1, wins = wins + 1 WHERE uid = "96293765001519104" AND gameName = "dota"; 
 UPDATE ratings SET mmr = "2476", gamesPlayed = gamesPlayed + 1, wins = wins + 1 WHERE uid = "307653218031239168" AND gameName = "dota"; 
-UPDATE ratings SET mmr = "2475", gamesPlayed = gamesPlayed + 1, wins = wins + 1 WHERE uid = "96941150824329216" AND gameName = "dota"; 
-UPDATE ratings SET mmr = "2400", gamesPlayed = gamesPlayed + 1, wins = wins + 1 WHERE uid = "151085266885410818" AND gameName = "dota"; 
+UPDATE ratings SET mmr = "2475", gamesPlayed = gamesPlayed + 1, wins = wins + 1 WHERE uid = "356184240859250698" AND gameName = "dota"; 
+UPDATE ratings SET mmr = "2400", gamesPlayed = gamesPlayed + 1, wins = wins + 1 WHERE uid = "96378638261317632" AND gameName = "dota"; 
+
+
+UPDATE ratings SET mmr = "2651", gamesPlayed = gamesPlayed - 1 WHERE uid = "107205764044599296" AND gameName = "dota"; 
+UPDATE ratings SET mmr = "2576", gamesPlayed = gamesPlayed - 1 WHERE uid = "96272337585831936" AND gameName = "dota"; 
+UPDATE ratings SET mmr = "2450", gamesPlayed = gamesPlayed - 1 WHERE uid = "96941150824329216" AND gameName = "dota"; 
+UPDATE ratings SET mmr = "2324", gamesPlayed = gamesPlayed - 1 WHERE uid = "209047905909080065" AND gameName = "dota"; 
+UPDATE ratings SET mmr = "2651", gamesPlayed = gamesPlayed - 1 WHERE uid = "150517088295976960" AND gameName = "dota"; 
+
+UPDATE ratings SET mmr = "2824", gamesPlayed = gamesPlayed - 1, wins = wins - 1 WHERE uid = "149244631010377728" AND gameName = "dota"; 
+UPDATE ratings SET mmr = "2924", gamesPlayed = gamesPlayed - 1, wins = wins - 1 WHERE uid = "96293765001519104" AND gameName = "dota"; 
+UPDATE ratings SET mmr = "2601", gamesPlayed = gamesPlayed - 1, wins = wins - 1 WHERE uid = "307653218031239168" AND gameName = "dota"; 
+UPDATE ratings SET mmr = "2225", gamesPlayed = gamesPlayed - 1, wins = wins - 1 WHERE uid = "356184240859250698" AND gameName = "dota"; 
+UPDATE ratings SET mmr = "2200", gamesPlayed = gamesPlayed - 1, wins = wins - 1 WHERE uid = "96378638261317632" AND gameName = "dota"; 
+/*
 /*
 OLD: UPDATE ratings SET mmr = "2650", gamesPlayed = gamesPlayed + 1 WHERE userName = "Petter" AND gameName = "dota"; 
 */

@@ -90,10 +90,6 @@ Re-add dathost integraton
     Move server_info.js to env variables
     Add more documentation on where to fetch env variables
 
-Investigate unable to hear each other when split / uniting channels
-    editGuildMember seems to have a limit of 10 - investigate if side effect of this limit is that you are connected to the channel 
-     in a weird way. Further investigation needed
-
 FIX BUG: New players added foreign key constraint
     Fixed?
 
@@ -122,8 +118,6 @@ Fix double mmr
     DB_sequelize rollback functionality
 
 ## Prio
-
-Merge "improve-stats" branch
 
 Rollback fix
 

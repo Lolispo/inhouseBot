@@ -531,7 +531,7 @@ export const createMatch = async (result, balanceInfo: IBalanceInfo, mmrChange: 
 		...(map && { mapName: map }),
 		...(scoreString && { score: scoreString })
 	})
-	console.log('Res:', map, scoreString, resultDB);
+	console.log('Res:', map ? map : '', scoreString ? scoreString : '', resultDB);
 	const mid = resultDB.dataValues.mid;
 	await storePlayerResults(team1, 1, mmrChange.t1, mid, stats);
 	await storePlayerResults(team2, 2, mmrChange.t2, mid, stats);
@@ -595,65 +595,73 @@ export const rollbackMatch = async (mid) => {
 }
 
 // Get Winrate playing with other players
-export const bestTeammates = async (uid, game) => {
-	// Fetch all games you have played
-	// TODO: Create views to help query speeds
-	// Use joins?
-	// Use mmrChange field on playerMatches
+
+export interface Statistics { 
+	wins: number, 
+	losses: number, 
+	winRate?: number,
+	gamesPlayed?: number,
+	uid?: string, 
+	userName?: string };
+export const bestTeammates = async (uid, game): Promise<Statistics[]> => {
+	/**
+		Query sandbox:
+		SELECT * FROM matches WHERE mid IN (SELECT mid FROM playerMatches WHERE uid = "96293765001519104") AND gameName = "dota";
+		[  71 ,  72 ,  73 ,  74 ,  75 ,  76 ,  77 ,  78 ,  79 ,  80 ,  81 ,  82 ,  83 ,  84 ,  85 ,  86 ,  87 ,  88 ,  89 ,  90 ,  91 ,  93 ,  94 ,  95 ,  96 ,  97 ,  98 ,  99 , 100 , 101 , 102 , 103 , 104 , 105 , 110 , 111 , 112 , 116 , 117 , 118 , 119 , 120 , 122 , 123 , 124 , 125 , 126 , 127 , 128 , 129 , 130 , 131 , 132 , 133 , 134 , 135 , 136 , 137 , 140 , 141 , 142 , 143 , 144 , 145 , 148 , 149 , 150 , 152 , 153 , 154 , 155 , 156 , 157 , 158 , 159 , 160 , 161 , 162 , 163 , 164 , 179 , 181 , 182 ]
+		SELECT * FROM playerMatches WHERE mid IN (71 ,  72 ,  73 ,  74 ,  75 ,  76 ,  77 ,  78 ,  79 ,  80 ,  81 ,  82 ,  83 ,  84 ,  85 ,  86 ,  87 ,  88 ,  89 ,  90 ,  91 ,  93 ,  94 ,  95 ,  96 ,  97 ,  98 ,  99 , 100 , 101 , 102 , 103 , 104 , 105 , 110 , 111 , 112 , 116 , 117 , 118 , 119 , 120 , 122 , 123 , 124 , 125 , 126 , 127 , 128 , 129 , 130 , 131 , 132 , 133 , 134 , 135 , 136 , 137 , 140 , 141 , 142 , 143 , 144 , 145 , 148 , 149 , 150 , 152 , 153 , 154 , 155 , 156 , 157 , 158 , 159 , 160 , 161 , 162 , 163 , 164 , 179 , 181 , 182);
+		SELECT B.uid, userName, B.mmrChange FROM playerMatches AS A LEFT JOIN playerMatches AS B ON A.mid = B.mid LEFT JOIN users ON B.uid = users.uid WHERE A.uid = "96293765001519104" AND B.uid != "96293765001519104" AND A.team = B.team AND A.mid IN (71 ,  72 ,  73 ,  74 ,  75 ,  76 ,  77 ,  78 ,  79 ,  80 ,  81 ,  82 ,  83 ,  84 ,  85 ,  86 ,  87 ,  88 ,  89 ,  90 ,  91 ,  93 ,  94 ,  95 ,  96 ,  97 ,  98 ,  99 , 100 , 101 , 102 , 103 , 104 , 105 , 110 , 111 , 112 , 116 , 117 , 118 , 119 , 120 , 122 , 123 , 124 , 125 , 126 , 127 , 128 , 129 , 130 , 131 , 132 , 133 , 134 , 135 , 136 , 137 , 140 , 141 , 142 , 143 , 144 , 145 , 148 , 149 , 150 , 152 , 153 , 154 , 155 , 156 , 157 , 158 , 159 , 160 , 161 , 162 , 163 , 164 , 179 , 181 , 182) ORDER BY uid;
+		SELECT B.uid, B.mmrChange FROM playerMatches A, playerMatches B WHERE A.mid = B.mid AND A.uid = ? AND B.uid != ? AND A.team = B.team AND A.mid IN (?) ORDER BY uid;
+	 */
 	const matchQuery = 'SELECT * FROM matches WHERE mid IN (SELECT mid FROM playerMatches WHERE uid = ?) AND gameName = ?;'
 	const matches = await DatabaseSequelize.instance.sequelize.query(matchQuery, 
 	{ 
 		replacements: [uid, game],
 		type: Sequelize.QueryTypes.SELECT 
 	});
-	console.log('@bestTeammates: matches:', matches.dataValues);
-	const mids = matches.dataValues.map(entry => entry.mid);
-	const playersSameMatchQuery = 'SELECT * FROM playerMatches WHERE mid IN (?);';
-	const playersSameMatch = await DatabaseSequelize.instance.sequelize.query(playersSameMatchQuery, 
+	// console.log('@bestTeammates: matches:', matches);
+	const mids = matches.map(entry => entry.mid);
+	if (mids.length === 0) return;
+	const playersSameMatchQuery = 'SELECT B.uid, userName, B.mmrChange FROM playerMatches AS A LEFT JOIN playerMatches AS B ON A.mid = B.mid LEFT JOIN users ON B.uid = users.uid WHERE A.uid = ? AND B.uid != ? AND A.team = B.team AND A.mid IN (?) ORDER BY uid;';
+	const playersSameMatch: [{ uid: string, userName: string, mmrChange: number }] = await DatabaseSequelize.instance.sequelize.query(playersSameMatchQuery, 
 	{ 
-		replacements: [mids],
+		replacements: [uid, uid, mids],
 		type: Sequelize.QueryTypes.SELECT 
 	});
-	console.log('@bestTeammates: players same match:', playersSameMatch.dataValues);
-	const map = {}; // track of winrates
-	matches.dataValues.forEach(async (match) => {
-		const playerTeamQuery = 'SELECT team FROM playerMatches WHERE mid = ? AND uid = ?;'
-		const playerTeam = await DatabaseSequelize.instance.sequelize.query(playerTeamQuery, 
-		{ 
-			replacements: [match.mid, uid],
-			type: Sequelize.QueryTypes.SELECT 
-		});
-		const team = playerTeam.dataValues.team;
-		const teammateQuery = 'SELECT uid FROM playerMatches WHERE mid = ? AND uid != ? AND team = ?';
-		const teammates = await DatabaseSequelize.instance.sequelize.query(teammateQuery, 
-		{ 
-			replacements: [match.mid, uid, team],
-			type: Sequelize.QueryTypes.SELECT 
-		});
-		teammates.dataValues.map(teammate => teammate.uid).forEach((teammateUid) => {
-			if (!map[teammateUid]) {
-				map[teammateUid] = {
-					wins: 0,
-					losses: 0,
-					ties: 0,
-					totalMatches: 0,
-				}
-			}
-			const matchResult = match.result;
-			if ((matchResult === 1 && team === 1) || (matchResult === 2 && team === 2)) {
-				// Win
-			} else if ((matchResult === 1 && team === 2) || (matchResult === 2 && team === 1)) {
-				// Loss
-				
-			} else { // Tie
 
+	// console.log('@bestTeammates: players same match:', playersSameMatch);
+	const resultMap: { [uid: string]: Statistics} = {}; // track of winrates
+	playersSameMatch.map(player => {
+		if (!resultMap[player.uid]) {
+			resultMap[player.uid] = {
+				losses: 0,
+				wins: 0
 			}
-			// Update map[teammateUid] with results
-		});
+		}
+		const mmrChange = player.mmrChange;
+		resultMap[player.uid].uid = player.uid;
+		resultMap[player.uid].userName = player.userName;
+		if (mmrChange > 0) {
+			resultMap[player.uid].wins += 1;
+		} else if (mmrChange < 0) {
+			resultMap[player.uid].losses += 1;
+		}
 	})
+	// Calculate winrates
+	let resultArray: Statistics[] = [];
+	Object.keys(resultMap).map(key => {
+		const value: Statistics = resultMap[key];
+		const { wins, losses } = value
+		resultMap[key].gamesPlayed = wins + losses;
+		resultMap[key].winRate = wins / (wins + losses);
+		resultArray.push(resultMap[key]);
+	})
+	resultArray.sort((a, b) => {
+		return b.winRate - a.winRate;
+	})
+	return resultArray;
 }
 
-// TODO: Returns last played game
+// Returns last played game
 export const lastGame = async (uid, game = null) => {
 	/*const mid = `SELECT * FROM matches LEFT JOIN playerMatches ON matches.mid = playerMatches.mid WHERE playerMatches.mid = 
 	SELECT userName, result, gameName, mapName, score, updatedAt, playerMatches.mid, mmrChange, team1Name, team2Name, team FROM matches LEFT JOIN playerMatches ON matches.mid = playerMatches.mid LEFT JOIN users ON users.uid = playerMatches.uid WHERE playerMatches.mid = (SELECT playerMatches.mid FROM playerMatches LEFT JOIN matches ON playerMatches.mid = matches.mid WHERE uid = ? ORDER BY mid DESC LIMIT 1) ORDER BY team;

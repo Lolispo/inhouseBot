@@ -5,10 +5,11 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
-    "test": "check-node-version --node \">= 14\" && mocha -r ts-node/register tests/*.test.ts --exit",
+    "test": "check-node-version --node \">= 14\" && mocha -r ts-node/register tests/**/*.test.ts --exit",
     "start": "check-node-version --node \">= 14\" && ts-node src/index.ts",
     "start-remote": "check-node-version --node \">= 14\" && ts-node src/index.ts >> OUTPUT.log 2>>ERROR.log",
-    "mocha": "mocha -g",
+    "mocha": "mocha",
+    "spec": "mocha -r ts-node/register tests/commands/teammates.test.ts --exit",
     "migration": "node src/database/migration.ts",
     "lint": "eslint . --ext .ts",
     "lint-fix": "eslint . --ext .ts --fix",

@@ -7,7 +7,7 @@ import { initSocketConnection, startMatch } from "../../dota/socketClient";
 const commands = ['connectdota']
 
 export class ConnectDotaAction extends BaseCommandClass {
-  static instance: ConnectDotaAction = new ConnectDotaAction(commands);
+  static instance: ConnectDotaAction = new ConnectDotaAction(commands, { isActive: false });
   static socketConfiguration;
   static gameId: string;
   static matchIdResults: { [key: string]: boolean } = {}; // Match id results;
@@ -64,6 +64,6 @@ export class ConnectDotaAction extends BaseCommandClass {
   }
 
   help = () => {
-    return '**' + this.commands.toString().replace(/,/g, ' | ') + ' Connect to dota bot\n';
+    return '**' + this.commands.toString().replace(/,/g, ' | ') + '** Connect to dota bot';
   }
 }
