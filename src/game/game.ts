@@ -236,7 +236,7 @@ export const getGame = author => Game.activeGames.find(game => {
 });
 
 export const getGameByGameId = (gameId: string): Game => {
-  console.log('@Debug getGamebyGameId:', Game.activeGames);
+  // console.log('@Debug getGamebyGameId:', Game.activeGames);
   return Game.activeGames.find(game => {
     return game.gameID === gameId;
   });

@@ -9,6 +9,8 @@ Add integration tests for main functionalities
 
 # Error message
 
+Add amount of users in voice channel
+
 Unite only getting 10 users
 
 Check that only one bot is active on startup

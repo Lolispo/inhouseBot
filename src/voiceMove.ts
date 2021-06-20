@@ -3,7 +3,7 @@
 
 // Handles changing voice channel logic for users: unite and split methods
 
-import { GuildChannel, GuildMember, Message, VoiceChannel } from 'discord.js';
+import { DiscordAPIError, GuildChannel, GuildMember, Message, VoiceChannel } from 'discord.js';
 import { IKosaTuppChannels } from './channels/channels';
 import * as f from './tools/f';
 
@@ -74,7 +74,11 @@ export const split = (message: Message, options: string[], balanceInfo, activeMe
 // Set VoiceChannel for an array of GuildMembers
 const setMemberVoice = (team, channelId) => {
   team.forEach((player) => {
-    player.voice.setChannel(channelId);
+    try {
+      player.voice.setChannel(channelId);
+    } catch (e) {
+      console.error('Issue moving users voice channel:', e);
+    }
   });
 }
 
