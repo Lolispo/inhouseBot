@@ -14,7 +14,7 @@ import { getHighScore, getUsers, getRatingUser, createUser, createRatingForUser,
 const test_id = '1';
 const test_game = 'cs1v1';
 const test_mmr = 2500;
-const contextualDescribe = (process.env.TEST_ENV == "testwithoutdb" ? describe.skip : describe);
+const contextualDescribe = (process.env.TEST_ENV === "testwithoutdb" ? describe.skip : describe);
 
 contextualDescribe('db_sequelize', () => {
   let databaseConnection;
