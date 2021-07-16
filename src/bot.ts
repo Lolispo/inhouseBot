@@ -199,10 +199,6 @@ const handleMessage = async (message: Message) => {
 			f.print(message, 'Hej ' + message.author.username, noop); // Not removing hej messages
 		}
 	}
-	else if (lennyCommands.includes(message.content)){
-		f.print(message, '( ͡° ͜ʖ ͡°)');
-		f.deleteDiscMessage(message, 15000, 'lenny');
-	}
 	else if (!startsWith(message, prefix)){ // Every command after here need to start with prefix
 		return;
 	}
