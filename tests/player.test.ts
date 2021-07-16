@@ -1,7 +1,8 @@
 'use strict';
 // Author: Petter Andersson
 
-import { assert, expect } from 'chai';
+import { afterAll, describe, expect, it } from '@jest/globals';
+import { getClientReference } from '../src/client';
 import { sortRating, createPlayer } from '../src/game/player';
 
 // TODO
@@ -11,7 +12,7 @@ describe('player', function(){
     const discId = '1';
     const p = createPlayer(userName, discId);
     it('should store username correctly', function(){
-        assert.equal(userName, p.userName);
+        expect(userName).toEqual(p.userName);
     });
   });
   describe('sortRating', () => {
@@ -25,6 +26,9 @@ describe('player', function(){
     // console.log('Players:', players.map(player => player.getMMR(game)));
     const sortedPlayers = sortRating(players, game);
     // console.log('@sortedPlayers:', sortedPlayers);
-    expect(sortedPlayers[0].userName).equal('Test4');
+    expect(sortedPlayers[0].userName).toEqual('Test4');
   })
+  afterAll(() => {
+    getClientReference().destroy();
+  });  
 })

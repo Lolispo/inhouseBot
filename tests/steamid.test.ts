@@ -1,5 +1,6 @@
 import { createPlayer } from '../src/game/player';
-import { assert } from 'chai';
+import { afterAll, describe, expect, it } from '@jest/globals';
+import { getClientReference } from '../src/client';
 import { checkMissingSteamIds } from '../src/steamid'; 
 
  describe('checkMissingSteamIds', () => {
@@ -13,7 +14,10 @@ import { checkMissingSteamIds } from '../src/steamid';
     players[0].setSteamId('123');
 
     const res = await checkMissingSteamIds(players);
-    assert.equal(res.length, 3);
+    expect(res.length).toEqual(3);
+  });
+  afterAll(() => {
+    getClientReference().destroy();
   });
 });
 

@@ -1,4 +1,12 @@
 'use strict';
+
+/* 
+!!!!!!        THIS TEST FILE IS IGNORED BY JEST DUE TO NO TESTS IN THE SUITE         !!!!!!
+!!!!!! TO ENABLE IT, REMOVE THE PATH FROM modulePathIgnorePatterns IN jest.config.js !!!!!!
+*/
+
+
+
 // Author: Petter Andersson
 /*
 import { assert } from 'chai';

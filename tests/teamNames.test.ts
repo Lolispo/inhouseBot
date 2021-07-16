@@ -1,7 +1,8 @@
 'use strict';
 // Author: Petter Andersson
 
-import { assert } from 'chai';
+import { afterAll, describe, expect, it } from '@jest/globals';
+import { getClientReference } from '../src/client';
 import { createPlayer } from '../src/game/player';
 import { capitalize, getTeamName } from '../src/teamNames';
 
@@ -10,7 +11,7 @@ describe('teamNames', () => {
     it('capitalize', () => {
       const foo = 'epic gamer';
       const res = capitalize(foo);
-      assert.equal(res, 'Epic Gamer');
+      expect(res).toEqual('Epic Gamer');
     })
   }),
   describe('getTeamName', () => {
@@ -29,7 +30,7 @@ describe('teamNames', () => {
         for (let i = 0; i < 20; i++) {
             const res = getTeamName(team, game);
             console.log('Team Name:', res);
-            assert.notEqual(res, '');
+            expect(res).not.toEqual('');
             team.forEach((player) => player.setMMR('cs', 2500 + (10 * Math.floor(Math.random() * 20) - 10 )));
         }
     });
@@ -47,8 +48,8 @@ describe('teamNames', () => {
       console.log(s.join(', '));
       const res = getTeamName(team, game);
       console.log('Team Name:', res);
-      assert.notEqual(res, '');
-      assert.ok(res.includes('Uppsala'))
+      expect(res).not.toEqual('');
+      expect(res.includes('Uppsala')).toBeTruthy;
     });
     it('getTeamName cs random 5', () => {
       const game = 'cs';
@@ -63,9 +64,12 @@ describe('teamNames', () => {
       for (let i = 0; i < 20; i++) {
           const res = getTeamName(team, game);
           console.log('Team Name:', res);
-          assert.notEqual(res, '');
+          expect(res).not.toEqual('');
           team.forEach((player) => player.setMMR('cs', 2500 + (10 * Math.floor(Math.random() * 20) - 10 )));
       }
+    });
   });
+  afterAll(() => {
+    getClientReference().destroy();
   });
 });
