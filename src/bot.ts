@@ -58,7 +58,6 @@ const triviaModesCommands = [prefix + 'modestrivia', prefix + 'helptrivia'];
 const leaderboardCommands = [prefix + 'leaderboard'];
 const statsCommands = [prefix + 'stats'];
 const exitCommands = [prefix + 'exit', prefix + 'clear', prefix + 'e'];
-const lennyCommands = ['lenny', 'lennyface', prefix + 'lenny', prefix + 'lennyface'];
 const csServerCommands = [prefix + 'praccserver', prefix + 'server', prefix + 'csserver'];
 const pingCommands = [prefix + 'ping'];
 const connectSteamCommands = [prefix + 'connectsteam', prefix+'connectsteamid'];
@@ -187,18 +186,14 @@ const handleMessage = async (message: Message) => {
 		// console.log('@LoadedCommand:', command);
 		if (command.isThisCommand(message)) {
 			command.action(message, options);
-			didAnAction = true;
 			f.deleteDiscMessage(message, 30000, command.name);
+			didAnAction = true;
+			return; // Don't do another command since an action was done already
 		}
 	}
 
 	// All stages commands, Commands that should always work, from every stage
-	if (startsWith(message, 'hej')) {
-		if (message.author.username) {
-			f.print(message, 'Hej ' + message.author.username, noop); // Not removing hej messages
-		}
-	}
-	else if (!startsWith(message, prefix)){ // Every command after here need to start with prefix
+	if (!startsWith(message, prefix)){ // Every command after here need to start with prefix
 		return;
 	}
 	else if (pingCommands.includes(message.content)){ // Good for testing prefix and connection to bot

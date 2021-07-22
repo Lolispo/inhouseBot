@@ -1,5 +1,6 @@
 import { BaseCommandClass } from "./BaseCommand";
 import { ConnectDotaAction } from "./commands/game/dota";
+import { HejAction } from "./commands/memes/hej";
 import { LastGameAction } from "./commands/stats/lastGame";
 import { LennyAction } from "./commands/memes/lenny";
 import { LoadAction } from "./commands/game/load";
@@ -13,6 +14,7 @@ export const allAvailableCommands = (): BaseCommandClass[] => {
   let listOfCommands = [];
   // TODO Load all commands
   listOfCommands.push(ConnectDotaAction.instance);
+  listOfCommands.push(HejAction.instance);
   listOfCommands.push(LastGameAction.instance);
   listOfCommands.push(LennyAction.instance);
   listOfCommands.push(LoadAction.instance);

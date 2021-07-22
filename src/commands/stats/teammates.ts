@@ -4,12 +4,12 @@ import { getConfig } from '../../tools/load-environment';
 import { printMessage } from '../../bot';
 import { getGameModes, getModeChosen } from '../../game/gameModes';
 import { Message } from 'discord.js';
-import { BaseCommandClass } from '../../BaseCommand';
+import { BaseCommandClass, MatchMode } from '../../BaseCommand';
 
 export const commands = ['teammates', 'friends'];
 
 export class TeammateAction extends BaseCommandClass {
-  static instance: TeammateAction = new TeammateAction(commands, { matchMode: 1 });
+  static instance: TeammateAction = new TeammateAction(commands, { matchMode: MatchMode.STARTS_WITH });
 
   printListOfPlayer = list => {
     return list.join('\n');

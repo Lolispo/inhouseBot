@@ -1,18 +1,27 @@
 import { Message } from "discord.js";
 import { getPrefix } from "./tools/load-environment";
+import { getGame } from './game/game';
+
 
 interface BaseCommandOptions {
   isActive?: boolean;
-  matchMode?: number;
+  matchMode?: number; // MatchMode Enum
   extenderSetsPrefix?: boolean; // Take commands raw, more customization
   name?: string;
+  requireActiveGame?: boolean;
+}
+
+export enum MatchMode {
+  EXACT_MATCH = 0,
+  STARTS_WITH // Autoincremented
 }
 
 export abstract class BaseCommandClass {
   name: string = this.constructor.name;
   commands: string[];       // Commands to use this action
-  matchMode: number = 0;    // 0 => Exact match, 1 => options available
-  isActive: boolean = true;
+  matchMode: number = MatchMode.EXACT_MATCH;
+  isActive: boolean = true; // Active command
+  requireActiveGame: boolean = false; // Boolean if command requires an active game to be valid
 
   constructor(commands: string[], options?: BaseCommandOptions) {
     // Add commands
@@ -23,19 +32,28 @@ export abstract class BaseCommandClass {
     }
     // Save optional arguments
     if (options) {
-      const { isActive, name, matchMode } = options;
+      const { isActive, name, matchMode, requireActiveGame } = options;
       if (name) this.name = name;
       if (isActive) this.isActive = isActive;
       if (matchMode) this.matchMode = matchMode;
+      if (requireActiveGame) this.requireActiveGame = requireActiveGame;
     }
   }
 
   isThisCommand(message): boolean {
     if (!this.isActive) return false;
+    if (this.requireActiveGame) {
+      const gameObject = getGame(message.author);
+      if (!gameObject) {
+        // A game was required but no game was found
+        return false;
+      }
+      gameObject.updateFreshMessage(message);
+    }
     // console.log('@isThisCommand:', this.name, this.commands, this.isActive, this.matchMode);
-    if (this.matchMode === 0) {
+    if (this.matchMode === MatchMode.EXACT_MATCH) {
       return this.commands.includes(message.content);
-    } else if (this.matchMode === 1) {
+    } else if (this.matchMode === MatchMode.STARTS_WITH) {
       return startsWith(message, this.commands);
     } else {
       console.error('Invalid match mode provided!', this.name);
