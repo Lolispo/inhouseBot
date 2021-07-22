@@ -21,7 +21,6 @@ import { getCsIp } from './csserver/server_info';
 import { cleanOnGameEnd } from './game/game';
 import { getGameStats } from './csserver/cs_server_stats';
 
-import { rollAction, rollCommands } from './commands/memes/roll';
 import { GuildMember, Message, MessageReaction, ReactionUserManager, TextChannel, User, VoiceChannel } from 'discord.js';
 import { triviaStartCommand } from './commands/trivia/triviaCommand';
 import { pingAction } from './commands/memes/ping';
@@ -204,9 +203,6 @@ const handleMessage = async (message: Message) => {
 	}
 	else if (pingCommands.includes(message.content)){ // Good for testing prefix and connection to bot
 		pingAction(message, options);
-	}
-	else if (startsWith(message, rollCommands)){ // Roll command for luls
-		rollAction(message, options);
 	}
 	else if (csServerCommands.includes(message.content)) {
 		console.log('CSServer Command');

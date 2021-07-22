@@ -1,11 +1,12 @@
 import { BaseCommandClass } from "./BaseCommand";
 import { ConnectDotaAction } from "./commands/game/dota";
-import { LoadAction } from "./commands/game/load";
-import { SaveAction } from "./commands/game/save";
-import { TemperatureCheckAction } from "./commands/game/temperatureCheck";
-import { LennyAction } from "./commands/memes/lenny";
 import { LastGameAction } from "./commands/stats/lastGame";
+import { LennyAction } from "./commands/memes/lenny";
+import { LoadAction } from "./commands/game/load";
+import { RollAction } from "./commands/memes/roll";
+import { SaveAction } from "./commands/game/save";
 import { TeammateAction } from "./commands/stats/teammates";
+import { TemperatureCheckAction } from "./commands/game/temperatureCheck";
 
 
 export const allAvailableCommands = (): BaseCommandClass[] => {
@@ -15,6 +16,7 @@ export const allAvailableCommands = (): BaseCommandClass[] => {
   listOfCommands.push(LastGameAction.instance);
   listOfCommands.push(LennyAction.instance);
   listOfCommands.push(LoadAction.instance);
+  listOfCommands.push(RollAction.instance);
   listOfCommands.push(SaveAction.instance);
   listOfCommands.push(TeammateAction.instance);
   listOfCommands.push(TemperatureCheckAction.instance);
