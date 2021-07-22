@@ -267,14 +267,12 @@ function addTeamMMR(team, game) { // Function to be used in summing over players
 /**
  * Prettify the number output
  * Whole integer if integer
- * Otherwise float with 2 values
- * @param num 
- * @returns the prettified number
+ * Otherwise float with 2 decimal digits
+ * @param {number} num 
+ * @returns {string} the prettified number
  */
-export const roundValue = (num) => {
-  // console.log('@roundValue:', num);
-  if (num % 1 === 0) return num;
-  return parseFloat(num).toFixed(2);
+export const roundValue = (num: number): string => {
+  return Number.isInteger(num) ? num.toString() : num.toFixed(2);
 };
 
 const buildReturnStringEmbed = (obj: IBalanceInfo): ReturnMessage => {

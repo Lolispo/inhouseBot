@@ -1,12 +1,12 @@
 import { Message } from "discord.js";
 import { BaseCommandClass } from "../../BaseCommand";
-import { getGame, loadFromFile, saveGame } from "../../game/game";
+import { getGame, saveGame } from "../../game/game";
 import { print } from "../../tools/f";
 
-const loadCommands = ['save']
+const commands = ['save']
 
 export class SaveAction extends BaseCommandClass {
-  static instance: SaveAction = new SaveAction(loadCommands, { isActive: false });
+  static instance: SaveAction = new SaveAction(commands, { isActive: false });
 
   action = (message: Message, options: string[]) => {
     const gameObject = getGame(message.author);

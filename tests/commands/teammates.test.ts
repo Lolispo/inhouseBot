@@ -1,4 +1,5 @@
-import { expect } from 'chai';
+import { afterAll, describe, expect, it } from '@jest/globals';
+import { getClientReference } from '../../src/client';
 import { TeammateAction } from '../../src/commands/stats/teammates';
 import { Statistics } from '../../src/database/db_sequelize';
 
@@ -15,7 +16,10 @@ describe('teammates', () => {
     }
     const result = playerString(data);
     console.log('@generateGameTimeString:', result);
-    expect(result).to.exist;
-    expect(result).to.be.eq('GamesPlayed: 15  WinRate: 67%  (Wins: 10, Losses: 5 ) Petter')
-  })
+    expect(result).toEqual(expect.anything());
+    expect(result).toEqual('GamesPlayed: 15  WinRate: 67%  (Wins: 10, Losses: 5 ) Petter')
+  });
+  afterAll(() => {
+    getClientReference().destroy();
+  });
 })

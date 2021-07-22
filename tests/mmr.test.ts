@@ -1,9 +1,9 @@
 'use strict';
 // Author: Petter Andersson
 
-import { assert } from 'chai';
+import { describe, it } from '@jest/globals';
 
-describe('mmr', function(){
+describe.skip('mmr', function(){
 	describe('eloupdate', function(){
 		it('gives correct eloupdate on team1 win', function(){
 			// TODO

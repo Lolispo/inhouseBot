@@ -1,8 +1,8 @@
 'use strict';
 // Author: Petter Andersson
 
-import { assert } from 'chai';
-import { describe } from 'mocha';
+import { afterAll, describe, beforeAll, it, expect } from '@jest/globals';
+import { getClientReference } from '../src/client';
 import { addMissingUsers, initializeDBSequelize } from '../src/database/db_sequelize';
 import { createPlayer } from '../src/game/player';
 import { getConfig } from '../src/tools/load-environment';
@@ -19,11 +19,11 @@ const contextualDescribe = (process.env.TEST_ENV === "testwithoutdb" ? describe.
 contextualDescribe('db_sequelize', () => {
   let databaseConnection;
   // TODO: Move player dependent tests into one describe
-  before(async () => {
+  beforeAll(async () => {
     databaseConnection = await initializeDBSequelize(getConfig().db);
     DatabaseSequelize.instance = databaseConnection;
-    assert.ok(databaseConnection.Users);
-    assert.ok(databaseConnection.Ratings);
+    expect(databaseConnection.Users).toBeTruthy();
+    expect(databaseConnection.Ratings).toBeTruthy();
     for (let i = 1; i <= 4; i++) {
       const res = await removeUser(test_id + i);
     }
@@ -31,14 +31,14 @@ contextualDescribe('db_sequelize', () => {
   describe('getInstance', () => {
     it('getInstance', async () => {
       const databaseConnection = DatabaseSequelize.instance;
-      assert.ok(databaseConnection);
+      expect(databaseConnection).toBeTruthy();
     })
   }),
   describe('getHighScore', () => {
     it('getHighScore', async () => {
       const res = await getHighScore(test_game, 5);
       res.forEach((entry) => console.log('highscore ' + entry.dataValues.userName + ' ' + entry.dataValues[test_game]));
-      assert.equal(res.length, 5);
+      expect(res.length).toEqual(5);
     })
   }),
   describe('addMissingUsers', () => {
@@ -122,13 +122,13 @@ contextualDescribe('db_sequelize', () => {
     it('getRatingUser', async () => {
       const res = await getRatingUser(test_id, test_game);
       res.forEach((entry) => console.log('getRatingUser ' + entry.dataValues.userName + ' ' + entry.mmr));
-      assert.equal(res[0].dataValues.mmr, test_mmr);
-      assert.equal(res.length, 1);
+      expect(res[0].dataValues.mmr).toEqual(test_mmr);
+      expect(res.length).toEqual(1);
     })
     it('getRatingUser invalid', async () => {
       const res = await getRatingUser(test_id +'2', test_game);
       res.forEach((entry) => console.log('getRatingUser ' + entry.dataValues.userName + ' ' + entry.mmr));
-      assert.equal(res.length, 0);
+      expect(res.length).toEqual(0);
     })
   })
   describe('bestTeammates', () => {
@@ -143,10 +143,12 @@ contextualDescribe('db_sequelize', () => {
       console.log('@test res:', res);
     })
   })
-  after(async () => {
+  afterAll(async () => {
     for (let i = 1; i <= 4; i++) {
       const res = await removeUser(test_id + i);
-      assert.ok(res);
+      expect(res).toBeTruthy();
     }
   })
 });
+
+getClientReference().destroy();

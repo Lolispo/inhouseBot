@@ -1,8 +1,9 @@
 'use strict';
 // Author: Petter Andersson
 
-import { describe, it, before } from 'mocha';
-import { getMockStats } from './gameMock.test';
+import { afterAll, beforeAll, describe, it } from '@jest/globals';
+import { getMockStats } from './mocks/gameMock.test';
+import { getClientReference } from '../src/client';
 const { gameServers } = require('../src/csserver/cs_server');
 const { createPlayer } = require('../src/game/player');
 const { getGameStats, buildStatsMessage, sendStatsDiscord, playerMapSteamIdStats } = require('../src/csserver/cs_server_stats');
@@ -16,7 +17,7 @@ let stats2;
 
 
 describe('server_stats', () => {
-  before(async () => {
+  beforeAll(async () => {
     // await getClient('test');
     const res = await gameServers();
     console.log('@dathost.gamesevers:', res);
@@ -82,6 +83,10 @@ describe('server_stats', () => {
       const playerMappedStats = playerMapSteamIdStats(gameObject, stats2);
       console.log(playerMappedStats);
     });
+  });
+
+  afterAll(() => {
+    getClientReference().destroy();
   });
 });
 
