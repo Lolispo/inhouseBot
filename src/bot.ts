@@ -58,7 +58,6 @@ const triviaModesCommands = [prefix + 'modestrivia', prefix + 'helptrivia'];
 const leaderboardCommands = [prefix + 'leaderboard'];
 const statsCommands = [prefix + 'stats'];
 const exitCommands = [prefix + 'exit', prefix + 'clear', prefix + 'e'];
-const csServerCommands = [prefix + 'praccserver', prefix + 'server', prefix + 'csserver'];
 const pingCommands = [prefix + 'ping'];
 const connectSteamCommands = [prefix + 'connectsteam', prefix+'connectsteamid'];
 const steamidCommands = [prefix + 'getsteamid', prefix + 'steamid'];
@@ -198,11 +197,6 @@ const handleMessage = async (message: Message) => {
 	}
 	else if (pingCommands.includes(message.content)){ // Good for testing prefix and connection to bot
 		pingAction(message, options);
-	}
-	else if (csServerCommands.includes(message.content)) {
-		console.log('CSServer Command');
-		f.print(message, '**' + getCsIp() + '**');
-		f.deleteDiscMessage(message, 40000, 'csserver');
 	}
 	else if (connectSteamCommands.includes(message.content)) {
 		connectSteamEntry(message);

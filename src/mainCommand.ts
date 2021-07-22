@@ -1,4 +1,5 @@
 import { BaseCommandClass } from "./BaseCommand";
+import { CSServerAddressAction } from "./commands/game/cs-server-address";
 import { ConnectDotaAction } from "./commands/game/dota";
 import { HejAction } from "./commands/memes/hej";
 import { LastGameAction } from "./commands/stats/lastGame";
@@ -14,6 +15,7 @@ export const allAvailableCommands = (): BaseCommandClass[] => {
   let listOfCommands = [];
   // TODO Load all commands
   listOfCommands.push(ConnectDotaAction.instance);
+  listOfCommands.push(CSServerAddressAction.instance);
   listOfCommands.push(HejAction.instance);
   listOfCommands.push(LastGameAction.instance);
   listOfCommands.push(LennyAction.instance);
@@ -28,5 +30,6 @@ export const allAvailableCommands = (): BaseCommandClass[] => {
 export const buildStringHelpAllCommands = (): string => {
   const commands = allAvailableCommands().filter(command => command.isActive);
   const helpCommands = commands.map(commands => commands.help());
+  // TODO: Sort list of commands based on required active game or not
   return helpCommands.join('\n');
 }
