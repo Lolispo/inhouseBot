@@ -5,10 +5,11 @@ import { getGame } from './game/game';
 
 interface BaseCommandOptions {
   isActive?: boolean;
-  matchMode?: number; // MatchMode Enum
+  matchMode?: MatchMode; // MatchMode Enum
   extenderSetsPrefix?: boolean; // Take commands raw, more customization
   name?: string;
   requireActiveGame?: boolean;
+  includeHelpCommand?: boolean;
 }
 
 export enum MatchMode {
@@ -19,9 +20,10 @@ export enum MatchMode {
 export abstract class BaseCommandClass {
   name: string = this.constructor.name;
   commands: string[];       // Commands to use this action
-  matchMode: number = MatchMode.EXACT_MATCH;
+  matchMode: MatchMode = MatchMode.EXACT_MATCH;
   isActive: boolean = true; // Active command
   requireActiveGame: boolean = false; // Boolean if command requires an active game to be valid
+  includeHelpCommand: boolean = true; // Include this command in help command
 
   constructor(commands: string[], options?: BaseCommandOptions) {
     // Add commands
@@ -32,11 +34,12 @@ export abstract class BaseCommandClass {
     }
     // Save optional arguments
     if (options) {
-      const { isActive, name, matchMode, requireActiveGame } = options;
+      const { isActive, name, matchMode, requireActiveGame, includeHelpCommand } = options;
       if (name) this.name = name;
       if (isActive) this.isActive = isActive;
       if (matchMode) this.matchMode = matchMode;
       if (requireActiveGame) this.requireActiveGame = requireActiveGame;
+      if (includeHelpCommand) this.includeHelpCommand = includeHelpCommand;
     }
   }
 

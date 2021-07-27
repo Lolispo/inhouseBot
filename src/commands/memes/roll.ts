@@ -1,14 +1,14 @@
 import { Message } from "discord.js";
-import { BaseCommandClass } from "../../BaseCommand";
+import { BaseCommandClass, MatchMode } from "../../BaseCommand";
 import { noop } from "../../client";
 import { deleteDiscMessage, print  } from "../../tools/f";
 
 const commands = ['roll'];
 
 export class RollAction extends BaseCommandClass {
-    static instance: RollAction = new RollAction(commands, { isActive: true });
+    static instance: RollAction = new RollAction(commands, { isActive: true, matchMode: MatchMode.STARTS_WITH });
 
-    roll(message, start, end) {
+    roll(message, start: number, end: number) {
       const roll = Math.floor((Math.random() * (end - start))) + start;
       if (end === roll && (end - start) > 50) { // Only saves message if diff at least 50
         print(message, `**${message.author.username} rolled a ${roll} (${start} - ${end})**`, noop);
@@ -22,7 +22,7 @@ export class RollAction extends BaseCommandClass {
 
     action = (message: Message, options: string[]) => {
       if (options.length === 2 && !isNaN(parseInt(options[1]))) { // Valid input
-        this.roll(message, 0, options[1]);
+        this.roll(message, 0, parseInt(options[1]));
       } else if (options.length === 3 && !isNaN(parseInt(options[1])) && !isNaN(parseInt(options[2]))) { // Valid input
         this.roll(message, parseInt(options[1]), parseInt(options[2]));
       } else {

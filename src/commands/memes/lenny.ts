@@ -6,7 +6,7 @@ import { getPrefix } from "../../tools/load-environment";
 const commands = ['lenny', 'lennyface', getPrefix() + 'lenny', getPrefix() + 'lennyface'];
 
 export class LennyAction extends BaseCommandClass {
-    static instance: LennyAction = new LennyAction(commands, { isActive: true, extenderSetsPrefix: true });
+    static instance: LennyAction = new LennyAction(commands, { includeHelpCommand: false, extenderSetsPrefix: true });
 
     action = (message: Message, options: string[]) => {
 		  print(message, '( ͡° ͜ʖ ͡°)');

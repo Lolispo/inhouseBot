@@ -28,7 +28,7 @@ export const allAvailableCommands = (): BaseCommandClass[] => {
 }
 
 export const buildStringHelpAllCommands = (): string => {
-  const commands = allAvailableCommands().filter(command => command.isActive);
+  const commands = allAvailableCommands().filter(command => command.isActive && command.includeHelpCommand);
   const helpCommands = commands.map(commands => commands.help());
   // TODO: Sort list of commands based on required active game or not
   return helpCommands.join('\n');
