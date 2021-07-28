@@ -44,6 +44,10 @@ export const allAvailableCommands = (): BaseCommandClass[] => {
 
 /**
  * Returns a concatenated string of all help commands
+ * Sort order:
+ *  Commands that require active game come after normal commands
+ *   within those, admin commands come last
+ *    Otherwise alphabetically sorted A-Z
  * @param detailed boolean to choose mode to return detailed description of command if available
  * @returns string of all help commands
  */
@@ -53,7 +57,6 @@ export const buildStringHelpAllCommands = (helpMode: HelpMode = HelpMode.NORMAL)
   const sortedCommands = commands.sort((a: BaseCommandClass, b: BaseCommandClass) => {
     // Sort Commands where game are required last
     if ((a.requireActiveGame && b.requireActiveGame) || (!a.requireActiveGame && !b.requireActiveGame)) {
-      // Admin commands last
       if ((a.adminCommand && b.adminCommand) || (!a.adminCommand && !b.adminCommand)) {
         // Sort on title Alphabetically
         return a.name.localeCompare(b.name);

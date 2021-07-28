@@ -1,6 +1,5 @@
 import { Message, User } from "discord.js";
 import { BaseCommandClass } from "../../../BaseCommand";
-import { noop } from "../../../client";
 import { print, deleteDiscMessage } from "../../../tools/f";
 
 const commands = ['queue', 'startqueue'];
@@ -59,7 +58,9 @@ export class QueueAction extends BaseCommandClass {
     const author = message.author;
     if (!this.queue.includes(author))
       this.addPlayerToQueue(author);
-    print(message, `**${author.username}** started queueing\n${QueueAction.queueToString()}`);
+    print(message, `**${author.username}** started queueing\n${QueueAction.queueToString()}`, (messageVar) => {
+      deleteDiscMessage(messageVar, 60000, 'queueprint')
+    });
     deleteDiscMessage(message, 60000, 'queue');
   }
 

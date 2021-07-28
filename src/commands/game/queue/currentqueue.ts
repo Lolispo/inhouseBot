@@ -12,7 +12,9 @@ export class CurrentQueueAction extends BaseCommandClass {
    * Removes current players from queue
    */
   action = (message: Message, options: string[]) => {
-    print(message, `${QueueAction.queueToString()}`);
+    print(message, `${QueueAction.queueToString()}`, (messageVar) => {
+      deleteDiscMessage(messageVar, 60000, 'currentqueueprint')
+    });
     deleteDiscMessage(message, 15000, 'curretqueue');
   }
 

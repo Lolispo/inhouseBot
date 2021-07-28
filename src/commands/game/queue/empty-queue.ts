@@ -14,7 +14,9 @@ export class EmptyQueueAction extends BaseCommandClass {
   action = (message: Message, options: string[]) => {
     const instance = QueueAction.instance;
     const previousQueue = instance.emptyQueue();
-    print(message, previousQueue.length > 0 ? `Queue Emptied! ${previousQueue.length} users removed!` : `Queue was already empty`);
+    print(message, previousQueue.length > 0 ? `Queue Emptied! ${previousQueue.length} users removed!` : `Queue was already empty`, (messageVar) => {
+      deleteDiscMessage(messageVar, 15000, 'emptyqueueprint')
+    });
     deleteDiscMessage(message, 15000, 'emptyqueue');
   }
 

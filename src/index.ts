@@ -1,7 +1,8 @@
-import { Message, MessageReaction, User } from "discord.js";
+import { Message, MessageReaction, User, VoiceState } from "discord.js";
 import { discordEventMessage, discordEventReactionAdd, discordEventReactionRemove } from "./bot";
 import { getClient } from "./client";
 import { initializeDBSequelize } from "./database/db_sequelize";
+import { discordVoiceStateUpdate } from "./events/voiceStateUpdate";
 import { getConfig } from "./tools/load-environment";
 
 // Initialize Client
@@ -14,6 +15,8 @@ getClient('bot', async () => initializeDBSequelize(getConfig().db), (client) => 
 
 	// Listener on reactions removed from messages
 	client.on('messageReactionRemove', (messageReaction: MessageReaction, user: User) => discordEventReactionRemove(messageReaction, user));
+
+	client.on('voiceStateUpdate', (oldState: VoiceState, newState: VoiceState) => discordVoiceStateUpdate(oldState, newState));
 
 	client.on('error', console.error);
 });
