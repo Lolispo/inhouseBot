@@ -26,9 +26,10 @@ import { triviaStartCommand } from './commands/trivia/triviaCommand';
 import { pingAction } from './commands/memes/ping';
 import { statsAction } from './commands/stats/stats';
 import { leaderBoardAction } from './commands/stats/leaderboard';
-import { getAllModes, getGameModes, getGameModes1v1, getModeAndPlayers } from './game/gameModes';
-import { allAvailableCommands, buildStringHelpAllCommands } from './mainCommand';
+import { GameModesType, getAllModes, getGameModes, getGameModes1v1, getModeAndPlayers } from './game/gameModes';
+import { allAvailableCommands, buildStringHelpAllCommands, getAllDmCommands } from './mainCommand';
 import { startsWith } from './BaseCommand';
+import { IMessageType } from './BaseCommandTypes';
 
 const { prefix, token, db } = getConfig(); // Load config data from env
 
@@ -42,8 +43,6 @@ const adminUids = ['96293765001519104', '107882667894124544']; // Admin ids, get
 export const removeBotMessageDefaultTime = f.getDefaultRemoveTime() || 60000; // 300000
 const maxPlayers = 14;
 
-const helpCommands = [prefix + 'h', prefix + 'help'];
-const helpAllCommands = [prefix + 'ha', prefix + 'helpall'];
 const balanceCommands = [prefix + 'go', prefix + 'game', prefix + 'b', prefix + 'balance', prefix + 'balancegame', prefix + 'inhousebalance'];
 const team1wonCommands = [prefix + 'team1won'];
 const team2wonCommands = [prefix + 'team2won'];
@@ -80,25 +79,20 @@ export const discordEventMessage = (message: Message) => {
 			}
 		} else { // Direct Message to Bot
 			console.log('DM msg = ' + message.author.username + ': ' + message.content);
-			// Help and stats commands are allowed
 			const options = message.content.split(' ');
-			if (helpCommands.includes(message.content)){
-				message.author.send(buildHelpString(message.author.id, 0))
-				.then(result => {
-					f.deleteDiscMessage(result, removeBotMessageDefaultTime * 2);
-				});
-			} else if (helpAllCommands.includes(message.content)){
-				// TODO: Find a better way to update readme
-				//console.log(buildHelpString(message.author.id, 1) + '\n' + buildHelpString(message.author.id, 2)); // Used to update readme
-				message.author.send(buildHelpString(message.author.id, 1))
-				.then(result => {
-					f.deleteDiscMessage(result, removeBotMessageDefaultTime * 4);
-				});
-				message.author.send(buildHelpString(message.author.id, 2))
-				.then(result => {
-					f.deleteDiscMessage(result, removeBotMessageDefaultTime * 4);
-				});
-			} else if (startsWith(message, statsCommands)){
+
+			const loadedCommands = allAvailableCommands();
+			for (let i = 0; i < loadedCommands.length; i++) {
+				const command = loadedCommands[i];
+				// console.log('@LoadedCommand:', command);
+				if (command.isThisCommand(message, IMessageType.DIRECT_MESSAGE)) {
+					command.action(message, options);
+					f.deleteDiscMessage(message, 30000, command.name);
+					return; // Don't do another command since an action was done already
+				}
+			}
+
+			if (startsWith(message, statsCommands)){
 				statsAction(message, options);
 			} else if (connectSteamCommands.includes(message.content)) {
 				connectSteamEntry(message);
@@ -107,7 +101,8 @@ export const discordEventMessage = (message: Message) => {
 			} else if (steamidCommands.includes(message.content)) {
 				sendSteamId(message);
 			} else {
-				message.author.send('Send commands in a server - not to me!\nAllowed command here are: **[' + helpCommands + ',' + helpAllCommands + ',' + statsCommands + ']**\n')
+				const dmCommands = getAllDmCommands();
+				message.author.send(`Send commands in a server - not to me!\nAllowed commands here are: **[${dmCommands.join(', ')}]**\n`)
 				.then(result => {
 					f.deleteDiscMessage(result, 10000, 'sendDMMessage');
 				});
@@ -135,7 +130,7 @@ export const discordEventReactionAdd = (messageReaction: MessageReaction, user: 
 					return messageReaction.message.id === mapMsg.id
 				});
 				if (!f.isUndefined(mapMessage)) {
-					console.log('@messageReactionAdd Found message.id', mapMessage.id, user.username)
+					console.log('@messageReactionAdd Found message.id', mapMessage?.id, user.username)
 					if (messageReaction.emoji.toString() === emoji_error){
 						map_js.captainVote(messageReaction, user, mapMessage, gameObject);
 					} else if (messageReaction.emoji.toString() === emoji_agree){ // If not captains, can only react with emoji_agree or emoji_disagree
@@ -178,15 +173,13 @@ export const handleMessageExported = (message) => handleMessage(message);
 const handleMessage = async (message: Message) => {
 	const options = message.content.split(' ');
 
-	let didAnAction = false;
 	const loadedCommands = allAvailableCommands();
 	for (let i = 0; i < loadedCommands.length; i++) {
 		const command = loadedCommands[i];
 		// console.log('@LoadedCommand:', command);
-		if (command.isThisCommand(message)) {
+		if (command.isThisCommand(message, IMessageType.SERVER_MESSAGE)) {
 			command.action(message, options);
 			f.deleteDiscMessage(message, 30000, command.name);
-			didAnAction = true;
 			return; // Don't do another command since an action was done already
 		}
 	}
@@ -203,25 +196,6 @@ const handleMessage = async (message: Message) => {
 	}
 	else if (steamidCommands.includes(message.content)) {
 		sendSteamId(message);
-	}
-	// Sends available commands privately to the user
-	else if (helpCommands.includes(message.content)) {
-		message.author.send(buildHelpString(message.author.id, 0))
-		.then(result => {
-			f.deleteDiscMessage(result, removeBotMessageDefaultTime * 2);
-		});
-		f.deleteDiscMessage(message, 10000, 'help');
-	}
-	else if (helpAllCommands.includes(message.content)){
-		message.author.send(buildHelpString(message.author.id, 1))
-		.then(result => {
-			f.deleteDiscMessage(result, removeBotMessageDefaultTime * 4);
-		});
-		message.author.send(buildHelpString(message.author.id, 2))
-		.then(result => {
-			f.deleteDiscMessage(result, removeBotMessageDefaultTime * 4);
-		});
-		f.deleteDiscMessage(message, 10000, 'helpAll');
 	}
 	// Start game, through balance or Duel, balance for 2 players
 	else if (startsWith(message, balanceCommands)){
@@ -375,7 +349,7 @@ const handleMessage = async (message: Message) => {
 			f.print(message, 'Invalid command: User ' + message.author.username + ' not currently in a game', callbackInvalidCommand);
 		}
 	}
-	else if (startsWith(message, prefix) && !didAnAction){ // Message start with prefix
+	else if (startsWith(message, prefix)){ // Message start with prefix
 		f.print(message, 'Invalid command: List of available commands at **' + prefix + 'help**', callbackInvalidCommand);
 		f.deleteDiscMessage(message, 3000, 'invalidCommand'); // Overlaps delete call from callbackInvalidCommand above^
 	}
@@ -426,7 +400,7 @@ async function balanceCommand(message, options){
 			const players: Player[] = findPlayersStart(voiceChannel, gameObject); // initalize players objects with playerInformation
 			const numPlayers = players.length;
 			// Initialize balancing, Result is printed and stage = 1 when done
-			let allModes = getGameModes();
+			let allModes: GameModesType[] = getGameModes();
 			if (numPlayers > 2 && numPlayers <= maxPlayers && numPlayers % 2 === 0){ // TODO: Allow uneven games? Requires testing to see if it works
 				getModeAndPlayers(players, gameObject, { message, allModes }, options);
 			} else if (numPlayers === 2){
@@ -593,14 +567,12 @@ function buildTriviaHelpCommands(){
 	return s;
 }
 
-// TODO commandHelp: Keep updated with recent information
-function buildHelpString(userID, messageNum){
+// DEPRECATED: Used for all none moved commands until fully migrated
+export const buildHelpString = (userID: string, messageNum: number): string => {
 	if (messageNum === 0){
 		// TODO: More simple help without detailed explanation, add this option to helpCommands line
 		let s = '*Available commands for ' + bot_name + ':* \n';
-		s += '**' + helpAllCommands.toString().replace(/,/g, ' | ') + '** Shows information about all commands in detail\n';
 		s += '**' + prefix + 'ping** Returns time of response to server\n';
-		s += '**' + helpCommands.toString().replace(/,/g, ' | ') + '** Shows the available commands\n';
 		s += '**' + leaderboardCommands.toString().replace(/,/g, ' | ') + '** Returns Top 5 MMR holders\n';
 		s += '**' + statsCommands.toString().replace(/,/g, ' | ') + '** Returns your own rating\n';
 		s += '**' + prefix + 'roll [high] [low, high]** Rolls a number (0 - 100)\n';
@@ -618,15 +590,12 @@ function buildHelpString(userID, messageNum){
 		if (adminUids.includes(userID)){
 			s += '**' + exitCommands.toString().replace(/,/g, ' | ') + '** *Admin Command* Clear all messages, exit games, prepares for restart\n';
 		}
-		s += buildStringHelpAllCommands();
 		return s;	
 	}
 	if (messageNum === 1){
 		let s = '*Available commands for ' + bot_name + ' (All Options):* \n';
 		s += '(**[opt = default]** Syntax for optional arguments)\n\n';
 		s += '**' + prefix + 'ping** Returns time of response to server\n\n'; // 
-		s += '**' + helpCommands.toString().replace(/,/g, ' | ') + '** Shows the available commands\n\n';
-		s += '**' + helpAllCommands.toString().replace(/,/g, ' | ') + '** Shows information about all commands in detail\n\n';
 		s += '**' + leaderboardCommands.toString().replace(/,/g, ' | ') + ' [game = cs]** Returns Top 5 MMR holders\n'
 			+ '**[game]** Opt. argument: name of the mode to retrieve top leaderboard for. Available modes are [' + getAllModes() + ']\n\n';
 		s += '**' + statsCommands.toString().replace(/,/g, ' | ') + ' [game = cs]** Returns your own rating\n'
@@ -661,9 +630,9 @@ function buildHelpString(userID, messageNum){
 			/*
 			+ '**[player]** Required if more than 2 players in voiceChannel. Person who is challenged\n'
 			+ '**[game]** Opt. argument: name of the game being played. Available games are [' + player_js.getGameModes1v1() + ']\n\n';*/
-		s += buildStringHelpAllCommands();
 		return s;	
 	}
+	return '';
 }
 
 // Here follows callbackFunctions for handling bot sent messages

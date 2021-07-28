@@ -2,6 +2,8 @@ import { BaseCommandClass } from "./BaseCommand";
 import { CSServerAddressAction } from "./commands/game/cs-server-address";
 import { ConnectDotaAction } from "./commands/game/dota";
 import { HejAction } from "./commands/memes/hej";
+import { HelpAction } from "./commands/meta/help";
+import { HelpAllAction } from "./commands/meta/helpAll";
 import { LastGameAction } from "./commands/stats/lastGame";
 import { LennyAction } from "./commands/memes/lenny";
 import { LoadAction } from "./commands/game/load";
@@ -9,6 +11,7 @@ import { RollAction } from "./commands/memes/roll";
 import { SaveAction } from "./commands/game/save";
 import { TeammateAction } from "./commands/stats/teammates";
 import { TemperatureCheckAction } from "./commands/game/temperatureCheck";
+import { HelpMode, IMessageType } from "./BaseCommandTypes";
 
 
 export const allAvailableCommands = (): BaseCommandClass[] => {
@@ -17,6 +20,8 @@ export const allAvailableCommands = (): BaseCommandClass[] => {
   listOfCommands.push(ConnectDotaAction.instance);
   listOfCommands.push(CSServerAddressAction.instance);
   listOfCommands.push(HejAction.instance);
+  listOfCommands.push(HelpAction.instance);
+  listOfCommands.push(HelpAllAction.instance);
   listOfCommands.push(LastGameAction.instance);
   listOfCommands.push(LennyAction.instance);
   listOfCommands.push(LoadAction.instance);
@@ -27,9 +32,34 @@ export const allAvailableCommands = (): BaseCommandClass[] => {
   return listOfCommands;
 }
 
-export const buildStringHelpAllCommands = (): string => {
+/**
+ * Returns a concatenated string of all help commands
+ * @param detailed boolean to choose mode to return detailed description of command if available
+ * @returns string of all help commands
+ */
+export const buildStringHelpAllCommands = (helpMode: HelpMode = HelpMode.NORMAL): string => {
   const commands = allAvailableCommands().filter(command => command.isActive && command.includeHelpCommand);
-  const helpCommands = commands.map(commands => commands.help());
-  // TODO: Sort list of commands based on required active game or not
+  // Sort list of commands based on required active game or not
+  const sortedCommands = commands.sort((a: BaseCommandClass, b: BaseCommandClass) => {
+    // Sort Commands where game are required last
+    if ((a.requireActiveGame && b.requireActiveGame) || (!a.requireActiveGame && !b.requireActiveGame)) {
+      // Sort on title Alphabetically
+      return a.name.localeCompare(b.name);
+    }
+    if (a.requireActiveGame) return 1;
+    else if (b.requireActiveGame) return -1;
+  });
+  const helpCommands = sortedCommands.map(command => command.help(helpMode));
   return helpCommands.join('\n');
+}
+
+/**
+ * Returns all commands available in direct message
+ * @returns array of command names
+ */
+export const getAllDmCommands = (): string[] => {
+  return allAvailableCommands()
+    .filter(command => command.allowedMessageTypes.includes(IMessageType.DIRECT_MESSAGE))
+    .map(command => command.commands)
+    .map(commandList => commandList.toString());
 }

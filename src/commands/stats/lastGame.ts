@@ -1,9 +1,9 @@
 import { lastGame } from '../../database/db_sequelize';
 import * as f from '../../tools/f';	
-import { getConfig } from '../../tools/load-environment';
 import { printMessage } from '../../bot';
 import { Message } from 'discord.js';
-import { BaseCommandClass, MatchMode } from '../../BaseCommand';
+import { BaseCommandClass } from '../../BaseCommand';
+import { MatchMode } from '../../BaseCommandTypes';
 
 export const commands = ['lastgame', 'latestgame'];
 
