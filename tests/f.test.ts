@@ -1,6 +1,6 @@
 import { jest, describe, it, afterEach, expect } from '@jest/globals';
 import { Message, SnowflakeUtil } from 'discord.js';
-import { deleteDiscMessage, padString, prettifyPercentage, print, onExitDelete } from '../src/tools/f';
+import { deleteDiscMessage, padString, prettifyPercentage, print } from '../src/tools/f';
 
 jest.mock('discord.js');
 
@@ -83,7 +83,7 @@ describe('f', function(){
 
     it('Should send a message with the outputMessageContent to the channel of the inputMessage and delete the outputMessage', async () =>{
       jest.useFakeTimers();
-      await print(inputMessage, outputMessageContent);
+      await print(inputMessage as unknown as Message, outputMessageContent);
       expect(sendMock).toHaveBeenCalledWith(outputMessageContent);
       jest.advanceTimersByTime(60000);
       expect(deleteMock).toHaveBeenCalled();

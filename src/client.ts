@@ -3,7 +3,6 @@ import { getTextTestChannel } from "./channels/channels";
 
 import * as Discord from 'discord.js';
 import { getConfig } from './tools/load-environment';
-import * as util from 'util';
 
 const client = new Discord.Client();
 

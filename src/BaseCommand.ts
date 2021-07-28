@@ -48,7 +48,8 @@ export abstract class BaseCommandClass {
    * @param serverMessage boolean if its a server message vs 
    * @returns 
    */
-  isThisCommand(message, messageType: IMessageType): boolean {
+  isThisCommand(message: Message, messageType: IMessageType): boolean {
+    // console.log('@isThisCommand', this.name, this.matchMode, this.isActive, this.allowedMessageTypes.includes(messageType), this.commands)
     if (!this.isActive) return false;
     if (!this.allowedMessageTypes.includes(messageType)) return false;
     if (this.requireActiveGame) {
@@ -61,8 +62,10 @@ export abstract class BaseCommandClass {
     }
     // console.log('@isThisCommand:', this.name, this.commands, this.isActive, this.matchMode);
     if (this.matchMode === MatchMode.EXACT_MATCH) {
+      // console.log(this.commands.includes(message.content));
       return this.commands.includes(message.content);
     } else if (this.matchMode === MatchMode.STARTS_WITH) {
+      // console.log(startsWith(message, this.commands));
       return startsWith(message, this.commands);
     } else {
       console.error('Invalid match mode provided!', this.name);

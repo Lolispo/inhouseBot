@@ -7,7 +7,7 @@ import { noop } from '../../client';
 const commands = ['hej'];
 
 export class HejAction extends BaseCommandClass {
-  static instance: HejAction = new HejAction(commands, { matchMode: MatchMode.STARTS_WITH, includeHelpCommand: false });
+  static instance: HejAction = new HejAction(commands, { matchMode: MatchMode.STARTS_WITH, includeHelpCommand: false, extenderSetsPrefix: true });
 
   action = (message: Message, options: string[]) => {
     if (message.author.username) {

@@ -8,7 +8,7 @@ export const statsAction = async (message, options) => {
 	const data = await getPersonalStats(message.author.id);
 	let s = '';
 	if (data.length === 0){
-		if (!game || game === '') {
+		if (!game) {
 			s += "**User doesn't have any games played**";
 		} else {
 			s += `**User doesn't have any ${game} games played**`;

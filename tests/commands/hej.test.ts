@@ -20,6 +20,6 @@ describe('Test handleMessage', () => {
     } as User;
     message.author = user;
     handleMessageExported(message);
-    expect(print).toHaveBeenCalledWith(message, "hej PetterTest");
+    expect(print).toHaveBeenCalledWith(message, "Hej PetterTest");
   })
 })

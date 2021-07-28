@@ -60,6 +60,6 @@ export const buildStringHelpAllCommands = (helpMode: HelpMode = HelpMode.NORMAL)
 export const getAllDmCommands = (): string[] => {
   return allAvailableCommands()
     .filter(command => command.allowedMessageTypes.includes(IMessageType.DIRECT_MESSAGE))
-    .map(command => command.name)
-    .map(commandName => commandName.replace('Action', ''));
+    .map(command => command.commands)
+    .map(commandList => commandList.toString());
 }

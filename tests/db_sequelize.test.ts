@@ -10,6 +10,7 @@ import { getHighScore, getUsers, getRatingUser, createUser, createRatingForUser,
   DatabaseSequelize, removeUser, createMatch,
   bestTeammates,
  } from '../src/database/db_sequelize';
+import { GameModesStandard } from '../src/game/gameModes';
 
 const test_id = '1';
 const test_game = 'cs1v1';
@@ -132,7 +133,7 @@ contextualDescribe('db_sequelize', () => {
     })
   })
   describe('bestTeammates', () => {
-    const game = 'dota';
+    const game = GameModesStandard.DOTA;
     const uid = '96293765001519104';
     it('bestTeammates', async () => {
       const res = await bestTeammates(uid, game);

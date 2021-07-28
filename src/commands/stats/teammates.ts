@@ -2,7 +2,7 @@ import { bestTeammates, lastGame, Statistics } from '../../database/db_sequelize
 import * as f from '../../tools/f';	
 import { getConfig } from '../../tools/load-environment';
 import { printMessage } from '../../bot';
-import { getGameModes, getModeChosen } from '../../game/gameModes';
+import { GameModesStandard, getGameModes, getModeChosen } from '../../game/gameModes';
 import { Message } from 'discord.js';
 import { BaseCommandClass } from '../../BaseCommand';
 import { MatchMode } from '../../BaseCommandTypes';
@@ -30,7 +30,7 @@ export class TeammateAction extends BaseCommandClass {
   action = async (message: Message, options: string[]) => {
     console.log('@teammateAction', message.content, options);
     const author = message.author.id;
-    const gameName = getModeChosen(options, getGameModes(), 'dota');
+    const gameName = getModeChosen(options, getGameModes(), GameModesStandard.DOTA);
     const result: Statistics[] = await bestTeammates(author, gameName);
     if (result) {
       if (options[1] === 'games' || options[2] === 'games') {

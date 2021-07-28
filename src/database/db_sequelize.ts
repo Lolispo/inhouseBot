@@ -655,14 +655,17 @@ export const bestTeammates = async (uid, game): Promise<Statistics[]> => {
 		resultMap[key].winRate = wins / (wins + losses);
 		resultArray.push(resultMap[key]);
 	})
-	resultArray.sort((a, b) => {
-		return b.winRate - a.winRate;
+	resultArray.sort((a: Statistics, b: Statistics) => {
+		if (!a && !b) return 0;
+		else if (!b) return 1;
+		else if (!a) return -1;
+		return b?.winRate - a?.winRate;
 	})
 	return resultArray;
 }
 
 // Returns last played game
-export const lastGame = async (uid, game = null) => {
+export const lastGame = async (uid, game?: string) => {
 	/*const mid = `SELECT * FROM matches LEFT JOIN playerMatches ON matches.mid = playerMatches.mid WHERE playerMatches.mid = 
 	SELECT userName, result, gameName, mapName, score, updatedAt, playerMatches.mid, mmrChange, team1Name, team2Name, team FROM matches LEFT JOIN playerMatches ON matches.mid = playerMatches.mid LEFT JOIN users ON users.uid = playerMatches.uid WHERE playerMatches.mid = (SELECT playerMatches.mid FROM playerMatches LEFT JOIN matches ON playerMatches.mid = matches.mid WHERE uid = ? ORDER BY mid DESC LIMIT 1) ORDER BY team;
 	SELECT userName, result, gameName, mapName, score, updatedAt, playerMatches.mid, mmrChange, team1Name, team2Name, team FROM matches LEFT JOIN playerMatches ON matches.mid = playerMatches.mid LEFT JOIN users ON users.uid = playerMatches.uid WHERE playerMatches.mid = (SELECT playerMatches.mid FROM playerMatches LEFT JOIN matches ON playerMatches.mid = matches.mid WHERE uid = "96293765001519104" ORDER BY mid DESC LIMIT 1) ORDER BY team;

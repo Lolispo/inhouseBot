@@ -26,7 +26,7 @@ import { triviaStartCommand } from './commands/trivia/triviaCommand';
 import { pingAction } from './commands/memes/ping';
 import { statsAction } from './commands/stats/stats';
 import { leaderBoardAction } from './commands/stats/leaderboard';
-import { getAllModes, getGameModes, getGameModes1v1, getModeAndPlayers } from './game/gameModes';
+import { GameModesType, getAllModes, getGameModes, getGameModes1v1, getModeAndPlayers } from './game/gameModes';
 import { allAvailableCommands, buildStringHelpAllCommands, getAllDmCommands } from './mainCommand';
 import { startsWith } from './BaseCommand';
 import { IMessageType } from './BaseCommandTypes';
@@ -400,7 +400,7 @@ async function balanceCommand(message, options){
 			const players: Player[] = findPlayersStart(voiceChannel, gameObject); // initalize players objects with playerInformation
 			const numPlayers = players.length;
 			// Initialize balancing, Result is printed and stage = 1 when done
-			let allModes = getGameModes();
+			let allModes: GameModesType[] = getGameModes();
 			if (numPlayers > 2 && numPlayers <= maxPlayers && numPlayers % 2 === 0){ // TODO: Allow uneven games? Requires testing to see if it works
 				getModeAndPlayers(players, gameObject, { message, allModes }, options);
 			} else if (numPlayers === 2){
@@ -568,7 +568,7 @@ function buildTriviaHelpCommands(){
 }
 
 // DEPRECATED: Used for all none moved commands until fully migrated
-export const buildHelpString = (userID: string, messageNum: number) => {
+export const buildHelpString = (userID: string, messageNum: number): string => {
 	if (messageNum === 0){
 		// TODO: More simple help without detailed explanation, add this option to helpCommands line
 		let s = '*Available commands for ' + bot_name + ':* \n';
@@ -632,6 +632,7 @@ export const buildHelpString = (userID: string, messageNum: number) => {
 			+ '**[game]** Opt. argument: name of the game being played. Available games are [' + player_js.getGameModes1v1() + ']\n\n';*/
 		return s;	
 	}
+	return '';
 }
 
 // Here follows callbackFunctions for handling bot sent messages
