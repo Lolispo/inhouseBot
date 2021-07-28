@@ -38,9 +38,9 @@ export class GameModes {
 
 // Default choices is the first indexed mode
 // TODO: Enum to list - Didn't find good way to do it since enum return keys and values
-export const modesGame = [GameModesStandard.CS, GameModesStandard.DOTA, GameModesStandard.VALORANT, GameModesStandard.TEST];
-export const modes1v1 = [GameModes1v1.CS1v1, GameModes1v1.DOTA1v1, GameModes1v1.TEST1v1];
-export const modesRatings = [GameModeRatings.TRIVIA, GameModeRatings.TRIVIA_TEMP]; // Trivia temp is used for ongoing games
+const modesGame = [GameModesStandard.CS, GameModesStandard.DOTA, GameModesStandard.VALORANT, GameModesStandard.TEST];
+const modes1v1 = [GameModes1v1.CS1v1, GameModes1v1.DOTA1v1, GameModes1v1.TEST1v1];
+const modesRatings = [GameModeRatings.TRIVIA, GameModeRatings.TRIVIA_TEMP]; // Trivia temp is used for ongoing games
 
 
 export const getGameModes = () => {
@@ -52,16 +52,21 @@ export const getActiveGameModes = (): GameModesType[] => {
   const array = modesGame.slice();
   array.splice(modesGame.indexOf(GameModesStandard.TEST), 1);
   array.splice(modesGame.indexOf(GameModesStandard.VALORANT), 1);
-  return [GameModesStandard.DOTA]; // Dota is default
+  return array; // Dota is default
 }
 
 export const getGameModes1v1 = function () {
   return modes1v1;
 };
 
-export const getOtherRatings = function () {
+export const getGameModesRatings = function () {
   return modesRatings;
 };
+
+export const getAllMMRModes = (): GameModesType[] => {
+	let list: GameModesType[] = [];
+	return list.concat(modesGame).concat(modes1v1);
+}
 
 export const getAllModes = (): GameModesType[] => {
 	let list: GameModesType[] = [];
