@@ -1,20 +1,16 @@
-/*
 import { afterAll, describe, expect, it } from '@jest/globals';
 import { getClientReference } from '../../src/client';
 import { GameModesStandard } from '../../src/game/gameModes';
-*/
 import { TemperatureCheckAction } from '../../src/commands/game/temperatureCheck';
 
 describe('temperatureCheck', () => {
   it('generateGameTimeString', () => {
     const { generateGameTimeString } = TemperatureCheckAction.instance;
-    /*
     const result = generateGameTimeString([GameModesStandard.DOTA, GameModesStandard.CS], 19, 3);
     console.log('@generateGameTimeString:', result);
     expect(result).toEqual(expect.anything());
-    */
   });
   afterAll(() => {
-    // getClientReference().destroy();
+    getClientReference().destroy();
   });
 })
