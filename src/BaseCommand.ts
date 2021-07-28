@@ -66,6 +66,7 @@ export abstract class BaseCommandClass {
       return startsWith(message, this.commands);
     } else {
       console.error('Invalid match mode provided!', this.name);
+      throw new Error('Invalid match mode provided!');
     }
   }
 

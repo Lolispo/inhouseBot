@@ -74,7 +74,7 @@ export class TemperatureCheckAction extends BaseCommandClass {
     let endHour;
     for (let i = 0; i < options.length; i++) {
       let option = options[i];
-      let hours = [];
+      let hours: number[] = [];
       try {
         if (Array.isArray(option)) continue;
         let num = parseInt(option);

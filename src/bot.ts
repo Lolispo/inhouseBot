@@ -130,7 +130,7 @@ export const discordEventReactionAdd = (messageReaction: MessageReaction, user: 
 					return messageReaction.message.id === mapMsg.id
 				});
 				if (!f.isUndefined(mapMessage)) {
-					console.log('@messageReactionAdd Found message.id', mapMessage.id, user.username)
+					console.log('@messageReactionAdd Found message.id', mapMessage?.id, user.username)
 					if (messageReaction.emoji.toString() === emoji_error){
 						map_js.captainVote(messageReaction, user, mapMessage, gameObject);
 					} else if (messageReaction.emoji.toString() === emoji_agree){ // If not captains, can only react with emoji_agree or emoji_disagree
