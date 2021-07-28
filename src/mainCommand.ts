@@ -1,6 +1,7 @@
 import { BaseCommandClass } from "./BaseCommand";
-import { CSServerAddressAction } from "./commands/game/cs-server-address";
 import { ConnectDotaAction } from "./commands/game/dota";
+import { CSServerAddressAction } from "./commands/game/cs-server-address";
+import { CurrentQueueAction } from "./commands/game/queue/currentqueue";
 import { EmptyQueueAction } from "./commands/game/queue/empty-queue";
 import { HejAction } from "./commands/memes/hej";
 import { HelpAction } from "./commands/meta/help";
@@ -22,6 +23,7 @@ export const allAvailableCommands = (): BaseCommandClass[] => {
   // TODO Load all commands
   listOfCommands.push(ConnectDotaAction.instance);
   listOfCommands.push(CSServerAddressAction.instance);
+  listOfCommands.push(CurrentQueueAction.instance);
   listOfCommands.push(EmptyQueueAction.instance);
   listOfCommands.push(HejAction.instance);
   listOfCommands.push(HelpAction.instance);

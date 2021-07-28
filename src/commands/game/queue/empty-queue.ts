@@ -3,7 +3,7 @@ import { BaseCommandClass } from "../../../BaseCommand";
 import { print, deleteDiscMessage } from "../../../tools/f";
 import { QueueAction } from "./queue";
 
-const commands = ['emptyqueue'];
+const commands = ['emptyqueue', 'empty'];
 
 export class EmptyQueueAction extends BaseCommandClass {
   static instance: EmptyQueueAction = new EmptyQueueAction(commands, { adminCommand: true });
@@ -13,8 +13,8 @@ export class EmptyQueueAction extends BaseCommandClass {
    */
   action = (message: Message, options: string[]) => {
     const instance = QueueAction.instance;
-    const updatedQueue = instance.emptyQueue();
-    print(message, `Queue Emptied! You can now queue again\n`);
+    const previousQueue = instance.emptyQueue();
+    print(message, previousQueue.length > 0 ? `Queue Emptied! ${previousQueue.length} users removed!` : `Queue was already empty`);
     deleteDiscMessage(message, 15000, 'emptyqueue');
   }
 

@@ -3,7 +3,7 @@ import { BaseCommandClass } from "../../../BaseCommand";
 import { noop } from "../../../client";
 import { print, deleteDiscMessage } from "../../../tools/f";
 
-const commands = ['queue'];
+const commands = ['queue', 'startqueue'];
 
 export class QueueAction extends BaseCommandClass {
   static instance: QueueAction = new QueueAction(commands);
@@ -11,7 +11,8 @@ export class QueueAction extends BaseCommandClass {
 
   static queueToString(queue?) {
     if (!queue) queue = QueueAction.instance.getCurrentQueue();
-    return `Current queue: \n**${queue.join('**\n**')}`;
+    if (queue.length === 0) return 'Current queue is empty.';
+    return `Current queue: \n**${queue.join('**\n\t**')}**`;
   }
 
   getCurrentQueue() {
@@ -32,15 +33,15 @@ export class QueueAction extends BaseCommandClass {
   }
 
   emptyQueue() {
-    console.log('Emptying Queue!', this.queue);
+    const previousQueue = this.queue.slice();
+    console.log('Emptying Queue!', previousQueue);
     this.queue = [];
-    return this.queue;
+    return previousQueue;
   }
 
   removePlayerByUsername(username: string) {
     const index = this.queue.findIndex((userName) => userName === username);
-    this.queue.splice(index, 1);
-    return this.queue;
+    return this.queue.splice(index, 1);
   }
 
   /**
@@ -49,7 +50,7 @@ export class QueueAction extends BaseCommandClass {
   action = (message: Message, options: string[]) => {
     const author = message.author.username;
     this.addPlayerToQueue(author);
-    print(message, `**${author}** started queueing\n${QueueAction.queueToString()}`, noop);
+    print(message, `**${author}** started queueing\n${QueueAction.queueToString()}`);
     deleteDiscMessage(message, 60000, 'queue');
   }
 
