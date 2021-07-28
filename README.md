@@ -13,9 +13,11 @@ Bots Purpose
 * Easy discord and game interaction, giving commands to move voice channels etc
 * Full list of commands is given below
 
-#### Supports sizes of 2v2, 3v3, 4v4 and 5v5
+Supports any even sizes up to 7v7
 
-## New: Counter Strike Integration
+## Counter Strike Integration
+
+### Requirement: A configureable get5 CS server (Recommend Dathost)
 
 The bot is able to be easily configured to be setup together with a dathost hosted ebot server, which allows you to fetch in-game performance directly into the bot database, as well as fetching the result of the match.
 
@@ -23,7 +25,9 @@ The bot is able to be easily configured to be setup together with a dathost host
 * Questions are fetched from an external API
 * Feature contains ability to provide hints, a scoreboard as well as over 20 different trivia topics
 
-## 
+## Dota Integration active
+
+### Prototype completed connecting the bot to a dota match creating application over socket connection
 
 ## Available commands
 
@@ -84,11 +88,19 @@ If only two people are in voiceChannel, start duel between them. Otherwise [play
 
 ## [Installation](https://github.com/Lolispo/inhouseBot/wiki/Installation)
 
+### Requirements to run the bot
+
+* Configure a discord bot on your server with necessary access (More information in installation)
+* TODO: Add more information to add to a new server
+* MySQL Server
+
 If any issues occur, notify a developer.
 
 ## Do you have any ideas for the future?
 
-Make a [Pull Request](https://github.com/Lolispo/inhouseBot/pulls) for a new issue in the repository.
+Open new [Issues](https://github.com/Lolispo/inhouseBot/issues)
+
+Want to fix something? Make a [Pull Request](https://github.com/Lolispo/inhouseBot/pulls) for a new issue in the repository.
 
 Current TODO:s for the projects are listed in the files, main TODO section is in bot.js
 
