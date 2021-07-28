@@ -13,7 +13,7 @@ export class QueueAction extends BaseCommandClass {
     if (!queue) queue = QueueAction.instance.getCurrentQueue();
     if (queue.length === 0) return 'Current queue is empty.';
     const userNames = queue.map(user => user.username);
-    return `Current queue: \n**${userNames.join('**\n\t**')}**`;
+    return `Current queue: \n**\t${userNames.join('**\n\t**')}**`;
   }
 
   getCurrentQueue() {
@@ -42,11 +42,13 @@ export class QueueAction extends BaseCommandClass {
 
   removePlayerByUsername(username: string) {
     const index = this.queue.findIndex(user => user.username === username);
+    if (index === -1) return undefined;
     return this.queue.splice(index, 1);
   }
 
   removePlayerById(id: string) {
     const index = this.queue.findIndex(user => user.id === id);
+    if (index === -1) return undefined;
     return this.queue.splice(index, 1);
   }
 
@@ -55,7 +57,8 @@ export class QueueAction extends BaseCommandClass {
    */
   action = (message: Message, options: string[]) => {
     const author = message.author;
-    this.addPlayerToQueue(author);
+    if (!this.queue.includes(author))
+      this.addPlayerToQueue(author);
     print(message, `**${author.username}** started queueing\n${QueueAction.queueToString()}`);
     deleteDiscMessage(message, 60000, 'queue');
   }

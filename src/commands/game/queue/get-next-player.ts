@@ -5,7 +5,7 @@ import { print, deleteDiscMessage } from "../../../tools/f";
 import { getVoiceChannel, setMemberVoice } from "../../../voiceMove";
 import { QueueAction } from "./queue";
 
-const commands = ['getnextplayer', 'next', 'queuenext', 'nextqueue', 'getnextqueue'];
+const commands = ['pop', 'getnextplayer', 'next', 'queuenext', 'nextqueue', 'getnextqueue'];
 
 export class NextQueuePlayerAction extends BaseCommandClass {
   static instance: NextQueuePlayerAction = new NextQueuePlayerAction(commands);
@@ -16,20 +16,28 @@ export class NextQueuePlayerAction extends BaseCommandClass {
   action = (message: Message, options: string[]) => {
     const instance = QueueAction.instance;
     const user = instance.getNextPlayer();
-    const currentChannel = getVoiceChannel(message, options);
-    // Unite if available
-    try {
-      setMemberVoice([user], currentChannel.id)
-    } catch (e) {
-      console.log('User not movable into channel');
-      user.send('**Inhouse time! You are being summoned! Join discord.\nIf you are not able to join soon, you will lose your spot.**')
-      .then(result => {
-        deleteDiscMessage(result, removeBotMessageDefaultTime * 2);
-      });
-      deleteDiscMessage(message, 10000, 'queuepop');
+
+    if (user) {
+      const authorUser = message.guild.member(message.author.id);
+      const foundUser = message.guild.member(user.id);
+      const currentChannel = getVoiceChannel(message, options, authorUser.voice.channelID);
+      // Get user with voice information
+  
+      // Unite if available
+      try {
+        setMemberVoice([foundUser], currentChannel.id)
+      } catch (e) {
+        console.log('User not movable into channel');
+        // Sends DM if not in voice
+        user.send('**Inhouse time! You are being summoned! Join discord.\nIf you are not able to join soon, you will lose your spot.**')
+        .then(result => {
+          deleteDiscMessage(result, removeBotMessageDefaultTime * 2);
+        });
+        deleteDiscMessage(message, 10000, 'queuepop');
+      }
+      // If not available in channel, DM
+      deleteDiscMessage(message, 15000, 'nextqueue');
     }
-    // If not available in channel, DM
-    deleteDiscMessage(message, 15000, 'nextqueue');
   }
 
   help = () => {

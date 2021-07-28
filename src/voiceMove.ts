@@ -84,9 +84,17 @@ export const setMemberVoice = (team, channelId) => {
 }
 
 // Return voice channel for uniting
-export const getVoiceChannel = (message: Message, options: string[]): GuildChannel => {
+export const getVoiceChannel = (message: Message, options: string[], preferredChannelId?: string): GuildChannel => {
   // Get correct channel
   let channel1: GuildChannel;
+
+  if (preferredChannelId) {
+    const preferredChannel = message.guild.channels.cache.find((channel) => {
+      return channel.id === preferredChannelId;
+    });
+    if (preferredChannel)
+      return preferredChannel;
+  }
 
   if (options.length > 1) {
     const channelName = options.length > 2 ? options.slice(1).join(' ') : options[1];
