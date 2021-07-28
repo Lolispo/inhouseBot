@@ -1,4 +1,4 @@
-import { Message } from "discord.js";
+import { Message, User } from "discord.js";
 import { BaseCommandClass } from "../../../BaseCommand";
 import { noop } from "../../../client";
 import { print, deleteDiscMessage } from "../../../tools/f";
@@ -7,12 +7,13 @@ const commands = ['queue', 'startqueue'];
 
 export class QueueAction extends BaseCommandClass {
   static instance: QueueAction = new QueueAction(commands);
-  queue = [];
+  queue: User[] = [];
 
   static queueToString(queue?) {
     if (!queue) queue = QueueAction.instance.getCurrentQueue();
     if (queue.length === 0) return 'Current queue is empty.';
-    return `Current queue: \n**${queue.join('**\n\t**')}**`;
+    const userNames = queue.map(user => user.username);
+    return `Current queue: \n**${userNames.join('**\n\t**')}**`;
   }
 
   getCurrentQueue() {
@@ -28,7 +29,7 @@ export class QueueAction extends BaseCommandClass {
     return this.queue.shift();
   }
 
-  addPlayerToQueue(author: string) {
+  addPlayerToQueue(author: User) {
     this.queue.push(author);
   }
 
@@ -40,7 +41,12 @@ export class QueueAction extends BaseCommandClass {
   }
 
   removePlayerByUsername(username: string) {
-    const index = this.queue.findIndex((userName) => userName === username);
+    const index = this.queue.findIndex(user => user.username === username);
+    return this.queue.splice(index, 1);
+  }
+
+  removePlayerById(id: string) {
+    const index = this.queue.findIndex(user => user.id === id);
     return this.queue.splice(index, 1);
   }
 
@@ -48,9 +54,9 @@ export class QueueAction extends BaseCommandClass {
    * Adds current player to queue
    */
   action = (message: Message, options: string[]) => {
-    const author = message.author.username;
+    const author = message.author;
     this.addPlayerToQueue(author);
-    print(message, `**${author}** started queueing\n${QueueAction.queueToString()}`);
+    print(message, `**${author.username}** started queueing\n${QueueAction.queueToString()}`);
     deleteDiscMessage(message, 60000, 'queue');
   }
 

@@ -13,6 +13,8 @@ Add amount of users in voice channel
 
 Queue for next spot
 
+tsconfig strict true
+
 Unite only getting 10 users
 
 Check that only one bot is active on startup

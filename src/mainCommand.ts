@@ -9,6 +9,7 @@ import { HelpAllAction } from "./commands/meta/helpAll";
 import { LastGameAction } from "./commands/stats/lastGame";
 import { LennyAction } from "./commands/memes/lenny";
 import { LoadAction } from "./commands/game/load";
+import { NextQueuePlayerAction } from "./commands/game/queue/get-next-player";
 import { QueueAction } from "./commands/game/queue/queue";
 import { RollAction } from "./commands/memes/roll";
 import { SaveAction } from "./commands/game/save";
@@ -31,6 +32,7 @@ export const allAvailableCommands = (): BaseCommandClass[] => {
   listOfCommands.push(LastGameAction.instance);
   listOfCommands.push(LennyAction.instance);
   listOfCommands.push(LoadAction.instance);
+  listOfCommands.push(NextQueuePlayerAction.instance);
   listOfCommands.push(QueueAction.instance);
   listOfCommands.push(RollAction.instance);
   listOfCommands.push(SaveAction.instance);

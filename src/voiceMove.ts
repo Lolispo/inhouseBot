@@ -3,7 +3,7 @@
 
 // Handles changing voice channel logic for users: unite and split methods
 
-import { DiscordAPIError, GuildChannel, GuildMember, Message, VoiceChannel } from 'discord.js';
+import { GuildChannel, GuildMember, Message, VoiceChannel } from 'discord.js';
 import { IKosaTuppChannels } from './channels/channels';
 import * as f from './tools/f';
 
@@ -15,7 +15,7 @@ const moveUsers = (fromChannels: GuildChannel[], toChannel) => {
       setMemberVoice(fromChannel.members, toChannel);
     });
   } catch (e) {
-    console.error('@unite Issue uniting users');
+    console.error('@unite Issue moving users');
   }
 }
 
@@ -72,18 +72,19 @@ export const split = (message: Message, options: string[], balanceInfo, activeMe
 };
 
 // Set VoiceChannel for an array of GuildMembers
-const setMemberVoice = (team, channelId) => {
+export const setMemberVoice = (team, channelId) => {
   team.forEach((player) => {
     try {
-      player.voice.setChannel(channelId);
+      player.voice.setChannel(channelId); // Will throw error if player is not in a voice channel
     } catch (e) {
-      console.error('Issue moving users voice channel:', e);
+      console.error('Issue moving users voice channel (User might not be connected to voice):', e);
+      throw e;
     }
   });
 }
 
 // Return voice channel for uniting
-const getVoiceChannel = (message: Message, options: string[]): GuildChannel => {
+export const getVoiceChannel = (message: Message, options: string[]): GuildChannel => {
   // Get correct channel
   let channel1: GuildChannel;
 
@@ -98,7 +99,7 @@ const getVoiceChannel = (message: Message, options: string[]): GuildChannel => {
   }
 
   // Otherwise use same voiceChannel as we split in if its empty
-  console.log('@DEBUG splitChannel:', splitChannel.members.array().length);
+  console.log('@DEBUG splitChannel:', splitChannel?.members.array().length);
   if (!channel1 && splitChannel && splitChannel.members.array().length === 0) { 
     return splitChannel;
   }
