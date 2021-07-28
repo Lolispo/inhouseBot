@@ -1,12 +1,13 @@
 import { Message } from "discord.js";
-import { BaseCommandClass, MatchMode } from "../../BaseCommand";
+import { BaseCommandClass } from "../../BaseCommand";
+import { MatchMode } from "../../BaseCommandTypes";
 import { print } from "../../tools/f";
 import { noop } from '../../client';
 
 const commands = ['hej'];
 
 export class HejAction extends BaseCommandClass {
-    static instance: HejAction = new HejAction(commands, { matchMode: MatchMode.STARTS_WITH });
+    static instance: HejAction = new HejAction(commands, { matchMode: MatchMode.STARTS_WITH, includeHelpCommand: false });
 
     action = (message: Message, options: string[]) => {
 		if (message.author.username) {

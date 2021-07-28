@@ -2,7 +2,9 @@
 // Author: Petter Andersson
 
 // Should handle general help functions
+import { Message } from 'discord.js';
 import { promises as fs } from 'fs';
+import { EmbeddedMessage } from '../game/balance';
 
 export const getDefaultRemoveTime = () => 60000;
 
@@ -27,42 +29,74 @@ export const padString = (value, expectedMaxLength = '100%'.length) => {
   return value + ' '.repeat(expectedMaxLength - String(value).length);
 }
 
-// Used to print message in channel, use for every use of channel.send for consistency
-// Returns promise for use in async functions
-export const print = function (messageVar, message, callback = callbackPrintDefault) {
-  console.log(`> ${message.embed ? `(Embed)${message.embed.title}\t${message.embed.description}` : message}`);
-  if (message.length >= 2000) {
-    let sent = false;
-    for (let i = 2000; i >= 0; i--) {
-      if (message.charAt(i) === '\n') {
-        const firstMessage = message.substring(0, i);
-        const restMessage = message.substring(i);
-        messageVar.channel.send(firstMessage)
-          .then((result) => {
-            callback(result);
-          }).catch(err => console.log(`@print (splitted) for ${message} :\n${err}`));
-        print(messageVar, restMessage, callback);
-        sent = true;
-        break;
-      }
-    }
-    if (!sent) { // No newline in message, split content on max size
-      const maxIndex = 1900;
-      const firstMessage = message.substring(0, maxIndex); // Margin
-      const restMessage = message.substring(maxIndex);
-      messageVar.channel.send(firstMessage)
-        .then((result) => {
-          callback(result);
-        }).catch(err => console.log(`@print (splitted) for ${message} :\n${err}`));
-      print(messageVar, restMessage, callback);
-    }
-  } else {
+/**
+ * Used to print message in channel, use for every use of channel.send for consistency
+ * Returns promise for use in async functions
+ */
+export const print = (messageVar: Message, message: string | EmbeddedMessage, callback = callbackPrintDefault) => {
+  let printableCommand = message;
+  if ((message as EmbeddedMessage).embed) { // Embedded Message
+    const embeddedMessage = message as EmbeddedMessage;
+    printableCommand = `(Embed)${embeddedMessage.embed.title}\t${embeddedMessage.embed.description}`;
     messageVar.channel.send(message)
       .then((result) => {
         callback(result);
-      }).catch(err => console.log(`@print for ${message} :\n${err}`));
+      })
+      .catch(err => console.log(`@error on send for ${message} :\n${err}`));
+  }
+  console.log(`> ${printableCommand}`);
+
+  // Handle for string messages
+  if (typeof message === 'string') {
+    const messages = groupMessageOnSize(message);
+
+    // Send first message
+    if (messages.length >= 1) {      
+      const firstMessage = messages[0];
+      messageVar.channel.send(firstMessage)
+        .then((result) => {
+          callback(result);
+        })
+        .catch(err => console.log(`@error on send for ${message} :\n${err}`));
+    }
+
+    // Recursively send restMessage
+    if (messages.length > 1) {
+      const restMessage = messages[1];
+      print(messageVar, restMessage, callback);
+    }
   }
 };
+
+/**
+ * Discord has a limit of 2000 character per sent message
+ * @param message is the message that is requested to be sent in one message
+ * If it smaller than 2000, its returned directly [message]
+ * Otherwise, split on \n and try again
+ * If no \n are found, split on allowed maxIndex
+ * @returns array [firstMesage, restMessage]
+ */
+export const groupMessageOnSize = (message: string): string[] => {
+  // Handle big messages
+  const maxSizeForMessage = 2000;
+  const maxIndex = 1900;
+  if (message.length >= maxSizeForMessage) {
+    // Try to split the message on \n and send messages until new lines until the rest 
+    // Can be fitted into one message
+    for (let i = maxSizeForMessage; i >= 0; i--) {
+      if (message.charAt(i) === '\n') {
+        const firstMessage = message.substring(0, i);
+        const restMessage = message.substring(i);
+        return [firstMessage, restMessage];
+      }
+    }
+    // No newline in message, split content on max size
+    const firstMessage = message.substring(0, maxIndex); // Margin
+    const restMessage = message.substring(maxIndex);
+    return [firstMessage, restMessage];
+  }
+  return [message];
+}
 
 const listToDeleteFrom = new Map();
 const deleteIntervals = [];

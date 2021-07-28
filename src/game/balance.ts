@@ -22,7 +22,7 @@ import { gameIsCS, gameIsCSMain, gameIsDota, gameIsTest } from './gameModes';
 	TODO: Check if this would work if restrictions for team sizes are removed, generateTeamCombs changes required
 */
 
-interface EmbeddedMessage { // TODO: Refine
+export interface EmbeddedMessage { // TODO: Refine with real type
   content: any,
   embed: any,
   files?: any;

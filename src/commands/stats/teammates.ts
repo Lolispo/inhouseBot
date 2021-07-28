@@ -4,7 +4,8 @@ import { getConfig } from '../../tools/load-environment';
 import { printMessage } from '../../bot';
 import { getGameModes, getModeChosen } from '../../game/gameModes';
 import { Message } from 'discord.js';
-import { BaseCommandClass, MatchMode } from '../../BaseCommand';
+import { BaseCommandClass } from '../../BaseCommand';
+import { MatchMode } from '../../BaseCommandTypes';
 
 export const commands = ['teammates', 'friends'];
 

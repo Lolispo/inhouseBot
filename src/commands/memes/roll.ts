@@ -1,12 +1,13 @@
 import { Message } from "discord.js";
-import { BaseCommandClass, MatchMode } from "../../BaseCommand";
+import { BaseCommandClass } from "../../BaseCommand";
+import { MatchMode } from "../../BaseCommandTypes";
 import { noop } from "../../client";
 import { deleteDiscMessage, print  } from "../../tools/f";
 
 const commands = ['roll'];
 
 export class RollAction extends BaseCommandClass {
-    static instance: RollAction = new RollAction(commands, { isActive: true, matchMode: MatchMode.STARTS_WITH });
+    static instance: RollAction = new RollAction(commands, { matchMode: MatchMode.STARTS_WITH });
 
     roll(message, start: number, end: number) {
       const roll = Math.floor((Math.random() * (end - start))) + start;
@@ -31,6 +32,6 @@ export class RollAction extends BaseCommandClass {
     }
 
     help = () => {
-        return '**' + this.commands.toString().replace(/,/g, ' | ') + '** [high] [low, high]** Rolls a number between low and high. Default: (0 - 100)';
+        return '**' + this.commands.toString().replace(/,/g, ' | ') + '** [high] [low, high] Rolls a number between low and high. Default: (0 - 100)';
     }
 }

@@ -11,6 +11,8 @@ Add integration tests for main functionalities
 
 Add amount of users in voice channel
 
+Queue for next spot
+
 Unite only getting 10 users
 
 Check that only one bot is active on startup

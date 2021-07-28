@@ -1,5 +1,6 @@
 import { Message } from "discord.js";
-import { BaseCommandClass, MatchMode } from "../../BaseCommand";
+import { BaseCommandClass } from "../../BaseCommand";
+import { MatchMode } from "../../BaseCommandTypes";
 import { getActiveGameModes, getModeChosen } from "../../game/gameModes";
 import { deleteDiscMessage, print } from '../../tools/f';
 
