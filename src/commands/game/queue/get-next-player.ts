@@ -25,7 +25,8 @@ export class NextQueuePlayerAction extends BaseCommandClass {
   
       // Unite if available
       try {
-        setMemberVoice([foundUser], currentChannel.id)
+        setMemberVoice([foundUser], currentChannel.id);
+        print(message, `**${user.username}** joins to play!`); // TODO: Variations
       } catch (e) {
         console.log('User not movable into channel');
         // Sends DM if not in voice
@@ -37,6 +38,8 @@ export class NextQueuePlayerAction extends BaseCommandClass {
       }
       // If not available in channel, DM
       deleteDiscMessage(message, 15000, 'nextqueue');
+    } else {
+      print(message, 'No user in queue');
     }
   }
 
