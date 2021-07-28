@@ -4,20 +4,17 @@
 // Main File for discord bot: Handles event for messages
 
 import * as f from './tools/f';							// Function class used by many classes, ex. isUndefined, messagesDeletion
-import * as balance from './game/balance';					// Balances and starts game between 2 teams
 import * as mmr_js from './game/mmr';						// Handles balanced mmr update
 import { createPlayer, Player } from './game/player';					// Handles player storage in session, the database in action
 import * as map_js from './mapVeto';					// MapVeto system
 import * as voiceMove_js from './voiceMove'; 			// Handles moving of users between voiceChannels
 import * as db_sequelize from './database/db_sequelize';			// Handles communication with db
-import { initializeDBSequelize } from './database/db_sequelize';	
 import { getChannelName, getGameOnGoing, isCorrect, startGame } from './trivia';						// Trivia
 import { Game, getGame, createGame, hasActiveGames, deleteGame } from './game/game';
 import { getConfig } from './tools/load-environment';
-import { getClient, getClientReference } from './client';
+import { getClientReference } from './client';
 import * as birthday from './birthday';
 import { connectSteamEntry, validateSteamID, storeSteamId, sendSteamId } from './steamid';
-import { getCsIp } from './csserver/server_info';
 import { cleanOnGameEnd } from './game/game';
 import { getGameStats } from './csserver/cs_server_stats';
 
@@ -29,9 +26,9 @@ import { leaderBoardAction } from './commands/stats/leaderboard';
 import { GameModesType, getAllModes, getGameModes, getGameModes1v1, getModeAndPlayers } from './game/gameModes';
 import { allAvailableCommands, buildStringHelpAllCommands, getAllDmCommands } from './mainCommand';
 import { startsWith } from './BaseCommand';
-import { IMessageType } from './BaseCommandTypes';
+import { getAdminUids, IMessageType } from './BaseCommandTypes';
 
-const { prefix, token, db } = getConfig(); // Load config data from env
+const { prefix } = getConfig(); // Load config data from env
 
 const emoji_agree = '👌'; 		// Agree emoji. Alt: 👍, Om custom Emojis: Borde vara seemsgood emoji
 const emoji_disagree = '👎';	// Disagree emoji. 
@@ -39,7 +36,6 @@ const emoji_error = '❌'; 		// Error / Ban emoji. Alt: '🤚';
 
 const bot_name = 'inhouse-bot';
 const voteText = '**Majority of players that played the game need to confirm this result (Press ' + emoji_agree + ' or ' + emoji_disagree + ')**';
-const adminUids = ['96293765001519104', '107882667894124544']; // Admin ids, get access to specific admin rights
 export const removeBotMessageDefaultTime = f.getDefaultRemoveTime() || 60000; // 300000
 const maxPlayers = 14;
 
@@ -228,7 +224,7 @@ const handleMessage = async (message: Message) => {
 
 	// Used for tests
 	else if (exitCommands.includes(message.content)){
-		if (adminUids.includes(message.author.id)){
+		if (getAdminUids().includes(message.author.id)){
 			// Do tests:
 			cleanupExit();
 		}
@@ -298,7 +294,7 @@ const handleMessage = async (message: Message) => {
 			else if (cancelCommands.includes(message.content)){
 				// Only creator of game or admin can cancel it
 				const matchupMessage = gameObject.getMatchupMessage();
-				if (message.author.id === matchupMessage.author.id || adminUids.includes(message.author.id)){
+				if (message.author.id === matchupMessage.author.id || getAdminUids().includes(message.author.id)){
 					f.print(message, 'Game cancelled', (message) => {
 						f.deleteDiscMessage(message, 15000, 'gameCancelled');
 						cleanOnGameEnd(gameObject);
@@ -341,7 +337,7 @@ const handleMessage = async (message: Message) => {
 				f.deleteDiscMessage(message, 15000, 'getmatchresult');
 			}
 			// Cant reach this after game
-			else if (playerStatusCommands.includes(message.content) && adminUids.includes(message.author.id)) {
+			else if (playerStatusCommands.includes(message.content) && getAdminUids().includes(message.author.id)) {
 				console.log('DEBUG playerStatusCommands', gameObject.getActiveMembers());
 				f.deleteDiscMessage(message, 15000, 'playerStatusCommands');
 			}
@@ -587,7 +583,7 @@ export const buildHelpString = (userID: string, messageNum: number): string => {
 		s += '**' + uniteCommands.toString().replace(/,/g, ' | ') + ' [channel]** Unite voice chat after game\n';
 		s += '**' + uniteAllCommands.toString().replace(/,/g, ' | ') + ' [channel]** Unite all users active in voice to same channel\n';
 		s += '**' + mapvetostartCommands.toString().replace(/,/g, ' | ') + '** Starts a map veto (*cs only*)\n';
-		if (adminUids.includes(userID)){
+		if (getAdminUids().includes(userID)){
 			s += '**' + exitCommands.toString().replace(/,/g, ' | ') + '** *Admin Command* Clear all messages, exit games, prepares for restart\n';
 		}
 		return s;	
@@ -606,7 +602,7 @@ export const buildHelpString = (userID: string, messageNum: number): string => {
 		s += '**' + triviaCommands.toString().replace(/,/g, ' | ') + ' [questions = allsubjectseasy]** Starts a trivia game in the textchannel *' + getChannelName() + '*\n'
 			+ '**[questions]** Opt. argument: name of question field and difficulty.\n\n';
 		s += '**' + triviaModesCommands.toString().replace(/,/g, ' | ') + '** Shows options for trivia mode\n';
-		if (adminUids.includes(userID)){
+		if (getAdminUids().includes(userID)){
 			s += '**' + exitCommands.toString().replace(/,/g, ' | ') + '** *Admin Command* Clear all messages, exit games, prepares for restart\n\n';
 		}
 		return s;	
@@ -654,8 +650,4 @@ const noop = (message) => { // callback used when no operation is wanted
 
 export const printMessage = (message, channelMessage, callback = noop) => { // Default: NOT removing message
 	f.print(channelMessage, message, callback);
-}
-
-export const getAdminUids = function(){
-	return adminUids;
 }

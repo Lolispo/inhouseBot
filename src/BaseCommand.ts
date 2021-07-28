@@ -1,7 +1,7 @@
 import { Message } from "discord.js";
 import { getPrefix } from "./tools/load-environment";
 import { getGame } from './game/game';
-import { HelpMode, IMessageType, MatchMode } from "./BaseCommandTypes";
+import { getAdminUids, HelpMode, IMessageType, MatchMode } from "./BaseCommandTypes";
 
 
 interface BaseCommandOptions {
@@ -12,6 +12,7 @@ interface BaseCommandOptions {
   requireActiveGame?: boolean;
   includeHelpCommand?: boolean;
   allowedMessageTypes?: IMessageType[];
+  adminCommand?: boolean;
 }
 
 export abstract class BaseCommandClass {
@@ -21,7 +22,8 @@ export abstract class BaseCommandClass {
   isActive: boolean = true; // Active command
   requireActiveGame: boolean = false; // Boolean if command requires an active game to be valid
   includeHelpCommand: boolean = true; // Include this command in help command
-  allowedMessageTypes: IMessageType[] = [IMessageType.SERVER_MESSAGE];
+  allowedMessageTypes: IMessageType[] = [IMessageType.SERVER_MESSAGE]; // Allowed message types for this command
+  adminCommand: boolean = false; // Only admins are allowed to use this command
 
   constructor(commands: string[], options?: BaseCommandOptions) {
     // Add commands
@@ -32,13 +34,14 @@ export abstract class BaseCommandClass {
     }
     // Save optional arguments
     if (options) {
-      const { isActive, name, matchMode, requireActiveGame, includeHelpCommand, allowedMessageTypes } = options;
+      const { isActive, name, matchMode, requireActiveGame, includeHelpCommand, allowedMessageTypes, adminCommand } = options;
       if (name) this.name = name;
       if (isActive !== undefined) this.isActive = isActive;
       if (matchMode) this.matchMode = matchMode;
       if (requireActiveGame !== undefined) this.requireActiveGame = requireActiveGame;
       if (includeHelpCommand !== undefined) this.includeHelpCommand = includeHelpCommand;
       if (allowedMessageTypes) this.allowedMessageTypes = allowedMessageTypes;
+      if (adminCommand !== undefined) this.adminCommand = adminCommand;
     }
   }
 
@@ -52,6 +55,7 @@ export abstract class BaseCommandClass {
     // console.log('@isThisCommand', this.name, this.matchMode, this.isActive, this.allowedMessageTypes.includes(messageType), this.commands)
     if (!this.isActive) return false;
     if (!this.allowedMessageTypes.includes(messageType)) return false;
+    if (this.adminCommand && !getAdminUids().includes(message.author.id)) return false;
     if (this.requireActiveGame) {
       const gameObject = getGame(message.author);
       if (!gameObject) {

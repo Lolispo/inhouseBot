@@ -13,3 +13,9 @@ export enum HelpMode {
   NORMAL = 0,
   DETAILED
 }
+
+const adminUids = ['96293765001519104', '107882667894124544']; // Admin ids, get access to specific admin rights
+
+export const getAdminUids = function(){
+	return adminUids;
+}
