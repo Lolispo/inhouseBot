@@ -21,7 +21,6 @@ import { getCsIp } from './csserver/server_info';
 import { cleanOnGameEnd } from './game/game';
 import { getGameStats } from './csserver/cs_server_stats';
 
-import { rollAction, rollCommands } from './commands/memes/roll';
 import { GuildMember, Message, MessageReaction, ReactionUserManager, TextChannel, User, VoiceChannel } from 'discord.js';
 import { triviaStartCommand } from './commands/trivia/triviaCommand';
 import { pingAction } from './commands/memes/ping';
@@ -59,8 +58,6 @@ const triviaModesCommands = [prefix + 'modestrivia', prefix + 'helptrivia'];
 const leaderboardCommands = [prefix + 'leaderboard'];
 const statsCommands = [prefix + 'stats'];
 const exitCommands = [prefix + 'exit', prefix + 'clear', prefix + 'e'];
-const lennyCommands = ['lenny', 'lennyface', prefix + 'lenny', prefix + 'lennyface'];
-const csServerCommands = [prefix + 'praccserver', prefix + 'server', prefix + 'csserver'];
 const pingCommands = [prefix + 'ping'];
 const connectSteamCommands = [prefix + 'connectsteam', prefix+'connectsteamid'];
 const steamidCommands = [prefix + 'getsteamid', prefix + 'steamid'];
@@ -188,30 +185,18 @@ const handleMessage = async (message: Message) => {
 		// console.log('@LoadedCommand:', command);
 		if (command.isThisCommand(message)) {
 			command.action(message, options);
-			didAnAction = true;
 			f.deleteDiscMessage(message, 30000, command.name);
+			didAnAction = true;
+			return; // Don't do another command since an action was done already
 		}
 	}
 
 	// All stages commands, Commands that should always work, from every stage
-	if (startsWith(message, 'hej')) {
-		if (message.author.username) {
-			f.print(message, 'Hej ' + message.author.username, noop); // Not removing hej messages
-		}
-	}
-	else if (!startsWith(message, prefix)){ // Every command after here need to start with prefix
+	if (!startsWith(message, prefix)){ // Every command after here need to start with prefix
 		return;
 	}
 	else if (pingCommands.includes(message.content)){ // Good for testing prefix and connection to bot
 		pingAction(message, options);
-	}
-	else if (startsWith(message, rollCommands)){ // Roll command for luls
-		rollAction(message, options);
-	}
-	else if (csServerCommands.includes(message.content)) {
-		console.log('CSServer Command');
-		f.print(message, '**' + getCsIp() + '**');
-		f.deleteDiscMessage(message, 40000, 'csserver');
 	}
 	else if (connectSteamCommands.includes(message.content)) {
 		connectSteamEntry(message);

@@ -7,7 +7,7 @@
 
 import * as f from '../tools/f';
 import { cancelGameCSServer } from '../csserver/cs_console';
-import { GuildMember, Message } from 'discord.js';
+import { GuildMember, Message, User } from 'discord.js';
 import { Player } from './player';
 import { gameIsCS, gameIsDota, gameIsTest } from './gameModes';
 import { cancelMatch } from '../dota/socketClient';
@@ -231,7 +231,7 @@ export const saveGame = (gameObject: Game) => {
 }
 
 // Returns the game where the author is
-export const getGame = author => Game.activeGames.find(game => {
+export const getGame = (author: User): Game => Game.activeGames.find(game => {
   return game.containsPlayer(author.id);
 });
 

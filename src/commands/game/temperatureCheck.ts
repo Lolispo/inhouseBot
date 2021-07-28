@@ -1,5 +1,5 @@
 import { Message } from "discord.js";
-import { BaseCommandClass } from "../../BaseCommand";
+import { BaseCommandClass, MatchMode } from "../../BaseCommand";
 import { getActiveGameModes, getModeChosen } from "../../game/gameModes";
 import { deleteDiscMessage, print } from '../../tools/f';
 
@@ -30,7 +30,7 @@ const globalEmojiList = [
 
 const emoji_error = '❌';
 export class TemperatureCheckAction extends BaseCommandClass {
-  static instance: TemperatureCheckAction = new TemperatureCheckAction(commands, { matchMode: 1 });
+  static instance: TemperatureCheckAction = new TemperatureCheckAction(commands, { matchMode: MatchMode.STARTS_WITH });
   static activeGlobalEmojiList;
 
   getOneRow = (game, time, emojiList, isLast = false): string => {

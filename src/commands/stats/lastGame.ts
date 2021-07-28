@@ -3,12 +3,12 @@ import * as f from '../../tools/f';
 import { getConfig } from '../../tools/load-environment';
 import { printMessage } from '../../bot';
 import { Message } from 'discord.js';
-import { BaseCommandClass } from '../../BaseCommand';
+import { BaseCommandClass, MatchMode } from '../../BaseCommand';
 
 export const commands = ['lastgame', 'latestgame'];
 
 export class LastGameAction extends BaseCommandClass {
-  static instance: LastGameAction = new LastGameAction(commands, { matchMode: 1 });
+  static instance: LastGameAction = new LastGameAction(commands, { matchMode: MatchMode.STARTS_WITH });
 
   printListOfPlayer = list => {
     return list.join('\n');
