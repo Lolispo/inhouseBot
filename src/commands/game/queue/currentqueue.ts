@@ -15,7 +15,7 @@ export class CurrentQueueAction extends BaseCommandClass {
     print(message, `${QueueAction.queueToString()}`, (messageVar) => {
       deleteDiscMessage(messageVar, 60000, 'currentqueueprint')
     });
-    deleteDiscMessage(message, 15000, 'curretqueue');
+    deleteDiscMessage(message, 15000, 'currentqueue');
   }
 
   help = () => {

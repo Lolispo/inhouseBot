@@ -4,6 +4,7 @@ export enum IKosaTuppChannels {
   Team1 = '442724854832300033',
   Team2 = '442724894980046878',
   LandingZone = '855532642891726888',
+  WaitingRoomChannel = '850469231363227668',
 }
 
 const generalId = '102097104322711552'; // General

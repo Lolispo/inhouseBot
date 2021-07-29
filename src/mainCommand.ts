@@ -12,6 +12,7 @@ import { LoadAction } from "./commands/game/load";
 import { NextQueuePlayerAction } from "./commands/game/queue/get-next-player";
 import { QueueAction } from "./commands/game/queue/queue";
 import { RollAction } from "./commands/memes/roll";
+import { RollbackQueue } from "./commands/game/queue/rollback-queue";
 import { SaveAction } from "./commands/game/save";
 import { StopQueueAction } from "./commands/game/queue/stop-queue";
 import { TeammateAction } from "./commands/stats/teammates";
@@ -35,6 +36,7 @@ export const allAvailableCommands = (): BaseCommandClass[] => {
   listOfCommands.push(NextQueuePlayerAction.instance);
   listOfCommands.push(QueueAction.instance);
   listOfCommands.push(RollAction.instance);
+  listOfCommands.push(RollbackQueue.instance);
   listOfCommands.push(SaveAction.instance);
   listOfCommands.push(StopQueueAction.instance);
   listOfCommands.push(TeammateAction.instance);

@@ -41,9 +41,9 @@ export class NextQueuePlayerAction extends BaseCommandClass {
           console.log('User not movable into channel');
           // Sends DM if not in voice
           user.send('**Inhouse time! You are being summoned! Join discord.\nIf you are not able to join soon, you will lose your spot.**')
-          .then(result => {
-            deleteDiscMessage(result, removeBotMessageDefaultTime * 2);
-          });
+            .then(result => {
+              deleteDiscMessage(result, removeBotMessageDefaultTime * 2);
+            });
           deleteDiscMessage(message, 10000, 'queuepop');
         }
         // If not available in channel, DM

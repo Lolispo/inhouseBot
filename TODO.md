@@ -16,6 +16,10 @@ Add amount of users in voice channel
 Queue for next spot
     Queue other people by username
 
+discord tag autoqueue
+    autoqueue command to add user to it
+    use in queue
+
 admin commands should not show as invalid
     Should show as admin commands in help
 
