@@ -208,15 +208,12 @@ export const getLongestNameLength = (activePlayers) => {
 	s2 = '\t'
 */
 // TODO Print``
+/*
 const getTabsForName = function (nameLength, longestName) {
   console.log('DEBUG: @getTabsForName', longestName, nameLength);
   const discTabSize = 4;
   const diff = longestName - nameLength;
   let s = '';
-  /*
-	for(let i = 0; i < diff; i++){
-		s += ' ';
-	} */
   for (let i = 0; i < (diff % discTabSize); i++) {
     s += '  ';
   }
@@ -225,11 +222,12 @@ const getTabsForName = function (nameLength, longestName) {
   }
   return s;
 };
+*/
 
 // Fisher yates shuffle list
 export const shuffle = (array) => {
-  let currentIndex = array.length; let temporaryValue; let
-    randomIndex;
+  let currentIndex = array.length; 
+  let temporaryValue; let randomIndex;
 
   // While there remain elements to shuffle...
   while (currentIndex !== 0) {

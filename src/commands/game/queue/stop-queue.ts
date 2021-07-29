@@ -16,7 +16,7 @@ export class StopQueueAction extends BaseCommandClass {
     const author = message.author;
     const instance = QueueAction.instance;
     const removedUsers = instance.removePlayer(author);
-    const queueMessage = removedUsers?.length > 0 ? `**${author.username}** stopped queueing.\n${QueueAction.queueToString()}` : `Queue unchanged (User wasn't queueing)`;
+    const queueMessage = removedUsers?.length > 0 ? `**${author?.username}** stopped queueing.\n${QueueAction.queueToString()}` : `Queue unchanged (User wasn't queueing)`;
     print(message, queueMessage, (messageVar) => {
       deleteDiscMessage(messageVar, 15000, 'stopqueueprint')
     });

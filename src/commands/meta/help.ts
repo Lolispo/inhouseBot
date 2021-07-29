@@ -3,7 +3,7 @@ import { BaseCommandClass } from "../../BaseCommand";
 import { IMessageType } from "../../BaseCommandTypes";
 import { buildHelpString, removeBotMessageDefaultTime } from "../../bot";
 import { buildStringHelpAllCommands } from "../../mainCommand";
-import { deleteDiscMessage, print } from "../../tools/f";
+import { deleteDiscMessage } from "../../tools/f";
 
 const commands = ['help', 'h'];
 

@@ -233,7 +233,6 @@ export const testNormalize = (mmr) => {
 const normalizeMmr = (mmr) => {
   const upperLimit = 2700;
   const lowerLimit = 2300;
-  const startMmr = 2500;
   if (mmr > upperLimit) {
     mmr = ((mmr - upperLimit) / 2) + upperLimit;
   } else if (mmr < lowerLimit) {

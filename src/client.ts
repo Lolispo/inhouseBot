@@ -15,7 +15,7 @@ export const getClient = async (name, callbackReady: Function = noop, callbackLo
   const { token } = getConfig();
 
   // Login
-  const loginString = await client.login(token);
+  await client.login(token);
   // console.log('client:', name, '- Post login', loginString);
 
   // Call Callback

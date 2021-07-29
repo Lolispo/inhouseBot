@@ -22,7 +22,6 @@ import { getAdminUids } from './BaseCommandTypes';
 
 let gameOnGoing = false;
 let author;
-const token = '';
 let ans = '';
 let activePlayers = [];
 let questionsArray = [];
@@ -417,7 +416,6 @@ function handleQuestions(questions, callback) {
     thisQuestion.censored_ans = censored_ans;
     thisQuestion.lessCensored = [];
     let censored_word = censored_ans;
-    const revealedChars = 0;
     let charIndex = 0;
     let index = 0;
     // console.log('DEBUG: ans, charcounter, indexes.length, ', ans.length, charCounter, indexes.length);

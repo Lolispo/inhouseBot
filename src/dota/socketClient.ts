@@ -1,6 +1,6 @@
 
 import io from 'socket.io-client';
-import { cleanOnGameEnd, Game, getGame, getGameByGameId } from '../game/game';
+import { cleanOnGameEnd, getGameByGameId } from '../game/game';
 import { Socket } from "socket.io-client";
 import { DotaBotResultTranslate, IMatchFinished, ITeamWon } from './dotatypes';
 import { ConnectDotaAction } from '../commands/game/dota';

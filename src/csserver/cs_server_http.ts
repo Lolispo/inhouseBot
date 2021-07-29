@@ -55,7 +55,6 @@ export const datHostEndpoint = async (endpoint, options = null, printInfo = '') 
     ...(options && options.data && { data: options.data }),
   };
 
-  if (printInfo !== '' && false) console.log('Params:', params);
   try {
     const response = await axios(params);
     console.log('Response:', endpoint, (options && options.data ? JSON.stringify(options.data) : ''));

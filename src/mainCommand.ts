@@ -73,10 +73,12 @@ export const buildStringHelpAllCommands = (helpMode: HelpMode = HelpMode.NORMAL)
       }
       if (a.adminCommand) return 1;
       else if (b.adminCommand) return -1;
+      return 0;
     }
     // Not required game commands first
     if (a.requireActiveGame) return 1;
     else if (b.requireActiveGame) return -1;
+    return 0;
   });
   const helpCommands = sortedCommands.map(command => command.help(helpMode));
   return helpCommands.join('\n');

@@ -208,7 +208,8 @@ const initDb = (database, user, dbpw, hostAddress, dialectDB) => {
 
 	
 
-// Sync tables after update
+// Sync tables after update - Enable when needed
+/*
 const syncTables = () => {
 	DatabaseSequelize.instance.Ratings.sync({ alter: true });
 	DatabaseSequelize.instance.Users.sync({ alter: true });
@@ -216,6 +217,7 @@ const syncTables = () => {
 	DatabaseSequelize.instance.PlayerMatches.sync({ alter: true });
 	DatabaseSequelize.instance.CSPlayerStats.sync({ alter: true });
 }
+*/
 
 export const initializeDBSequelize = (config) => {
 	const dbconn = initDb(config.name, config.user, config.password, config.host, config.dialect);
@@ -558,7 +560,7 @@ export const rollbackMatch = async (mid) => {
 
 		// Revert changes to the players affected
 		playerRatingForGame.forEach(async (playerRatingMatchRes) => {
-			const { team, mmrChange, uid, mid } = playerRatingMatchRes.dataValues;
+			const { mmrChange, uid } = playerRatingMatchRes.dataValues;
 			await DatabaseSequelize.instance.Ratings.update(
 				{ mmr: DatabaseSequelize.instance.sequelize.literal(`mmr ${(mmrChange.charAt(0) === '-' ? mmrChange.substring(1) : '-' + mmrChange)}`) },
 				{ 
@@ -620,7 +622,7 @@ export const bestTeammates = async (uid, game): Promise<Statistics[]> => {
 	});
 	// console.log('@bestTeammates: matches:', matches);
 	const mids = matches.map(entry => entry.mid);
-	if (mids.length === 0) return;
+	if (mids.length === 0) return [];
 	const playersSameMatchQuery = 'SELECT B.uid, userName, B.mmrChange FROM playerMatches AS A LEFT JOIN playerMatches AS B ON A.mid = B.mid LEFT JOIN users ON B.uid = users.uid WHERE A.uid = ? AND B.uid != ? AND A.team = B.team AND A.mid IN (?) ORDER BY uid;';
 	const playersSameMatch: [{ uid: string, userName: string, mmrChange: number }] = await DatabaseSequelize.instance.sequelize.query(playersSameMatchQuery, 
 	{ 

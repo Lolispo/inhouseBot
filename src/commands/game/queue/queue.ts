@@ -41,7 +41,7 @@ export class QueueAction extends BaseCommandClass {
   getNextPlayer() {
     if (this.queue.length === 0) return undefined;
     const user = this.queue.shift();
-    this.addAction({ type: ActionType.POP, users: [user] });
+    if (user) this.addAction({ type: ActionType.POP, users: [user] });
     return user;
   }
 
@@ -93,13 +93,14 @@ export class QueueAction extends BaseCommandClass {
     } else if (action.type === ActionType.EMPTY) {
       this.queue.concat(users);
     } else if (action.type === ActionType.REMOVE) {
-      this.queue.splice(action.index, 0, action.users[0]);
+      if (!action.index) console.error('@doAction Remove: Index not defined');
+      else this.queue.splice(action.index, 0, action.users[0]);
     }
   }
 
   rollbackQueueAction() {
     const action = this.storedActions.pop();
-    this.doAction(action);
+    if (action) this.doAction(action);
     return action;
   }
 

@@ -9,7 +9,7 @@ export class LoadAction extends BaseCommandClass {
   static instance: LoadAction = new LoadAction(commands, { isActive: false });
 
   action = async (message: Message, options: string[]) => {
-    const game = await loadFromFile();
+    await loadFromFile();
     console.log('@loadAction:', Game.getActiveGamesToString());
     print(message, 'Loaded Game from local storage');
   }

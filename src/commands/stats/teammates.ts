@@ -1,6 +1,5 @@
-import { bestTeammates, lastGame, Statistics } from '../../database/db_sequelize';
+import { bestTeammates, Statistics } from '../../database/db_sequelize';
 import * as f from '../../tools/f';	
-import { getConfig } from '../../tools/load-environment';
 import { printMessage } from '../../bot';
 import { GameModesStandard, getGameModes, getModeChosen } from '../../game/gameModes';
 import { Message } from 'discord.js';
@@ -35,10 +34,10 @@ export class TeammateAction extends BaseCommandClass {
     if (result) {
       if (options[1] === 'games' || options[2] === 'games') {
         result.sort((a,b) => {
-          if (b.gamesPlayed - a.gamesPlayed === 0) {
-            return b.winRate - a.winRate;
+          if (b?.gamesPlayed - a?.gamesPlayed === 0) {
+            return b?.winRate - a?.winRate;
           }
-          return b.gamesPlayed - a.gamesPlayed;
+          return b?.gamesPlayed - a?.gamesPlayed;
         });
       }    
       const stringResult = this.buildResults(message.author.username, gameName, result);

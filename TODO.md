@@ -30,8 +30,6 @@ temp check see who reacted in message
 Use ephermal message https://support.discord.com/hc/en-us/articles/1500000580222-Ephemeral-Messages-FAQ
   for private messages in channel
 
-Threads release august 17
-
 tsconfig strict true
 
 Unite only getting 10 users

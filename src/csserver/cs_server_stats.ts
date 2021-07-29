@@ -69,8 +69,6 @@ const dataFields = [
   'FA', // flashbang_assists
 ]; // 17
 
-const tableTitlesToString = () => `${tableTitleArray.join('\t')}\n`;
-
 const tableTitles = () => `| ${tableTitleArray.join(' | ')} |\n`;
 
 // pad column to fit in table design
@@ -133,20 +131,6 @@ const setHighestScore = (array, arrayIndex) => {
       } // No comparison (name)
     }
   });
-};
-
-// Marks best values in table with bold
-// TODO: Fix styling in discord message
-const hightlightHighestValues = (playerArrays, highestScore) => {
-  const amountOfDataFields = dataFields.length; // TODO Amount of data fields
-  for (let i = 0; i < amountOfDataFields; i++) {
-    // Checks highestScore index
-    if (highestScore[i] && highestScore[i].index && highestScore[i].value !== '-') {
-      const { index } = highestScore[i];
-      // playerArrays[index][i] = '**' + playerArrays[index][i] + '**';
-      // playerArrays[index][i] = '⭐' + playerArrays[index][i];
-    }
-  }
 };
 
 const padTo2 = value => (value.length === 1 ? ` ${value}` : value);
@@ -237,7 +221,7 @@ const buildMapStatsMessage = (mapTeam) => {
   }
 
   // Set bolded for highest values
-  hightlightHighestValues(playerArrays, highestScoreObject);
+  // hightlightHighestValues(playerArrays, highestScoreObject); // Not relevant until styling changes
   const fixedPlayerArray = adjustStrings(playerArrays);
 
   const sortedArrays = fixedPlayerArray.sort((a, b) => parseInt(a[1]) < parseInt(b[1]));
@@ -245,10 +229,7 @@ const buildMapStatsMessage = (mapTeam) => {
   for (let i = 0; i < sortedArrays.length; i++) {
     // console.log('@loop last', tableTitleArray[i], sortedArrays[i]);
     s += '|';
-    let innerCounter = 0;
     s += sortedArrays[i].map((entry, index) => {
-      // console.log('@inner loop', index, innerCounter, entry)
-      innerCounter++;
       return padColumn(index, entry);
     }).join('|');
     s += '|\n';
@@ -424,8 +405,8 @@ const getGameStatsDiscord = (gameObject, stats) => {
   }
 };
 
+/*
 const getCsStats = (uid) => {
-  /*
     SELECT name, ROUND(GROUP_CONCAT(headshot_kills / kills), 2), AVG(5kill_rounds), AVG(4kill_rounds), ROUND(AVG(3kill_rounds)),
     ROUND(AVG(2kill_rounds)), ROUND(AVG(1kill_rounds)), AVG(kills), AVG(deaths), AVG(assists), ROUND(AVG(damage)), AVG(flashbang_assists),
     GROUP_CONCAT(mid) FROM CSPlayerStats WHERE name IN ("Petter", "Weeb as Fuck", "Lacktjo", "Ahoy!") GROUP BY name ORDER BY kills DESC;
@@ -452,8 +433,8 @@ const getCsStats = (uid) => {
     AVG(firstkill_ct / (firstkill_ct + firstdeath_ct)) AS CT,
     WHERE name IN ("Petter", "Weeb as Fuck", "Lacktjo", "Ahoy!")
     WHERE uid in (?)
-    */
-};
+  };
+*/
 
 export const getGameStats = async (serverId, gameObject) => {
   // writeConsole(serverId, 'get5_dumpstats');

@@ -59,7 +59,7 @@ export const generateConfigFile = async (replacements, filePath, version = '-gen
 
     // console.log(result);
     const wholePath = filePath + version + fileType;
-    const writeFileRes = await writeFile(wholePath, result, 'utf8');
+    await writeFile(wholePath, result, 'utf8');
     // console.log('Wrote to file:', writeFileRes); // TODO: Fix print - undefined
     return wholePath;
   } catch (e) {
@@ -110,7 +110,7 @@ export const getPredictionTeam1 = (balanceInfo) => {
 
   */
   const {
-    difference, avgT1, avgT2, avgDiff,
+    avgT1, avgT2, avgDiff,
   } = balanceInfo;
   if (avgDiff < 1 && avgDiff >= 0) return 50;
   const diff = avgDiff * (10 / 25);
@@ -145,12 +145,12 @@ export const configureServer = async (gameObject) => {
   const wholeFilePath = await generateConfigFile(replacements, 'cfg/kosatupp_inhouse_coordinator_match');
   console.log('@configureServer.filePath:', wholeFilePath);
   const filePathRemote = 'cfg%2Fget5%2Fkosatupp_inhouse_coordinator_match.cfg';
-  const uploadedFileRes = await uploadFile(serverId, filePathRemote, wholeFilePath);
-  const cmdResetRunningGames = await writeConsole(serverId, 'get5_endmatch;'); // TODO: Only run if gameongoing
+  await uploadFile(serverId, filePathRemote, wholeFilePath);
+  await writeConsole(serverId, 'get5_endmatch;'); // TODO: Only run if gameongoing
   // TODO: Currently get5_check_auths is always set on server - check how to switch this
-  const cmdCheckAuths = await writeConsole(serverId, `get5_check_auths ${team1Players && team2Players ? 1 : '0; say All users require a linked Steam ID for automatic team placement;'}`);
+  await writeConsole(serverId, `get5_check_auths ${team1Players && team2Players ? 1 : '0; say All users require a linked Steam ID for automatic team placement;'}`);
   // Load config
-  const writeConsoleRes = await loadConfigFile(serverId);
+  await loadConfigFile(serverId);
 
   // Start reading input from server
   readCSConsoleInput(serverId, gameObject);

@@ -13,7 +13,7 @@ import { getChannelName, getGameOnGoing, isCorrect, startGame } from './trivia';
 import { Game, getGame, createGame, hasActiveGames, deleteGame } from './game/game';
 import { getConfig } from './tools/load-environment';
 import { getClientReference } from './client';
-import * as birthday from './birthday';
+// import * as birthday from './birthday';
 import { connectSteamEntry, validateSteamID, storeSteamId, sendSteamId } from './steamid';
 import { cleanOnGameEnd } from './game/game';
 import { getGameStats } from './csserver/cs_server_stats';
@@ -24,7 +24,7 @@ import { pingAction } from './commands/memes/ping';
 import { statsAction } from './commands/stats/stats';
 import { leaderBoardAction } from './commands/stats/leaderboard';
 import { GameModesType, getAllModes, getGameModes, getGameModes1v1, getModeAndPlayers } from './game/gameModes';
-import { allAvailableCommands, buildStringHelpAllCommands, getAllDmCommands } from './mainCommand';
+import { allAvailableCommands, getAllDmCommands } from './mainCommand';
 import { startsWith } from './BaseCommand';
 import { getAdminUids, IMessageType } from './BaseCommandTypes';
 
