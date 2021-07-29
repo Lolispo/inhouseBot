@@ -387,7 +387,7 @@ async function balanceCommand(message, options){
 	const gameObjectExist = getGame(message.author);
 	if (f.isUndefined(gameObjectExist)){ // User is not already in a game
 		console.log('@DEBUG', message.guild.member(message.author));
-		const voiceChannel = message.guild.member(message.author).voice.channel;
+		const voiceChannel = message.guild.member(message.author)?.voice?.channel;
 		// console.log('@voiceChannel:', voiceChannel);
 		if (voiceChannel !== null && !f.isUndefined(voiceChannel)){ // Makes sure user is in a voice channel
 			// Initialize Game object
