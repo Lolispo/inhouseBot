@@ -3,7 +3,7 @@ import { BaseCommandClass } from "../../../BaseCommand";
 import { print, deleteDiscMessage } from "../../../tools/f";
 import { QueueAction } from "./queue";
 
-const commands = ['emptyqueue', 'empty'];
+const commands = ['emptyqueue'];
 
 export class EmptyQueueAction extends BaseCommandClass {
   static instance: EmptyQueueAction = new EmptyQueueAction(commands, { adminCommand: true });

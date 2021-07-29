@@ -3,7 +3,7 @@ import { BaseCommandClass } from "../../../BaseCommand";
 import { print, deleteDiscMessage } from "../../../tools/f";
 import { QueueAction } from "./queue";
 
-const commands = ['currentqueue', 'showqueue'];
+const commands = ['currentqueue', 'showqueue', 'displayqueue'];
 
 export class CurrentQueueAction extends BaseCommandClass {
   static instance: CurrentQueueAction = new CurrentQueueAction(commands);

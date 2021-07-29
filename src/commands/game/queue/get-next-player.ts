@@ -46,7 +46,6 @@ export class NextQueuePlayerAction extends BaseCommandClass {
             });
           deleteDiscMessage(message, 10000, 'queuepop');
         }
-        // If not available in channel, DM
         deleteDiscMessage(message, 15000, 'nextqueue');
       } else {
         print(message, 'No user in queue', (messageVar) => {
