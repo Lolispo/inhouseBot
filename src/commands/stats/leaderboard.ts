@@ -2,6 +2,7 @@ import { getHighScore } from "../../database/db_sequelize";
 import { getAllModes, getModeChosen, ratingOrMMR } from "../../game/gameModes";
 import { deleteDiscMessage, print } from "../../tools/f";
 
+// TODO: Migrate to format
 export const leaderBoardAction = async (message, options) => {
   const allModes = getAllModes();
   const game = getModeChosen(options, allModes, allModes[0]);

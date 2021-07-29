@@ -16,6 +16,7 @@ export class CurrentQueueAction extends BaseCommandClass {
       deleteDiscMessage(messageVar, 60000, 'currentqueueprint')
     });
     deleteDiscMessage(message, 15000, 'currentqueue');
+    return true;
   }
 
   help = () => {

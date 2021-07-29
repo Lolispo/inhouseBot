@@ -4,7 +4,7 @@ import { IMessageType } from "../../../BaseCommandTypes";
 import { print, deleteDiscMessage } from "../../../tools/f";
 import { QueueAction } from "./queue";
 
-const commands = ['stopqueue', 'leavequeue'];
+const commands = ['stopqueue', 'leavequeue', 'sq'];
 
 export class StopQueueAction extends BaseCommandClass {
   static instance: StopQueueAction = new StopQueueAction(commands, { allowedMessageTypes: [IMessageType.DIRECT_MESSAGE, IMessageType.SERVER_MESSAGE] });
@@ -21,6 +21,7 @@ export class StopQueueAction extends BaseCommandClass {
       deleteDiscMessage(messageVar, 15000, 'stopqueueprint')
     });
     deleteDiscMessage(message, 15000, 'stopqueue');
+    return true;
   }
 
   help = () => {

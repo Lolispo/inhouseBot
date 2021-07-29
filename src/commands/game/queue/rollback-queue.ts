@@ -3,7 +3,7 @@ import { BaseCommandClass } from "../../../BaseCommand";
 import { print, deleteDiscMessage } from "../../../tools/f";
 import { ActionType, QueueAction } from "./queue";
 
-const commands = ['rollbackqueue', 'revert', 'rbq'];
+const commands = ['revertqueue', 'revert', 'rbq', 'reversepop', 'rollbackqueue'];
 
 export class RollbackQueue extends BaseCommandClass {
   static instance: RollbackQueue = new RollbackQueue(commands);
@@ -15,7 +15,8 @@ export class RollbackQueue extends BaseCommandClass {
     const result = QueueAction.instance.rollbackQueueAction();
     const printString = ActionType[result.type] + ': ' + result.users + (result.index !== undefined ? ' (Pos: ' + result.index + ')' : '');
     print(message, 'Rolled back action: ' + printString);
-    deleteDiscMessage(message, 15000, 'curretqueue');
+    deleteDiscMessage(message, 15000, 'rollbackqueue');
+    return true;
   }
 
   help = () => {

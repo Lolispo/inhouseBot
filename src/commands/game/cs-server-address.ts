@@ -10,7 +10,6 @@ export class CSServerAddressAction extends BaseCommandClass {
 
     action = (message: Message, options: string[]) => {
         print(message, '**' + getCsIp() + '**');
-        deleteDiscMessage(message, 40000, 'csserver');
     }
 
     help = () => {

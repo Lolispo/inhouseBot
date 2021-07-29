@@ -81,6 +81,7 @@ export abstract class BaseCommandClass {
    * Action to do for the message
    * @param message Discord Message containing Author information and message content
    * @param options splitted parameters separated by space
+   * @return Return can be used to evaluate if default deletion on action message should be used (Default 30 sec on true)
    */
   abstract action(message: Message, options: string[]);
 

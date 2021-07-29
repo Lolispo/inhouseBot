@@ -116,7 +116,6 @@ export class QueueAction extends BaseCommandClass {
   action = (message: Message, options: string[]) => {
     const user = message.author;
     this.addPlayerToQueue(user, message);
-    deleteDiscMessage(message, 60000, 'queue');
   }
 
   help = () => {

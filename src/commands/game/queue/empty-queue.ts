@@ -18,6 +18,7 @@ export class EmptyQueueAction extends BaseCommandClass {
       deleteDiscMessage(messageVar, 15000, 'emptyqueueprint')
     });
     deleteDiscMessage(message, 15000, 'emptyqueue');
+    return true;
   }
 
   help = () => {

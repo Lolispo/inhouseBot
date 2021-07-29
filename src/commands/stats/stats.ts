@@ -3,6 +3,7 @@ import { getPersonalStats } from "../../database/db_sequelize";
 import { getAllModes, getModeChosen, ratingOrMMR } from "../../game/gameModes";
 import { deleteDiscMessage } from "../../tools/f";
 
+// Migrate to format
 export const statsAction = async (message, options) => {
   const game = getModeChosen(options, getAllModes());
 	const data = await getPersonalStats(message.author.id);

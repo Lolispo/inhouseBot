@@ -82,8 +82,8 @@ export const discordEventMessage = (message: Message) => {
 				const command = loadedCommands[i];
 				// console.log('@LoadedCommand:', command);
 				if (command.isThisCommand(message, IMessageType.DIRECT_MESSAGE)) {
-					command.action(message, options);
-					f.deleteDiscMessage(message, 30000, command.name);
+					const shouldIgnoreDeletion: boolean | undefined = command.action(message, options);
+					if (!shouldIgnoreDeletion) f.deleteDiscMessage(message, 30000, command.name);
 					return; // Don't do another command since an action was done already
 				}
 			}
@@ -174,8 +174,8 @@ const handleMessage = async (message: Message) => {
 		const command = loadedCommands[i];
 		// console.log('@LoadedCommand:', command);
 		if (command.isThisCommand(message, IMessageType.SERVER_MESSAGE)) {
-			command.action(message, options);
-			f.deleteDiscMessage(message, 30000, command.name);
+			const shouldDeleteActionMessage: boolean | undefined = command.action(message, options);
+			if (shouldDeleteActionMessage) f.deleteDiscMessage(message, 30000, command.name);
 			return; // Don't do another command since an action was done already
 		}
 	}

@@ -19,29 +19,37 @@ import { TeammateAction } from "./commands/stats/teammates";
 import { TemperatureCheckAction } from "./commands/game/temperatureCheck";
 import { HelpMode, IMessageType } from "./BaseCommandTypes";
 
+let listOfCommands: BaseCommandClass[];
 
 export const allAvailableCommands = (): BaseCommandClass[] => {
-  let listOfCommands = [];
-  // TODO Load all commands
-  listOfCommands.push(ConnectDotaAction.instance);
-  listOfCommands.push(CSServerAddressAction.instance);
-  listOfCommands.push(CurrentQueueAction.instance);
-  listOfCommands.push(EmptyQueueAction.instance);
-  listOfCommands.push(HejAction.instance);
-  listOfCommands.push(HelpAction.instance);
-  listOfCommands.push(HelpAllAction.instance);
-  listOfCommands.push(LastGameAction.instance);
-  listOfCommands.push(LennyAction.instance);
-  listOfCommands.push(LoadAction.instance);
-  listOfCommands.push(NextQueuePlayerAction.instance);
-  listOfCommands.push(QueueAction.instance);
-  listOfCommands.push(RollAction.instance);
-  listOfCommands.push(RollbackQueue.instance);
-  listOfCommands.push(SaveAction.instance);
-  listOfCommands.push(StopQueueAction.instance);
-  listOfCommands.push(TeammateAction.instance);
-  listOfCommands.push(TemperatureCheckAction.instance);
-  return listOfCommands;
+  if (!listOfCommands) {
+    let listOfCommands = [];
+    listOfCommands.push(ConnectDotaAction.instance);
+    listOfCommands.push(CSServerAddressAction.instance);
+    listOfCommands.push(CurrentQueueAction.instance);
+    listOfCommands.push(EmptyQueueAction.instance);
+    listOfCommands.push(HejAction.instance);
+    listOfCommands.push(HelpAction.instance);
+    listOfCommands.push(HelpAllAction.instance);
+    listOfCommands.push(LastGameAction.instance);
+    listOfCommands.push(LennyAction.instance);
+    listOfCommands.push(LoadAction.instance);
+    listOfCommands.push(NextQueuePlayerAction.instance);
+    listOfCommands.push(QueueAction.instance);
+    listOfCommands.push(RollAction.instance);
+    listOfCommands.push(RollbackQueue.instance);
+    listOfCommands.push(SaveAction.instance);
+    listOfCommands.push(StopQueueAction.instance);
+    listOfCommands.push(TeammateAction.instance);
+    listOfCommands.push(TemperatureCheckAction.instance);
+    // Sorted so that exact matches are evaluated before starting matches
+    listOfCommands.sort((a: BaseCommandClass, b: BaseCommandClass) => {
+      return a.matchMode - b.matchMode;
+    });
+    return listOfCommands;
+  } else {
+    return listOfCommands;
+  }
 }
 
 /**
