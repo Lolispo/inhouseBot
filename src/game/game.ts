@@ -200,6 +200,7 @@ export const loadFromFile = async (): Promise<Game> => {
     return undefined;
   } catch (e) {
     console.error('@Failed to load game');
+    return undefined;
   }
 }
 

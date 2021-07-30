@@ -13,7 +13,7 @@ export class SaveAction extends BaseCommandClass {
     if (!gameObject) {
       print(message, 'Failed to save since user is not in a game');
     } else {
-      const data = saveGame(gameObject);
+      saveGame(gameObject);
       console.log('@saveAction: Saved game successfully');
     }
   }

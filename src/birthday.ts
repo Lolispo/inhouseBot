@@ -6,7 +6,7 @@ import {
   getClient,
 } from './client';
 import { getPool, initializeMySQL } from './database/mysql_pool';
-import { Channel, Client } from 'discord.js';
+import { Client } from 'discord.js';
 import { getTextGeneralChannel, getTextTestChannel, IKosaTuppChannels } from './channels/channels';
 
 let awaitedClient: Client;
@@ -69,7 +69,7 @@ const dailyCheck = async (date) => {
     for (let i = 0; i < result.length; i++) {
       const entry = result[i];
       console.log('Entry', i, ':', entry.userName);
-      const { uid, userName, birthday } = entry;
+      // const { uid, userName, birthday } = entry;
       // console.log('List:', channel.guild.members);
 			console.log('NEED TO FINISH DISCORD12 OF BIRTHDAY');
 			// TODO: Work with text channel to find Guild

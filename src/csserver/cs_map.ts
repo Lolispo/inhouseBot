@@ -18,6 +18,8 @@ const getTranslatedMap = (map) => {
       return `de_${mapList[i]}`;
     }
   }
+  // No translation found in list
+  return map;
 };
 
 export const getChosenMap = (chosenMap) => {

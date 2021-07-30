@@ -50,7 +50,7 @@ const getInhouseChannels = (guildChannels) => {
 
 export const split = (message: Message, options: string[], balanceInfo, activeMembers: GuildMember[]) => {
   const guildChannels = message.guild.channels;
-  splitChannel = message.guild.member(message.author).voice.channel;
+  splitChannel = message.guild.member(message.author)?.voice?.channel;
 
   // Get team players as GuildMember objects
   const t1players = f.teamToGuildMember(balanceInfo.team1, activeMembers); // Might give empty on test case (activeMember == undefined)
@@ -75,7 +75,7 @@ export const split = (message: Message, options: string[], balanceInfo, activeMe
 export const setMemberVoice = (team, channelId) => {
   team.forEach((player) => {
     try {
-      player.voice.setChannel(channelId); // Will throw error if player is not in a voice channel
+      player?.voice?.setChannel(channelId); // Will throw error if player is not in a voice channel
     } catch (e) {
       console.error('Issue moving users voice channel (User might not be connected to voice):', e);
       throw e;
@@ -118,7 +118,7 @@ export const getVoiceChannel = (message: Message, options: string[], preferredCh
 
   // If this is not defined, take own own voiceChannel or an available one
   // Can't be the AFK channel
-  channel1 = message.guild.member(message.author).voice.channel;
+  channel1 = message.guild.member(message.author)?.voice?.channel;
   if (!channel1 || channel1.id === message.guild.afkChannelID) {
     channel1 = message.guild.channels.cache.find(channel => channel.type === 'voice' && channel.id !== message.guild.afkChannelID);
   }

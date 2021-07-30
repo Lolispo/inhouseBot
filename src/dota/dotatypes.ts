@@ -28,6 +28,8 @@ export interface IMatchFinished {
 export const DotaBotResultTranslate = (result: ITeamWon): number => {
   if (result === ITeamWon.RADIANT) return 1;
   if (result === ITeamWon.DIRE) return 2;
-  if (result === ITeamWon.Unknown)
-    return undefined;
+  if (result === ITeamWon.Unknown) {
+    console.error('Invalid result from Bot:', result);
+  }
+  return undefined
 }

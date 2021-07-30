@@ -1,7 +1,7 @@
 import { Message } from "discord.js";
 import { BaseCommandClass } from "../../BaseCommand";
 import { MatchMode } from "../../BaseCommandTypes";
-import { GameModesStandard, getActiveGameModes, getModeChosen } from "../../game/gameModes";
+import { GameModesStandard, GameModesType, getActiveGameModes, getModeChosen } from "../../game/gameModes";
 import { deleteDiscMessage, print } from '../../tools/f';
 
 
@@ -106,7 +106,7 @@ export class TemperatureCheckAction extends BaseCommandClass {
     const activeModes = getActiveGameModes();
     activeModes.splice(activeModes.indexOf(GameModesStandard.CS), 1); // CS Temporaryily disabled from default temperature checks
     const gameName = getModeChosen(options, activeModes);
-    let gameOptions = [];
+    let gameOptions: GameModesType[] = [];
     if (!gameName) {
       gameOptions = gameOptions.concat(activeModes);
     } else {

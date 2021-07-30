@@ -13,13 +13,15 @@ export class RollbackQueue extends BaseCommandClass {
    */
   action = (message: Message, options: string[]) => {
     const result = QueueAction.instance.rollbackQueueAction();
-    const printString = ActionType[result.type] + ': ' + result.users + (result.index !== undefined ? ' (Pos: ' + result.index + ')' : '');
-    print(message, 'Rolled back action: ' + printString);
-    deleteDiscMessage(message, 15000, 'rollbackqueue');
+    if (result) {
+      const printString = ActionType[result.type] + ': ' + result.users + (result.index !== undefined ? ' (Pos: ' + result.index + ')' : '');
+      print(message, 'Rolled back action: ' + printString);
+      deleteDiscMessage(message, 15000, 'rollbackqueue');
+    }
     return true;
   }
 
   help = () => {
-    return '**' + this.commands.toString().replace(/,/g, ' | ') + '** Rollsback latest queue action';
+    return '**' + this.commands.toString().replace(/,/g, ' | ') + '** Rolls back latest queue action';
   }
 }

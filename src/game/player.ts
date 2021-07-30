@@ -25,7 +25,7 @@ export class Player {
 		this.initializeDefaultMMR();
 	}
   // Initializes mmr values to defaults. Is run instantly on Player creation
-  initializeDefaultMMR = function () {
+  initializeDefaultMMR = () => {
     getAllMMRModes().forEach(gameMode => {
       const struct = MMRStruct.generateMmrStruct(startMMR);
       this.mmrs[gameMode] = struct;
@@ -46,16 +46,16 @@ export class Player {
     return this.mmrs[game].mmr;
   }
 
-  getGame = function (game) {
+  getGame = (game) => {
     return this.mmrs[game];
   };
 
-  setMMRChange = function (game, value) {
+  setMMRChange = (game, value) => {
     const struct = this.mmrs[game];
     struct.latestUpdate = value;
   };
 
-  setPlusMinus = function (game, value) {
+  setPlusMinus = (game, value) => {
     const struct = this.mmrs[game];
     struct.latestUpdatePrefix = value;
   };

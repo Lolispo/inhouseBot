@@ -1,6 +1,6 @@
 import { Message } from "discord.js";
 import { BaseCommandClass } from "../../BaseCommand";
-import { print, deleteDiscMessage } from "../../tools/f";
+import { print } from "../../tools/f";
 import { getCsIp } from '../../csserver/server_info';
 
 const commands = ['praccserver', 'server', 'csserver', 'serveradress', 'csserverip', 'ip', 'csip'];

@@ -1,6 +1,5 @@
-import { bestTeammates, lastGame, Statistics } from '../../database/db_sequelize';
+import { bestTeammates, Statistics } from '../../database/db_sequelize';
 import * as f from '../../tools/f';	
-import { getConfig } from '../../tools/load-environment';
 import { printMessage } from '../../bot';
 import { GameModesStandard, getGameModes, getModeChosen } from '../../game/gameModes';
 import { Message } from 'discord.js';

@@ -31,7 +31,7 @@ const uniteChannels = (gameObject) => {
 export const readCSConsoleInput = async (serverId, gameObject) => {
   // Check status on server every minute
   const localInterval = setInterval(async () => {
-    const getStatusRes = await writeConsole(serverId, 'get5_status');
+    await writeConsole(serverId, 'get5_status');
     const latestLines = await getLatestConsoleLines(serverId);
     console.log('@readCSConsoleInput Latest Lines', latestLines);
     const splittedMessages = latestLines.data.lines;

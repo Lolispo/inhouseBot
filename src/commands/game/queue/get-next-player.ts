@@ -26,9 +26,9 @@ export class NextQueuePlayerAction extends BaseCommandClass {
       const user = instance.getNextPlayer();
   
       if (user) {
-        const authorUser = message.guild.member(message.author.id);
-        const foundUser = message.guild.member(user.id);
-        const currentChannel = getVoiceChannel(message, options, authorUser.voice.channelID);
+        const authorUser = message.guild?.member(message.author.id);
+        const foundUser = message.guild?.member(user.id);
+        const currentChannel = getVoiceChannel(message, options, authorUser?.voice?.channelID);
         // Get user with voice information
     
         // Unite if available

@@ -1,7 +1,7 @@
 import { getClientReference } from "../../client";
 
 export const pingAction = async (message, options) => {
-  const client = await getClientReference();
+  await getClientReference();
   /*
   TODO: DISCORD12 Implementation of Pings since moved from clients
   console.log('PingAlert, user had !ping as command', client.pings);
