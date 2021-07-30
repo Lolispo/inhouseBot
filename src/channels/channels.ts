@@ -7,6 +7,11 @@ export enum IKosaTuppChannels {
   WaitingRoomChannel = '850469231363227668',
 }
 
+export const KosaTuppChannelObjects = {
+  [IKosaTuppChannels.LandingZone]: { id: '855532642891726888', name: '🛬 Landing Zone' },
+  [IKosaTuppChannels.WaitingRoomChannel]: { id: '850469231363227668', name: '🤖 Waiting Room' }
+}
+
 const generalId = '102097104322711552'; // General
 const testId = '424309421519142913'; // robot-playground
 
