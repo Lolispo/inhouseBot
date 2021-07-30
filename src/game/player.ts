@@ -4,7 +4,7 @@
 	Class handles player objects which take care of player data
 */
 
-import { modes1v1, modesGame, modesRatings, ratingOrMMR } from "./gameModes";
+import { getAllMMRModes, getGameModesRatings, ratingOrMMR } from "./gameModes";
 import { MMRStruct } from "./mmrStruct";
 
 const startMMR = 2500;
@@ -24,20 +24,16 @@ export class Player {
 		this.mmrs = { };
 		this.initializeDefaultMMR();
 	}
-  // Initializes mmr values to defaults. Ran instantly on creation
+  // Initializes mmr values to defaults. Is run instantly on Player creation
   initializeDefaultMMR = () => {
-    for (let i = 0; i < modesGame.length; i++) {
+    getAllMMRModes().forEach(gameMode => {
       const struct = MMRStruct.generateMmrStruct(startMMR);
-      this.mmrs[modesGame[i]] = struct;
-    }
-    for (let i = 0; i < modes1v1.length; i++) {
-      const struct = MMRStruct.generateMmrStruct(startMMR);
-      this.mmrs[modes1v1[i]] = struct;
-    }
-    for (let i = 0; i < modesRatings.length; i++) {
+      this.mmrs[gameMode] = struct;
+    })
+    getGameModesRatings().forEach(gameMode => {
       const struct = MMRStruct.generateMmrStruct(0);
-      this.mmrs[modesRatings[i]], struct;
-    }
+      this.mmrs[gameMode] = struct;
+    })
   };
 
   setMMR = (game, value) => {
@@ -118,12 +114,3 @@ export const sortRating = (players: Player[], game: string) => {
   // console.log('@sortRating:', players.map(player => player.getMMR(game)));
   return players;
 };
-
-export function getAllModes() {
-	throw new Error('Function not implemented.');
-}
-
-export function getGameModes() {
-	throw new Error('Function not implemented.');
-}
-
