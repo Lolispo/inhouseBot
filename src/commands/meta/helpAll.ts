@@ -17,21 +17,18 @@ export class HelpAllAction extends BaseCommandClass {
     const depDetailed2 = buildHelpString(message.author.id, 1);
     message.author.send(helpMessage)
       .then(result => {
-        deleteDiscMessage(result, removeBotMessageDefaultTime * 4);
+        deleteDiscMessage(result, removeBotMessageDefaultTime * 4, 'helpall');
       });
-      deleteDiscMessage(message, 10000, 'helpall');
     message.author.send(depDetailed1)
       .then(result => {
-        deleteDiscMessage(result, removeBotMessageDefaultTime * 4);
+        deleteDiscMessage(result, removeBotMessageDefaultTime * 4, 'helpalldep1');
       });
-      deleteDiscMessage(message, 10000, 'helpalldep2');
     message.author.send(depDetailed2)
       .then(result => {
-        deleteDiscMessage(result, removeBotMessageDefaultTime * 4);
+        deleteDiscMessage(result, removeBotMessageDefaultTime * 4, 'helpalldep2');
       });
-      deleteDiscMessage(message, 10000, 'helpalldep2');
-
     deleteDiscMessage(message, 10000, 'helpAll');
+    return true;
   }
 
   help = (helpMode?: HelpMode) => {

@@ -13,6 +13,7 @@ export class HejAction extends BaseCommandClass {
     if (message.author.username) {
       print(message, 'Hej ' + message.author.username, noop); // Not removing hej messages
     }
+    return true;
   }
 
   help = () => {

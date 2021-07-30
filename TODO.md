@@ -9,9 +9,30 @@ Add integration tests for main functionalities
 
 # Error message
 
+Start adding all of these things to Github issues instead of here
+
 Add amount of users in voice channel
 
 Queue for next spot
+    Queue other people by username
+
+discord tag autoqueue
+    autoqueue command to add user to it
+    use in queue
+
+admin commands should not show as invalid
+    Should show as admin commands in help
+
+Refactor discord events to event folder
+
+temp check see who reacted in message
+
+Use ephermal message https://support.discord.com/hc/en-us/articles/1500000580222-Ephemeral-Messages-FAQ
+  for private messages in channel
+
+Threads release august 17
+
+tsconfig strict true
 
 Unite only getting 10 users
 

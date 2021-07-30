@@ -15,9 +15,10 @@ import request from 'request';
 const entities = new Entities();
 
 import { getPlayer, createPlayer, getSortedRatingTrivia, Player } from './game/player';
-import { getAdminUids, triviaStart } from './bot';
+import { triviaStart } from './bot';
 import { initializePlayers, updateDbMMR } from './database/db_sequelize';
 import { getPrefix } from './tools/load-environment';
+import { getAdminUids } from './BaseCommandTypes';
 
 let gameOnGoing = false;
 let author;

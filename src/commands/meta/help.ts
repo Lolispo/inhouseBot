@@ -15,14 +15,14 @@ export class HelpAction extends BaseCommandClass {
     const deprecatedCommands = buildHelpString(message.author.id, 0);
     message.author.send(helpMessage)
       .then(result => {
-        deleteDiscMessage(result, removeBotMessageDefaultTime * 2);
+        deleteDiscMessage(result, removeBotMessageDefaultTime * 2, 'help');
       });
-      deleteDiscMessage(message, 10000, 'help');
     message.author.send(deprecatedCommands)
       .then(result => {
-        deleteDiscMessage(result, removeBotMessageDefaultTime * 2);
+        deleteDiscMessage(result, removeBotMessageDefaultTime * 2, 'helpdep');
       });
-      deleteDiscMessage(message, 10000, 'helpdep');
+    deleteDiscMessage(message, 10000, 'helpaction');
+    return true;
   }
 
   help = () => {

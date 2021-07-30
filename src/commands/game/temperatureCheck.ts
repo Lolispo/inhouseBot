@@ -132,7 +132,7 @@ export class TemperatureCheckAction extends BaseCommandClass {
       const temperatureMessage = this.generateGameTimeString(gameOptions, startTime, hours);
       print(message, temperatureMessage, this.callbackMessageTemperature);
       // TODO: Store reference to temperatureMessage
-    }  
+    }
   }
 
   help = () => {
