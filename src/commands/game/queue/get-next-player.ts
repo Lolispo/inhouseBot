@@ -21,6 +21,7 @@ export class NextQueuePlayerAction extends BaseCommandClass {
     if (!isNaN(optionAmountToPop) && optionAmountToPop > 0 && optionAmountToPop < 10) {
       amountToPop = optionAmountToPop;
     }
+    console.log('AmountToPop:', amountToPop, optionAmountToPop);
 
     for (let i = 0; i < amountToPop; i++) {
       const user = instance.getNextPlayer();
@@ -33,7 +34,7 @@ export class NextQueuePlayerAction extends BaseCommandClass {
     
         // Unite if available
         try {
-          console.log('DEBUG: Before command');
+          console.log('DEBUG: Before command', amountToPop);
           setMemberVoice([foundUser], currentChannel.id);
           console.log('DEBUG: After command');
           print(message, `**${user.username}** joins to play!`, (messageVar) => {
