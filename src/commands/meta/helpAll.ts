@@ -14,7 +14,7 @@ export class HelpAllAction extends BaseCommandClass {
     // Detailed help information
     const helpMessage = buildStringHelpAllCommands(HelpMode.DETAILED);
     const depDetailed1 = buildHelpString(message.author.id, 1);
-    const depDetailed2 = buildHelpString(message.author.id, 1);
+    const depDetailed2 = buildHelpString(message.author.id, 2);
     message.author.send(helpMessage)
       .then(result => {
         deleteDiscMessage(result, removeBotMessageDefaultTime * 4, 'helpall');

@@ -18,8 +18,8 @@ export class UniteAction extends BaseCommandClass {
   // Optional additional argument to choose name of voiceChannel to uniteIn, otherwise same as balance was called from
   help = (helpMode: HelpMode) => {
     if (helpMode === HelpMode.DETAILED) {
-      return '**' + this.commands.toString().replace(/,/g, ' | ') + '** [channel]** Unite voice chat after game\n'
-			+ '**[channel]** Opt. argument: name of channel to unite in';
+      return '**' + this.commands.toString().replace(/,/g, ' | ') + '** [channelName] Unite voice chat after game.'
+			+ ' Opt. argument: name of voice channel to unite in';
     }
     return '**' + this.commands.toString().replace(/,/g, ' | ') + '** Take every user in Team1 and Team2 and move them to the same voice chat';
   }

@@ -61,6 +61,7 @@ export class ConnectDotaAction extends BaseCommandClass {
         console.log('Resending team setup ...');
         ConnectDotaAction.startMatch(gameObject.gameID, [gameObject.getBalanceInfo().team1, gameObject.getBalanceInfo().team2]);
       } else {
+        await ConnectDotaAction.getSocket();
         console.log('Sending Hello World event ...');
         startMatch({ hello: 'world' });
       }

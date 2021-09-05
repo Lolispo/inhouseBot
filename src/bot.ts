@@ -171,8 +171,8 @@ const handleMessage = async (message: Message) => {
 	for (let i = 0; i < loadedCommands.length; i++) {
 		const command = loadedCommands[i];
 		const commandEvaluation = command.isThisCommand(message, IMessageType.SERVER_MESSAGE);
-		// console.log('@LoadedCommand:', command);
 		if (commandEvaluation === CommandTypes.VALID_COMMAND) {
+			console.log('@LoadedCommand:', command, commandEvaluation);
 			// isThisCommand makes sure all games that require a game has a game
 			const shouldDeleteActionMessage: boolean | undefined = command.action(
 				message,
