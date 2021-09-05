@@ -33,11 +33,14 @@ export class NextQueuePlayerAction extends BaseCommandClass {
     
         // Unite if available
         try {
+          console.log('DEBUG: Before command');
           setMemberVoice([foundUser], currentChannel.id);
+          console.log('DEBUG: After command');
           print(message, `**${user.username}** joins to play!`, (messageVar) => {
             deleteDiscMessage(messageVar, 15000, 'queuejoin')
           }); // TODO: Variations
         } catch (e) {
+          console.log('DEBUG: catch');
           console.log('User not movable into channel');
           // Sends DM if not in voice
           user.send('**Inhouse time! You are being summoned! Join discord.\nIf you are not able to join soon, you will lose your spot.**')
@@ -46,6 +49,7 @@ export class NextQueuePlayerAction extends BaseCommandClass {
             });
           deleteDiscMessage(message, 10000, 'queuepop');
         }
+        console.log('DEBUG: After catch')
         deleteDiscMessage(message, 15000, 'nextqueue');
       } else {
         print(message, 'No user in queue', (messageVar) => {
