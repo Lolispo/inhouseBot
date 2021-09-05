@@ -66,7 +66,7 @@ export const configureSocket = () => {
             cleanOnGameEnd(gameObject);
           });
           // Reset active game
-          ConnectDotaAction.gameId = undefined;
+          ConnectDotaAction.gameId = undefined; // Setter assumes string
         } else {
           console.error('Unknown result returned by the Dota bot:', winner, gameResult);
         }

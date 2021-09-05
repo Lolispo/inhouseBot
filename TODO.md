@@ -13,21 +13,18 @@ Start adding all of these things to Github issues instead of here
 
 allow setting steam id before being in a game
 
--unqueue shouldn't work for unitecommand
-
 Allow restarting dota bot and recreate lobby
     resend
+    Test -refreshlobby command
 
 BUG: Layout: friends command with a lot of teammates breaks ``` when message gets split in 2
     The split need to escape the ``` if it starts with it
 
-Remove people from queue who finished a game
+Remove people from queue who is in a game balance
 
-Fix bug when offline users queue pop
+Empty queue between game days
 
 Allow to kick people in dota
-
-Add amount of users in voice channel
 
 Queue for next spot
     Queue other people by username

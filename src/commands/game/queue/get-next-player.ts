@@ -1,4 +1,4 @@
-import { Message } from "discord.js";
+import { Message, User } from "discord.js";
 import { BaseCommandClass } from "../../../BaseCommand";
 import { MatchMode } from "../../../BaseCommandTypes";
 import { removeBotMessageDefaultTime } from "../../../bot";
@@ -14,7 +14,7 @@ export class NextQueuePlayerAction extends BaseCommandClass {
   /**
    * Removes current players from queue
    */
-  action = (message: Message, options: string[]) => {
+  action = async (message: Message, options: string[]) => {
     const instance = QueueAction.instance;
     let amountToPop = 1;
     const optionAmountToPop = parseInt(options[1])
@@ -29,28 +29,22 @@ export class NextQueuePlayerAction extends BaseCommandClass {
       if (user) {
         const authorUser = message.guild?.member(message.author.id);
         const foundUser = message.guild?.member(user.id);
-        const currentChannel = getVoiceChannel(message, options, authorUser?.voice?.channelID);
+        const currentChannel = getVoiceChannel(message, [], authorUser?.voice?.channelID);
         // Get user with voice information
-    
-        // Unite if available
+
+        // Drag user into channel if available in voice, otherwise DM them
         try {
-          console.log('DEBUG: Before command', amountToPop);
-          setMemberVoice([foundUser], currentChannel.id);
-          console.log('DEBUG: After command');
-          print(message, `**${user.username}** joins to play!`, (messageVar) => {
-            deleteDiscMessage(messageVar, 15000, 'queuejoin')
-          }); // TODO: Variations
+          console.log('DEBUG: Before command', amountToPop, currentChannel?.id);
+          await setMemberVoice([foundUser], currentChannel?.id)
+          console.log('DEBUG: After command', amountToPop, currentChannel?.id);
         } catch (e) {
-          console.log('DEBUG: catch');
-          console.log('User not movable into channel');
-          // Sends DM if not in voice
-          user.send('**Inhouse time! You are being summoned! Join discord.\nIf you are not able to join soon, you will lose your spot.**')
-            .then(result => {
-              deleteDiscMessage(result, removeBotMessageDefaultTime * 2);
-            });
+          console.log('DEBUG: User not movable into channel', e);
+          this.summonUser(user);
           deleteDiscMessage(message, 10000, 'queuepop');
         }
-        console.log('DEBUG: After catch')
+        print(message, `**${user.username}** joins to play!`, (messageVar) => {
+          deleteDiscMessage(messageVar, 15000, 'queuejoin')
+        }); // TODO: Variations
         deleteDiscMessage(message, 15000, 'nextqueue');
       } else {
         print(message, 'No user in queue', (messageVar) => {
@@ -59,6 +53,14 @@ export class NextQueuePlayerAction extends BaseCommandClass {
         break;
       }
     }
+  }
+
+  summonUser(user: User) {
+    // Sends DM if not in voice
+    user.send('**Inhouse time! You are being summoned! Join discord.\nIf you are not able to join soon, you will lose your spot.**')
+    .then(result => {
+      deleteDiscMessage(result, removeBotMessageDefaultTime * 2);
+    });
   }
 
   help = () => {

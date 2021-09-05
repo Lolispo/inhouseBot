@@ -3,13 +3,14 @@ import { Message } from "discord.js";
 import { BaseCommandClass } from "../../BaseCommand";
 import { DOTA_GC_TEAM, IDotaStartMatch } from "../../dota/dotatypes";
 import { initSocketConnection, startMatch } from "../../dota/socketClient";
+import { getGameByGameId } from "../../game/game";
 
-const commands = ['connectdota']
+const commands = ['connectdota', 'refreshlobby']
 
 export class ConnectDotaAction extends BaseCommandClass {
-  static instance: ConnectDotaAction = new ConnectDotaAction(commands, { isActive: false });
+  static instance: ConnectDotaAction = new ConnectDotaAction(commands, { isActive: true, adminCommand: true });
   static socketConfiguration;
-  static gameId: string;
+  static gameId: string; // Is set to null on match finished
   static matchIdResults: { [key: string]: boolean } = {}; // Match id results;
 
   static setGameId = (value: string) => {
@@ -54,10 +55,15 @@ export class ConnectDotaAction extends BaseCommandClass {
 
 
   action = async (message: Message, options: string[]) => {
+    const gameObject = getGameByGameId(ConnectDotaAction.getGameId());
     try {
-      await ConnectDotaAction.getSocket();
-      console.log('Sending Hello World event ...');
-      startMatch({ hello: 'world' });
+      if (gameObject) {
+        console.log('Resending team setup ...');
+        ConnectDotaAction.startMatch(gameObject.gameID, [gameObject.getBalanceInfo().team1, gameObject.getBalanceInfo().team2]);
+      } else {
+        console.log('Sending Hello World event ...');
+        startMatch({ hello: 'world' });
+      }
     } catch (e) {
       console.error('Issue emitting startMatch test ...', e);
     }

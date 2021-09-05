@@ -14,9 +14,11 @@ import { QueueAction } from "./commands/game/queue/queue";
 import { RollAction } from "./commands/memes/roll";
 import { RollbackQueue } from "./commands/game/queue/rollback-queue";
 import { SaveAction } from "./commands/game/save";
+import { SplitAction } from "./commands/game/voice/split";
 import { StopQueueAction } from "./commands/game/queue/stop-queue";
 import { TeammateAction } from "./commands/stats/teammates";
 import { TemperatureCheckAction } from "./commands/game/temperatureCheck";
+import { UniteAction } from "./commands/game/voice/unite";
 import { HelpMode, IMessageType } from "./BaseCommandTypes";
 
 let listOfCommands: BaseCommandClass[];
@@ -39,9 +41,11 @@ export const allAvailableCommands = (): BaseCommandClass[] => {
     listOfCommands.push(RollAction.instance);
     listOfCommands.push(RollbackQueue.instance);
     listOfCommands.push(SaveAction.instance);
+    listOfCommands.push(SplitAction.instance);
     listOfCommands.push(StopQueueAction.instance);
     listOfCommands.push(TeammateAction.instance);
     listOfCommands.push(TemperatureCheckAction.instance);
+    listOfCommands.push(UniteAction.instance);
     // Sorted so that exact matches are evaluated before starting matches
     listOfCommands.sort((a: BaseCommandClass, b: BaseCommandClass) => {
       return a.matchMode - b.matchMode;
