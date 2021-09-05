@@ -19,4 +19,8 @@ getClient('bot', async () => initializeDBSequelize(getConfig().db), (client) => 
 	client.on('voiceStateUpdate', (oldState: VoiceState, newState: VoiceState) => discordVoiceStateUpdate(oldState, newState));
 
 	client.on('error', console.error);
+
+	process.on('unhandledRejection', error => {
+		console.error('Unhandled promise rejection:', error);
+	});
 });

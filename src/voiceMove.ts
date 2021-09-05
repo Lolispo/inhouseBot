@@ -73,9 +73,9 @@ export const split = (message: Message, options: string[], balanceInfo, activeMe
 
 // Set VoiceChannel for an array of GuildMembers
 export const setMemberVoice = (team, channelId) => {
-  team.forEach((player) => {
+  team.forEach(async (player) => {
     try {
-      player?.voice?.setChannel(channelId); // Will throw error if player is not in a voice channel
+      await player?.voice?.setChannel(channelId); // Will throw error if player is not in a voice channel
     } catch (e) {
       console.error('Issue moving users voice channel (User might not be connected to voice):', e);
       throw e;
