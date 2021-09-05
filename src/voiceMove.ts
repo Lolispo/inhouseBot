@@ -3,7 +3,7 @@
 
 // Handles changing voice channel logic for users: unite and split methods
 
-import { DiscordAPIError, GuildChannel, GuildMember, Message, VoiceChannel } from 'discord.js';
+import { GuildChannel, GuildMember, Message, VoiceChannel } from 'discord.js';
 import { IKosaTuppChannels } from './channels/channels';
 import * as f from './tools/f';
 
