@@ -1,5 +1,5 @@
 import { Message } from "discord.js";
-import { AdditionalParams, BaseCommandClass } from "../../../BaseCommand";
+import { AdditionalParams, BaseCommandClass } from "../../../BaseCommand/BaseCommand";
 import { deleteDiscMessage } from "../../../tools/f";
 import { split } from "../../../voiceMove";
 

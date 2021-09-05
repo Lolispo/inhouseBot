@@ -1,8 +1,8 @@
 import { Message } from "discord.js";
-import { BaseCommandClass } from "../../BaseCommand";
-import { HelpMode, IMessageType } from "../../BaseCommandTypes";
+import { BaseCommandClass } from "../../BaseCommand/BaseCommand";
+import { HelpMode, IMessageType } from "../../BaseCommand/BaseCommandTypes";
 import { buildHelpString, removeBotMessageDefaultTime } from "../../bot";
-import { buildStringHelpAllCommands } from "../../mainCommand";
+import { buildStringHelpAllCommands } from "../../BaseCommand/mainCommand";
 import { deleteDiscMessage } from "../../tools/f";
 
 const commands = ['ha', 'helpall', 'detailedhelp', 'advancedhelp'];

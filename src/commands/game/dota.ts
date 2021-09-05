@@ -1,6 +1,6 @@
 
 import { Message } from "discord.js";
-import { BaseCommandClass } from "../../BaseCommand";
+import { BaseCommandClass } from "../../BaseCommand/BaseCommand";
 import { DOTA_GC_TEAM, IDotaStartMatch } from "../../dota/dotatypes";
 import { initSocketConnection, startMatch } from "../../dota/socketClient";
 import { getGameByGameId } from "../../game/game";

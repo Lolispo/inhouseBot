@@ -3,7 +3,8 @@
 
 // Main File for discord bot: Handles event for messages
 
-import * as f from './tools/f';							// Function class used by many classes, ex. isUndefined, messagesDeletion
+import { callbackInvalidCommand } from './tools/f';							
+import * as f from './tools/f'; // Function class used by many classes, ex. isUndefined, messagesDeletion
 import * as mmr_js from './game/mmr';						// Handles balanced mmr update
 import { createPlayer, Player } from './game/player';					// Handles player storage in session, the database in action
 import * as map_js from './mapVeto';					// MapVeto system
@@ -24,9 +25,10 @@ import { pingAction } from './commands/memes/ping';
 import { statsAction } from './commands/stats/stats';
 import { leaderBoardAction } from './commands/stats/leaderboard';
 import { GameModesType, getAllModes, getGameModes, getGameModes1v1, getModeAndPlayers } from './game/gameModes';
-import { allAvailableCommands, getAllDmCommands } from './mainCommand';
-import { CommandTypes, startsWith } from './BaseCommand';
-import { getAdminUids, IMessageType } from './BaseCommandTypes';
+import { getAllDmCommands } from './BaseCommand/mainCommand';
+import { startsWith } from './BaseCommand/BaseCommand';
+import { getAdminUids, IMessageType } from './BaseCommand/BaseCommandTypes';
+import { handleMessageBaseCommand } from './BaseCommand/BaseCommandHandler';
 
 const { prefix } = getConfig(); // Load config data from env
 
@@ -75,16 +77,8 @@ export const discordEventMessage = (message: Message) => {
 			console.log('DM msg = ' + message.author.username + ': ' + message.content);
 			const options = message.content.split(' ');
 
-			const loadedCommands = allAvailableCommands();
-			for (let i = 0; i < loadedCommands.length; i++) {
-				const command = loadedCommands[i];
-				// console.log('@LoadedCommand:', command);
-				if (command.isThisCommand(message, IMessageType.DIRECT_MESSAGE)) {
-					const shouldIgnoreDeletion: boolean | undefined = command.action(message, options);
-					if (!shouldIgnoreDeletion) f.deleteDiscMessage(message, 30000, command.name);
-					return; // Don't do another command since an action was done already
-				}
-			}
+			const result = handleMessageBaseCommand(message, options, IMessageType.DIRECT_MESSAGE);
+			if (!result) return; // Breaks if a valid command was given
 
 			if (startsWith(message, statsCommands)){
 				statsAction(message, options);
@@ -167,35 +161,8 @@ export const handleMessageExported = (message) => handleMessage(message);
 const handleMessage = async (message: Message) => {
 	const options = message.content.split(' ');
 
-	const loadedCommands = allAvailableCommands();
-	for (let i = 0; i < loadedCommands.length; i++) {
-		const command = loadedCommands[i];
-		const commandEvaluation = command.isThisCommand(message, IMessageType.SERVER_MESSAGE);
-		if (commandEvaluation === CommandTypes.VALID_COMMAND) {
-			console.log('@LoadedCommand:', command, commandEvaluation);
-			// isThisCommand makes sure all games that require a game has a game
-			const shouldDeleteActionMessage: boolean | undefined = command.action(
-				message,
-				options,
-				{
-					...(command.requireActiveGame && { gameObject: getGame(message.author) })
-				}
-			);
-			if (shouldDeleteActionMessage) f.deleteDiscMessage(message, 30000, command.name);
-			return; // Don't do another command since an action was done already
-		} else if (commandEvaluation === CommandTypes.NON_MATCHING_COMMAND || commandEvaluation === CommandTypes.INACTIVE_COMMAND) {
-			continue; // It is not this command
-		} else { // It is matching this command but wasn't valid
-			if (commandEvaluation === CommandTypes.ADMIN_COMMAND) {
-				f.print(message, `Invalid command ${command.name}: You need to be an admin to use this command`, callbackInvalidCommand);
-			} else if (commandEvaluation === CommandTypes.REQUIRES_GAME) {
-				f.print(message, `Invalid command ${command.name}: User ${message.author.username} not currently in a game`, callbackInvalidCommand);
-			} else {
-				f.print(message, `Invalid command ${command.name}: Reason: ${commandEvaluation}`, callbackInvalidCommand);
-			}
-			return; // Don't do another command since it matched this one
-		}
-	}
+	const result = handleMessageBaseCommand(message, options);
+	if (!result) return; // Breaks if a valid command was given
 
 	// All stages commands, Commands that should always work, from every stage
 	if (!startsWith(message, prefix)){ // Every command after here need to start with prefix
@@ -633,10 +600,6 @@ export const buildHelpString = (userID: string, messageNum: number): string => {
 
 // Here follows callbackFunctions for handling bot sent messages
 
-function callbackInvalidCommand(message){
-	f.deleteDiscMessage(message, 15000, 'invalidCommand');
-	message.react(emoji_error);
-}
 
 async function callbackVoteText(message){
 	currentTeamWonGameObject.setVoteMessage(message);

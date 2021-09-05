@@ -1,5 +1,5 @@
 import { Message } from "discord.js";
-import { BaseCommandClass } from "../../BaseCommand";
+import { BaseCommandClass } from "../../BaseCommand/BaseCommand";
 import { print } from "../../tools/f";
 import { getCsIp } from '../../csserver/server_info';
 

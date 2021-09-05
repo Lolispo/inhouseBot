@@ -26,9 +26,6 @@ Empty queue between game days
 
 Allow to kick people in dota
 
-Queue for next spot
-    Queue other people by username
-
 discord tag autoqueue
     autoqueue command to add user to it
     use in queue

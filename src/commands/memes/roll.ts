@@ -1,6 +1,6 @@
 import { Message } from "discord.js";
-import { BaseCommandClass } from "../../BaseCommand";
-import { MatchMode } from "../../BaseCommandTypes";
+import { BaseCommandClass } from "../../BaseCommand/BaseCommand";
+import { MatchMode } from "../../BaseCommand/BaseCommandTypes";
 import { noop } from "../../client";
 import { deleteDiscMessage, print  } from "../../tools/f";
 

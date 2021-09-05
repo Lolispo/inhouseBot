@@ -1,5 +1,5 @@
 import { Message } from "discord.js";
-import { BaseCommandClass } from "../../BaseCommand";
+import { BaseCommandClass } from "../../BaseCommand/BaseCommand";
 import { Game, loadFromFile } from "../../game/game";
 import { print } from "../../tools/f";
 

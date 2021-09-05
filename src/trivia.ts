@@ -18,7 +18,7 @@ import { getPlayer, createPlayer, getSortedRatingTrivia, Player } from './game/p
 import { triviaStart } from './bot';
 import { initializePlayers, updateDbMMR } from './database/db_sequelize';
 import { getPrefix } from './tools/load-environment';
-import { getAdminUids } from './BaseCommandTypes';
+import { getAdminUids } from './BaseCommand/BaseCommandTypes';
 
 let gameOnGoing = false;
 let author;

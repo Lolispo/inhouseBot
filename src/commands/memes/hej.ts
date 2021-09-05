@@ -1,6 +1,6 @@
 import { Message } from "discord.js";
-import { BaseCommandClass } from "../../BaseCommand";
-import { MatchMode } from "../../BaseCommandTypes";
+import { BaseCommandClass } from "../../BaseCommand/BaseCommand";
+import { MatchMode } from "../../BaseCommand/BaseCommandTypes";
 import { print } from "../../tools/f";
 import { noop } from '../../client';
 

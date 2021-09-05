@@ -1,6 +1,6 @@
 import { Message } from "discord.js";
-import { getPrefix } from "./tools/load-environment";
-import { Game, getGame } from './game/game';
+import { getPrefix } from "../tools/load-environment";
+import { Game, getGame } from '../game/game';
 import { getAdminUids, HelpMode, IMessageType, MatchMode } from "./BaseCommandTypes";
 
 

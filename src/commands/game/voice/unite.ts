@@ -1,6 +1,6 @@
 import { Message } from "discord.js";
-import { AdditionalParams, BaseCommandClass } from "../../../BaseCommand";
-import { HelpMode, MatchMode } from "../../../BaseCommandTypes";
+import { AdditionalParams, BaseCommandClass } from "../../../BaseCommand/BaseCommand";
+import { HelpMode, MatchMode } from "../../../BaseCommand/BaseCommandTypes";
 import { deleteDiscMessage } from "../../../tools/f";
 import { unite } from "../../../voiceMove";
 

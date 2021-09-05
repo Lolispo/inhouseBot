@@ -1,6 +1,6 @@
 import { Message } from "discord.js";
-import { BaseCommandClass } from "../../../BaseCommand";
-import { IMessageType } from "../../../BaseCommandTypes";
+import { BaseCommandClass } from "../../../BaseCommand/BaseCommand";
+import { IMessageType } from "../../../BaseCommand/BaseCommandTypes";
 import { print, deleteDiscMessage } from "../../../tools/f";
 import { QueueAction } from "./queue";
 

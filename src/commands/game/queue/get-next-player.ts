@@ -1,6 +1,6 @@
 import { Message, User } from "discord.js";
-import { BaseCommandClass } from "../../../BaseCommand";
-import { MatchMode } from "../../../BaseCommandTypes";
+import { BaseCommandClass } from "../../../BaseCommand/BaseCommand";
+import { MatchMode } from "../../../BaseCommand/BaseCommandTypes";
 import { removeBotMessageDefaultTime } from "../../../bot";
 import { print, deleteDiscMessage } from "../../../tools/f";
 import { getVoiceChannel, setMemberVoice } from "../../../voiceMove";
