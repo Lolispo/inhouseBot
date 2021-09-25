@@ -1,6 +1,6 @@
 import { Message } from "discord.js";
-import { getPrefix } from "./tools/load-environment";
-import { getGame } from './game/game';
+import { getPrefix } from "../tools/load-environment";
+import { Game, getGame } from '../game/game';
 import { getAdminUids, HelpMode, IMessageType, MatchMode } from "./BaseCommandTypes";
 
 
@@ -13,6 +13,20 @@ interface BaseCommandOptions {
   includeHelpCommand?: boolean;
   allowedMessageTypes?: IMessageType[];
   adminCommand?: boolean;
+}
+
+export interface AdditionalParams {
+  gameObject?: Game
+}
+
+export enum CommandTypes {
+  'VALID_COMMAND',
+  'INVALID_COMMAND',
+  'NON_MATCHING_COMMAND',
+  'ADMIN_COMMAND',
+  'INACTIVE_COMMAND',
+  'WRONG_CONTEXT_COMMAND',
+  'REQUIRES_GAME',
 }
 
 export abstract class BaseCommandClass {
@@ -46,25 +60,11 @@ export abstract class BaseCommandClass {
   }
 
   /**
-   * Checks if the message sent matches this specific command
-   * @param message the message
-   * @param serverMessage boolean if its a server message vs 
-   * @returns 
+   * Check if the message matches towards this command based on the matchmode
+   * @param message incoming message
+   * @returns boolean if the entered command is meant to be this command or not
    */
-  isThisCommand(message: Message, messageType: IMessageType): boolean {
-    // console.log('@isThisCommand', this.name, this.matchMode, this.isActive, this.allowedMessageTypes.includes(messageType), this.commands)
-    if (!this.isActive) return false;
-    if (!this.allowedMessageTypes.includes(messageType)) return false;
-    if (this.adminCommand && !getAdminUids().includes(message.author.id)) return false;
-    if (this.requireActiveGame) {
-      const gameObject = getGame(message.author);
-      if (!gameObject) {
-        // A game was required but no game was found
-        return false;
-      }
-      gameObject.updateFreshMessage(message);
-    }
-    // console.log('@isThisCommand:', this.name, this.commands, this.isActive, this.matchMode);
+  evaluateThisCommand(message: Message): boolean {
     if (this.matchMode === MatchMode.EXACT_MATCH) {
       // console.log(this.commands.includes(message.content));
       return this.commands.includes(message.content);
@@ -73,17 +73,43 @@ export abstract class BaseCommandClass {
       return startsWith(message, this.commands);
     } else {
       console.error('Invalid match mode provided!', this.name);
-      throw new Error('Invalid match mode provided!');
+      return false;
     }
+  }
+
+  /**
+   * Checks if the message sent matches this specific command
+   * @param message the message
+   * @param serverMessage boolean if its a server message vs 
+   * @returns 
+   */
+  isThisCommand(message: Message, messageType: IMessageType): CommandTypes {
+    // console.log('@isThisCommand', this.name, this.matchMode, this.isActive, this.allowedMessageTypes.includes(messageType), this.commands)
+    if (!this.isActive) return CommandTypes.INACTIVE_COMMAND;                                                // Sort out inactive 
+    if (!this.evaluateThisCommand(message)) return CommandTypes.NON_MATCHING_COMMAND;                        // Checks if it matches towards this command
+    if (!this.allowedMessageTypes.includes(messageType)) return CommandTypes.WRONG_CONTEXT_COMMAND;          // Checks DM / Server message
+    if (this.adminCommand && !getAdminUids().includes(message.author.id)) return CommandTypes.ADMIN_COMMAND; // Admin command
+    if (this.requireActiveGame) {
+      const gameObject = getGame(message.author);
+      if (!gameObject) {
+        // A game was required but no game was found
+        return CommandTypes.REQUIRES_GAME;
+      }
+      gameObject.updateFreshMessage(message);
+    }
+    // console.log('@isThisCommand:', this.name, this.commands, this.isActive, this.matchMode);
+    // Return valid command since evalutedThisCommand is true
+    return CommandTypes.VALID_COMMAND;
   }
 
   /**
    * Action to do for the message
    * @param message Discord Message containing Author information and message content
    * @param options splitted parameters separated by space
+   * @param gameObject Connected gameobject if command requires an active game
    * @return Return can be used to evaluate if default deletion on action message should be used (Default 30 sec on true)
    */
-  abstract action(message: Message, options: string[]);
+  abstract action(message: Message, options: string[], additionalParams?: AdditionalParams);
 
   /**
    * Returns the help message for this command

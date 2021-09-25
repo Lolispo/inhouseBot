@@ -3,7 +3,8 @@
 
 // Main File for discord bot: Handles event for messages
 
-import * as f from './tools/f';							// Function class used by many classes, ex. isUndefined, messagesDeletion
+import { callbackInvalidCommand } from './tools/f';							
+import * as f from './tools/f'; // Function class used by many classes, ex. isUndefined, messagesDeletion
 import * as mmr_js from './game/mmr';						// Handles balanced mmr update
 import { createPlayer, Player } from './game/player';					// Handles player storage in session, the database in action
 import * as map_js from './mapVeto';					// MapVeto system
@@ -24,9 +25,10 @@ import { pingAction } from './commands/memes/ping';
 import { statsAction } from './commands/stats/stats';
 import { leaderBoardAction } from './commands/stats/leaderboard';
 import { GameModesType, getAllModes, getGameModes, getGameModes1v1, getModeAndPlayers } from './game/gameModes';
-import { allAvailableCommands, getAllDmCommands } from './mainCommand';
-import { startsWith } from './BaseCommand';
-import { getAdminUids, IMessageType } from './BaseCommandTypes';
+import { getAllDmCommands } from './BaseCommand/mainCommand';
+import { startsWith } from './BaseCommand/BaseCommand';
+import { getAdminUids, IMessageType } from './BaseCommand/BaseCommandTypes';
+import { handleMessageBaseCommand } from './BaseCommand/BaseCommandHandler';
 
 const { prefix } = getConfig(); // Load config data from env
 
@@ -44,8 +46,6 @@ const team1wonCommands = [prefix + 'team1won'];
 const team2wonCommands = [prefix + 'team2won'];
 const tieCommands = [prefix + 'tie', prefix + 'draw'];
 const cancelCommands = [prefix + 'c', prefix + 'cancel', prefix + 'gamenotplayed'];
-const splitCommands = [prefix + 'split'];
-const uniteCommands = [prefix + 'u', prefix + 'unite'];
 const uniteAllCommands = [prefix + 'ua', prefix + 'uniteall'];
 const mapvetostartCommands = [prefix + 'mapveto', prefix + 'startmapveto', prefix + 'mapvetostart', prefix + 'startmaps'];
 const triviaCommands = [prefix + 'trivia', prefix + 'starttrivia', prefix + 'triviastart'];
@@ -77,16 +77,8 @@ export const discordEventMessage = (message: Message) => {
 			console.log('DM msg = ' + message.author.username + ': ' + message.content);
 			const options = message.content.split(' ');
 
-			const loadedCommands = allAvailableCommands();
-			for (let i = 0; i < loadedCommands.length; i++) {
-				const command = loadedCommands[i];
-				// console.log('@LoadedCommand:', command);
-				if (command.isThisCommand(message, IMessageType.DIRECT_MESSAGE)) {
-					const shouldIgnoreDeletion: boolean | undefined = command.action(message, options);
-					if (!shouldIgnoreDeletion) f.deleteDiscMessage(message, 30000, command.name);
-					return; // Don't do another command since an action was done already
-				}
-			}
+			const result = handleMessageBaseCommand(message, options, IMessageType.DIRECT_MESSAGE);
+			if (!result) return; // Breaks if a valid command was given
 
 			if (startsWith(message, statsCommands)){
 				statsAction(message, options);
@@ -169,16 +161,8 @@ export const handleMessageExported = (message) => handleMessage(message);
 const handleMessage = async (message: Message) => {
 	const options = message.content.split(' ');
 
-	const loadedCommands = allAvailableCommands();
-	for (let i = 0; i < loadedCommands.length; i++) {
-		const command = loadedCommands[i];
-		// console.log('@LoadedCommand:', command);
-		if (command.isThisCommand(message, IMessageType.SERVER_MESSAGE)) {
-			const shouldDeleteActionMessage: boolean | undefined = command.action(message, options);
-			if (shouldDeleteActionMessage) f.deleteDiscMessage(message, 30000, command.name);
-			return; // Don't do another command since an action was done already
-		}
-	}
+	const result = handleMessageBaseCommand(message, options);
+	if (!result) return; // Breaks if a valid command was given
 
 	// All stages commands, Commands that should always work, from every stage
 	if (!startsWith(message, prefix)){ // Every command after here need to start with prefix
@@ -305,18 +289,6 @@ const handleMessage = async (message: Message) => {
 				}
 			}
 	
-			// Splits the players playing into the Voice Channels 'Team1' and 'Team2'
-			else if (splitCommands.includes(message.content)){
-				voiceMove_js.split(message, options, gameObject.getBalanceInfo(), gameObject.getActiveMembers());
-				f.deleteDiscMessage(message, 15000, 'split');
-			}
-			// Take every user in 'Team1' and 'Team2' and move them to the same voice chat
-			// Optional additional argument to choose name of voiceChannel to uniteIn, otherwise same as balance was called from
-			else if (startsWith(message, uniteCommands)){ 
-				voiceMove_js.unite(message, options, gameObject.getActiveMembers());
-				f.deleteDiscMessage(message, 15000, 'u');
-			}
-	
 			// mapVeto made between one captain from each team
 			else if (mapvetostartCommands.includes(message.content)){
 				const client = await getClientReference();
@@ -354,7 +326,7 @@ const handleMessage = async (message: Message) => {
 // Returns true if message is an active game command
 const isActiveGameCommand = (message) => {
 	return (team1wonCommands.includes(message.content) || team2wonCommands.includes(message.content) || tieCommands.includes(message.content) ||
-			cancelCommands.includes(message.content) || splitCommands.includes(message.content) || startsWith(message, uniteCommands) 
+			cancelCommands.includes(message.content)
 			|| mapvetostartCommands.includes(message.content) || getMatchResultCommand.includes(message.content) || 
 			playerStatusCommands.includes(message.content));
 }
@@ -579,8 +551,6 @@ export const buildHelpString = (userID: string, messageNum: number): string => {
 			+ '** Starts report of match result, requires majority of players to upvote from game for stats to be recorded.\n';
 		s += '**' + tieCommands.toString().replace(/,/g, ' | ') + '** If a match end in a tie, use this as match result. Same rules for reporting as **' + prefix + 'team1Won | ' + prefix + 'team2Won**\n';
 		s += '**' + cancelCommands.toString().replace(/,/g, ' | ') + '** Cancels the game, to be used when game was decided to not be played\n';
-		s += '**' + splitCommands.toString().replace(/,/g, ' | ') + '** Splits voice chat into two separate voice chats\n';
-		s += '**' + uniteCommands.toString().replace(/,/g, ' | ') + ' [channel]** Unite voice chat after game\n';
 		s += '**' + uniteAllCommands.toString().replace(/,/g, ' | ') + ' [channel]** Unite all users active in voice to same channel\n';
 		s += '**' + mapvetostartCommands.toString().replace(/,/g, ' | ') + '** Starts a map veto (*cs only*)\n';
 		if (getAdminUids().includes(userID)){
@@ -617,9 +587,6 @@ export const buildHelpString = (userID: string, messageNum: number): string => {
 		s += '**' + tieCommands.toString().replace(/,/g, ' | ') + '** If a match end in a tie, use this as match result. Same rules for reporting as **' + prefix + 'team1Won | ' + prefix + 'team2Won**\n\n';
 		s += '**' + cancelCommands.toString().replace(/,/g, ' | ') + '** Cancels the game, to be used when game was decided to not be played\n'
 			+ 'Game can only be canceled by the person who started the game\n\n';
-		s += '**' + splitCommands.toString().replace(/,/g, ' | ') + '** Splits voice chat into two separate voice chats\n\n';
-		s += '**' + uniteCommands.toString().replace(/,/g, ' | ') + ' [channel]** Unite voice chat after game\n'
-			+ '**[channel]** Opt. argument: name of channel to unite in\n\n';
 		s += '**' + uniteAllCommands.toString().replace(/,/g, ' | ') + ' [channel]** Unite all users active in voice to same channel\n'
 			+ '**[channel]** Opt. argument: name of channel to unite in\n\n';
 		s += '**' + mapvetostartCommands.toString().replace(/,/g, ' | ') + '** Starts a map veto (*cs only*)\n\n';
@@ -633,10 +600,6 @@ export const buildHelpString = (userID: string, messageNum: number): string => {
 
 // Here follows callbackFunctions for handling bot sent messages
 
-function callbackInvalidCommand(message){
-	f.deleteDiscMessage(message, 15000, 'invalidCommand');
-	message.react(emoji_error);
-}
 
 async function callbackVoteText(message){
 	currentTeamWonGameObject.setVoteMessage(message);

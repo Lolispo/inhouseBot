@@ -1,5 +1,5 @@
 import { Message, User } from "discord.js";
-import { BaseCommandClass } from "../../../BaseCommand";
+import { BaseCommandClass } from "../../../BaseCommand/BaseCommand";
 import { removeBotMessageDefaultTime } from "../../../bot";
 import { print, deleteDiscMessage } from "../../../tools/f";
 

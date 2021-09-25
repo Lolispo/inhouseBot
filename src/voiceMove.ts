@@ -72,15 +72,18 @@ export const split = (message: Message, options: string[], balanceInfo, activeMe
 };
 
 // Set VoiceChannel for an array of GuildMembers
-export const setMemberVoice = (team, channelId) => {
-  team.forEach((player) => {
+export const setMemberVoice = async (team, channelId): Promise<void> => {
+  const listOfErrors = (await Promise.all(team.map(async (player) => {
+    // Had issues throwing errors inside so instead threw on toplevel
     try {
-      player?.voice?.setChannel(channelId); // Will throw error if player is not in a voice channel
+      await player?.voice?.setChannel(channelId); // Will throw error if player is not in a voice channel
     } catch (e) {
-      console.error('Issue moving users voice channel (User might not be connected to voice):', e);
-      throw e;
+      console.error('Issue moving users voice channel (User might not be connected to voice):', e.name);
+      return e;
     }
-  });
+  }))).filter(el => el); // Remove void returns, get only errors
+  if (listOfErrors.length > 0)
+    throw listOfErrors;
 }
 
 // Return voice channel for uniting
@@ -103,7 +106,8 @@ export const getVoiceChannel = (message: Message, options: string[], preferredCh
       console.log(channel.name, channel.type, channelName, channel.type === 'voice' && channel.name === channelName);
       return channel.type === 'voice' && channel.name.toLowerCase() === channelName && channel.id !== message.guild.afkChannelID;
     });
-    return channel1; // If param is given use that
+    if (channel1)
+      return channel1; // If param is given and gives a valid channel use that
   }
 
   // Otherwise use same voiceChannel as we split in if its empty

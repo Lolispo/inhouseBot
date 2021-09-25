@@ -242,3 +242,9 @@ export const shuffle = (array) => {
   }
   return array;
 }
+
+const emoji_error = '❌'; 		// Error / Ban emoji. Alt: '🤚';
+export const callbackInvalidCommand = (message) => {
+	deleteDiscMessage(message, 15000, 'invalidCommand');
+	message.react(emoji_error);
+}

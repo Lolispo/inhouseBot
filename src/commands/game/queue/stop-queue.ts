@@ -1,10 +1,10 @@
 import { Message } from "discord.js";
-import { BaseCommandClass } from "../../../BaseCommand";
-import { IMessageType } from "../../../BaseCommandTypes";
+import { BaseCommandClass } from "../../../BaseCommand/BaseCommand";
+import { IMessageType } from "../../../BaseCommand/BaseCommandTypes";
 import { print, deleteDiscMessage } from "../../../tools/f";
 import { QueueAction } from "./queue";
 
-const commands = ['stopqueue', 'leavequeue', 'sq'];
+const commands = ['unqueue', 'stopqueue', 'leavequeue', 'sq'];
 
 export class StopQueueAction extends BaseCommandClass {
   static instance: StopQueueAction = new StopQueueAction(commands, { allowedMessageTypes: [IMessageType.DIRECT_MESSAGE, IMessageType.SERVER_MESSAGE] });

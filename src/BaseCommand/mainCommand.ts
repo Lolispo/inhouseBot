@@ -1,22 +1,24 @@
 import { BaseCommandClass } from "./BaseCommand";
-import { ConnectDotaAction } from "./commands/game/dota";
-import { CSServerAddressAction } from "./commands/game/cs-server-address";
-import { CurrentQueueAction } from "./commands/game/queue/currentqueue";
-import { EmptyQueueAction } from "./commands/game/queue/empty-queue";
-import { HejAction } from "./commands/memes/hej";
-import { HelpAction } from "./commands/meta/help";
-import { HelpAllAction } from "./commands/meta/helpAll";
-import { LastGameAction } from "./commands/stats/lastGame";
-import { LennyAction } from "./commands/memes/lenny";
-import { LoadAction } from "./commands/game/load";
-import { NextQueuePlayerAction } from "./commands/game/queue/get-next-player";
-import { QueueAction } from "./commands/game/queue/queue";
-import { RollAction } from "./commands/memes/roll";
-import { RollbackQueue } from "./commands/game/queue/rollback-queue";
-import { SaveAction } from "./commands/game/save";
-import { StopQueueAction } from "./commands/game/queue/stop-queue";
-import { TeammateAction } from "./commands/stats/teammates";
-import { TemperatureCheckAction } from "./commands/game/temperatureCheck";
+import { ConnectDotaAction } from "../commands/game/dota";
+import { CSServerAddressAction } from "../commands/game/cs-server-address";
+import { CurrentQueueAction } from "../commands/game/queue/currentqueue";
+import { EmptyQueueAction } from "../commands/game/queue/empty-queue";
+import { HejAction } from "../commands/memes/hej";
+import { HelpAction } from "../commands/meta/help";
+import { HelpAllAction } from "../commands/meta/helpAll";
+import { LastGameAction } from "../commands/stats/lastGame";
+import { LennyAction } from "../commands/memes/lenny";
+import { LoadAction } from "../commands/game/load";
+import { NextQueuePlayerAction } from "../commands/game/queue/get-next-player";
+import { QueueAction } from "../commands/game/queue/queue";
+import { RollAction } from "../commands/memes/roll";
+import { RollbackQueue } from "../commands/game/queue/rollback-queue";
+import { SaveAction } from "../commands/game/save";
+import { SplitAction } from "../commands/game/voice/split";
+import { StopQueueAction } from "../commands/game/queue/stop-queue";
+import { TeammateAction } from "../commands/stats/teammates";
+import { TemperatureCheckAction } from "../commands/game/temperatureCheck";
+import { UniteAction } from "../commands/game/voice/unite";
 import { HelpMode, IMessageType } from "./BaseCommandTypes";
 
 let listOfCommands: BaseCommandClass[];
@@ -39,9 +41,11 @@ export const allAvailableCommands = (): BaseCommandClass[] => {
     listOfCommands.push(RollAction.instance);
     listOfCommands.push(RollbackQueue.instance);
     listOfCommands.push(SaveAction.instance);
+    listOfCommands.push(SplitAction.instance);
     listOfCommands.push(StopQueueAction.instance);
     listOfCommands.push(TeammateAction.instance);
     listOfCommands.push(TemperatureCheckAction.instance);
+    listOfCommands.push(UniteAction.instance);
     // Sorted so that exact matches are evaluated before starting matches
     listOfCommands.sort((a: BaseCommandClass, b: BaseCommandClass) => {
       return a.matchMode - b.matchMode;

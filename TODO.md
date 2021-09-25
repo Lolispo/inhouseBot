@@ -11,10 +11,20 @@ Add integration tests for main functionalities
 
 Start adding all of these things to Github issues instead of here
 
-Add amount of users in voice channel
+allow setting steam id before being in a game
 
-Queue for next spot
-    Queue other people by username
+Allow restarting dota bot and recreate lobby
+    resend
+    Test -refreshlobby command
+
+BUG: Layout: friends command with a lot of teammates breaks ``` when message gets split in 2
+    The split need to escape the ``` if it starts with it
+
+Remove people from queue who is in a game balance
+
+Empty queue between game days
+
+Allow to kick people in dota
 
 discord tag autoqueue
     autoqueue command to add user to it

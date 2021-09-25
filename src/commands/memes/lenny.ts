@@ -1,5 +1,5 @@
 import { Message } from "discord.js";
-import { BaseCommandClass } from "../../BaseCommand";
+import { BaseCommandClass } from "../../BaseCommand/BaseCommand";
 import { deleteDiscMessage, print  } from "../../tools/f";
 import { getPrefix } from "../../tools/load-environment";
 
