@@ -1,8 +1,8 @@
 import { Message } from "discord.js";
 import { BaseCommandClass } from "../../BaseCommand/BaseCommand";
 import { MatchMode } from "../../BaseCommand/BaseCommandTypes";
-import { GameModesStandard, GameModesType, getActiveGameModes, getModeChosen } from "../../game/gameModes";
-import { deleteDiscMessage, print } from '../../tools/f';
+import { GameModesType, getActiveGameModes, getModeChosen } from "../../game/gameModes";
+import { callbackInvalidCommand, callbackModified, deleteDiscMessage, editMessage, print } from '../../tools/f';
 
 
 const commands = ['temperature', 'daily', 'temperaturecheck', 'temp']
@@ -22,11 +22,14 @@ const globalEmojiList = [
   { icon: '🐇', title: 'rabbit2' },
   { icon: '🦁', title: 'lion' },
   { icon: '👌', title: 'ok_hand' },
-  { icon: '👾', title: 'space_invader' },
   { icon: '🤖', title: 'robot' },
   { icon: '🎃', title: 'jack_o_lantern' },
   { icon: '😺', title: 'smiley_cat' },
-  { icon: '🙀', title: 'heart_eyes_cat' },
+  { icon: '😻', title: 'heart_eyes_cat' },
+  { icon: '🙀', title: 'scream_cat' },
+  { icon: '🦆', title: 'duck' },
+  { icon: '🐷', title: 'pig' },
+  { icon: '🐶', title: 'dog' }
 ];
 
 const emoji_error = '❌';
@@ -39,7 +42,7 @@ interface Emoji {
 interface DailyMessage {
   message: Message;
   date: Date,
-  messages: DiscordMessage,
+  messages: DiscordMessage[],
 }
 
 interface GameOptions {
@@ -105,13 +108,39 @@ export class TemperatureCheckAction extends BaseCommandClass {
     s += endMessage;
     return s;
   }
+
+  /**
+   * Only add objects that have new values
+   * Uniqueness: game + time
+   */
+  addUniqueNewElements = (previousArray: DiscordMessage[], newArray: DiscordMessage[]): DiscordMessage[] => {
+    newArray.forEach((el: DiscordMessage) => {
+      const foundEl = previousArray.find((element: DiscordMessage) => {
+        return el.game === element.game && el.time === element.time;
+      });
+      if (foundEl) {
+        // Allow emoji to be reused
+
+        return;
+      } 
+      previousArray.push(el); // Add new time to new array
+    });
+    return previousArray;
+  }
   
-  buildDiscordMessages = (gameOptionsParam: GameOptions): DiscordMessage[] => {
+  buildDiscordMessages = (gameOptionsParam: GameOptions, previousDiscordMessages: DiscordMessage[] = []): DiscordMessage[] => {
     const { gameOptions, startTime, hours } = gameOptionsParam;
-    let messagesArray: DiscordMessage[] = [];
+    let messagesArray: DiscordMessage[] = previousDiscordMessages;
     console.log('@generateGameTimeString', gameOptions, startTime, hours);
     gameOptions.forEach((gameName, index) => {
-      messagesArray = messagesArray.concat(this.gameString(gameName, startTime, index, hours));
+      messagesArray = this.addUniqueNewElements(messagesArray, this.gameString(gameName, startTime, index, hours));
+    });
+    // Sort on game ASC and then time ASC
+    messagesArray = messagesArray.sort((a: DiscordMessage, b: DiscordMessage) => {
+      if (a.game.localeCompare(b.game) === 0) {
+        return a.time - b.time;
+      }
+      return a.game.localeCompare(b.game);
     });
     return messagesArray;
   }
@@ -208,24 +237,28 @@ export class TemperatureCheckAction extends BaseCommandClass {
         const daily = TemperatureCheckAction.dailyMessage;
         const currentDailyMessage = daily.message;
 
-        // TODO Rebuild 
         // Send in current discord messages to not rebuild from scratch and only take new ones
-        const builtMessages = this.buildDiscordMessages(gameOptions); 
-        TemperatureCheckAction.discordMessages = builtMessages;
-        const temperatureMessage = this.generateGameTimeString(builtMessages);
-        // TODO Instead of print modify message with changeset of content
-        print(message, temperatureMessage, this.callbackMessageTemperature);
-        // if (emojiCount > daily.emojiCount)
+        if (TemperatureCheckAction.emojiIndex + emojiCount > globalEmojiList.length) {
+          print(message, '(Not enough emojis to support this amount)', callbackInvalidCommand);
+        } else {
+          const builtMessages = this.buildDiscordMessages(gameOptions, daily.messages); 
+          TemperatureCheckAction.discordMessages = builtMessages;
+          const temperatureMessage = this.generateGameTimeString(builtMessages);
+          editMessage(currentDailyMessage, temperatureMessage, this.callbackMessageTemperature);
+          // if (emojiCount > daily.emojiCount)
+          print(message, 'Edited the existing daily temperature message', callbackModified);
+        }
         return;
       } else { // Daily message is for a previous day, clean this message
         const prevDailyMessage = TemperatureCheckAction.dailyMessage.message;
         // TODO: Delete previous daily message
+        console.log('DEBUG DELETE OLDER DAILY:', prevDailyMessage.content);
       }
     }
     const { gameOptions, emojiCount } = this.loadOptions(options);  
     // Set global emoji reactions
-    if (emojiCount > globalEmojiList.length) {
-      print(message, '(Not enough emojis to support this amount)');
+    if (TemperatureCheckAction.emojiIndex + emojiCount > globalEmojiList.length) {
+      print(message, '(Not enough emojis to support this amount)', callbackInvalidCommand);
     } else {
       const builtMessages = this.buildDiscordMessages(gameOptions); 
       TemperatureCheckAction.discordMessages = builtMessages;

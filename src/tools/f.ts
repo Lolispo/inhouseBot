@@ -68,6 +68,14 @@ export const print = (messageVar: Message, message: string | EmbeddedMessage, ca
   }
 };
 
+export const editMessage = (messageVar: Message, newMessageContent: string, callback = callbackPrintDefault) => {
+  messageVar.edit(newMessageContent)
+    .then((result) => {
+      callback(result);
+    })
+    .catch(err => console.log(`@error on edit message for ${newMessageContent} :\n${err}`));
+}
+
 /**
  * Discord has a limit of 2000 character per sent message
  * @param message is the message that is requested to be sent in one message
@@ -247,4 +255,10 @@ const emoji_error = '❌'; 		// Error / Ban emoji. Alt: '🤚';
 export const callbackInvalidCommand = (message) => {
 	deleteDiscMessage(message, 15000, 'invalidCommand');
 	message.react(emoji_error);
+}
+
+const emoji_modified = '🤚';
+export const callbackModified = (message) => {
+	deleteDiscMessage(message, 10000, 'modifiedMessage');
+	message.react(emoji_modified);
 }
