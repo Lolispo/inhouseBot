@@ -253,6 +253,7 @@ export class TemperatureCheckAction extends BaseCommandClass {
         const prevDailyMessage = TemperatureCheckAction.dailyMessage.message;
         // TODO: Delete previous daily message
         console.log('DEBUG DELETE OLDER DAILY:', prevDailyMessage.content);
+        TemperatureCheckAction.emojiIndex = 0; // Reset index for emojis
       }
     }
     const { gameOptions, emojiCount } = this.loadOptions(options);  
