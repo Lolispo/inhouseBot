@@ -15,11 +15,13 @@ export const seasonResetTeamRating = (listOfPlayers, game) => {
  * Given a rating, truncate it closer to 2500
  * Requires Tests
  */
-const getTruncatedRating = (rating) => {
+export const getTruncatedRating = (rating) => {
   const defaultRating = 2500; // Check if it should be fetched somewhere else TODO
   const diff = rating - defaultRating;
-  const newRating = defaultRating + Math.round(diff / 2.0);
-  console.log('@getTruncatedRating:', rating, newRating);
+  const truncatedRating = defaultRating + Math.round(diff / 2.0);
+  const diffNormalization = truncatedRating % 25;
+  const newRating = truncatedRating < defaultRating && diffNormalization > 0 ? truncatedRating - diffNormalization + 25 : truncatedRating - diffNormalization;
+  console.log('@getTruncatedRating:', rating, newRating, diffNormalization, truncatedRating);
   return newRating;
   // Test cases:
   // 2650 -> 2575
