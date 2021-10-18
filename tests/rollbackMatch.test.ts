@@ -1,14 +1,13 @@
 'use strict';
 // Author: Petter Andersson
 
-import { afterAll, beforeAll, describe, it, expect } from '@jest/globals';
+import { beforeAll, describe, it, expect } from '@jest/globals';
 import { getClientReference } from '../src/client';
 const { getConfig } = require('../src/tools/load-environment');
-const { getAllUsers, initializeDBSequelize, getPersonalStats } = require("../src/database/db_sequelize");
-const player_js = require('../src/game/player');
+const { initializeDBSequelize } = require("../src/database/db_sequelize");
 import { DatabaseSequelize, rollbackMatch } from '../src/database/db_sequelize';
 
-const foo = (uid, userName, mmr, game, gamesPlayed = 0) => {
+export const helperFunctionInsertSQLCommand = (uid, userName, mmr, game, gamesPlayed = 0) => {
   const s = `INSERT INTO ratings (uid, gameName, userName, mmr, gamesPlayed, wins) VALUES ("${uid}","${game}","${userName}",${mmr},${gamesPlayed},0);`;
   // console.log(s);
   return s;

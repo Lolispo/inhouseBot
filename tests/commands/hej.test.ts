@@ -1,8 +1,8 @@
-import { describe, it, expect, afterAll, afterEach, jest } from '@jest/globals';
+import { describe, it, expect, afterEach, jest } from '@jest/globals';
 import { Message, User } from 'discord.js';
 import { handleMessageExported } from '../../src/bot';
 import { noop } from '../../src/client';
-import { print, deleteDiscMessage } from '../../src/tools/f';
+import { print } from '../../src/tools/f';
 
 jest.mock('../../src/tools/f');
 jest.mock('discord.js');

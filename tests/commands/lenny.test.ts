@@ -1,4 +1,4 @@
-import { describe, it, expect, afterAll, afterEach, jest } from '@jest/globals';
+import { describe, it, expect, afterEach, jest } from '@jest/globals';
 import { Message } from 'discord.js';
 import { handleMessageExported } from '../../src/bot';
 import { print, deleteDiscMessage } from '../../src/tools/f';

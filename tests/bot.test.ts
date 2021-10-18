@@ -3,8 +3,6 @@
 
 import { afterAll, describe, expect, it } from '@jest/globals';
 import { getClientReference } from '../src/client';
-import { handleMessageExported } from '../src/bot';
-import { getClient, getTextChannel } from '../src/client';
 
 // TODO
 describe('bot', function(){

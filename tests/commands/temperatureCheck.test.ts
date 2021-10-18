@@ -6,7 +6,12 @@ import { TemperatureCheckAction } from '../../src/commands/game/temperatureCheck
 describe('temperatureCheck', () => {
   it('generateGameTimeString', () => {
     const { generateGameTimeString } = TemperatureCheckAction.instance;
-    const result = generateGameTimeString([GameModesStandard.DOTA, GameModesStandard.CS], 19, 3);
+    const result = generateGameTimeString([{
+      game: GameModesStandard.CS,
+      time: 19,
+      message: 'id1',
+      emoji: {icon: 'icon', title: 'title'}
+    }]);
     console.log('@generateGameTimeString:', result);
     expect(result).toEqual(expect.anything());
   });
