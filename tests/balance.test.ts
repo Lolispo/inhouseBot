@@ -3,7 +3,7 @@
 
 import { afterAll, describe, expect, it } from '@jest/globals';
 import { getClientReference } from '../src/client';
-import { recursiveFor, uniVal, reverseUniqueSum, roundValue, testNormalize } from '../src/game/balance';
+import { recursiveFor, uniVal, reverseUniqueSum, roundValue } from '../src/game/balance';
 
 describe('balance', function(){
   describe('unival', function(){

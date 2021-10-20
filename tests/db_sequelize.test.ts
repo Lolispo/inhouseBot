@@ -6,8 +6,8 @@ import { getClientReference } from '../src/client';
 import { addMissingUsers, initializeDBSequelize } from '../src/database/db_sequelize';
 import { createPlayer } from '../src/game/player';
 import { getConfig } from '../src/tools/load-environment';
-import { getHighScore, getUsers, getRatingUser, createUser, createRatingForUser, 
-  DatabaseSequelize, removeUser, createMatch,
+import { getHighScore, getRatingUser, 
+  DatabaseSequelize, removeUser,
   bestTeammates,
  } from '../src/database/db_sequelize';
 import { GameModesStandard } from '../src/game/gameModes';
@@ -27,6 +27,7 @@ contextualDescribe('db_sequelize', () => {
     expect(databaseConnection.Ratings).toBeTruthy();
     for (let i = 1; i <= 4; i++) {
       const res = await removeUser(test_id + i);
+      expect(res).toBeTruthy();
     }
   }),
   describe('getInstance', () => {
@@ -48,7 +49,7 @@ contextualDescribe('db_sequelize', () => {
         createPlayer('Test1', '6'),
         createPlayer('Test2', '7'),
       ]
-      const res = await addMissingUsers(players, [], test_game, () => console.log('Test Callback'));
+      await addMissingUsers(players, [], test_game, () => console.log('Test Callback'));
     })
   }),
   describe('createUser', () => {

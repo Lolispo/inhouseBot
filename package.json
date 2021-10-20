@@ -12,7 +12,8 @@
     "migration": "node src/database/migration.ts",
     "lint": "eslint . --ext .ts",
     "lint-fix": "eslint . --ext .ts --fix",
-    "prettier-format": "prettier --config .prettierrc 'src/**/*.ts' --write"
+    "prettier-format": "prettier --config .prettierrc 'src/**/*.ts' --write",
+    "truncateRatings": "ts-node src/game/manualGameUpdate/manualGameUpdate.ts"
   },
   "repository": {
     "type": "git",

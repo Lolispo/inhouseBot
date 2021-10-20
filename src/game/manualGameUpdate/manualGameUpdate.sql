@@ -24,22 +24,6 @@ SELECT * FROM matches ORDER BY mid DESC LIMIT 1;
 SELECT users.uid, users.userName, ratings.mmr FROM users LEFT JOIN ratings ON users.uid = ratings.uid WHERE gameName = "dota" ORDER BY mmr DESC;
 
 
-+--------------------+-------------------+------+
-| uid                | userName          | mmr  |
-
-| 149244631010377728 | Knas              | 2799 |
-| 150517088295976960 | CATKNIFE          | 2676 |
-| 97026023387848704  | Cheesedad         | 2325 |
-| 255783380908507136 | Fredds            | 2500 |
-| 175001994321330177 | Gaggg             | 2450 |
-+--------------------+-------------------+------+
-| 96324164301910016  | Simon             | 2450 |
-| 192689639725858816 | Coof              | 2675 |
-| 149535388434694144 | Intro             | 2425 |
-| 96293765001519104  | Petter            | 2974 |
-| 209047905909080065 | Samev             | 2324 |
-
-
 /* Create player matches */
 INSERT INTO playerMatches (mid, uid, team, mmrChange) VALUES (mid, uid, ?, +-25);
 /*
@@ -70,19 +54,6 @@ OLD: UPDATE ratings SET mmr = "2550", gamesPlayed = gamesPlayed + 1, wins = wins
 
 */
 UPDATE ratings SET mmr = ?, gamesPlayed = gamesPlayed + 1 WHERE userName = ? AND gameName = ?; 
-
-
-| 149244631010377728 | Knas              | 2774 |
-| 150517088295976960 | CATKNIFE          | 2651 |
-| 97026023387848704  | Cheesedad         | 2300 |
-| 255783380908507136 | Fredds            | 2475 |
-| 175001994321330177 | Gaggg             | 2425 |
-+--------------------+-------------------+------+
-| 96324164301910016  | Simon             | 2475 |
-| 192689639725858816 | Coof              | 2700 |
-| 149535388434694144 | Intro             | 2450 |
-| 96293765001519104  | Petter            | 2999 |
-| 209047905909080065 | Samev             | 2349 |
 
 
 UPDATE ratings SET mmr = "2774", gamesPlayed = gamesPlayed + 1 WHERE uid = "149244631010377728" AND gameName = "dota"; 

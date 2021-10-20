@@ -6,8 +6,7 @@ import { getMockStats } from './mocks/gameMock.test';
 import { getClientReference } from '../src/client';
 const { gameServers } = require('../src/csserver/cs_server');
 const { createPlayer } = require('../src/game/player');
-const { getGameStats, buildStatsMessage, sendStatsDiscord, playerMapSteamIdStats } = require('../src/csserver/cs_server_stats');
-const { getTextChannel, getClient } = require('../src/client');
+const { getGameStats, buildStatsMessage, playerMapSteamIdStats } = require('../src/csserver/cs_server_stats');
 
 
 let serverId;

@@ -3,11 +3,10 @@
 
 import { afterAll, beforeAll, describe, expect, it } from '@jest/globals';
 import { getClientReference } from '../src/client';
-const { getConfig } = require('../src/tools/load-environment');
-const { gameServers, configureServer } = require('../src/csserver/cs_server');
+const { gameServers } = require('../src/csserver/cs_server');
 const { createPlayer } = require('../src/game/player');
 import { getPredictionTeam1 } from '../src/csserver/cs_server';
-import { isSayMessage, gameOverMessage, readCSConsoleInput } from '../src/csserver/cs_console_stream';
+import { isSayMessage, gameOverMessage } from '../src/csserver/cs_console_stream';
 
 let serverId;
 let gameObject;
@@ -40,6 +39,7 @@ describe('dathost', () => {
       getChosenMap: () => 'de_inferno',
       setIntervalPassive: (value) => console.log('X'),
     }
+    console.log('@SETUP:', gameObject, serverId);
   })
   describe('isSayMessage', () => {
     it('isSayMessage', async () => {
