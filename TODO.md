@@ -1,37 +1,59 @@
 # TODO:
 ## Tests
 
-Fix tests for typescript
-
 Add unit tests for all files
 
 Add integration tests for main functionalities
 
 # Error message
 
-Start adding all of these things to Github issues instead of here
+Remove people from queue who is in a game balance
 
-allow setting steam id before being in a game
+| MorganTheJ. | 28/22/ 9  | 140 | 39% | 6/3  | 5/4   | 2   | -  | 2  | -  | 7  | -/-  | -  |
+| Aios        |  4/18/ 5  | 33  |100%| 1/2  | 1/0   | -   | -  | -  | -  | 1  | 1/-  | 1  |
+HS Perc look bad if 100%
+
+Lock CS Server if active game
+    Check how dota one works
+
+Check if Team1 & Team2 5 players before split, so it splits into different channels
+
+queue different games
+    auto queue queues both games
 
 Allow restarting dota bot and recreate lobby
     resend
     Test -refreshlobby command
+    make chronjob which refreshes it
+
+Empty queue between game days
+
+Require that you provide game option to start game
+
+Tag Inhousefighter in daily temp messages
 
 BUG: Layout: friends command with a lot of teammates breaks ``` when message gets split in 2
     The split need to escape the ``` if it starts with it
 
-Remove people from queue who is in a game balance
+Unite only getting 10 users
 
-Empty queue between game days
+GamesPlayed: 0   WinRate: NaN% (Wins: 0 , Losses: 0 ) oliver
+    check this game, see why broken
+
+Start adding all of these things to Github issues instead of here
+
+allow setting steam id before being in a game
+
+User "id" already in a game, instead use their name
+
+Add players that play inhouse to @InhouseFighter
+    Allow writing a command to add the InhouseFighter role to yourself
 
 Allow to kick people in dota
 
 discord tag autoqueue
     autoqueue command to add user to it
     use in queue
-
-admin commands should not show as invalid
-    Should show as admin commands in help
 
 Refactor discord events to event folder
 
@@ -42,14 +64,7 @@ Use ephermal message https://support.discord.com/hc/en-us/articles/1500000580222
 
 tsconfig strict true
 
-Unite only getting 10 users
-
 Check that only one bot is active on startup
-
-Balance MMR (matter more on lower or higher mmr)
-    Beta
-
-Add players that play inhouse to @InhouseFighter
 
 MIGRATION TO 12 AND TYPESCRIPT:
     Fix birthday
@@ -58,6 +73,8 @@ MIGRATION TO 12 AND TYPESCRIPT:
 Fix Ping command - doesn't seem available easily anymore - either disable entirely or fix
 
 Show streak in leaderboard output
+
+Temp check look into same animal for same game and time (19 cs always same emote)
 
 Inhouse Temperature check
     Fix shuffle
@@ -68,9 +85,6 @@ Inhouse Temperature check
     Group of users that you can tag
 
 Load game from file
-
-Game balance not sorted after mmr when starting game
-    Verify
 
 Move voting to gameobject
 
@@ -85,6 +99,9 @@ INPROGRESS - Refactor commands to command folder
 LastGame command to help list
     Check generate collection from the command files
         Add entry to public list from each command function which is used by the help command
+    Make it also show CS stats for latest game if it exists
+
+Allow seeing match history and see cs stats for old game
 
 UTF8 Encoding
     ALTER TABLE (table name) CONVERT TO CHARACTER SET UTF8
