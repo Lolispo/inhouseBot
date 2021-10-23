@@ -12,6 +12,8 @@ import { Game, IBalanceInfo } from './game';
 import { ConnectDotaAction } from '../commands/game/dota';
 import { Player, sortRating } from './player';
 import { gameIsCS, gameIsCSMain, gameIsDota, gameIsTest, GameModesType } from './gameModes';
+import { QueueAction } from '../commands/game/queue/queue';
+import { User } from 'discord.js';
 
 /*
 	Handles getting the most balanced team matchup for the given 10 players
@@ -90,6 +92,12 @@ export const balanceTeams = (players: Player[], game: GameModesType, gameObject:
   printMessage(message, gameObject.getChannelMessage(), (message) => {
     gameObject.setMatchupServerMessage(message);
   });
+
+  // Removes users from Queue
+  players.forEach(player => {
+    const user = Player.getUserFromPlayer(player);
+    QueueAction.instance.removePlayer(user as User);
+  })
 
   // Check if a server for the game is available and requested
   if (!skipServer && (gameIsCS(game) || gameIsDota(game) || gameIsTest(game))) {

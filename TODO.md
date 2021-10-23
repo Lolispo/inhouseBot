@@ -9,20 +9,19 @@ Add integration tests for main functionalities
 
 Lock CS Server if active game
 
-# Error message
-
 Remove people from queue who is in a game balance
 
-queue different games
-    auto queue queues both games
+Empty queue between game days
+
+# Error message
 
 Allow restarting dota bot and recreate lobby
     resend
     Test -refreshlobby command
     make chronjob which refreshes it
 
-Empty queue between game days
-    Reuse logic from temp check daily
+queue different games
+    auto queue queues both games
 
 Require that you provide game option to start game
 
