@@ -200,12 +200,12 @@ export class TemperatureCheckAction extends BaseCommandClass {
   loadOptions(options: string[]): OptionsFields {
     const activeModes = getActiveGameModes();
     // activeModes.splice(activeModes.indexOf(GameModesStandard.CS), 1); // CS Temporaryily disabled from default temperature checks
-    const gameName = getModeChosen(options, activeModes);
+    const { game } = getModeChosen(options, activeModes);
     let gameOptions: GameModesType[] = [];
-    if (!gameName) {
+    if (!game) {
       gameOptions = gameOptions.concat(activeModes);
     } else {
-      gameOptions.push(gameName);
+      gameOptions.push(game);
     }
     const { startHour, endHour } = this.getTimePeriods(options);
     // console.log('@temperatureCheckCommand:', activeModes, gameName, gameOptions);

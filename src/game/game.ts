@@ -9,7 +9,7 @@ import * as f from '../tools/f';
 import { cancelGameCSServer } from '../csserver/cs_console';
 import { GuildMember, Message, User } from 'discord.js';
 import { Player } from './player';
-import { gameIsCS, gameIsDota, gameIsTest } from './gameModes';
+import { gameIsCS, gameIsDota, gameIsTest, GameModesType } from './gameModes';
 import { cancelMatch } from '../dota/socketClient';
 
 interface IOptionalParameters extends Omit<Partial<Game>, 'gameID' | 'channelMessage'> {
@@ -23,7 +23,7 @@ export interface IBalanceInfo {
   avgT1: number, 
   avgT2: number, 
   avgDiff: number, 
-  game: string,
+  game: GameModesType,
   team1Name?: string,
   team2Name?: string,  
 }
@@ -33,6 +33,16 @@ export class Game {
   static getActiveGamesToString = (): string => {
     return `ActiveGames(${Game.activeGames.length}):\n${JSON.stringify(Game.activeGames, null, 2)}`;
   }
+
+  static getServerInUse = (gameMode: GameModesType) => {
+    const games = Game.getActiveGames();
+    return games.some((game: Game) => {
+      const gameName = game.getBalanceInfo().game;
+      // If this game uses the same game mode and uses server return true, otherwise false
+      return gameMode === gameName && game.usingServer;
+    })
+  }
+
   static activeGamesFilePath = 'activeGame.json';
   static savedGamesStoragePath = 'activeGameStorage.json';
 
@@ -59,6 +69,7 @@ export class Game {
   bannedMaps;
   chosenMap;
   scoreString;
+  usingServer: boolean; // boolean if a server is used for this game or not
 
   constructor(
     gameID: string, 
@@ -91,6 +102,7 @@ export class Game {
     this.captain1 = options?.captain1;			// Captain for team 1
     this.captain2 = options?.captain2;			// Captain for team 2
     this.bannedMaps = options?.bannedMaps || [];	// String array holding who banned which map, is used in mapStatusMessage
+    this.usingServer = options?.usingServer || false;
 
     console.log('Game created!', this);
     Game.activeGames.push(this);
@@ -180,6 +192,9 @@ export class Game {
 
   setChosenMap = (value) => this.chosenMap = value;
   setScoreString = (value) => this.scoreString = value;
+
+  getUsingServer = () => this.usingServer;
+  setUsingServer = (value: boolean) => this.usingServer = value;
 }
 
 export const createGame = (gameID, channelMessage): Game => {

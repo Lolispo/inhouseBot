@@ -5,7 +5,7 @@ import { deleteDiscMessage, print } from "../../tools/f";
 // TODO: Migrate to format
 export const leaderBoardAction = async (message, options) => {
   const allModes = getAllModes();
-  const game = getModeChosen(options, allModes, allModes[0]);
+  const { game } = getModeChosen(options, allModes, allModes[0]);
   let size = 5; 
   if (options.length >= 2) { // TODO: Test 1
     let num;

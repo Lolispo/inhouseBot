@@ -5,18 +5,13 @@ Add unit tests for all files
 
 Add integration tests for main functionalities
 
+## Verify
+
+Lock CS Server if active game
+
 # Error message
 
 Remove people from queue who is in a game balance
-
-| MorganTheJ. | 28/22/ 9  | 140 | 39% | 6/3  | 5/4   | 2   | -  | 2  | -  | 7  | -/-  | -  |
-| Aios        |  4/18/ 5  | 33  |100%| 1/2  | 1/0   | -   | -  | -  | -  | 1  | 1/-  | 1  |
-HS Perc look bad if 100%
-
-Lock CS Server if active game
-    Check how dota one works
-
-Check if Team1 & Team2 5 players before split, so it splits into different channels
 
 queue different games
     auto queue queues both games
@@ -27,6 +22,7 @@ Allow restarting dota bot and recreate lobby
     make chronjob which refreshes it
 
 Empty queue between game days
+    Reuse logic from temp check daily
 
 Require that you provide game option to start game
 
@@ -39,6 +35,9 @@ Unite only getting 10 users
 
 GamesPlayed: 0   WinRate: NaN% (Wins: 0 , Losses: 0 ) oliver
     check this game, see why broken
+
+Check if Team1 & Team2 5 players before split, so it splits into different channels
+
 
 Start adding all of these things to Github issues instead of here
 
