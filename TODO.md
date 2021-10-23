@@ -23,8 +23,6 @@ Allow restarting dota bot and recreate lobby
 queue different games
     auto queue queues both games
 
-Require that you provide game option to start game
-
 Tag Inhousefighter in daily temp messages
 
 BUG: Layout: friends command with a lot of teammates breaks ``` when message gets split in 2

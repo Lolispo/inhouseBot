@@ -1,14 +1,14 @@
 import { Message } from "discord.js";
 import { BaseCommandClass } from "../../BaseCommand/BaseCommand";
 import { MatchMode } from "../../BaseCommand/BaseCommandTypes";
+import { getInhouseFighterRoleId } from "../../channels/channels";
 import { GameModesType, getActiveGameModes, getModeChosen } from "../../game/gameModes";
 import { callbackInvalidCommand, callbackModified, deleteDiscMessage, editMessage, print } from '../../tools/f';
 
 
 const commands = ['temperature', 'daily', 'temperaturecheck', 'temp']
 
-// @${getInhouseFighter()}
-const startMessage = `Inhouse Temperature Check:\n`;
+const startMessage = `Inhouse Temperature Check <@&${getInhouseFighterRoleId()}>:\n`;
 const endMessage = 'React on all timeslots which work for you and then we look for the most suitable time.\nIf you read this but can\'t play today, react with :x:';
 const rowMessage = '\t- $$emoji$$ for $$game$$ Inhouse (Start $$start-time$$$$end-time$$)\n';
 const withEnd = '-$$end-time$$';
