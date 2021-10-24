@@ -49,10 +49,12 @@ export const print = (messageVar: Message, message: string | EmbeddedMessage, ca
   // Handle for string messages
   if (typeof message === 'string') {
     const messages = groupMessageOnSize(message);
+    console.log('@DEBUG print', message, messages);
 
     // Send first message
     if (messages.length >= 1) {      
       const firstMessage = messages[0];
+      console.log('@DEBUG print2', message);
       messageVar.channel.send(firstMessage)
         .then((result) => {
           callback(result);
@@ -88,19 +90,23 @@ export const groupMessageOnSize = (message: string): string[] => {
   // Handle big messages
   const maxSizeForMessage = 2000;
   const maxIndex = 1900;
+  console.log('@DEBUG group', message.length)
   if (message.length >= maxSizeForMessage) {
+    // Check if styling is contained within ```
+    const isStyledMessage = message.indexOf('```') !== -1;
     // Try to split the message on \n and send messages until new lines until the rest 
     // Can be fitted into one message
     for (let i = maxSizeForMessage; i >= 0; i--) {
       if (message.charAt(i) === '\n') {
-        const firstMessage = message.substring(0, i);
-        const restMessage = message.substring(i);
+        const firstMessage = message.substring(0, i) + (isStyledMessage ? '```' : '');
+        const restMessage = (isStyledMessage ? '```' : '') + message.substring(i);
         return [firstMessage, restMessage];
       }
     }
+
     // No newline in message, split content on max size
-    const firstMessage = message.substring(0, maxIndex); // Margin
-    const restMessage = message.substring(maxIndex);
+    const firstMessage = message.substring(0, maxIndex) + (isStyledMessage ? '```' : '');
+    const restMessage = (isStyledMessage ? '```' : '') + message.substring(maxIndex);
     return [firstMessage, restMessage];
   }
   return [message];
