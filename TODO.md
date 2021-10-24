@@ -25,8 +25,6 @@ Start adding all of these things to Github issues instead of here
 
 allow setting steam id before being in a game
 
-User "id" already in a game, instead use their name
-
 Allow to kick people in dota
 
 discord tag autoqueue
