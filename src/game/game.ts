@@ -288,7 +288,7 @@ export const clearIntervals = (gameObject) => {
 
 // Used to delete messages if game ended
 // Takes GameObject to clean
-export const cleanOnGameEnd = (gameObject) => {
+export const cleanOnGameEnd = (gameObject: Game) => {
   console.log('@cleanOnGameEnd Init');
   try {
     const mapMessages = gameObject.getMapMessages();
@@ -324,10 +324,12 @@ export const cleanOnGameEnd = (gameObject) => {
       // If game is available
       const gameName = game.game;
       console.log('@cleanOnGameEnd GameName:', gameName);
-      if (gameIsCS(gameName)) {
-        cancelGameCSServer(gameObject);
-      } else if (gameIsDota(gameName) || gameIsTest(gameName)) {
-        cancelMatch(); // Verify
+      if (gameObject.usingServer) {
+        if (gameIsCS(gameName)) {
+          cancelGameCSServer(gameObject);
+        } else if (gameIsDota(gameName) || gameIsTest(gameName)) {
+          cancelMatch();
+        }
       }
       // Clear csserver interval listeners
       clearIntervals(gameObject);

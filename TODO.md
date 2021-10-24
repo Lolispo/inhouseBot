@@ -12,6 +12,15 @@ Empty queue between game days
 Unite only getting 10 users
 # Error message
 
+@cleanOnGameEnd Error cancelling game: TypeError: Cannot read property 'emit' of undefined
+    at Object.cancelMatch (/home/ubuntu/Projects/inhouseBot/src/dota/socketClient.ts:98:10)
+    at Object.cleanOnGameEnd (/home/ubuntu/Projects/inhouseBot/src/game/game.ts:330:9)
+    at /home/ubuntu/Projects/inhouseBot/src/bot.ts:277:7
+    at /home/ubuntu/Projects/inhouseBot/src/tools/f.ts:60:11
+    at runMicrotasks (<anonymous>)
+    at processTicksAndRejections (node:internal/process/task_queues:96:5)
+@cancelgameCSServer Error: Invalid serverId: undefined Game {
+
 queue different games
     auto queue queues both games
 

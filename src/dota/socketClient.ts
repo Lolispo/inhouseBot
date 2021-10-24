@@ -95,7 +95,7 @@ export const fetchMatch = () => {
 }
 
 export const cancelMatch = () => {
-  socket.emit('CANCEL_MATCH');
+  socket?.emit('CANCEL_MATCH');
   console.log('@cancelMatch Match in dota bot cancelled');
 }
 
