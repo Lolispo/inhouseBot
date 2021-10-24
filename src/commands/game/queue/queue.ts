@@ -50,7 +50,7 @@ export class QueueAction extends BaseCommandClass {
     // Empty queue if new day since last queue activity
     const currentDate = new Date();
     const prevDate = QueueAction.instance.timeLastQueue;
-    if (currentDate.getDate() !== prevDate.getDate()) {
+    if (prevDate && currentDate.getDate() !== prevDate.getDate()) {
       console.log('Emptying Queue due to Date difference:', currentDate.getDate(), prevDate.getDate());
       QueueAction.instance.emptyQueue();
     }
@@ -129,6 +129,7 @@ export class QueueAction extends BaseCommandClass {
   action = (message: Message, options: string[]) => {
     const user = message.author;
     this.addPlayerToQueue(user, message);
+    return true;
   }
 
   help = () => {

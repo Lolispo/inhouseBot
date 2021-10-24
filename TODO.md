@@ -16,6 +16,8 @@ Empty queue between game days
 Tag Inhousefighter in daily temp messages
 # Error message
 
+remove queue commands as expected
+
 Allow restarting dota bot and recreate lobby
     resend
     Test -refreshlobby command
