@@ -13,7 +13,7 @@ export class RestartDotaBotAction extends BaseCommandClass {
   // The command is useful because the dotes bot is for some reason timing out
   action = async (message: Message, options: string[]) => {
     console.log('@RestartDotaBotAction');
-    exec('sh restartDotesBot', (error, stdout, stderr) => {
+    exec('sh ./restartDotesBot.sh', (error, stdout, stderr) => {
       if (error) {
           console.log(`error: ${error.message}`);
           return;
