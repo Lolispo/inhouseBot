@@ -1,6 +1,7 @@
 
 import { Message } from "discord.js";
 import { BaseCommandClass } from "../../BaseCommand/BaseCommand";
+import { print } from "../../tools/f";
 
 const { exec } = require("child_process");
 const commands = ['restartdotabot', 'restartdotesbot']
@@ -11,7 +12,8 @@ export class RestartDotaBotAction extends BaseCommandClass {
   // This command only works if running on a linux system where also the bot is active
   // The command is useful because the dotes bot is for some reason timing out
   action = async (message: Message, options: string[]) => {
-    exec("ls", (error, stdout, stderr) => {
+    console.log('@RestartDotaBotAction');
+    exec('sh restartDotesBot', (error, stdout, stderr) => {
       if (error) {
           console.log(`error: ${error.message}`);
           return;
@@ -21,6 +23,7 @@ export class RestartDotaBotAction extends BaseCommandClass {
           return;
       }
       console.log(`stdout: ${stdout}`);
+      print(message, 'Restarted Dota Bot');
   });
   }
 

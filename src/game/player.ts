@@ -4,7 +4,6 @@
 	Class handles player objects which take care of player data
 */
 
-import { User } from "discord.js";
 import { getAllMMRModes, getGameModesRatings, ratingOrMMR } from "./gameModes";
 import { MMRStruct } from "./mmrStruct";
 
