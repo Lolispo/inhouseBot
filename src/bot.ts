@@ -384,7 +384,7 @@ async function balanceCommand(message, options){
 			msg.content += '<removed>';
 		});
 	} else {
-		f.print(message, 'Invalid command: ' + message.author + ' is already in a game (' + gameObjectExist.getGameID() + ')', callbackInvalidCommand); 
+		f.print(message, 'Invalid command: ' + message.author.username + ' is already in a game (' + gameObjectExist.getGameID() + ')', callbackInvalidCommand); 
 		console.log('Existing game object:', gameObjectExist);
 		f.deleteDiscMessage(message, 10000, 'matchupMessage');
 	}

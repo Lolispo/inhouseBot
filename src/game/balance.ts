@@ -79,7 +79,7 @@ export const balanceTeams = (players: Player[], game: GameModesType, gameObject:
   console.log('@Starting Game:', JSON.stringify(result, null, 2));
   let object: ReturnMessage;
   try {
-    object = buildReturnStringEmbed(result);
+    object = buildReturnStringEmbed(result, skipServer);
     console.log('Embedded message successfully:', message);
   } catch (e) {
     console.error('Embed failed', e);
@@ -302,7 +302,7 @@ export const roundValue = (num: number): string => {
   return Number.isInteger(num) ? num.toString() : num.toFixed(2);
 };
 
-const buildReturnStringEmbed = (obj: IBalanceInfo): ReturnMessage => {
+const buildReturnStringEmbed = (obj: IBalanceInfo, skipServer = false): ReturnMessage => {
   let title = `**New Game!** Playing **${obj.game}**. `;
   if (obj.team1.length === 1) { // No average for 2 player matchup
     title += `MMR diff: ${obj.difference} mmr`;
@@ -339,7 +339,7 @@ const buildReturnStringEmbed = (obj: IBalanceInfo): ReturnMessage => {
   fields.push({ name, value });
   // s += '*\n\n';
   const isCs = gameIsCS(obj.game);
-  if (isCs) {
+  if (isCs && !skipServer) {
     // s += '*Connect:* \n';
     s += `Link: ${getCsUrl()}`; // TODO: Embedded links or something [Named Link](<link>) (Steam link no work)
     s += `\n**${getCsIp()}**`;

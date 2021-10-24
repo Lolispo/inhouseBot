@@ -7,8 +7,6 @@ Add integration tests for main functionalities
 
 ## Verify
 
-Lock CS Server if active game
-
 Empty queue between game days
 
 Unite only getting 10 users
@@ -16,9 +14,6 @@ Unite only getting 10 users
 
 queue different games
     auto queue queues both games
-
-BUG: Layout: friends command with a lot of teammates breaks ``` when message gets split in 2
-    The split need to escape the ``` if it starts with it
 
 GamesPlayed: 0   WinRate: NaN% (Wins: 0 , Losses: 0 ) oliver
     check this game, see why broken
@@ -31,9 +26,6 @@ Start adding all of these things to Github issues instead of here
 allow setting steam id before being in a game
 
 User "id" already in a game, instead use their name
-
-Add players that play inhouse to @InhouseFighter
-    Allow writing a command to add the InhouseFighter role to yourself
 
 Allow to kick people in dota
 
