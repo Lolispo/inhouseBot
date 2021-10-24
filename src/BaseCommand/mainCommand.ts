@@ -11,6 +11,7 @@ import { LennyAction } from "../commands/memes/lenny";
 import { LoadAction } from "../commands/game/load";
 import { NextQueuePlayerAction } from "../commands/game/queue/get-next-player";
 import { QueueAction } from "../commands/game/queue/queue";
+import { RestartDotaBotAction } from "../commands/game/restart-dota-bot";
 import { RollAction } from "../commands/memes/roll";
 import { RollbackQueue } from "../commands/game/queue/rollback-queue";
 import { SaveAction } from "../commands/game/save";
@@ -38,6 +39,7 @@ export const allAvailableCommands = (): BaseCommandClass[] => {
     listOfCommands.push(LoadAction.instance);
     listOfCommands.push(NextQueuePlayerAction.instance);
     listOfCommands.push(QueueAction.instance);
+    listOfCommands.push(RestartDotaBotAction.instance);
     listOfCommands.push(RollAction.instance);
     listOfCommands.push(RollbackQueue.instance);
     listOfCommands.push(SaveAction.instance);

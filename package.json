@@ -29,6 +29,7 @@
     "FormData": "^0.10.1",
     "axios": "^0.21.1",
     "check-node-version": "^3.3.0",
+    "child_process": "^1.0.2",
     "discord.js": "^12.5.3",
     "dotenv": "^8.6.0",
     "form-data": "^3.0.1",

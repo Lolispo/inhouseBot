@@ -13,6 +13,7 @@ Remove people from queue who is in a game balance
 
 Empty queue between game days
 
+Tag Inhousefighter in daily temp messages
 # Error message
 
 Allow restarting dota bot and recreate lobby
@@ -23,8 +24,6 @@ Allow restarting dota bot and recreate lobby
 queue different games
     auto queue queues both games
 
-Tag Inhousefighter in daily temp messages
-
 BUG: Layout: friends command with a lot of teammates breaks ``` when message gets split in 2
     The split need to escape the ``` if it starts with it
 
@@ -32,8 +31,13 @@ Unite only getting 10 users
 
 GamesPlayed: 0   WinRate: NaN% (Wins: 0 , Losses: 0 ) oliver
     check this game, see why broken
+    win rate avoid divide by 0 (1 draw?)
 
 Check if Team1 & Team2 5 players before split, so it splits into different channels
+
+leaderboard rank command
+
+dont show 0 gamers on leaderboard
 
 
 Start adding all of these things to Github issues instead of here
