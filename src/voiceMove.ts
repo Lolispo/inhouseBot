@@ -28,6 +28,7 @@ export const unite = (message: Message, options: string[], activeMembers: GuildM
     const guildChannels = message.guild.channels;
     const { channel1, channel2 } = getInhouseChannels(guildChannels);
     moveUsers([channel1, channel2], channel);
+    moveUsers([channel1, channel2], channel);
   }
 };
 

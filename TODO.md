@@ -9,19 +9,8 @@ Add integration tests for main functionalities
 
 Lock CS Server if active game
 
-Remove people from queue who is in a game balance
-
 Empty queue between game days
-
-Tag Inhousefighter in daily temp messages
 # Error message
-
-remove queue commands as expected
-
-Allow restarting dota bot and recreate lobby
-    resend
-    Test -refreshlobby command
-    make chronjob which refreshes it
 
 queue different games
     auto queue queues both games

@@ -20,10 +20,13 @@ export const leaderBoardAction = async (message, options) => {
   // TODO: Print``
   let s2 = '';
   let counter = 0;
-  data.forEach((oneData) => {
+  const filteredData = data.forEach(playerStats => {
+    return playerStats?.gamesPlayed >= 5; 
+  })
+  filteredData.forEach((playerStats) => {
     counter++;
-    const playerNameRating = `${oneData.userName.replace('_', '\\_')}: \t**${oneData.mmr} ${ratingOrMMR(oneData.gameName)}**`;
-    const gamesPlayed = oneData.gamesPlayed > 0 ? `\t(Games Played: ${oneData.gamesPlayed})` : '';
+    const playerNameRating = `${playerStats.userName.replace('_', '\\_')}: \t**${playerStats.mmr} ${ratingOrMMR(playerStats.gameName)}**`;
+    const gamesPlayed = playerStats.gamesPlayed > 0 ? `\t(Games Played: ${playerStats.gamesPlayed})` : '';
     s2 += `${playerNameRating}${gamesPlayed}\n`;
   });
   let s = '**Leaderboard Top ' + size + (size !== counter ? ` (${counter})` : '') + ' for ' + game + ':**\n';
