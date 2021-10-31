@@ -6,7 +6,7 @@ import { getMockStats } from './mocks/gameMock.test';
 import { getClientReference } from '../src/client';
 const { gameServers } = require('../src/csserver/cs_server');
 const { createPlayer } = require('../src/game/player');
-const { getGameStats, buildStatsMessage, playerMapSteamIdStats } = require('../src/csserver/cs_server_stats');
+const { getGameStats, buildStatsMessage, playerMapSteamIdStats, padColumn } = require('../src/csserver/cs_server_stats');
 
 
 let serverId;
@@ -82,6 +82,14 @@ describe('server_stats', () => {
       const playerMappedStats = playerMapSteamIdStats(gameObject, stats2);
       console.log(playerMappedStats);
     });
+  });
+
+  describe('padColumn', () => {
+    it('hsPerc look better for 100%', () => {
+      // '100% ' doesn't misalign the table
+      const res = padColumn(3, '100%');
+      expect(res).toEqual('100% ');
+    })
   });
 
   afterAll(() => {

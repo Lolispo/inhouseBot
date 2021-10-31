@@ -21,6 +21,7 @@ export class QueueAction extends BaseCommandClass {
   static instance: QueueAction = new QueueAction(commands);
   queue: User[] = [];
   storedActions: Action[] = [];
+  timeLastQueue: Date;
 
   static queueToString(queue?) {
     if (!queue) queue = QueueAction.instance.getCurrentQueue();
@@ -46,10 +47,20 @@ export class QueueAction extends BaseCommandClass {
   }
 
   addPlayerToQueue(user: User, message?: Message) {
+    // Empty queue if new day since last queue activity
+    const currentDate = new Date();
+    const prevDate = QueueAction.instance.timeLastQueue;
+    if (prevDate && currentDate.getDate() !== prevDate.getDate()) {
+      console.log('Emptying Queue due to Date difference:', currentDate.getDate(), prevDate.getDate());
+      QueueAction.instance.emptyQueue();
+    }
+    QueueAction.instance.timeLastQueue = currentDate;
+    // Adds user to queue
     if (!this.queue.includes(user)) {
       this.addAction({ type: ActionType.PUSH, users: [user] });
       this.queue.push(user);
       console.log('Added user to queue:', user.username);
+      QueueAction.instance.timeLastQueue = new Date();
       if (message) { // Only prints if message available
         print(message, `**${user.username}** started queueing\n${QueueAction.queueToString()}`, (messageVar) => {
           deleteDiscMessage(messageVar, 60000, 'queueprint')
@@ -72,6 +83,7 @@ export class QueueAction extends BaseCommandClass {
     return previousQueue;
   }
 
+  // User requires id
   removePlayer(user: User) {
     const index = this.queue.findIndex(userQueue => userQueue.id === user.id);
     if (index === -1) return undefined;
@@ -117,6 +129,7 @@ export class QueueAction extends BaseCommandClass {
   action = (message: Message, options: string[]) => {
     const user = message.author;
     this.addPlayerToQueue(user, message);
+    return true;
   }
 
   help = () => {

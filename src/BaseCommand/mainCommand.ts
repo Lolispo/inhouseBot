@@ -1,3 +1,4 @@
+import { AddInhouseFighterRole } from "../commands/meta/inhouse-fighter-role-add";
 import { BaseCommandClass } from "./BaseCommand";
 import { ConnectDotaAction } from "../commands/game/dota";
 import { CSServerAddressAction } from "../commands/game/cs-server-address";
@@ -7,10 +8,12 @@ import { HejAction } from "../commands/memes/hej";
 import { HelpAction } from "../commands/meta/help";
 import { HelpAllAction } from "../commands/meta/helpAll";
 import { LastGameAction } from "../commands/stats/lastGame";
+import { LeaderboardAction } from "../commands/stats/leaderboard";
 import { LennyAction } from "../commands/memes/lenny";
 import { LoadAction } from "../commands/game/load";
 import { NextQueuePlayerAction } from "../commands/game/queue/get-next-player";
 import { QueueAction } from "../commands/game/queue/queue";
+import { RestartDotaBotAction } from "../commands/game/restart-dota-bot";
 import { RollAction } from "../commands/memes/roll";
 import { RollbackQueue } from "../commands/game/queue/rollback-queue";
 import { SaveAction } from "../commands/game/save";
@@ -26,6 +29,7 @@ let listOfCommands: BaseCommandClass[];
 export const allAvailableCommands = (): BaseCommandClass[] => {
   if (!listOfCommands) {
     let listOfCommands = [];
+    listOfCommands.push(AddInhouseFighterRole.instance);
     listOfCommands.push(ConnectDotaAction.instance);
     listOfCommands.push(CSServerAddressAction.instance);
     listOfCommands.push(CurrentQueueAction.instance);
@@ -34,10 +38,12 @@ export const allAvailableCommands = (): BaseCommandClass[] => {
     listOfCommands.push(HelpAction.instance);
     listOfCommands.push(HelpAllAction.instance);
     listOfCommands.push(LastGameAction.instance);
+    listOfCommands.push(LeaderboardAction.instance);
     listOfCommands.push(LennyAction.instance);
     listOfCommands.push(LoadAction.instance);
     listOfCommands.push(NextQueuePlayerAction.instance);
     listOfCommands.push(QueueAction.instance);
+    listOfCommands.push(RestartDotaBotAction.instance);
     listOfCommands.push(RollAction.instance);
     listOfCommands.push(RollbackQueue.instance);
     listOfCommands.push(SaveAction.instance);

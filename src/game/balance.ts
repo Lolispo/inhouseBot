@@ -11,7 +11,9 @@ import { checkMissingSteamIds, notifyPlayersMissingSteamId } from '../steamid';
 import { Game, IBalanceInfo } from './game';
 import { ConnectDotaAction } from '../commands/game/dota';
 import { Player, sortRating } from './player';
-import { gameIsCS, gameIsCSMain, gameIsDota, gameIsTest } from './gameModes';
+import { gameIsCS, gameIsCSMain, gameIsDota, gameIsTest, GameModesType } from './gameModes';
+import { QueueAction } from '../commands/game/queue/queue';
+import { User } from 'discord.js';
 
 /*
 	Handles getting the most balanced team matchup for the given 10 players
@@ -33,8 +35,36 @@ interface ReturnMessage {
   balanceInfo: IBalanceInfo
 }
 
+const checkAllPlayersHaveConnectedSteamIds = (players: Player[], gameObject: Game): boolean => {
+  const playersMissingSteamIds = checkMissingSteamIds(players);
+  // console.log('Check missing steam ids:', players, players.map(player => player.getSteamId()).join(", "), playersMissingSteamIds.map(player => player.getSteamId()).join(", "));
+  if (playersMissingSteamIds.length > 0) {
+    // People are missing steamids
+    notifyPlayersMissingSteamId(playersMissingSteamIds);
+    const playersString = playersMissingSteamIds.map(player => player.userName).join(', ');
+    printMessage(`Note: Missing SteamIds for: ${playersString}`, gameObject.getChannelMessage(), (messageParam) => {
+      f.deleteDiscMessage(messageParam, 120000, 'missingSteamIds');
+    });
+    return true;
+  }
+  return false; // All players have Ids
+}
+
+const startServerGame = (game: GameModesType, gameObject: Game) => {
+  if (gameIsCS(game)) {
+    configureServer(gameObject);
+  } else if (gameIsDota(game) || gameIsTest(game)) {
+    ConnectDotaAction.startMatch(gameObject.gameID, [gameObject.getBalanceInfo().team1, gameObject.getBalanceInfo().team2]);
+  } else {
+    // Unable to find server for this game
+    printMessage(`Unable to find server for this game`, gameObject.getChannelMessage(), (messageParam) => {
+      f.deleteDiscMessage(messageParam, 60000, 'noGameFoundServer');
+    });
+  }
+}
+
 // @param players should contain Array of initialized Players of people playing
-export const balanceTeams = (players: Player[], game: string, gameObject: Game, skipServer = false) => {
+export const balanceTeams = (players: Player[], game: GameModesType, gameObject: Game, skipServer = false) => {
   // Generate team combs, all possibilities of the 10 players
   const teamCombs = generateTeamCombs(players);
   const result = findBestTeamComb(players, teamCombs, game);
@@ -49,7 +79,7 @@ export const balanceTeams = (players: Player[], game: string, gameObject: Game, 
   console.log('@Starting Game:', JSON.stringify(result, null, 2));
   let object: ReturnMessage;
   try {
-    object = buildReturnStringEmbed(result);
+    object = buildReturnStringEmbed(result, skipServer);
     console.log('Embedded message successfully:', message);
   } catch (e) {
     console.error('Embed failed', e);
@@ -63,31 +93,29 @@ export const balanceTeams = (players: Player[], game: string, gameObject: Game, 
     gameObject.setMatchupServerMessage(message);
   });
 
-  // TODO: Only if no other active games using server
-  if (gameIsCS(game) && !skipServer) {
-    const playersMissingSteamIds = checkMissingSteamIds(players);
-    // console.log('Check missing steam ids:', players, players.map(player => player.getSteamId()).join(", "), playersMissingSteamIds.map(player => player.getSteamId()).join(", "));
-    if (playersMissingSteamIds.length > 0) {
-      // People are missing steamids
-      notifyPlayersMissingSteamId(playersMissingSteamIds);
-      const playersString = playersMissingSteamIds.map(player => player.userName).join(', ');
-      printMessage(`Note: Missing SteamIds for: ${playersString}`, gameObject.getChannelMessage(), (messageParam) => {
-        f.deleteDiscMessage(messageParam, 120000, 'missingSteamIds');
-      });
+  // Removes users from Queue
+  players.forEach(player => {
+    const user = Player.getUserFromPlayer(player);
+    QueueAction.instance.removePlayer(user as User);
+  })
+
+  // Check if a server for the game is available and requested
+  if (!skipServer && (gameIsCS(game) || gameIsDota(game) || gameIsTest(game))) {
+    const missedIdsForSomePlayers = checkAllPlayersHaveConnectedSteamIds(players, gameObject);
+    if (!missedIdsForSomePlayers) {
+      // Check that server isn't used
+      if (Game.getServerInUse(game)) {
+        printMessage('Server is already in use! Starting without server', gameObject.getChannelMessage(), (message) => {
+          f.deleteDiscMessage(message, 60000, 'serverInUseMessage');
+        });
+      } else {
+        gameObject.setUsingServer(true);
+        startServerGame(game, gameObject);
+      }
+    } else {
+      // Notify that no server is used since some players are missing steam id
+      // Should it cancel game?
     }
-    configureServer(gameObject);
-  } else if ((gameIsDota(game) || gameIsTest(game)) && !skipServer) {
-    const playersMissingSteamIds = checkMissingSteamIds(players);
-    // console.log('Check missing steam ids:', players, players.map(player => player.getSteamId()).join(", "), playersMissingSteamIds.map(player => player.getSteamId()).join(", "));
-    if (playersMissingSteamIds.length > 0) {
-      // People are missing steamids
-      notifyPlayersMissingSteamId(playersMissingSteamIds);
-      const playersString = playersMissingSteamIds.map(player => player.userName).join(', ');
-      printMessage(`Note: Missing SteamIds for: ${playersString}`, gameObject.getChannelMessage(), (messageParam) => {
-        f.deleteDiscMessage(messageParam, 120000, 'missingSteamIds');
-      });
-    }
-    ConnectDotaAction.startMatch(gameObject.gameID, [gameObject.getBalanceInfo().team1, gameObject.getBalanceInfo().team2]);
   }
 };
 
@@ -156,7 +184,7 @@ export const reverseUniqueSum = (list: number[], len: number): number => {
 }
 
 // Compare elo matchup between teamCombinations, lowest difference wins
-const findBestTeamComb = (players: Player[], teamCombs: number[][], game: string): IBalanceInfo => {
+const findBestTeamComb = (players: Player[], teamCombs: number[][], game: GameModesType): IBalanceInfo => {
   let bestPossibleTeamComb = Number.MAX_VALUE;
   let t1 = [];
   let t2 = [];
@@ -274,7 +302,7 @@ export const roundValue = (num: number): string => {
   return Number.isInteger(num) ? num.toString() : num.toFixed(2);
 };
 
-const buildReturnStringEmbed = (obj: IBalanceInfo): ReturnMessage => {
+const buildReturnStringEmbed = (obj: IBalanceInfo, skipServer = false): ReturnMessage => {
   let title = `**New Game!** Playing **${obj.game}**. `;
   if (obj.team1.length === 1) { // No average for 2 player matchup
     title += `MMR diff: ${obj.difference} mmr`;
@@ -311,7 +339,7 @@ const buildReturnStringEmbed = (obj: IBalanceInfo): ReturnMessage => {
   fields.push({ name, value });
   // s += '*\n\n';
   const isCs = gameIsCS(obj.game);
-  if (isCs) {
+  if (isCs && !skipServer) {
     // s += '*Connect:* \n';
     s += `Link: ${getCsUrl()}`; // TODO: Embedded links or something [Named Link](<link>) (Steam link no work)
     s += `\n**${getCsIp()}**`;

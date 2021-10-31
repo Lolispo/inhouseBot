@@ -29,8 +29,8 @@ export class TeammateAction extends BaseCommandClass {
   action = async (message: Message, options: string[]) => {
     console.log('@teammateAction', message.content, options);
     const author = message.author.id;
-    const gameName = getModeChosen(options, getGameModes(), GameModesStandard.DOTA);
-    const result: Statistics[] = await bestTeammates(author, gameName);
+    const { game } = getModeChosen(options, getGameModes(), GameModesStandard.DOTA);
+    const result: Statistics[] = await bestTeammates(author, game);
     if (result) {
       if (options[1] === 'games' || options[2] === 'games') {
         result.sort((a,b) => {
@@ -40,7 +40,7 @@ export class TeammateAction extends BaseCommandClass {
           return b.gamesPlayed - a.gamesPlayed;
         });
       }    
-      const stringResult = this.buildResults(message.author.username, gameName, result);
+      const stringResult = this.buildResults(message.author.username, game, result);
       printMessage(stringResult, message, (messageParam) => {
         f.deleteDiscMessage(messageParam, 120000, 'teammates');
       });

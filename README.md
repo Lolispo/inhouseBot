@@ -36,8 +36,6 @@ Prefix and bot-name can be modified to own liking
 *Available commands for inhouse-bot (All Options):*  
 (**[opt = default]** Syntax for optional arguments)
 
-**-ping** *Pong*
-
 **-h | -help** Shows the available commands
 
 **-ha | -helpall** Shows information about all commands in detail

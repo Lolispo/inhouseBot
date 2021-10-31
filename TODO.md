@@ -1,37 +1,44 @@
 # TODO:
 ## Tests
 
-Fix tests for typescript
-
 Add unit tests for all files
 
 Add integration tests for main functionalities
 
+## Verify
+
+Empty queue between game days
+
+Unite only getting 10 users
 # Error message
+
+@cleanOnGameEnd Error cancelling game: TypeError: Cannot read property 'emit' of undefined
+    at Object.cancelMatch (/home/ubuntu/Projects/inhouseBot/src/dota/socketClient.ts:98:10)
+    at Object.cleanOnGameEnd (/home/ubuntu/Projects/inhouseBot/src/game/game.ts:330:9)
+    at /home/ubuntu/Projects/inhouseBot/src/bot.ts:277:7
+    at /home/ubuntu/Projects/inhouseBot/src/tools/f.ts:60:11
+    at runMicrotasks (<anonymous>)
+    at processTicksAndRejections (node:internal/process/task_queues:96:5)
+@cancelgameCSServer Error: Invalid serverId: undefined Game {
+
+queue different games
+    auto queue queues both games
+
+GamesPlayed: 0   WinRate: NaN% (Wins: 0 , Losses: 0 ) oliver
+    check this game, see why broken
+    win rate avoid divide by 0 (1 draw?)
+
+Check if Team1 & Team2 5 players before split, so it splits into different channels
 
 Start adding all of these things to Github issues instead of here
 
 allow setting steam id before being in a game
-
-Allow restarting dota bot and recreate lobby
-    resend
-    Test -refreshlobby command
-
-BUG: Layout: friends command with a lot of teammates breaks ``` when message gets split in 2
-    The split need to escape the ``` if it starts with it
-
-Remove people from queue who is in a game balance
-
-Empty queue between game days
 
 Allow to kick people in dota
 
 discord tag autoqueue
     autoqueue command to add user to it
     use in queue
-
-admin commands should not show as invalid
-    Should show as admin commands in help
 
 Refactor discord events to event folder
 
@@ -42,14 +49,7 @@ Use ephermal message https://support.discord.com/hc/en-us/articles/1500000580222
 
 tsconfig strict true
 
-Unite only getting 10 users
-
 Check that only one bot is active on startup
-
-Balance MMR (matter more on lower or higher mmr)
-    Beta
-
-Add players that play inhouse to @InhouseFighter
 
 MIGRATION TO 12 AND TYPESCRIPT:
     Fix birthday
@@ -58,6 +58,8 @@ MIGRATION TO 12 AND TYPESCRIPT:
 Fix Ping command - doesn't seem available easily anymore - either disable entirely or fix
 
 Show streak in leaderboard output
+
+Temp check look into same animal for same game and time (19 cs always same emote)
 
 Inhouse Temperature check
     Fix shuffle
@@ -68,9 +70,6 @@ Inhouse Temperature check
     Group of users that you can tag
 
 Load game from file
-
-Game balance not sorted after mmr when starting game
-    Verify
 
 Move voting to gameobject
 
@@ -85,6 +84,9 @@ INPROGRESS - Refactor commands to command folder
 LastGame command to help list
     Check generate collection from the command files
         Add entry to public list from each command function which is used by the help command
+    Make it also show CS stats for latest game if it exists
+
+Allow seeing match history and see cs stats for old game
 
 UTF8 Encoding
     ALTER TABLE (table name) CONVERT TO CHARACTER SET UTF8

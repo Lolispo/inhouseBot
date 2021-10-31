@@ -15,6 +15,15 @@ export class Player {
 	defaultMMR;
 	steamId;
 	mmrs: { [key: string] : MMRStruct };
+
+  // Get discord user from Player object
+  static getUserFromPlayer = (player: Player) => {
+    const user = {
+      id: player.uid, 
+      username: player.userName
+    }
+    return user;
+  }
 	
 	constructor(username, discId) {
 		this.userName = username;

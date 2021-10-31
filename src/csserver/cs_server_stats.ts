@@ -72,7 +72,7 @@ const dataFields = [
 const tableTitles = () => `| ${tableTitleArray.join(' | ')} |\n`;
 
 // pad column to fit in table design
-const padColumn = (index, value = '-') => {
+export const padColumn = (index, value = '-') => {
   // console.log('@padColumn', index, value);
   const columnTitle = tableTitleArray[index];
   const titleLength = columnTitle.length;
@@ -83,8 +83,10 @@ const padColumn = (index, value = '-') => {
   } if (valueLength === titleLength) {
     return ` ${value} `;
   }
-  console.log('@padColumn LOOK INTO THIS', value, columnTitle);
+  // @padColumn LOOK INTO THIS 100% HS%
   if (valueLength < titleLength + 2) {
+    if (valueLength === titleLength + 1) return `${value} `;
+    console.log('@padColumn LOOK INTO THIS', value, columnTitle);
     return value;
   }
   return (`${value}`).substring(0, titleLength);
@@ -135,6 +137,7 @@ const setHighestScore = (array, arrayIndex) => {
 
 const padTo2 = value => (value.length === 1 ? ` ${value}` : value);
 
+// | MorganTheJ. | 28/22/ 9  | 140 | 39% | 6/3  | 5/4   | 2   | -  | 2  | -  | 7  | -/-  | -  |
 const adjustStrings = (arrayOfArrays) => {
   const deathsIndex = 2;
   const assistsIndex = 3;
@@ -151,9 +154,9 @@ const adjustStrings = (arrayOfArrays) => {
     const tempArray = array.filter((_, index) => !(index === indexT || index === indexCT || index === deathsIndex || index === assistsIndex || index === defusesIndex));
     // Expected order: name, KDA, ADR, etc
     const adjustedArray = tempArray.map((value, index) => {
-      if (index === 1) return `${padTo2(value)}/${padTo2(deaths)}/${padTo2(assists)}`;
-      if (index === 2) return `${value}`;
-      if (index === 3) return `${value}%`;
+      if (index === 1) return `${padTo2(value)}/${padTo2(deaths)}/${padTo2(assists)}`; // KDA
+      if (index === 2) return `${value}`; // Adr
+      if (index === 3) return `${value}%`; // HS Perc
       if (index === 4) return `${value}/${entryTDeaths}`;
       if (index === 5) return `${value}/${entryCTDeaths}`;
       if (index === 11) return `${value}/${defuses}`;

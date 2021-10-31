@@ -1,14 +1,14 @@
 import { Message } from "discord.js";
 import { BaseCommandClass } from "../../BaseCommand/BaseCommand";
 import { MatchMode } from "../../BaseCommand/BaseCommandTypes";
+import { getInhouseFighterRoleId } from "../../channels/channels";
 import { GameModesType, getActiveGameModes, getModeChosen } from "../../game/gameModes";
 import { callbackInvalidCommand, callbackModified, deleteDiscMessage, editMessage, print } from '../../tools/f';
 
 
 const commands = ['temperature', 'daily', 'temperaturecheck', 'temp']
 
-// @${getInhouseFighter()}
-const startMessage = `Inhouse Temperature Check:\n`;
+const startMessage = `Inhouse Temperature Check <@&${getInhouseFighterRoleId()}>:\n`;
 const endMessage = 'React on all timeslots which work for you and then we look for the most suitable time.\nIf you read this but can\'t play today, react with :x:';
 const rowMessage = '\t- $$emoji$$ for $$game$$ Inhouse (Start $$start-time$$$$end-time$$)\n';
 const withEnd = '-$$end-time$$';
@@ -200,12 +200,12 @@ export class TemperatureCheckAction extends BaseCommandClass {
   loadOptions(options: string[]): OptionsFields {
     const activeModes = getActiveGameModes();
     // activeModes.splice(activeModes.indexOf(GameModesStandard.CS), 1); // CS Temporaryily disabled from default temperature checks
-    const gameName = getModeChosen(options, activeModes);
+    const { game } = getModeChosen(options, activeModes);
     let gameOptions: GameModesType[] = [];
-    if (!gameName) {
+    if (!game) {
       gameOptions = gameOptions.concat(activeModes);
     } else {
-      gameOptions.push(gameName);
+      gameOptions.push(game);
     }
     const { startHour, endHour } = this.getTimePeriods(options);
     // console.log('@temperatureCheckCommand:', activeModes, gameName, gameOptions);

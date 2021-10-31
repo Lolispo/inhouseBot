@@ -23,7 +23,6 @@ import { GuildMember, Message, MessageReaction, ReactionUserManager, TextChannel
 import { triviaStartCommand } from './commands/trivia/triviaCommand';
 import { pingAction } from './commands/memes/ping';
 import { statsAction } from './commands/stats/stats';
-import { leaderBoardAction } from './commands/stats/leaderboard';
 import { GameModesType, getAllModes, getGameModes, getGameModes1v1, getModeAndPlayers } from './game/gameModes';
 import { getAllDmCommands } from './BaseCommand/mainCommand';
 import { startsWith } from './BaseCommand/BaseCommand';
@@ -50,7 +49,6 @@ const uniteAllCommands = [prefix + 'ua', prefix + 'uniteall'];
 const mapvetostartCommands = [prefix + 'mapveto', prefix + 'startmapveto', prefix + 'mapvetostart', prefix + 'startmaps'];
 const triviaCommands = [prefix + 'trivia', prefix + 'starttrivia', prefix + 'triviastart'];
 const triviaModesCommands = [prefix + 'modestrivia', prefix + 'helptrivia'];
-const leaderboardCommands = [prefix + 'leaderboard'];
 const statsCommands = [prefix + 'stats'];
 const exitCommands = [prefix + 'exit', prefix + 'clear', prefix + 'e'];
 const pingCommands = [prefix + 'ping'];
@@ -195,11 +193,6 @@ const handleMessage = async (message: Message) => {
 		f.deleteDiscMessage(message, 10000, 'triviaModes');
 	}
 
-	// Show top X MMR, default 5 
-	// TODO Games played only for cs, rating for otherRatings instead of mmr (as in player.js)
-	else if (startsWith(message, leaderboardCommands)){
-		leaderBoardAction(message, options);
-	}
 	// Sends private information about your statistics
 	else if (startsWith(message, statsCommands)){
 		statsAction(message, options);
@@ -391,7 +384,7 @@ async function balanceCommand(message, options){
 			msg.content += '<removed>';
 		});
 	} else {
-		f.print(message, 'Invalid command: ' + message.author + ' is already in a game (' + gameObjectExist.getGameID() + ')', callbackInvalidCommand); 
+		f.print(message, 'Invalid command: ' + message.author.username + ' is already in a game (' + gameObjectExist.getGameID() + ')', callbackInvalidCommand); 
 		console.log('Existing game object:', gameObjectExist);
 		f.deleteDiscMessage(message, 10000, 'matchupMessage');
 	}
@@ -541,7 +534,6 @@ export const buildHelpString = (userID: string, messageNum: number): string => {
 		// TODO: More simple help without detailed explanation, add this option to helpCommands line
 		let s = '*Available commands for ' + bot_name + ':* \n';
 		s += '**' + prefix + 'ping** Returns time of response to server\n';
-		s += '**' + leaderboardCommands.toString().replace(/,/g, ' | ') + '** Returns Top 5 MMR holders\n';
 		s += '**' + statsCommands.toString().replace(/,/g, ' | ') + '** Returns your own rating\n';
 		s += '**' + prefix + 'roll [high] [low, high]** Rolls a number (0 - 100)\n';
 		s += '**' + triviaCommands.toString().replace(/,/g, ' | ') + '** Starts a trivia game in the textchannel *' + getChannelName() + '*\n';
@@ -562,8 +554,6 @@ export const buildHelpString = (userID: string, messageNum: number): string => {
 		let s = '*Available commands for ' + bot_name + ' (All Options):* \n';
 		s += '(**[opt = default]** Syntax for optional arguments)\n\n';
 		s += '**' + prefix + 'ping** Returns time of response to server\n\n'; // 
-		s += '**' + leaderboardCommands.toString().replace(/,/g, ' | ') + ' [game = cs]** Returns Top 5 MMR holders\n'
-			+ '**[game]** Opt. argument: name of the mode to retrieve top leaderboard for. Available modes are [' + getAllModes() + ']\n\n';
 		s += '**' + statsCommands.toString().replace(/,/g, ' | ') + ' [game = cs]** Returns your own rating\n'
 			+ '**[game]** Opt. argument: name of the mode to retrieve stats for. Available modes are [' + getAllModes() + ']\n\n';
 		s += '**' + prefix + 'roll [high] [low, high]** Rolls a number (0 - 100)\n' 
