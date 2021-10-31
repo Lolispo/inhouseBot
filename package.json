@@ -27,7 +27,7 @@
   "homepage": "https://github.com/Lolispo/inhouseBot#readme",
   "dependencies": {
     "FormData": "^0.10.1",
-    "axios": "^0.21.1",
+    "axios": "^0.21.2",
     "check-node-version": "^3.3.0",
     "child_process": "^1.0.2",
     "discord.js": "^12.5.3",
