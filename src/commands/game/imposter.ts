@@ -41,10 +41,11 @@ export class ImposterAction extends BaseCommandClass {
     }
 
     // Check amount
+    // TODO
     if (nonImposterUsers.length === 0) {
-
+      return true
     } else {
-
+      return false; // TODO
     }
   }
 
@@ -90,7 +91,7 @@ export class ImposterAction extends BaseCommandClass {
       this.timer =- 5;
       if (this.timer <= 0) {
         const gameIsOver = this.killPlayer(); // Returns true if gameover
-        if (this.gameIsOver) {
+        if (gameIsOver) {
 
         } else {
           this.countDownTimer(message);
