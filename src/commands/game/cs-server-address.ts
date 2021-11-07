@@ -6,13 +6,13 @@ import { getCsIp } from '../../csserver/server_info';
 const commands = ['praccserver', 'server', 'csserver', 'serveradress', 'csserverip', 'ip', 'csip'];
 
 export class CSServerAddressAction extends BaseCommandClass {
-    static instance: CSServerAddressAction = new CSServerAddressAction(commands);
+  static instance: CSServerAddressAction = new CSServerAddressAction(commands);
 
-    action = (message: Message, options: string[]) => {
-        print(message, '**' + getCsIp() + '**');
-    }
+  action = (message: Message, options: string[]) => {
+    print(message, '**' + getCsIp() + '**');
+  }
 
-    help = () => {
-        return '**' + this.commands.toString().replace(/,/g, ' | ') + '** Get CS Server IP (Dathost Address)';
-    }
+  help = () => {
+    return '**' + this.commands.toString().replace(/,/g, ' | ') + '** Get CS Server IP (Dathost Address)';
+  }
 }

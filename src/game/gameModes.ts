@@ -7,6 +7,7 @@ export enum GameModesStandard {
 	CS = 'cs',
 	DOTA = 'dota',
 	VALORANT = 'valorant',
+	BATTLERITE = 'battlerite',
 	TEST = 'test'
 }
 

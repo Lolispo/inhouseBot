@@ -49,12 +49,10 @@ export const print = (messageVar: Message, message: string | EmbeddedMessage, ca
   // Handle for string messages
   if (typeof message === 'string') {
     const messages = groupMessageOnSize(message);
-    console.log('@DEBUG print', message, messages);
 
     // Send first message
     if (messages.length >= 1) {      
       const firstMessage = messages[0];
-      console.log('@DEBUG print2', message);
       messageVar.channel.send(firstMessage)
         .then((result) => {
           callback(result);
@@ -90,7 +88,6 @@ export const groupMessageOnSize = (message: string): string[] => {
   // Handle big messages
   const maxSizeForMessage = 2000;
   const maxIndex = 1900;
-  console.log('@DEBUG group', message.length)
   if (message.length >= maxSizeForMessage) {
     // Check if styling is contained within ```
     const isStyledMessage = message.indexOf('```') !== -1;

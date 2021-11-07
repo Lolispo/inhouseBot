@@ -7,6 +7,7 @@ import { EmptyQueueAction } from "../commands/game/queue/empty-queue";
 import { HejAction } from "../commands/memes/hej";
 import { HelpAction } from "../commands/meta/help";
 import { HelpAllAction } from "../commands/meta/helpAll";
+import { ImposterAction } from "../commands/game/imposter";
 import { LastGameAction } from "../commands/stats/lastGame";
 import { LeaderboardAction } from "../commands/stats/leaderboard";
 import { LennyAction } from "../commands/memes/lenny";
@@ -37,6 +38,7 @@ export const allAvailableCommands = (): BaseCommandClass[] => {
     listOfCommands.push(HejAction.instance);
     listOfCommands.push(HelpAction.instance);
     listOfCommands.push(HelpAllAction.instance);
+    listOfCommands.push(ImposterAction.instance);
     listOfCommands.push(LastGameAction.instance);
     listOfCommands.push(LeaderboardAction.instance);
     listOfCommands.push(LennyAction.instance);

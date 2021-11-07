@@ -6,11 +6,11 @@ Add unit tests for all files
 Add integration tests for main functionalities
 
 ## Verify
+# Error message
 
 Empty queue between game days
 
 Unite only getting 10 users
-# Error message
 
 @cleanOnGameEnd Error cancelling game: TypeError: Cannot read property 'emit' of undefined
     at Object.cancelMatch (/home/ubuntu/Projects/inhouseBot/src/dota/socketClient.ts:98:10)
