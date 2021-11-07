@@ -27,7 +27,6 @@ const adjective = [
   'swole',
   'confident',
   'vengeful',
-  'also',
   'clip hungry',
   'big',
   'small',

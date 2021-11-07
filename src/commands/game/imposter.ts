@@ -9,6 +9,7 @@ interface VoteMessage {
   user: User;
   discordMessage: Message;
   reactionAmount: number;
+  alive: boolean;
 }
 
 export class ImposterAction extends BaseCommandClass {
@@ -18,12 +19,34 @@ export class ImposterAction extends BaseCommandClass {
   timerMessage: Message;
   voteMessages: VoteMessage[];
   countDownInterval;
+  gameIsOver: boolean;
 
   /**
    * Countdown timer
    * Remove the one with highest votes each time
    * If imposter remove, win
    */
+
+
+  isGameOver(): boolean {
+    if (this.voteMessages.length <= 1) {
+      return true;
+    }
+    let imposterUsers = [];
+    let nonImposterUsers = [];
+    for (let i = 0; i < this.voteMessages.length; i++) {
+      if (this.voteMessages[i].alive) {
+        this.imposterIndexes.includes(i) ? imposterUsers.push(this.voteMessages[i]) : nonImposterUsers.push(this.voteMessages[i]) ;
+      }
+    }
+
+    // Check amount
+    if (nonImposterUsers.length === 0) {
+
+    } else {
+
+    }
+  }
 
   /**
    * Kill player with most emojis on their name
@@ -40,9 +63,22 @@ export class ImposterAction extends BaseCommandClass {
     const sorted = emojiCountList.sort((a1: VoteMessage, a2: VoteMessage) => {
       return a1.reactionAmount - a2.reactionAmount;
     });
-    console.log('Sorted:', sorted.map((player: VoteMessage) => {
+    console.log('SortedList:', sorted.map((player: VoteMessage) => {
       return `${player.user.username}: ${player.reactionAmount}\n`
     }));
+
+    const removedUser: VoteMessage = sorted[0];
+    
+    // Remove this users vote messages
+    removedUser.alive = false;
+    try {
+      removedUser.discordMessage.delete();
+    } catch (e) {
+      console.error('Issue deleting vote message:', e);
+    }
+
+    // Check if game is over
+    return this.isGameOver();
   }
 
   // Create the source message with a resetting timer
@@ -53,8 +89,8 @@ export class ImposterAction extends BaseCommandClass {
       this.timerMessage = timerMessage;
       this.timer =- 5;
       if (this.timer <= 0) {
-        const gameIsOver = killPlayer(); // Returns true if gameover
-        if (gameIsOver) {
+        const gameIsOver = this.killPlayer(); // Returns true if gameover
+        if (this.gameIsOver) {
 
         } else {
           this.countDownTimer(message);
@@ -81,11 +117,11 @@ export class ImposterAction extends BaseCommandClass {
     const members: GuildMember[] = Array.from(voiceChannel.members.values());
     let players = [];
     const memberAmount = members.length;
-    ImposterAction.imposterIndexes = this.getImposterIndex(memberAmount);
+    this.imposterIndexes = this.getImposterIndex(memberAmount);
     members.forEach((member, index) => {
       players.push({
         user: member.user,
-        imposter: ImposterAction.imposterIndexes.includes(index)
+        imposter: this.imposterIndexes.includes(index)
       });
     });
 

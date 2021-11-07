@@ -8,6 +8,13 @@ Add integration tests for main functionalities
 ## Verify
 # Error message
 
+Problem caching local mmr?
+New Game! Playing battlerite. MMR Avg diff: 63.83 mmr (Total: 191.5 mmr)
+The Aspiring Elephants     (Avg: 2531.83 mmr):
+Robin (2475), Simon (2473), Xavantex (2456)
+The Nerdy Memers     (Avg: 2468 mmr):
+Petter (2709), livaitan (2456), Samev (2435)
+
 Empty queue between game days
 
 Unite only getting 10 users

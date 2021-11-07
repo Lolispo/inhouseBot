@@ -26,6 +26,7 @@ export type GameModesType =
 	GameModesStandard.CS |
 	GameModesStandard.DOTA |
 	GameModesStandard.VALORANT |
+	GameModesStandard.BATTLERITE |
 	GameModesStandard.TEST |
 	GameModes1v1.CS1v1 | 
 	GameModes1v1.DOTA1v1 |
@@ -40,7 +41,7 @@ export class GameModes {
 
 // Default choices is the first indexed mode
 // TODO: Enum to list - Didn't find good way to do it since enum return keys and values
-const modesGame = [GameModesStandard.CS, GameModesStandard.DOTA, GameModesStandard.VALORANT, GameModesStandard.TEST];
+const modesGame = [GameModesStandard.CS, GameModesStandard.DOTA, GameModesStandard.VALORANT, GameModesStandard.BATTLERITE, GameModesStandard.TEST];
 const modes1v1 = [GameModes1v1.CS1v1, GameModes1v1.DOTA1v1, GameModes1v1.TEST1v1];
 const modesRatings = [GameModeRatings.TRIVIA, GameModeRatings.TRIVIA_TEMP]; // Trivia temp is used for ongoing games
 
