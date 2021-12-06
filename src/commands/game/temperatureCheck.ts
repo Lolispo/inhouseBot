@@ -155,10 +155,12 @@ export class TemperatureCheckAction extends BaseCommandClass {
       try {
         if (Array.isArray(option)) continue;
         let num = parseInt(option);
-        if (!startHour || num < startHour) startHour = num;
-        if (!endHour || num > endHour) endHour = num;
-        console.log('@Option', option, num, startHour, endHour);
-        hours.push(num);
+        if (!Number.isNaN(num)) {
+          if (!startHour || num < startHour) startHour = num;
+          if (!endHour || num > endHour) endHour = num;
+          console.log('@Option', option, num, startHour, endHour);
+          hours.push(num);
+        }
       } catch (e) {
         // Do nothing
         console.log('@Unable to parseInt', option);
@@ -207,12 +209,13 @@ export class TemperatureCheckAction extends BaseCommandClass {
     } else {
       gameOptions.push(game);
     }
+    console.log('@loadOptions:', gameOptions, activeModes, game);
     const { startHour, endHour } = this.getTimePeriods(options);
     // console.log('@temperatureCheckCommand:', activeModes, gameName, gameOptions);
 
     // TODO: Allow inputting starttime and hours
-    const startTime = startHour || 20;
-    let hours = 3;
+    const startTime = startHour || 19;
+    let hours = 2;
     if (endHour && startHour) {
       hours = endHour - startHour + 1;
     }

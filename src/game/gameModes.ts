@@ -62,10 +62,10 @@ export const getGameModes = () => {
 // Dont return test game mode
 export const getActiveGameModes = (): GameModesType[] => {
   const array = modesGame.slice();
-  array.splice(modesGame.indexOf(GameModesStandard.TEST), 1);
-  array.splice(modesGame.indexOf(GameModesStandard.VALORANT), 1);
-  array.splice(modesGame.indexOf(GameModesStandard.SLAPSHOT), 1);
-  array.splice(modesGame.indexOf(GameModesStandard.BATTLERITE), 1);
+  array.splice(array.indexOf(GameModesStandard.TEST), 1);
+  array.splice(array.indexOf(GameModesStandard.VALORANT), 1);
+  array.splice(array.indexOf(GameModesStandard.SLAPSHOT), 1);
+  array.splice(array.indexOf(GameModesStandard.BATTLERITE), 1);
   return array; // Dota is default
 }
 

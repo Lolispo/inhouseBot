@@ -8,6 +8,8 @@ Add integration tests for main functionalities
 ## Verify
 # Error message
 
+placement games
+
 Problem caching local mmr?
 New Game! Playing battlerite. MMR Avg diff: 63.83 mmr (Total: 191.5 mmr)
 The Aspiring Elephants     (Avg: 2531.83 mmr):
@@ -36,6 +38,8 @@ GamesPlayed: 0   WinRate: NaN% (Wins: 0 , Losses: 0 ) oliver
     win rate avoid divide by 0 (1 draw?)
 
 Check if Team1 & Team2 5 players before split, so it splits into different channels
+    Team 3 and Team 4
+    Reserve channels per game started
 
 Start adding all of these things to Github issues instead of here
 
