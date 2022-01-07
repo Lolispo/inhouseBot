@@ -63,7 +63,7 @@ export const setSteamId = async (message: Message, validProfileMode: SteamProfil
     storeSteamId(message.author.id, message, steamId2);
   } else {
     message.author.send(`Failed to translate your steam ID to the expected format: ${message.content}
-${validProfileMode === SteamProfileMode.STEAMURLId ? `Please write the steamID64 that you can fetch from here: ${`${message.content}?xml=1`}` : ''}`)
+${validProfileMode === SteamProfileMode.STEAMURLId ? `On this link you can fetch the steamID64 number close to the top, please paste that instead: ${`${message.content}?xml=1`}` : ''}`)
     .then(result => {
       f.deleteDiscMessage(result, 60000);
     });
@@ -124,7 +124,7 @@ You can provide your message in two formats:
 steamID: STEAM\_1:0:XXXXXXXX
 *steam profile url*: <https://steamcommunity.com/profiles/XXXXXX/>
 \nOptional: Example link where you can fetch the steamid in multiple formats: https://steamid.io/
-The database stores and uses the steamid2 format: STEAM\_1:0:XXXXXXXX`;
+The database stores and uses the steamId2 format: STEAM\_1:0:XXXXXXXX`;
 
 export const connectSteamEntry = (message) => {
 	message.author.send(enterSteamIdString);
