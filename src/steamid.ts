@@ -60,7 +60,6 @@ export const setSteamId = async (message: Message, validProfileMode: SteamProfil
   const steamId2 = await translateToSteamId2(message.content, validProfileMode);
   console.log('@setSteamId', steamId2);
   if (steamId2) {
-    const uid = message.author.id;
     storeSteamId(message.author.id, message, steamId2);
   } else {
     message.author.send(`Failed to translate your steam ID to the expected format: ${message.content}
