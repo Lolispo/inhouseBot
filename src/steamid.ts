@@ -4,6 +4,7 @@ import { getClientReference } from './client';
 import * as SteamID from 'steamid';
 import { Player } from './game/player';
 import { Message } from 'discord.js';
+import { EmbeddedMessage } from './game/balance';
 
 export const enum SteamProfileMode {
   STEAM2 = 'STEAM2',
@@ -119,15 +120,30 @@ export const findPlayerWithGivenSteamId = (players, steamid) => {
   });
 }
 
-const enterSteamIdString = `First time playing Inhouse?\nYou need to provide your Steam ID to connect your steam account to your discord account.
-You can provide your message in two formats:
-steamID: STEAM\_1:0:XXXXXXXX
+const enterSteamIdString = `First time playing Inhouse?\nYou need to connect your Steam ID to the discord bot.
+Examples:
+*steamID*: STEAM\_1:0:XXXXXXXX
 *steam profile url*: <https://steamcommunity.com/profiles/XXXXXX/>
-\nOptional: Example link where you can fetch the steamid in multiple formats: https://steamid.io/
+\n\nOptional: Example link where you can fetch the steamid in multiple formats: https://steamid.io/
 The database stores and uses the steamId2 format: STEAM\_1:0:XXXXXXXX`;
 
+const gifLink = 'res/fetchProfileUrl.gif';
+const fetchProfileGif = [{
+  attachment: gifLink,
+  name: 'FetchSteamProfile.gif',
+}];
+
+const enterSteamMessage: EmbeddedMessage = {
+  content: '',
+  embed: {
+    image: { url: `attachment://${fetchProfileGif[0].name}`},
+    description: enterSteamIdString
+  }, 
+  files: fetchProfileGif
+}
+
 export const connectSteamEntry = (message) => {
-	message.author.send(enterSteamIdString);
+	message.author.send(enterSteamMessage);
 	f.deleteDiscMessage(message, 10000, 'connectsteam');
 }
 
@@ -141,11 +157,12 @@ export const sendSteamId = async (message) => {
     });
     f.deleteDiscMessage(message, 10000, 'connectsteam');
   } else {
-    message.author.send("You have no SteamID stored!\n" + enterSteamIdString)
+    message.author.send("You have no SteamID stored!\n")
     .then(result => {
       f.deleteDiscMessage(result, 20000);
     });
     f.deleteDiscMessage(message, 10000, 'connectsteam');
+    message.author.send(enterSteamMessage);
   }
 }
 
@@ -160,7 +177,7 @@ export const notifyPlayersMissingSteamId = async (players: Player[]) => {
     const uid = player.uid;
     if (player.userName !== 'Groovy') {
       try {
-        client.users.cache.get(uid).send(enterSteamIdString);
+        client.users.cache.get(uid).send(enterSteamMessage);
       } catch (e) {
         console.error('Unable to send steamid fetch to user with uid' + uid + ':', e);
       }
