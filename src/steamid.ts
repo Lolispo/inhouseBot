@@ -121,11 +121,12 @@ export const findPlayerWithGivenSteamId = (players, steamid) => {
 }
 
 const enterSteamIdString = `First time playing Inhouse?\nYou need to connect your Steam ID to the discord bot.
+*Simply write your URL or SteamId to the bot in this chat*
 Examples:
-*steamID*: STEAM\_1:0:XXXXXXXX
-*steam profile url*: <https://steamcommunity.com/profiles/XXXXXX/>
-\n\nOptional: Example link where you can fetch the steamid in multiple formats: https://steamid.io/
-The database stores and uses the steamId2 format: STEAM\_1:0:XXXXXXXX`;
+STEAM\_1:0:XXXXXXXX
+<https://steamcommunity.com/profiles/XXXXXX/>
+\nOptional: Example link to fetch the steamId: https://steamid.io/
+The bot uses the steamId2 format: STEAM\_1:0:XXXXXXXX`;
 
 const gifLink = 'res/fetchProfileUrl.gif';
 const fetchProfileGif = [{
