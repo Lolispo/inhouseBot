@@ -10,6 +10,11 @@ Add integration tests for main functionalities
 
 placement games
 
+impostor game
+steamurls improve
+    Allow sending steam profile url
+    Way better message
+
 Problem caching local mmr?
 New Game! Playing battlerite. MMR Avg diff: 63.83 mmr (Total: 191.5 mmr)
 The Aspiring Elephants     (Avg: 2531.83 mmr):

@@ -3,19 +3,76 @@ import { getUser, storeSteamIdDb } from './database/db_sequelize';
 import { getClientReference } from './client';
 import * as SteamID from 'steamid';
 import { Player } from './game/player';
+import { Message } from 'discord.js';
 
-// Return boolean if valid steam id format or not
-export const validateSteamID = (msgContent) => {
-	return (
-		(msgContent.startsWith('STEAM') && msgContent.match(/STEAM\_\d:\d:\d+/g))
-		|| 
-		(msgContent.match(/\[U:\d:\d+\]/g))
-	);
+export const enum SteamProfileMode {
+  STEAM2 = 'STEAM2',
+  STEAM3 = 'STEAM3',
+  STEAM64 = 'STEAM64',
+  STEAMURLProfile = 'STEAMURLProfile',
+  STEAMURLId = 'STEAMURLId',
 }
 
-export const storeSteamId = async (uid, message) => {
-  const msgContent = message.content;
-  console.log('DEBUG Storing SteamID ' + msgContent + ' for user with ID', uid);
+// Return boolean if valid steam id format or not
+export const validateSteamID2 = (msgContent: string) => {
+	return msgContent.startsWith('STEAM') && msgContent.match(/STEAM\_\d:\d:\d+/g);
+}
+
+export const validateSteamID3 = (msgContent: string) => {
+  return msgContent.match(/\[U:\d:\d+\]/g);
+}
+
+export const validateSteamID64 = (msgContent: string) => {
+  return msgContent.match(/\d+/g) && Number.parseInt(msgContent) > 1000000;
+}
+
+export const validateSteamIDURLProfile = (msgContent: string) => {
+  return msgContent.match('^(?:https?:\/\/)?steamcommunity\.com\/(?:profiles\/[0-9]{17}.*)$');
+}
+
+export const validateSteamIDURLId = (msgContent: string) => {
+  return msgContent.match('^(?:https?:\/\/)?steamcommunity\.com\/(?:id\/[a-zA-Z0-9].*)$');
+}
+
+/**
+ * Returns true if valid with any of the supported formats
+ */
+export const validateSteamID = (msgContent: string) => {
+  if (validateSteamID2(msgContent)) {
+    return SteamProfileMode.STEAM2;
+  }
+  if (validateSteamID3(msgContent)) {
+    return SteamProfileMode.STEAM3;
+  }
+  if (validateSteamID64(msgContent)) {
+    return SteamProfileMode.STEAM64;
+  }
+  if (validateSteamIDURLProfile(msgContent)) {
+    return SteamProfileMode.STEAMURLProfile;
+  }
+  if (validateSteamIDURLId(msgContent)) {
+    return SteamProfileMode.STEAMURLId;
+  }
+  return false;
+}
+
+export const setSteamId = async (message: Message, validProfileMode: SteamProfileMode) => {
+  const steamId2 = await translateToSteamId2(message.content, validProfileMode);
+  console.log('@setSteamId', steamId2);
+  if (steamId2) {
+    const uid = message.author.id;
+    storeSteamId(message.author.id, message, steamId2);
+  } else {
+    message.author.send(`Failed to translate your steam ID to the expected format: ${message.content}
+${validProfileMode === SteamProfileMode.STEAMURLId ? `Please write the steamID64 that you can fetch from here: ${`${message.content}?xml=1`}` : ''}`)
+    .then(result => {
+      f.deleteDiscMessage(result, 60000);
+    });
+  }
+}
+
+
+export const storeSteamId = async (uid: string, message: Message, msgContent: string) => {
   // TODO: Utilize SteamId npm lib to store all in same format
   const res = await storeSteamIdDb(uid, msgContent);
   console.log('Store SteamID result:', res); // undefined - res.dataValues);
@@ -23,6 +80,28 @@ export const storeSteamId = async (uid, message) => {
   .then(result => {
 		f.deleteDiscMessage(result, 20000);
 	});
+}
+
+export const translateToSteamId2 = (msgContent: string, validProfileMode: SteamProfileMode) => {
+  if (validProfileMode === SteamProfileMode.STEAM2) {
+    return msgContent;
+  } else if (validProfileMode === SteamProfileMode.STEAM3) {
+    // Translate Steam3 to Steam2
+    const { convertedId } = convertIdFrom64(msgContent);
+    return convertedId;
+  } else if (validProfileMode === SteamProfileMode.STEAM64) {
+    const { convertedId } = convertIdFrom64(msgContent); // TODO: Check if it should always be converted or alt
+    return convertedId;
+  } else if (validProfileMode === SteamProfileMode.STEAMURLProfile) {
+    const splitString = 'profiles/';
+    const endOfUrl = msgContent.substring(msgContent.indexOf(splitString) + splitString.length)[1];
+    const steamId64 = endOfUrl.substring(endOfUrl.indexOf('/'))[0];
+    const { convertedId } = convertIdFrom64(steamId64);
+    return convertedId;
+  } else if (validProfileMode === SteamProfileMode.STEAMURLId) {
+    console.log('STEAM PROFILE MODE:', msgContent); // TODO Translate using the ?xml=1 base 64 value
+    return false;
+  }
 }
 
 export const convertIdFrom64 = (key) => {
@@ -41,7 +120,12 @@ export const findPlayerWithGivenSteamId = (players, steamid) => {
   });
 }
 
-const enterSteamIdString = "Enter your SteamID (format: STEAM\_1:0:XXXXXXXX)\nLink: https://steamid.io/"; // https://steamidfinder.com/
+const enterSteamIdString = `First time playing Inhouse?\nYou need to provide your Steam ID to connect your steam account to your discord account.
+You can provide your message in two formats:
+steamID: STEAM\_1:0:XXXXXXXX
+*steam profile url*: <https://steamcommunity.com/profiles/XXXXXX/>
+\nOptional: Example link where you can fetch the steamid in multiple formats: https://steamid.io/
+The database stores and uses the steamid2 format: STEAM\_1:0:XXXXXXXX`;
 
 export const connectSteamEntry = (message) => {
 	message.author.send(enterSteamIdString);

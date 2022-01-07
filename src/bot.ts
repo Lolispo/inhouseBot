@@ -15,7 +15,7 @@ import { Game, getGame, createGame, hasActiveGames, deleteGame } from './game/ga
 import { getConfig } from './tools/load-environment';
 import { getClientReference } from './client';
 // import * as birthday from './birthday';
-import { connectSteamEntry, validateSteamID, storeSteamId, sendSteamId } from './steamid';
+import { connectSteamEntry, validateSteamID, sendSteamId, setSteamId } from './steamid';
 import { cleanOnGameEnd } from './game/game';
 import { getGameStats } from './csserver/cs_server_stats';
 
@@ -78,12 +78,14 @@ export const discordEventMessage = (message: Message) => {
 			const result = handleMessageBaseCommand(message, options, IMessageType.DIRECT_MESSAGE);
 			if (!result) return; // Breaks if a valid command was given
 
+			let validProfileMode;
+
 			if (startsWith(message, statsCommands)){
 				statsAction(message, options);
 			} else if (connectSteamCommands.includes(message.content)) {
 				connectSteamEntry(message);
-			} else if (validateSteamID(message.content)) {
-				storeSteamId(message.author.id, message);
+			} else if (validProfileMode = validateSteamID(message.content)) {
+				setSteamId(message, validProfileMode);
 			} else if (steamidCommands.includes(message.content)) {
 				sendSteamId(message);
 			} else {

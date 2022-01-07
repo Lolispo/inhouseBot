@@ -30,7 +30,7 @@ export const unite = (message: Message, options: string[], activeMembers: GuildM
     moveUsers([channel1, channel2], channel);
     setTimeout(() => {
       moveUsers([channel1, channel2], channel);
-    }, 2000)
+    }, 5000)
   }
 };
 
