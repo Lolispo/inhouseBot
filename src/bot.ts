@@ -326,7 +326,8 @@ const isActiveGameCommand = (message) => {
 			playerStatusCommands.includes(message.content));
 }
 
-async function cleanupExit(){
+const cleanupExit = async () => {
+	
 	await f.onExitDelete();
 	await Game.getActiveGames().map(game => cleanOnGameEnd(game));
 }
