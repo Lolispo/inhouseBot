@@ -1,5 +1,8 @@
 # TODO:
-## Tests
+
+KosaTupp.se
+    Infra for kosa integration of DB
+    Give datadump to MS
 
 Add unit tests for all files
 
@@ -8,12 +11,16 @@ Add integration tests for main functionalities
 ## Verify
 # Error message
 
+Show streak in leaderboard output
+
 placement games
 
 impostor game
-steamurls improve
-    Allow sending steam profile url
-    Way better message
+    Allow turn command by impostors
+    fix emoji voting working
+    restrict who can vote with emojis
+
+Fix trivia working
 
 Problem caching local mmr?
 New Game! Playing battlerite. MMR Avg diff: 63.83 mmr (Total: 191.5 mmr)
@@ -72,8 +79,6 @@ MIGRATION TO 12 AND TYPESCRIPT:
     Check trivia
 
 Fix Ping command - doesn't seem available easily anymore - either disable entirely or fix
-
-Show streak in leaderboard output
 
 Temp check look into same animal for same game and time (19 cs always same emote)
 

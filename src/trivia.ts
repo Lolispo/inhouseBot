@@ -366,6 +366,7 @@ function getToken(a, c, d) {
     try {
       body = JSON.parse(body);
     } catch (e) {
+      console.error('@getToken Error parsing body:', e);
       return;
     }
     console.log('@getToken request new', body.token);
