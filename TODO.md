@@ -3,6 +3,11 @@
 KosaTupp.se
     Infra for kosa integration of DB
     Give datadump to MS
+    Setup Arvid shit
+
+Fix the server move
+
+Mapveto fix
 
 Add unit tests for all files
 
