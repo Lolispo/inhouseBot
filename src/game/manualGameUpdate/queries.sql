@@ -1,3 +1,11 @@
+/* Create read only user - Ran from the server*/
+/* https://medium.com/@nkaurelien/how-to-create-a-read-only-mysql-user-226e8e49a855 */
+CREATE USER 'read-only-user'@'%' IDENTIFIED BY '$pw';
+GRANT SELECT, SHOW VIEW ON database1.* TO 'read-only-user'@'%' IDENTIFIED BY '$pw';
+FLUSH PRIVILEGES;
+SHOW GRANTS FOR 'read-only-user'@'%';
+
+/* Queries */ 
 SELECT mmrChange, users.userName FROM playerMatches LEFT JOIN users ON playerMatches.uid = users.uid 
 LEFT JOIN matches ON matches.mid = playerMatches.mid 
 WHERE gameName = "cs" AND userName = "robyn_fenty" ORDER BY matches.mid DE

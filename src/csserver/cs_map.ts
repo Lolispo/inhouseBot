@@ -22,6 +22,10 @@ const getTranslatedMap = (map) => {
   return map;
 };
 
+export const translateMap = (map: string) => {
+  return `"${map}" \t""`
+}
+
 export const getChosenMap = (chosenMap) => {
   if (chosenMap) {
     const map = chosenMap || 'de_inferno';
@@ -31,9 +35,6 @@ export const getChosenMap = (chosenMap) => {
   }
   // TODO: skip_veto 0/1
   console.log('No map chosen');
-  /*return { // Temp office setting
-    chosenMap: `"cs_office"`, skipVeto: 1
-  }*/
   return {
     chosenMap: `
       "de_dust2" \t""

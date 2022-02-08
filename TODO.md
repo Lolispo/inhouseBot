@@ -1,19 +1,22 @@
 # TODO:
 
-KosaTupp.se
-    Infra for kosa integration of DB
-    Give datadump to MS
-    Setup Arvid shit
-
-Fix the server move
-
-Mapveto fix
-
 Add unit tests for all files
 
 Add integration tests for main functionalities
 
 ## Verify
+
+KosaTupp.se
+    Infra for kosa integration of DB
+    Give datadump to MS
+    Setup Arvid server
+
+Mapveto fix
+
+server command 
+    longer time
+    remove command
+
 # Error message
 
 Show streak in leaderboard output
