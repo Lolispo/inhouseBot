@@ -3,6 +3,7 @@ import { Message, User } from 'discord.js';
 import { handleMessageExported } from '../../src/bot';
 import { noop } from '../../src/client';
 import { print } from '../../src/tools/f';
+import { getClientReference } from '../../src/client';
 
 jest.mock('../../src/tools/f');
 jest.mock('discord.js');
@@ -13,6 +14,10 @@ describe('Test handleMessage', () => {
   afterEach(() => {
     jest.clearAllMocks();
   })
+
+  afterAll(() => {
+    getClientReference().destroy();
+  });
 
   it('should say hi back', () => {
     message.content = 'hej';

@@ -1,5 +1,5 @@
 
-const { datHostEndpoint } = require('./cs_server_http');
+import { datHostEndpoint } from './cs_server_http';
 
 export const loadConfigFile = async (serverId, filePath = 'cfg%2Fget5%2Fkosatupp_inhouse_coordinator_match.cfg') =>
   // game-servers/5ee3fe74d451b92ec776d519/files/cfg%2Fget5%2Fkosatupp_inhouse_coordinator_match.cfg

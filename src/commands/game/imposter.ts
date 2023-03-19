@@ -90,8 +90,8 @@ export class ImposterAction extends BaseCommandClass {
         gameOver: true
       };
     }
-    let imposterUsers = [];
-    let nonImposterUsers = [];
+    const imposterUsers = [];
+    const nonImposterUsers = [];
     // Allow counting imposters and nonimposters
     this.voteMessages
       .filter((player: ImposterGamePlayerMessage) => player.alive)
@@ -263,7 +263,7 @@ ${this.actionList.join('\n')}`;
     this.countDownTimer(message);
     const voiceChannel = message.guild.members.cache.get(message.author.id)?.voice?.channel;
     const members: GuildMember[] = Array.from(voiceChannel.members.values());
-    let players = [];
+    const players = [];
     const memberAmount = members.length;
     this.imposterIndexes = this.getImposterIndex(memberAmount);
     this.voteMessages = [];

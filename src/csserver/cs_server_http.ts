@@ -1,11 +1,16 @@
-const axios = require('axios');
-const { getToken, getActiveToken } = require('./cs_server_auth');
+import axios from 'axios';
+import { getToken, getActiveToken } from './cs_server_auth';
 
 axios.defaults.timeout = 30000; // Timeout 10 mins
 
 const DATHOST_URL = process.env.DATHOST_URL || 'https://dathost.net/api/0.1/';
 
-const handleResponse = (response, message, rules = { allow: [200] }) => {
+export interface IResponse {
+  statusCode: number,
+  data: any
+}
+
+export const handleResponse = (response, message, rules = { allow: [200] }) => {
   if (message) console.log(message, response.status, response.data);
   if (rules.allow.includes(response.status)) {
     return {
@@ -20,7 +25,7 @@ const handleResponse = (response, message, rules = { allow: [200] }) => {
   };
 };
 
-const handleError = (error, message) => {
+export const handleError = (error, message) => {
   if (message) console.error(message, 'Error:', error.message, error);
   if (error && error.response && error.response.status) {
     return {

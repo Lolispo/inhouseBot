@@ -112,7 +112,7 @@ export const groupMessageOnSize = (message: string): string[] => {
 const listToDeleteFrom = new Map();
 const deleteIntervals = [];
 
-export const deleteDiscMessage = (messageVar, time = getDefaultRemoveTime(), messageName = 'defaultName', callback = (msg) => {}) => {
+export const deleteDiscMessage = (messageVar: Message, time = getDefaultRemoveTime(), messageName = 'defaultName', callback = (msg) => {}) => {
   // Alt. (Somehow) Compare freshest time, delete other timeout
   // console.log('DEBUG @delete1 for ' + messageName + ', addDelete(' + time + ') = ' + (!listToDeleteFrom.has(messageName) && !isUndefined(messageVar) && messageVar.content !== ''), listToDeleteFrom.has(messageName));
   messageName = `${messageName}.id=${messageVar.id}`;

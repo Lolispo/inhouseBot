@@ -7,6 +7,7 @@ import * as f from './tools/f';
 
 import { getHighestMMR } from './game/player';
 import { configureServer } from './csserver/cs_server';
+import { Message } from 'discord.js';
 
 let mapMessagesBuilder = [];
 
@@ -98,7 +99,7 @@ export const mapVetoStart = async (message, gameObject, clientEmojis) => {
 };
 
 // Create map messages, add default reactions and add them to mapMessageBuilder
-const getMapMessages = async (message, clientEmojis) => { // TODO Check Should run asynchrounsly, try setTimeout , 0 otherwise
+const getMapMessages = async (message: Message, clientEmojis) => { // TODO Check Should run asynchrounsly, try setTimeout , 0 otherwise
   const mapvetoMessages = [];
   mapvetoMessages.push(initMap('Dust2', clientEmojis, message, callbackMapMessage));
   mapvetoMessages.push(initMap('Inferno', clientEmojis, message, callbackMapMessage));
@@ -122,13 +123,6 @@ function callbackMapMessage(mapObj) {
   mapMessagesBuilder.push(mapObj);
   if (mapMessagesBuilder.length === 7) {
     currentMapVetoGameObject.setMapMessages(mapMessagesBuilder);
-    /*
-		console.log('MapMessages');
-		for(let i = 0; i < mapMessagesBuilder.length; i++) {
-			console.log('\t',i,mapMessagesBuilder[i].content);
-		}
-		console.log('HELLO Initialized messages: ', mapMessagesBuilder.length);
-		*/
   }
 }
 

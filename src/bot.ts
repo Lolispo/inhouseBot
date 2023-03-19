@@ -10,7 +10,7 @@ import { createPlayer, Player } from './game/player';					// Handles player stor
 import * as map_js from './mapVeto';					// MapVeto system
 import * as voiceMove_js from './voiceMove'; 			// Handles moving of users between voiceChannels
 import * as db_sequelize from './database/db_sequelize';			// Handles communication with db
-import { getChannelName, getGameOnGoing, isCorrect, startGame } from './trivia';						// Trivia
+import { getChannelName, getGameOnGoing, isCorrect, startGame } from './trivia/trivia';						// Trivia
 import { Game, getGame, createGame, hasActiveGames, deleteGame } from './game/game';
 import { getConfig } from './tools/load-environment';
 import { getClientReference } from './client';
@@ -333,9 +333,9 @@ const cleanupExit = async () => {
 }
 
 // Start trivia game, sent from trivia when questions are fetched. 
-export const triviaStart = (questions, message, author) => {
+export const triviaStart = (questions, message: Message, author) => {
 	// Start game in text channel with these questions
-	const voiceChannel: VoiceChannel = message.guild.member(message.author).voiceChannel;
+	const voiceChannel: VoiceChannel = message.guild.members.cache.get(message.author.id).voice.channel as VoiceChannel;
 	if (voiceChannel !== null && !f.isUndefined(voiceChannel)){ // Sets initial player array to user in disc channel if available
 		const players = findPlayersStart(voiceChannel);
 		db_sequelize.initializePlayers(players, 'trivia', (playerList: Player[]) => {
@@ -351,11 +351,11 @@ export const triviaStart = (questions, message, author) => {
 // Here follows starting balanced game methods
 
 // Command used for starting a new game
-async function balanceCommand(message, options){
+async function balanceCommand(message: Message, options){
 	const gameObjectExist = getGame(message.author);
 	if (f.isUndefined(gameObjectExist)){ // User is not already in a game
-		console.log('@DEBUG', message.guild.member(message.author));
-		const voiceChannel = message.guild.member(message.author)?.voice?.channel;
+		console.log('@DEBUG', message.guild.members.cache.get(message.author.id));
+		const voiceChannel = message.guild.members.cache.get(message.author.id)?.voice?.channel as VoiceChannel;
 		// console.log('@voiceChannel:', voiceChannel);
 		if (voiceChannel !== null && !f.isUndefined(voiceChannel)){ // Makes sure user is in a voice channel
 			// Initialize Game object
