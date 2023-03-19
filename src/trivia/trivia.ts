@@ -312,8 +312,6 @@ export const getDataQuestions = async (message: Message, amount = 15, category =
 };
 
 
-
-
 const urlGenerate = async (a, c, d, t?) => {
   console.log('@urlGenerate');
   let url = `https://opentdb.com/api.php?amount=${a}${c}${d}&type=multiple`;

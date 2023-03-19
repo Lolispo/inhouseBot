@@ -135,7 +135,7 @@ async function mapMessageReact(message) {
   // message.react(emoji_disagree);
 }
 
-export const getMapString = function (finished, gameObject, startingCaptainUsername?) { // Allows to be called without third parameter if finished = false
+export const getMapString = function (finished, gameObject: Game, startingCaptainUsername?) { // Allows to be called without third parameter if finished = false
   // Print out instructions
   // TODO: Store long message as some field to create it more easily. First => better name and field
   // console.log('DEBUG: @getMapString', finished, bannedMaps[bannedMaps.length-1]);
