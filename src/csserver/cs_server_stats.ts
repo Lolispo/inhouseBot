@@ -6,7 +6,7 @@ import { fetchFile } from './cs_console';
 import { printMessage } from '../bot';
 
 import { updateMMR } from '../game/mmr';
-import { cleanOnGameEnd } from '../game/game';
+import { cleanOnGameEnd, Game } from '../game/game';
 import { convertIdFrom64 } from '../steamid';
 
 const fetchStatsFile = async (serverId, matchId = '1') => {
@@ -266,7 +266,7 @@ export const buildStatsMessage = (stats) => {
 };
 
 // Send stats message to discord in the correct channel
-export const sendStatsDiscord = (gameObject, statsMessage) => {
+export const sendStatsDiscord = (gameObject: Game, statsMessage) => {
   // Sends in channel
   printMessage(statsMessage, gameObject.getChannelMessage(), (message) => {
     f.deleteDiscMessage(message, 3600000, `statsresultsgame${Math.floor(Math.random() * 10)}`);
@@ -275,7 +275,7 @@ export const sendStatsDiscord = (gameObject, statsMessage) => {
 };
 
 // Checks if the stats file has the same players in both teams as the gameObject
-const samePlayersInTeams = (gameObject, stats) => {
+const samePlayersInTeams = (gameObject: Game, stats) => {
   // TODO: Check if same players between file and content
   /*
   const team1 = gameObject.getBalanceInfo().team1;
@@ -354,7 +354,7 @@ const remapTeam = (players, mapTeam) => {
 };
 
 // Update mapping from Steam64ID to DiscordId
-export const playerMapSteamIdStats = (gameObject, stats) => {
+export const playerMapSteamIdStats = (gameObject: Game, stats) => {
   let obj;
   for (let i = 0; i < 1; i++) { // Should only be 1 map for now
     const tempMap = {
@@ -376,7 +376,7 @@ export const playerMapSteamIdStats = (gameObject, stats) => {
   return obj;
 };
 
-const setResults = (gameObject, stats) => {
+const setResults = (gameObject: Game, stats) => {
   const winnerTeam = stats.map0.winner;
   const winner = winnerTeam === 'team1' ? 1 : (winnerTeam === 'team2' ? 2 : '');
   // console.log('@setResults DEBUG:', winnerTeam, '"' + winner + '"');
@@ -397,7 +397,7 @@ const setResults = (gameObject, stats) => {
   }
 };
 
-const getGameStatsDiscord = (gameObject, stats) => {
+const getGameStatsDiscord = (gameObject: Game, stats) => {
   // Check which team that won and update MMR accordingly
   setResults(gameObject, stats);
 

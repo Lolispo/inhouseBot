@@ -1,5 +1,6 @@
+import { Message } from "discord.js";
 import { deleteDiscMessage } from "../../tools/f";
-import { getDataQuestions, getGameOnGoing } from "../../trivia";
+import { getDataQuestions, getGameOnGoing } from "../../trivia/trivia";
 
 
 /**
@@ -10,7 +11,7 @@ import { getDataQuestions, getGameOnGoing } from "../../trivia";
  * (amount, 1) 	Games, all difficulties
  * (amount, 2, 'hard')  Generic knowledge questions, hard difficulty
  */
-export const triviaStartCommand = (message, options) => {
+export const triviaStartCommand = (message: Message, options) => {
   const amount = 15;
   if (!getGameOnGoing()) {
     if (options.length >= 2) {

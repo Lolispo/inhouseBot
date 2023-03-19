@@ -67,7 +67,7 @@ export class TemperatureCheckAction extends BaseCommandClass {
   static instance: TemperatureCheckAction = new TemperatureCheckAction(commands, { matchMode: MatchMode.STARTS_WITH });
   static discordMessages;
   static dailyMessage: DailyMessage;
-  static emojiIndex: number = 0;
+  static emojiIndex = 0;
 
   getOneRow = (game, time, emojiList, isLast = false): string => {
     console.log('@getOneRow: Start', rowMessage, emojiList, game, time);
@@ -86,7 +86,7 @@ export class TemperatureCheckAction extends BaseCommandClass {
   // Get all strings for a game
   gameString = (game, startTime, index, hours): DiscordMessage[] => {
     // const emojiList = globalEmojiList.slice(0 + (index * hours), hours + (index * hours));
-    let messages: DiscordMessage[] = [];
+    const messages: DiscordMessage[] = [];
     for (let i = 0; i < hours; i++) {
       const isLast = i === (hours - 1);
       const emoji = globalEmojiList[TemperatureCheckAction.emojiIndex++];
@@ -150,15 +150,17 @@ export class TemperatureCheckAction extends BaseCommandClass {
     let startHour;
     let endHour;
     for (let i = 0; i < options.length; i++) {
-      let option = options[i];
-      let hours: number[] = [];
+      const option = options[i];
+      const hours: number[] = [];
       try {
         if (Array.isArray(option)) continue;
-        let num = parseInt(option);
-        if (!startHour || num < startHour) startHour = num;
-        if (!endHour || num > endHour) endHour = num;
-        console.log('@Option', option, num, startHour, endHour);
-        hours.push(num);
+        const num = parseInt(option);
+        if (!Number.isNaN(num)) {
+          if (!startHour || num < startHour) startHour = num;
+          if (!endHour || num > endHour) endHour = num;
+          console.log('@Option', option, num, startHour, endHour);
+          hours.push(num);
+        }
       } catch (e) {
         // Do nothing
         console.log('@Unable to parseInt', option);
@@ -207,12 +209,13 @@ export class TemperatureCheckAction extends BaseCommandClass {
     } else {
       gameOptions.push(game);
     }
+    console.log('@loadOptions:', gameOptions, activeModes, game);
     const { startHour, endHour } = this.getTimePeriods(options);
     // console.log('@temperatureCheckCommand:', activeModes, gameName, gameOptions);
 
     // TODO: Allow inputting starttime and hours
-    const startTime = startHour || 20;
-    let hours = 3;
+    const startTime = startHour || 19;
+    let hours = 2;
     if (endHour && startHour) {
       hours = endHour - startHour + 1;
     }

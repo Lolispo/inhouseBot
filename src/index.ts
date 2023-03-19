@@ -8,7 +8,9 @@ import { getConfig } from "./tools/load-environment";
 // Initialize Client
 getClient('bot', async () => initializeDBSequelize(getConfig().db), (client) => {
 	// Listener on message
-	client.on('message', (message: Message) => discordEventMessage(message));
+	console.log('Initializing listeners ...');
+
+	client.on('messageCreate', (message: Message) => discordEventMessage(message));
 
 	// Listener on reactions added to messages
 	client.on('messageReactionAdd', (messageReaction: MessageReaction, user: User) => discordEventReactionAdd(messageReaction, user));

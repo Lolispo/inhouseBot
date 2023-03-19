@@ -1,7 +1,7 @@
 
 // Author: Petter Andersson
 /*
-	Class handles player objects which take care of player data
+  Class handles player objects which take care of player data
 */
 
 import { getAllMMRModes, getGameModesRatings, ratingOrMMR } from "./gameModes";
@@ -10,29 +10,29 @@ import { MMRStruct } from "./mmrStruct";
 const startMMR = 2500;
 
 export class Player {
-	userName;
-	uid;
-	defaultMMR;
-	steamId;
-	mmrs: { [key: string] : MMRStruct };
+  userName;
+  uid;
+  defaultMMR;
+  steamId;
+  mmrs: { [key: string]: MMRStruct };
 
   // Get discord user from Player object
   static getUserFromPlayer = (player: Player) => {
     const user = {
-      id: player.uid, 
+      id: player.uid,
       username: player.userName
     }
     return user;
   }
-	
-	constructor(username, discId) {
-		this.userName = username;
-		this.uid = discId;
-		this.defaultMMR = startMMR;
-		this.steamId = '';
-		this.mmrs = { };
-		this.initializeDefaultMMR();
-	}
+
+  constructor(username, discId) {
+    this.userName = username;
+    this.uid = discId;
+    this.defaultMMR = startMMR;
+    this.steamId = '';
+    this.mmrs = {};
+    this.initializeDefaultMMR();
+  }
   // Initializes mmr values to defaults. Is run instantly on Player creation
   initializeDefaultMMR = () => {
     getAllMMRModes().forEach(gameMode => {
@@ -51,7 +51,7 @@ export class Player {
     struct.mmr = value;
   };
 
-  getMMR (game): number {
+  getMMR(game): number {
     return this.mmrs[game].mmr;
   }
 
@@ -99,7 +99,7 @@ export const getHighestMMR = function (team, game) {
 // @return correctplayer if it exists or undefined
 export const getPlayer = function (array, uid) {
   const correctPlayer = array.find(player => // TODO: Check me
-		 player.uid === uid);
+    player.uid === uid);
   return correctPlayer;
 };
 
@@ -117,9 +117,9 @@ export const getSortedRatingTrivia = function (players) {
 
 // Insertion sort on the players on a given rating
 export const sortRating = (players: Player[], game: string) => {
-	players = players.sort((a: Player, b: Player) => {
-		return b.getMMR(game) - a.getMMR(game);
-	});
+  players = players.sort((a: Player, b: Player) => {
+    return b.getMMR(game) - a.getMMR(game);
+  });
   // console.log('@sortRating:', players.map(player => player.getMMR(game)));
   return players;
 };

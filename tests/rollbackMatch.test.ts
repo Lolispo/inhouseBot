@@ -3,8 +3,8 @@
 
 import { beforeAll, describe, it, expect } from '@jest/globals';
 import { getClientReference } from '../src/client';
-const { getConfig } = require('../src/tools/load-environment');
-const { initializeDBSequelize } = require("../src/database/db_sequelize");
+import { getConfig } from '../src/tools/load-environment';
+import { initializeDBSequelize } from "../src/database/db_sequelize";
 import { DatabaseSequelize, rollbackMatch } from '../src/database/db_sequelize';
 
 export const helperFunctionInsertSQLCommand = (uid, userName, mmr, game, gamesPlayed = 0) => {

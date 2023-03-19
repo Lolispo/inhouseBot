@@ -12,9 +12,7 @@ import { Player } from './player';
 import { gameIsCS, gameIsDota, gameIsTest, GameModesType } from './gameModes';
 import { cancelMatch } from '../dota/socketClient';
 
-interface IOptionalParameters extends Omit<Partial<Game>, 'gameID' | 'channelMessage'> {
-  // Type used for constructor
-}
+type IOptionalParameters = Omit<Partial<Game>, 'gameID' | 'channelMessage'>
 
 export interface IBalanceInfo {
   team1: Player[],

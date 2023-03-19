@@ -8,9 +8,7 @@ export const getActiveToken = () => activeToken;
  * getToken
  */
 export const getToken = async () => {
-  if (process.env.ODIN_TOKEN) {
-    return process.env.ODIN_TOKEN;
-  } if (activeToken !== '') {
+  if (activeToken !== '') {
     return activeToken;
   }
   const username = process.env.DATHOST_USER;

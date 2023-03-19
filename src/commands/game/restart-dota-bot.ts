@@ -3,7 +3,7 @@ import { Message } from "discord.js";
 import { BaseCommandClass } from "../../BaseCommand/BaseCommand";
 import { print } from "../../tools/f";
 
-const { exec } = require("child_process");
+import { exec } from 'child_process';
 const commands = ['restartdotabot', 'restartdotesbot']
 
 export class RestartDotaBotAction extends BaseCommandClass {

@@ -38,6 +38,8 @@ export const gameServers = async () => {
         custom_domain,
       };
     });
+  } else {
+    console.error('Issue loading game servers:', response);
   }
   return response;
 };

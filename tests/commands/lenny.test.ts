@@ -2,6 +2,7 @@ import { describe, it, expect, afterEach, jest } from '@jest/globals';
 import { Message } from 'discord.js';
 import { handleMessageExported } from '../../src/bot';
 import { print, deleteDiscMessage } from '../../src/tools/f';
+import { getClientReference } from '../../src/client';
 
 jest.mock('../../src/tools/f');
 jest.mock('discord.js');
@@ -9,9 +10,17 @@ jest.mock('discord.js');
 describe('Test handleMessage', () => {
     const message = ({} as unknown) as Message;
 
+    beforeEach(() => {
+        getClientReference()
+    })
+
     afterEach(() => {
         jest.clearAllMocks();
     })
+
+    afterAll(() => {
+        getClientReference().destroy();
+    });
 
     it('should call "f.print" with "( ͡° ͜ʖ ͡°)" if a message is "lenny" and f.deleteDiscordMessage', () => {
         message.content = 'lenny';

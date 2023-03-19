@@ -32,7 +32,7 @@ const seasonTruncate = (listOfPlayers: SqlPlayer[]) => {
   listOfPlayers.map(player => {
     const newMmr = getTruncatedRating(player.mmr);
     console.log(`Current ${player.mmr}, new: ${newMmr} ${player.userName} ${player.uid} ${player.gameName}`);
-    result.push({ ...player, mmr: newMmr, prevMmr: player.mmr});
+    result.push({ ...player, mmr: newMmr, prevMmr: player.mmr });
   })
   const sqlResult = translateToSQLCommand(result);
   sqlResult.map(sqlRow => console.log(`${sqlRow.userName}: Game: ${sqlRow.gameName} New: ${sqlRow.mmr}, prevMmr: ${sqlRow.prevMmr}`));

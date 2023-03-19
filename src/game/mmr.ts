@@ -98,7 +98,7 @@ function buildMMRUpdateString(winningTeam, callback, balanceInfo, callbackUpdate
   callback(gameObject, s, callbackUpdate);
 }
 
-function callbackResult(gameObject, message, callback) {
+function callbackResult(gameObject: Game, message, callback) {
   // TODO Game: Get Game instead, have printMessage
   printMessage(message, gameObject.getChannelMessage(), callback);
 }

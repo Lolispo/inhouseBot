@@ -49,12 +49,10 @@ export const print = (messageVar: Message, message: string | EmbeddedMessage, ca
   // Handle for string messages
   if (typeof message === 'string') {
     const messages = groupMessageOnSize(message);
-    console.log('@DEBUG print', message, messages);
 
     // Send first message
     if (messages.length >= 1) {      
       const firstMessage = messages[0];
-      console.log('@DEBUG print2', message);
       messageVar.channel.send(firstMessage)
         .then((result) => {
           callback(result);
@@ -90,7 +88,6 @@ export const groupMessageOnSize = (message: string): string[] => {
   // Handle big messages
   const maxSizeForMessage = 2000;
   const maxIndex = 1900;
-  console.log('@DEBUG group', message.length)
   if (message.length >= maxSizeForMessage) {
     // Check if styling is contained within ```
     const isStyledMessage = message.indexOf('```') !== -1;
@@ -115,7 +112,7 @@ export const groupMessageOnSize = (message: string): string[] => {
 const listToDeleteFrom = new Map();
 const deleteIntervals = [];
 
-export const deleteDiscMessage = (messageVar, time = getDefaultRemoveTime(), messageName = 'defaultName', callback = (msg) => {}) => {
+export const deleteDiscMessage = (messageVar: Message, time = getDefaultRemoveTime(), messageName = 'defaultName', callback = (msg) => {}) => {
   // Alt. (Somehow) Compare freshest time, delete other timeout
   // console.log('DEBUG @delete1 for ' + messageName + ', addDelete(' + time + ') = ' + (!listToDeleteFrom.has(messageName) && !isUndefined(messageVar) && messageVar.content !== ''), listToDeleteFrom.has(messageName));
   messageName = `${messageName}.id=${messageVar.id}`;

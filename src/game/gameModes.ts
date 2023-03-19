@@ -7,6 +7,8 @@ export enum GameModesStandard {
 	CS = 'cs',
 	DOTA = 'dota',
 	VALORANT = 'valorant',
+	BATTLERITE = 'battlerite',
+	SLAPSHOT = 'slapshot',
 	TEST = 'test'
 }
 
@@ -25,6 +27,8 @@ export type GameModesType =
 	GameModesStandard.CS |
 	GameModesStandard.DOTA |
 	GameModesStandard.VALORANT |
+	GameModesStandard.BATTLERITE |
+	GameModesStandard.SLAPSHOT |
 	GameModesStandard.TEST |
 	GameModes1v1.CS1v1 | 
 	GameModes1v1.DOTA1v1 |
@@ -39,7 +43,14 @@ export class GameModes {
 
 // Default choices is the first indexed mode
 // TODO: Enum to list - Didn't find good way to do it since enum return keys and values
-const modesGame = [GameModesStandard.CS, GameModesStandard.DOTA, GameModesStandard.VALORANT, GameModesStandard.TEST];
+const modesGame = [
+	GameModesStandard.CS, 
+	GameModesStandard.DOTA, 
+	GameModesStandard.VALORANT, 
+	GameModesStandard.BATTLERITE, 
+	GameModesStandard.SLAPSHOT, 
+	GameModesStandard.TEST
+];
 const modes1v1 = [GameModes1v1.CS1v1, GameModes1v1.DOTA1v1, GameModes1v1.TEST1v1];
 const modesRatings = [GameModeRatings.TRIVIA, GameModeRatings.TRIVIA_TEMP]; // Trivia temp is used for ongoing games
 
@@ -51,8 +62,10 @@ export const getGameModes = () => {
 // Dont return test game mode
 export const getActiveGameModes = (): GameModesType[] => {
   const array = modesGame.slice();
-  array.splice(modesGame.indexOf(GameModesStandard.TEST), 1);
-  array.splice(modesGame.indexOf(GameModesStandard.VALORANT), 1);
+  array.splice(array.indexOf(GameModesStandard.TEST), 1);
+  array.splice(array.indexOf(GameModesStandard.VALORANT), 1);
+  array.splice(array.indexOf(GameModesStandard.SLAPSHOT), 1);
+  array.splice(array.indexOf(GameModesStandard.BATTLERITE), 1);
   return array; // Dota is default
 }
 
@@ -65,12 +78,12 @@ export const getGameModesRatings = function () {
 };
 
 export const getAllMMRModes = (): GameModesType[] => {
-	let list: GameModesType[] = [];
+	const list: GameModesType[] = [];
 	return list.concat(modesGame).concat(modes1v1);
 }
 
 export const getAllModes = (): GameModesType[] => {
-	let list: GameModesType[] = [];
+	const list: GameModesType[] = [];
 	return list.concat(modesGame).concat(modes1v1).concat(modesRatings);
 };
 
@@ -117,7 +130,6 @@ export const getModeChosen = (options, modeCategory, defaultGame?: GameModesType
 export const getModeAndPlayers = (players: Player[], gameObject: Game, options, paramOptions: string[]) => {
 	const { message, allModes } = options;
 	let game;
-	let skipServer;
 	let defaultGame = true;
 	if (!message && !allModes) {
 		game = options.game;
@@ -126,7 +138,7 @@ export const getModeAndPlayers = (players: Player[], gameObject: Game, options, 
 		game = res.game;
 		defaultGame = res.defaultMode;
 	}
-	skipServer = paramOptions.includes('noserver') || defaultGame; // Default game does not get server
+	const skipServer = paramOptions.includes('noserver') || defaultGame; // Default game does not get server
 	// console.log('getModeAndPlayers', game);
 	initializePlayers(players, game, (playerList: Player[]) => {
 		balanceTeams(playerList, game, gameObject, skipServer);

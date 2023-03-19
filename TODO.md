@@ -1,5 +1,4 @@
 # TODO:
-## Tests
 
 Add unit tests for all files
 
@@ -7,10 +6,43 @@ Add integration tests for main functionalities
 
 ## Verify
 
+KosaTupp.se
+    Infra for kosa integration of DB
+    Give datadump to MS
+    Setup Arvid server
+
+Mapveto fix
+
+server command 
+    longer time
+    remove command
+
+mmr
+    mmr change should be dependent on connection to average mmr
+    boost difference in teams based on if they just were teammates
+# Error message
+
+Show streak in leaderboard output
+
+placement games
+
+impostor game
+    Allow turn command by impostors
+    fix emoji voting working
+    restrict who can vote with emojis
+
+Fix trivia working
+
+Problem caching local mmr?
+New Game! Playing battlerite. MMR Avg diff: 63.83 mmr (Total: 191.5 mmr)
+The Aspiring Elephants     (Avg: 2531.83 mmr):
+Robin (2475), Simon (2473), Xavantex (2456)
+The Nerdy Memers     (Avg: 2468 mmr):
+Petter (2709), livaitan (2456), Samev (2435)
+
 Empty queue between game days
 
 Unite only getting 10 users
-# Error message
 
 @cleanOnGameEnd Error cancelling game: TypeError: Cannot read property 'emit' of undefined
     at Object.cancelMatch (/home/ubuntu/Projects/inhouseBot/src/dota/socketClient.ts:98:10)
@@ -29,6 +61,8 @@ GamesPlayed: 0   WinRate: NaN% (Wins: 0 , Losses: 0 ) oliver
     win rate avoid divide by 0 (1 draw?)
 
 Check if Team1 & Team2 5 players before split, so it splits into different channels
+    Team 3 and Team 4
+    Reserve channels per game started
 
 Start adding all of these things to Github issues instead of here
 
@@ -56,8 +90,6 @@ MIGRATION TO 12 AND TYPESCRIPT:
     Check trivia
 
 Fix Ping command - doesn't seem available easily anymore - either disable entirely or fix
-
-Show streak in leaderboard output
 
 Temp check look into same animal for same game and time (19 cs always same emote)
 

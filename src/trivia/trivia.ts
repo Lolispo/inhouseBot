@@ -3,22 +3,25 @@
 // Used to fix html chars
 
 /*
-	Handles a trivia gamemode
-	Uses player and db_sequelize to update rating
+  Handles a trivia gamemode
+  Uses player and db_sequelize to update rating
 */
 
-import * as f from './tools/f';
+import * as f from '../tools/f';
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const Entities = require('html-entities').XmlEntities;
-import request from 'request';
 
 const entities = new Entities();
 
-import { getPlayer, createPlayer, getSortedRatingTrivia, Player } from './game/player';
-import { triviaStart } from './bot';
-import { initializePlayers, updateDbMMR } from './database/db_sequelize';
-import { getPrefix } from './tools/load-environment';
-import { getAdminUids } from './BaseCommand/BaseCommandTypes';
+import { getPlayer, createPlayer, getSortedRatingTrivia, Player } from '../game/player';
+import { triviaStart } from '../bot';
+import { initializePlayers, updateDbMMR } from '../database/db_sequelize';
+import { getPrefix } from '../tools/load-environment';
+import { getAdminUids } from '../BaseCommand/BaseCommandTypes';
+import { getTokenRequest, getTriviaQuestions, TokenResponse } from './opentdb';
+import { Message, TextChannel } from 'discord.js';
+
 
 let gameOnGoing = false;
 let author;
@@ -79,22 +82,22 @@ const trivia_gamemodes = new Map([
 ]);
 
 // Valid user doing the command
-function isAuthorized(message) {
+function isAuthorized(message: Message) {
   return author === message.author || getAdminUids().includes(message.author.id);
 }
 
 // Valid command, either matches a exitcommand or is a exitcommand with prefix before
-function isExitCommand(message) {
+function isExitCommand(message: Message) {
   return (exitCommands.includes(message.content.toLowerCase())
-		|| (
-		  exitCommands.includes(message.content.toLowerCase().slice(getPrefix().length))
-			&& (getPrefix() === message.content.toLowerCase().slice(0, getPrefix().length))
-		)
+    || (
+      exitCommands.includes(message.content.toLowerCase().slice(getPrefix().length))
+      && (getPrefix() === message.content.toLowerCase().slice(0, getPrefix().length))
+    )
   );
 }
 
 // Checks logic for message, matches with current answer
-export const isCorrect = function (message) {
+export const isCorrect = function (message: Message) {
   if (isAuthorized(message) && isExitCommand(message)) {
     // Makes this the final question
     f.print(message, 'Exit command used. This is the final question!');
@@ -122,7 +125,7 @@ export const isCorrect = function (message) {
   allMessages.push(message);
 };
 
-function updateTriviaMMR(message, player) {
+function updateTriviaMMR(message: Message, player) {
   let pointsToIncrease = pointMap.get(message.author.id);
   if (f.isUndefined(pointsToIncrease)) {
     pointsToIncrease = maxPossiblePoints;
@@ -135,7 +138,7 @@ function updateTriviaMMR(message, player) {
   player.setMMR('trivia_temp', newMmrSession);
   updateDbMMR(message.author.id, newMmr, 'trivia');
   const answer_correct = `${message.author.username} answered correctly! Answer was: **${ans}**. Trivia Rating: ${newMmrSession
-  } (+${pointsToIncrease}, Total: ${newMmr})`;
+    } (+${pointsToIncrease}, Total: ${newMmr})`;
   if (isNaN(player.getMMR('trivia'))) {
     // Debug print: Check player if mmr is NaN
     console.log('DEBUG @updateTriviaMMR', player.getMMR('trivia_temp'), answer_correct);
@@ -149,7 +152,7 @@ function updateTriviaMMR(message, player) {
   }
 }
 
-function callbackFinishMessage(message, messageString) {
+function callbackFinishMessage(message: Message, messageString) {
   console.log(`DEBUG @callbackFinishMessage ${messageString}`);
   f.print(message, messageString, (msg) => {
     finishMessage = msg;
@@ -159,7 +162,7 @@ function callbackFinishMessage(message, messageString) {
 }
 
 // Starts game, requires messageconst (from correct textchannel) and questions
-export const startGame = function (message, questions, players: Player[]) {
+export const startGame = function (message: Message, questions, players: Player[]) {
   gameOnGoing = true;
   activePlayers = players;
   pointMap = new Map();
@@ -175,7 +178,7 @@ export const startGame = function (message, questions, players: Player[]) {
   questionIndex = 0;
   // Find text channel: Send start message
   // TODO: V.12 is causing issue here
-  const channel = message.guild.channels.cache.find('name', channelName);
+  const channel = message.guild.channels.cache.find(channel => channel.name === channelName) as TextChannel;
   channel.send('Starting game of trivia!')
     .then((result) => {
       messageVar = result;			// Initialize messageconst to be in correct chanel, used for print
@@ -246,7 +249,7 @@ function startQuestion() {
 }
 
 // Print next clue after next interval
-function nextLessCensored(array, index, message, qIndex, waitTime) {
+function nextLessCensored(array, index, message: Message, qIndex, waitTime) {
   setTimeout(() => {
     if (!done[qIndex]) {
       if (index === 0) {
@@ -277,7 +280,7 @@ function nextLessCensored(array, index, message, qIndex, waitTime) {
 
 // Start getting questions from db
 // https://opentdb.com/api_config.php
-export const getDataQuestions = async (message, amount = 15, category = 0, difficulty = 'easy') => {
+export const getDataQuestions = async (message: Message, amount = 15, category = 0, difficulty = 'easy') => {
   console.log('@getDataQuestions', amount, category, difficulty);
   f.print(message, `Trivia Mode: ${trivia_gamemodes.get(category)}, difficulty: ${!difficulty ? 'all' : difficulty}`);
   author = message.author;
@@ -305,10 +308,13 @@ export const getDataQuestions = async (message, amount = 15, category = 0, diffi
   } catch (err) {
     console.log('@getDataQuestions fileRead failed - Getting new token');
     getToken(amount, categories, difficulties);
-  };
+  }
 };
 
-function urlGenerate(a, c, d, t?) {
+
+
+
+const urlGenerate = async (a, c, d, t?) => {
   console.log('@urlGenerate');
   let url = `https://opentdb.com/api.php?amount=${a}${c}${d}&type=multiple`;
   if (!f.isUndefined(t)) {
@@ -317,61 +323,63 @@ function urlGenerate(a, c, d, t?) {
     console.log('UNDEFINED TOKEN, continues without token');
   }
   console.log(`URL = ${url}`);
-  request(url, (error, response, body) => {
-    if (error !== null) {
-      console.log('error:', error);
-    } else {
-      try {
-        body = JSON.parse(body);
-      } catch (e) {
-        console.error('API down', e);
-        return;
-      }
-      if (body.response_code === 3 || body.response_code === 4) { // Token not found
-        console.log('DEBUG: response_code =', body.response_code);
-        if (f.isUndefined(t) || body.response_code === 3) { // Either we dont have a token, tried to send something invalid, or old token
-          getToken(a, c, d);
-        } else if (body.response_code === 4) { // Probably too many questions requested, request without token to get code === 1
-          urlGenerate(a, c, d);
-        }
-      } else if (body.response_code === 0) {
-        // console.log('response:', response);
-        // console.log('body:', body);
-        console.log('Success! Got questions');
-        handleQuestions(body.results, (questions, message) => {
-          triviaStart(questions, message, author);
-        });
-      } else if (body.response_code === 1) { // Not Enough questions
-        if (Math.round(a / 2) === 1) {
-          f.print(messageVar, 'Not enough questions for this mode');
-        } else {
-          urlGenerate(Math.round(a / 2), c, d, t);
-        }
-      } else if (body.response_code === 2) { // Invalid parameters
-        console.log('DEBUG: Check me', body.response_code);
-      }
+
+  const res = await getTriviaQuestions(url);
+  if (res.statusCode < 299) {
+    let body;
+    try {
+      body = res.data;
+    } catch (e) {
+      console.error('API down', e);
+      return;
     }
-  });
+    if (body.response_code === 3 || body.response_code === 4) { // Token not found
+      console.log('DEBUG: response_code =', body.response_code);
+      if (f.isUndefined(t) || body.response_code === 3) { // Either we dont have a token, tried to send something invalid, or old token
+        getToken(a, c, d);
+      } else if (body.response_code === 4) { // Probably too many questions requested, request without token to get code === 1
+        urlGenerate(a, c, d);
+      }
+    } else if (body.response_code === 0) {
+      // console.log('response:', response);
+      // console.log('body:', body);
+      console.log('Success! Got questions');
+      handleQuestions(body.results, (questions, message) => {
+        triviaStart(questions, message, author);
+      });
+    } else if (body.response_code === 1) { // Not Enough questions
+      if (Math.round(a / 2) === 1) {
+        f.print(messageVar, 'Not enough questions for this mode');
+      } else {
+        urlGenerate(Math.round(a / 2), c, d, t);
+      }
+    } else if (body.response_code === 2) { // Invalid parameters
+      console.log('DEBUG: Check me', body.response_code);
+    }
+  } else {
+    console.log('error:', res.data);
+  }
 }
 
 // Get new token
-function getToken(a, c, d) {
+const getToken = async (a, c, d) => {
   console.log('@getToken');
-  request('https://opentdb.com/api_token.php?command=request', (error, response, body) => {
-    // console.log('body:', body);
-    if (error) {
-      console.error('API token error');
-      return;
-    }
+  const res = await getTokenRequest();
+  if (res.statusCode < 299) {
+    let body;
     try {
-      body = JSON.parse(body);
+      body = res.data as TokenResponse;
     } catch (e) {
+      console.error('@getToken Error parsing body:', e, res);
       return;
     }
     console.log('@getToken request new', body.token);
     f.writeToFile(token_fileName, body.token, 'Success! Wrote token to file for trivia');
     urlGenerate(a, c, d, body.token);
-  });
+  } else {
+    console.error('API token error', res.statusCode, res);
+    return;
+  }
 }
 
 function parseMessage(msg) {
@@ -395,7 +403,7 @@ function handleQuestions(questions, callback) {
     let indexes = [];
     const current_question = thisQuestion.question.toLowerCase();
     if (current_question.includes('following') || current_question.includes('which of these') || current_question.includes('which one of these')
-				|| current_question.includes('who out of these')) {
+      || current_question.includes('who out of these')) {
       // Filter out bad questions for this format
       console.log(`Skipping a question, Question: ${parseMessage(thisQuestion.question)}`);
       thisQuestion.used = false;
@@ -420,7 +428,7 @@ function handleQuestions(questions, callback) {
     let index = 0;
     // console.log('DEBUG: ans, charcounter, indexes.length, ', ans.length, charCounter, indexes.length);
     while (charIndex < charCounter) { // Level of censorship, should break when word is shown
-			let newCens;
+      let newCens;
       for (let j = index; j < censored_word.length; j++) {
         const c = censored_word.charAt(indexes[j]);
         if (c !== '*') {
@@ -444,11 +452,11 @@ function handleQuestions(questions, callback) {
     const charArray = Array.from(ans).filter(word => word !== ' ');
     thisQuestion.shuffledAns = f.shuffle(charArray).join('').toLowerCase(); // lower case
     /*
-		console.log('Question: ' + thisQuestion.question);
-		console.log('Ans:', thisQuestion.correct_answer);
-		console.log('Shuffled ans:', thisQuestion.shuffledAns);
-		console.log('Finished Censored:' + '\n', thisQuestion.lessCensored);
-		*/
+    console.log('Question: ' + thisQuestion.question);
+    console.log('Ans:', thisQuestion.correct_answer);
+    console.log('Shuffled ans:', thisQuestion.shuffledAns);
+    console.log('Finished Censored:' + '\n', thisQuestion.lessCensored);
+    */
   });
   callback(questions, messageVar);
 }
