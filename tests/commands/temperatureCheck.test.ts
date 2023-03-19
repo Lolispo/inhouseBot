@@ -10,7 +10,7 @@ describe('temperatureCheck', () => {
       game: GameModesStandard.CS,
       time: 19,
       message: 'id1',
-      emoji: {icon: 'icon', title: 'title'}
+      emoji: { icon: 'icon', title: 'title' }
     }]);
     console.log('@generateGameTimeString:', result);
     expect(result).toEqual(expect.anything());

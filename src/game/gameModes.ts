@@ -78,12 +78,12 @@ export const getGameModesRatings = function () {
 };
 
 export const getAllMMRModes = (): GameModesType[] => {
-	let list: GameModesType[] = [];
+	const list: GameModesType[] = [];
 	return list.concat(modesGame).concat(modes1v1);
 }
 
 export const getAllModes = (): GameModesType[] => {
-	let list: GameModesType[] = [];
+	const list: GameModesType[] = [];
 	return list.concat(modesGame).concat(modes1v1).concat(modesRatings);
 };
 
@@ -130,7 +130,6 @@ export const getModeChosen = (options, modeCategory, defaultGame?: GameModesType
 export const getModeAndPlayers = (players: Player[], gameObject: Game, options, paramOptions: string[]) => {
 	const { message, allModes } = options;
 	let game;
-	let skipServer;
 	let defaultGame = true;
 	if (!message && !allModes) {
 		game = options.game;
@@ -139,7 +138,7 @@ export const getModeAndPlayers = (players: Player[], gameObject: Game, options, 
 		game = res.game;
 		defaultGame = res.defaultMode;
 	}
-	skipServer = paramOptions.includes('noserver') || defaultGame; // Default game does not get server
+	const skipServer = paramOptions.includes('noserver') || defaultGame; // Default game does not get server
 	// console.log('getModeAndPlayers', game);
 	initializePlayers(players, game, (playerList: Player[]) => {
 		balanceTeams(playerList, game, gameObject, skipServer);

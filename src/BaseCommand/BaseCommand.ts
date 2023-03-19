@@ -33,11 +33,11 @@ export abstract class BaseCommandClass {
   name: string = this.constructor.name;
   commands: string[];       // Commands to use this action
   matchMode: MatchMode = MatchMode.EXACT_MATCH;
-  isActive: boolean = true; // Active command
-  requireActiveGame: boolean = false; // Boolean if command requires an active game to be valid
-  includeHelpCommand: boolean = true; // Include this command in help command
+  isActive = true; // Active command
+  requireActiveGame = false; // Boolean if command requires an active game to be valid
+  includeHelpCommand = true; // Include this command in help command
   allowedMessageTypes: IMessageType[] = [IMessageType.SERVER_MESSAGE]; // Allowed message types for this command
-  adminCommand: boolean = false; // Only admins are allowed to use this command
+  adminCommand = false; // Only admins are allowed to use this command
 
   constructor(commands: string[], options?: BaseCommandOptions) {
     // Add commands

@@ -29,7 +29,7 @@ let listOfCommands: BaseCommandClass[];
 
 export const allAvailableCommands = (): BaseCommandClass[] => {
   if (!listOfCommands) {
-    let listOfCommands = [];
+    const listOfCommands = [];
     listOfCommands.push(AddInhouseFighterRole.instance);
     listOfCommands.push(ConnectDotaAction.instance);
     listOfCommands.push(CSServerAddressAction.instance);

@@ -604,7 +604,7 @@ export interface Statistics {
 	winRate?: number,
 	gamesPlayed?: number,
 	uid?: string, 
-	userName?: string };
+	userName?: string }
 export const bestTeammates = async (uid, game): Promise<Statistics[]> => {
 	/**
 		Query sandbox:
@@ -649,7 +649,7 @@ export const bestTeammates = async (uid, game): Promise<Statistics[]> => {
 		}
 	})
 	// Calculate winrates
-	let resultArray: Statistics[] = [];
+	const resultArray: Statistics[] = [];
 	Object.keys(resultMap).map(key => {
 		const value: Statistics = resultMap[key];
 		const { wins, losses } = value

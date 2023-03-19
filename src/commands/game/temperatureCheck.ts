@@ -67,7 +67,7 @@ export class TemperatureCheckAction extends BaseCommandClass {
   static instance: TemperatureCheckAction = new TemperatureCheckAction(commands, { matchMode: MatchMode.STARTS_WITH });
   static discordMessages;
   static dailyMessage: DailyMessage;
-  static emojiIndex: number = 0;
+  static emojiIndex = 0;
 
   getOneRow = (game, time, emojiList, isLast = false): string => {
     console.log('@getOneRow: Start', rowMessage, emojiList, game, time);
@@ -86,7 +86,7 @@ export class TemperatureCheckAction extends BaseCommandClass {
   // Get all strings for a game
   gameString = (game, startTime, index, hours): DiscordMessage[] => {
     // const emojiList = globalEmojiList.slice(0 + (index * hours), hours + (index * hours));
-    let messages: DiscordMessage[] = [];
+    const messages: DiscordMessage[] = [];
     for (let i = 0; i < hours; i++) {
       const isLast = i === (hours - 1);
       const emoji = globalEmojiList[TemperatureCheckAction.emojiIndex++];
@@ -150,11 +150,11 @@ export class TemperatureCheckAction extends BaseCommandClass {
     let startHour;
     let endHour;
     for (let i = 0; i < options.length; i++) {
-      let option = options[i];
-      let hours: number[] = [];
+      const option = options[i];
+      const hours: number[] = [];
       try {
         if (Array.isArray(option)) continue;
-        let num = parseInt(option);
+        const num = parseInt(option);
         if (!Number.isNaN(num)) {
           if (!startHour || num < startHour) startHour = num;
           if (!endHour || num > endHour) endHour = num;

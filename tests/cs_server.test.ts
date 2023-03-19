@@ -3,8 +3,8 @@
 
 import { afterAll, beforeAll, describe, expect, it } from '@jest/globals';
 import { getClientReference } from '../src/client';
-const { gameServers } = require('../src/csserver/cs_server');
-const { createPlayer } = require('../src/game/player');
+import { gameServers } from '../src/csserver/cs_server';
+import { createPlayer } from '../src/game/player';
 import { getPredictionTeam1 } from '../src/csserver/cs_server';
 import { isSayMessage, gameOverMessage } from '../src/csserver/cs_console_stream';
 

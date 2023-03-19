@@ -4,7 +4,7 @@ import { deleteDiscMessage, padString, prettifyPercentage, print } from '../src/
 
 jest.mock('discord.js');
 
-const outputMessageContent: string = 'Output message content';
+const outputMessageContent = 'Output message content';
 
 const deleteMock = jest.fn().mockImplementation(() => {
   const dummyMessage = ({

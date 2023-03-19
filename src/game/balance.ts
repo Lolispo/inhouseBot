@@ -73,20 +73,17 @@ export const balanceTeams = (players: Player[], game: GameModesType, gameObject:
 
 
   // Return string to message to clients
-  let message: string | EmbeddedMessage;
-  let balanceInfo: IBalanceInfo;
-
   console.log('@Starting Game:', JSON.stringify(result, null, 2));
   let object: ReturnMessage;
   try {
     object = buildReturnStringEmbed(result, skipServer);
-    console.log('Embedded message successfully:', message);
+    console.log('Embedded message successfully:', object);
   } catch (e) {
     console.error('Embed failed', e);
     object = buildReturnString(result);
   }
-  message = object.message;
-  balanceInfo = object.balanceInfo;
+  const message = object.message;
+  const balanceInfo = object.balanceInfo;
   gameObject.setBalanceInfo(balanceInfo);
 
   printMessage(message, gameObject.getChannelMessage(), (message) => {

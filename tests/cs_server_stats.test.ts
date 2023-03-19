@@ -4,9 +4,9 @@
 import { afterAll, beforeAll, describe, it } from '@jest/globals';
 import { getMockStats } from './mocks/gameMock.test';
 import { getClientReference } from '../src/client';
-const { gameServers } = require('../src/csserver/cs_server');
-const { createPlayer } = require('../src/game/player');
-const { getGameStats, buildStatsMessage, playerMapSteamIdStats, padColumn } = require('../src/csserver/cs_server_stats');
+import { gameServers } from '../src/csserver/cs_server';
+import { createPlayer } from '../src/game/player';
+import { getGameStats, buildStatsMessage, playerMapSteamIdStats, padColumn } from '../src/csserver/cs_server_stats';
 
 
 let serverId;

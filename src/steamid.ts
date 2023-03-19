@@ -137,7 +137,7 @@ const fetchProfileGif = [{
 const enterSteamMessage: EmbeddedMessage = {
   content: '',
   embed: {
-    image: { url: `attachment://${fetchProfileGif[0].name}`},
+    image: { url: `attachment://${fetchProfileGif[0].name}` },
     description: enterSteamIdString
   }, 
   files: fetchProfileGif

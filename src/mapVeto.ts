@@ -7,7 +7,8 @@ import * as f from './tools/f';
 
 import { getHighestMMR } from './game/player';
 import { configureServer } from './csserver/cs_server';
-import { Message } from 'discord.js';
+import { GuildMember, Message, MessageReaction, User } from 'discord.js';
+import { Game } from './game/game';
 
 let mapMessagesBuilder = [];
 
@@ -16,7 +17,7 @@ let mapMessagesBuilder = [];
 const emoji_error = '❌'; 		// Error / Ban emoji. Alt: '🤚';
 const longLine = '\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\n';
 
-export const captainVote = function (messageReaction, user, mapMessage, gameObject) {
+export const captainVote = function (messageReaction: MessageReaction, user: User, mapMessage: Message, gameObject) {
   console.log('DEBUG: CaptainVote', user.username, 'turn = ', gameObject.getMapVetoTurn());
   if (user.id === gameObject.getCaptain1().uid && gameObject.getMapVetoTurn() === 0) { // Check to see if author is a captain and his turn // Crash
     handleCaptainMessage(user, mapMessage, gameObject);
@@ -24,11 +25,11 @@ export const captainVote = function (messageReaction, user, mapMessage, gameObje
     handleCaptainMessage(user, mapMessage, gameObject);
   } else { // Don't allow messageReaction of emoji_error otherwise
     console.log(`DEBUG: Not allowed user ${user.username} pressed ${emoji_error} (X, requires captain)`);
-    messageReaction.remove(user);
+    messageReaction.remove();
   }
 };
 
-function handleCaptainMessage(user, mapMessage, gameObject) {
+function handleCaptainMessage(user: User, mapMessage: Message, gameObject) {
   const tempMessage = mapMessage;
   const presentableName = String(tempMessage).split('\n')[1];
   gameObject.getBannedMaps().push(`${user.username} banned ${presentableName}`); // Maybe should add bold on second to last one
@@ -36,15 +37,17 @@ function handleCaptainMessage(user, mapMessage, gameObject) {
   const index = gameMapMessages.indexOf(mapMessage);
   console.log('Removing', index, mapMessage.content);
   if (index > -1) {
-  		gameMapMessages.splice(index, 1);
-		/*
-		console.log('@handleCaptainMessage size = ', gameMapMessages.length);
-		console.log('Updated Maps: ')
-		for(let i = 0; i < mapMessagesBuilder.length; i++) {
-			console.log('\t',i,mapMessagesBuilder[i].content);
-		} */
+    gameMapMessages.splice(index, 1);
+    /*
+    console.log('@handleCaptainMessage size = ', gameMapMessages.length);
+    console.log('Updated Maps: ')
+    for(let i = 0; i < mapMessagesBuilder.length; i++) {
+      console.log('\t',i,mapMessagesBuilder[i].content);
+    } */
     // gameMapMessages.splice(mapMessage, 1); // splice(index, howMany)
-    tempMessage.delete(400); // Delete message in 400ms
+    setTimeout(() => { // Delete message in 400ms
+      tempMessage.delete();
+    }, 400)
     changeTurn(gameObject);
     if (gameMapMessages.length === 1) { // We are done and have only one map left
       const chosenMap = gameMapMessages[0];
@@ -65,7 +68,7 @@ function handleCaptainMessage(user, mapMessage, gameObject) {
   }
 }
 
-export const otherMapVote = function (messageReaction, user, activeMembers) {
+export const otherMapVote = function (messageReaction: MessageReaction, user: User, activeMembers: GuildMember[]) {
   console.log('DEBUG: Upvote/Downvote Reaction by', user.username);
   let allowed = false;
   allowed = activeMembers.some((guildMember) => {
@@ -73,13 +76,13 @@ export const otherMapVote = function (messageReaction, user, activeMembers) {
     return user.id === guildMember.id;
   });
   if (!allowed) {
-    messageReaction.remove(user);
+    messageReaction.remove();
   }
 };
 
 let currentMapVetoGameObject;
 
-export const mapVetoStart = async (message, gameObject, clientEmojis) => {
+export const mapVetoStart = async (message: Message, gameObject: Game, clientEmojis) => {
   // Get captain from both teams
   currentMapVetoGameObject = gameObject;
   const balanceInfo = gameObject.getBalanceInfo();
