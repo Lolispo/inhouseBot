@@ -8,8 +8,7 @@ SHOW GRANTS FOR 'read-only-user'@'%';
 /* Queries */ 
 SELECT mmrChange, users.userName FROM playerMatches LEFT JOIN users ON playerMatches.uid = users.uid 
 LEFT JOIN matches ON matches.mid = playerMatches.mid 
-WHERE gameName = "cs" AND userName = "robyn_fenty" ORDER BY matches.mid DE
-SC;
+WHERE gameName = "cs" AND userName = "CATKNIFE" ORDER BY matches.mid DESC;
 
 UPDATE ratings SET mmr = "2600" WHERE uid = "228968038391611392" AND gameName = "cs"; 
 
@@ -24,3 +23,6 @@ SELECT userName, SUM(headshot_kills), MAX(kills), SUM(damage)/SUM(roundsPlayed) 
   SELECT userName, 5kill_rounds, createdAt FROM CSPlayerStats LEFT JOIN users ON users.uid = CSPlayerStats.ui
   
   SELECT mmrChange, matches.mid, createdAt FROM playerMatches LEFT JOIN matches ON playerMatches.mid = matches.mid WHERE uid = "135406982977814528" ORDER BY mid ASC;
+
+
+/* UPDATE users SET steamId="STEAM_0:1:8789399" WHERE uid="229348543402344450"; */

@@ -3,7 +3,7 @@
 
 // Handles changing voice channel logic for users: unite and split methods
 
-import { GuildChannel, GuildMember, Message, VoiceChannel } from 'discord.js';
+import { ChannelType, GuildBasedChannel, GuildChannel, GuildMember, Message, VoiceChannel } from 'discord.js';
 import { IKosaTuppChannels } from './channels/channels';
 import * as f from './tools/f';
 
@@ -53,7 +53,7 @@ const getInhouseChannels = (guildChannels) => {
 
 export const split = (message: Message, options: string[], balanceInfo, activeMembers: GuildMember[]) => {
   const guildChannels = message.guild.channels;
-  splitChannel = message.guild.member(message.author)?.voice?.channel;
+  splitChannel = message.guild.members.cache.get(message.author.id)?.voice?.channel as VoiceChannel;
 
   // Get team players as GuildMember objects
   const t1players = f.teamToGuildMember(balanceInfo.team1, activeMembers); // Might give empty on test case (activeMember == undefined)
@@ -95,9 +95,7 @@ export const getVoiceChannel = (message: Message, options: string[], preferredCh
   let channel1: GuildChannel;
 
   if (preferredChannelId) {
-    const preferredChannel = message.guild.channels.cache.find((channel) => {
-      return channel.id === preferredChannelId;
-    });
+    const preferredChannel = message.guild.channels.cache.get(preferredChannelId) as VoiceChannel;
     if (preferredChannel)
       return preferredChannel;
   }
@@ -105,29 +103,32 @@ export const getVoiceChannel = (message: Message, options: string[], preferredCh
   if (options.length > 1) {
     const channelName = options.length > 2 ? options.slice(1).join(' ') : options[1];
     console.log('channelName:', channelName);
-    channel1 = message.guild.channels.cache.find((channel) => {
-      console.log(channel.name, channel.type, channelName, channel.type === 'voice' && channel.name === channelName);
-      return channel.type === 'voice' && channel.name.toLowerCase() === channelName && channel.id !== message.guild.afkChannelID;
+    const tempChannel = message.guild.channels.cache.find((channel: GuildBasedChannel) => {
+      console.log(channel.name, channel.type, channelName, channel.type === ChannelType.GuildVoice && channel.name === channelName);
+      return channel.type === ChannelType.GuildVoice && channel.name.toLowerCase() === channelName && channel.id !== message.guild.afkChannelId;
     });
-    if (channel1)
+    if (tempChannel) {
+      channel1 = tempChannel as VoiceChannel
       return channel1; // If param is given and gives a valid channel use that
+    }
   }
 
   // Otherwise use same voiceChannel as we split in if its empty
-  console.log('@DEBUG splitChannel:', splitChannel?.members.array().length);
-  if (!channel1 && splitChannel && splitChannel.members.array().length === 0) { 
+  console.log('@DEBUG splitChannel:', splitChannel?.members.size);
+  if (!channel1 && splitChannel && splitChannel.members.size === 0) { 
     return splitChannel;
   }
 
   // Use default unite location - Landing zone
-  channel1 = message.guild.channels.cache.get(IKosaTuppChannels.LandingZone);
-  if (channel1 && channel1.members.array().length === 0) return channel1;
+  channel1 = message.guild.channels.cache.get(IKosaTuppChannels.LandingZone) as VoiceChannel;
+  if (channel1 && channel1.members.size === 0) return channel1;
 
   // If this is not defined, take own own voiceChannel or an available one
   // Can't be the AFK channel
-  channel1 = message.guild.member(message.author)?.voice?.channel;
-  if (!channel1 || channel1.id === message.guild.afkChannelID) {
-    channel1 = message.guild.channels.cache.find(channel => channel.type === 'voice' && channel.id !== message.guild.afkChannelID);
+  channel1 = message.guild.members.cache.get(message.author.id)?.voice?.channel;
+  if (!channel1 || channel1.id === message.guild.afkChannelId) {
+     const tempChannel = message.guild.channels.cache.find(channel => channel.type === ChannelType.GuildVoice && channel.id !== message.guild.afkChannelId);
+     channel1 = tempChannel as VoiceChannel;
   }
   // console.log('DEBUG @getVoiceChannel: Channel chosen for unite (not param or splitChannel):', channel1.name);
   return channel1;

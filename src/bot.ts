@@ -59,7 +59,7 @@ const playerStatusCommands = [prefix + 'playersstatus'];
 
 // Handle Discord Event Message
 export const discordEventMessage = (message: Message) => {
-	if (!message.author.bot && message.author.username !== bot_name) { // Message sent from user
+	if (!message.author.bot && message.author.username !== bot_name || !message.system) { // Message sent from user
 		const isTextChannel = (message.channel as TextChannel).guild;
 		if (isTextChannel) {
 			const textChannel = message.channel as TextChannel;

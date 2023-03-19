@@ -4,7 +4,7 @@ import { QueueAction } from "../commands/game/queue/queue";
 
 // Has changed channel to waiting room
 const waitingRoomJoinQueue = (oldState: VoiceState, newState: VoiceState) => {
-  if (newState.channelID === IKosaTuppChannels.WaitingRoomChannel && oldState.channelID !== IKosaTuppChannels.WaitingRoomChannel) {
+  if (newState.channelId === IKosaTuppChannels.WaitingRoomChannel && oldState.channelId !== IKosaTuppChannels.WaitingRoomChannel) {
     // Someone has joined the channel
     const user = newState.member.user;
 

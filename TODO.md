@@ -17,6 +17,9 @@ server command
     longer time
     remove command
 
+mmr
+    mmr change should be dependent on connection to average mmr
+    boost difference in teams based on if they just were teammates
 # Error message
 
 Show streak in leaderboard output

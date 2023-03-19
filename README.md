@@ -103,6 +103,6 @@ Want to fix something? Make a [Pull Request](https://github.com/Lolispo/inhouseB
 Current TODO:s for the projects are listed in the files, main TODO section is in bot.js
 
 
-## Node version Recommended: 14 LTS (discord.js requirement)
+## Node version Recommended: 16 LTS (discord.js requirement)
 
-# Previous DiscordJS version: ^11.6.4
+# DiscordJS Version: 14.8.0

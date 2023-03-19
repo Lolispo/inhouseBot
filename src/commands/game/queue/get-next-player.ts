@@ -27,9 +27,9 @@ export class NextQueuePlayerAction extends BaseCommandClass {
       const user = instance.getNextPlayer();
   
       if (user) {
-        const authorUser = message.guild?.member(message.author.id);
-        const foundUser = message.guild?.member(user.id);
-        const currentChannel = getVoiceChannel(message, [], authorUser?.voice?.channelID);
+        const authorUser = message.guild?.members.cache.get(message.author.id);
+        const foundUser = message.guild?.members.cache.get(user.id);
+        const currentChannel = getVoiceChannel(message, [], authorUser?.voice?.channelId);
         // Get user with voice information
 
         // Drag user into channel if available in voice, otherwise DM them

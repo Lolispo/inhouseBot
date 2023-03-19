@@ -261,7 +261,7 @@ ${this.actionList.join('\n')}`;
     }
     this.activeGame = true;
     this.countDownTimer(message);
-    const voiceChannel = message.guild.member(message.author)?.voice?.channel;
+    const voiceChannel = message.guild.members.cache.get(message.author.id)?.voice?.channel;
     const members: GuildMember[] = Array.from(voiceChannel.members.values());
     let players = [];
     const memberAmount = members.length;

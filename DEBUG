@@ -19,3 +19,28 @@ DEBUG
 Morgelev #4174
 2475
 mid 15 1 -25 
+
+
+
+
+
+<--- Last few GCs --->
+
+[7909:0x4caa0c0] 3595007992 ms: Mark-sweep 471.2 (499.0) -> 470.1 (499.0) MB, 678.9 / 0.0 ms  (average mu = 0.946, current mu = 0.941) allocation failure scavenge might not succeed
+[7909:0x4caa0c0] 3595021185 ms: Mark-sweep 471.1 (499.0) -> 470.1 (499.2) MB, 792.8 / 0.0 ms  (average mu = 0.943, current mu = 0.940) allocation failure scavenge might not succeed
+
+
+<--- JS stacktrace --->
+
+FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory
+ 1: 0xb12b40 node::Abort() [node]
+ 2: 0xa2fe25 node::FatalError(char const*, char const*) [node]
+ 3: 0xcf946e v8::Utils::ReportOOMFailure(v8::internal::Isolate*, char const*, bool) [node]
+ 4: 0xcf97e7 v8::internal::V8::FatalProcessOutOfMemory(v8::internal::Isolate*, char const*, bool) [node]
+ 5: 0xee3875  [node]
+ 6: 0xef25f1 v8::internal::Heap::CollectGarbage(v8::internal::AllocationSpace, v8::internal::GarbageCollectionReason, v8::GCCallbackFlags) [node]
+ 7: 0xef584c v8::internal::Heap::AllocateRawWithRetryOrFailSlowPath(int, v8::internal::AllocationType, v8::internal::AllocationOrigin, v8::internal::AllocationAlignment) [node]
+ 8: 0xec1dfb v8::internal::Factory::NewFillerObject(int, bool, v8::internal::AllocationType, v8::internal::AllocationOrigin) [node]
+ 9: 0x122adbb v8::internal::Runtime_AllocateInYoungGeneration(int, unsigned long*, v8::internal::Isolate*) [node]
+10: 0x160c599  [node]
+Aborted (core dumped)
