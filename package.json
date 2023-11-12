@@ -14,7 +14,7 @@
     "lint": "eslint . --ext .ts",
     "lint-fix": "eslint . --ext .ts --fix",
     "prettier-format": "prettier --config .prettierrc 'src/**/*.ts' --write",
-    "truncateRatings": "ts-node src/game/manualGameUpdate/manualGameUpdate.ts"
+    "truncateRatings": "ts-node sql/seasonUpdate.ts"
   },
   "repository": {
     "type": "git",

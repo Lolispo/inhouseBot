@@ -1,3 +1,23 @@
+/* Get data for Season Reset queries */
+SELECT uid, gameName, userName, mmr FROM ratings WHERE gameName = "dota" OR gameName = "cs" AND mmr != 2500;
+
+SELECT uid, gameName, userName, mmr FROM ratings WHERE gameName != "trivia" AND mmr != 2500 ORDER BY gameName, mmr DESC;
+/*
+Old 
+SELECT JSONARRAYAGG(JSON_OBJECT('uid', 'gameName', 'userName', 'mmr')) FROM ratings WHERE gameName = "dota" OR gameName = "cs" AND mmr != 2500;
+SELECT JSON_OBJECT('uid', uid, 'gameName', gameName, 'userName', userName, 'mmr', mmr) FROM ratings WHERE gameName = "dota" OR gameName = "cs" AND mmr != 2500;
+*/
+
+
+
+
+
+
+
+
+
+
+
 /* Create read only user - Ran from the server*/
 /* https://medium.com/@nkaurelien/how-to-create-a-read-only-mysql-user-226e8e49a855 */
 CREATE USER 'read-only-user'@'%' IDENTIFIED BY '$pw';

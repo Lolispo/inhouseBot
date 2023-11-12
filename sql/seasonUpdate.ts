@@ -1,13 +1,6 @@
-/*
-To get output to CSV format:
-    " +\| "			Replace with ", "
-    " +\|\s*\| "	Replace with \n
-    Start and end fix
-
-*/
-
 import { getTruncatedRating } from "../../database/reset_season";
 import { season1Mmr } from "./input"
+import { season2Mmr } from '../../../sql/seasonReset/seasonResults'; 
 
 const translateToSQLCommand = (list) => {
   return list.map((player: SqlPlayer) => {
@@ -27,7 +20,8 @@ interface SqlPlayer {
 }
 
 const seasonTruncate = (listOfPlayers: SqlPlayer[]) => {
-  console.log('@Season 1 Ratings:', listOfPlayers);
+  const seasonNumber = 2;
+  console.log(`@Season ${seasonNumber} Ratings: ${listOfPlayers}`);
   const result = [];
   listOfPlayers.map(player => {
     const newMmr = getTruncatedRating(player.mmr);
@@ -40,4 +34,5 @@ const seasonTruncate = (listOfPlayers: SqlPlayer[]) => {
   sqlResult.map(sqlRow => console.log(`${sqlRow.sql}`));
 }
 
-seasonTruncate(season1Mmr.list);
+// seasonTruncate(season1Mmr);
+seasonTruncate(season2Mmr);
