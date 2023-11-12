@@ -350,7 +350,7 @@ const buildReturnStringEmbed = (obj: IBalanceInfo, skipServer = false): ReturnMe
   }
   const messageEmbedded: EmbeddedMessage = {
     // content: title,
-    content: ' ',
+    content: 'X',
     // TODO: Check embeds instead of embed
     embed: {
       title,
