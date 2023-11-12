@@ -59,7 +59,11 @@ const playerStatusCommands = [prefix + 'playersstatus'];
 
 // Handle Discord Event Message
 export const discordEventMessage = (message: Message) => {
-	if (!message.author.bot && message.author.username !== bot_name || !message.system) { // Message sent from user
+	if (message.author.bot || message.author.username === bot_name || message.system) {
+		console.log('Bot Message', message.author?.username, message.content);
+		return;
+	}
+	else { // Message sent from user
 		const isTextChannel = (message.channel as TextChannel).guild;
 		if (isTextChannel) {
 			const textChannel = message.channel as TextChannel;
@@ -84,7 +88,7 @@ export const discordEventMessage = (message: Message) => {
 				statsAction(message, options);
 			} else if (connectSteamCommands.includes(message.content)) {
 				connectSteamEntry(message);
-			} else if (validProfileMode = validateSteamID(message.content)) {
+			} else if (validProfileMode === validateSteamID(message.content)) {
 				setSteamId(message, validProfileMode);
 			} else if (steamidCommands.includes(message.content)) {
 				sendSteamId(message);

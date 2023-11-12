@@ -17,6 +17,7 @@
     "allowUnusedLabels": false,
     "noImplicitReturns": true,
     "noUnusedLocals": true,
+    "skipLibCheck": true,
     "typeRoots": [
       "./node_modules/@types"
     ],
