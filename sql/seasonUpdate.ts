@@ -1,6 +1,6 @@
-import { getTruncatedRating } from "../../database/reset_season";
-import { season1Mmr } from "./input"
-import { season2Mmr } from '../../../sql/seasonReset/seasonResults'; 
+import { getTruncatedRating } from "../src/database/reset_season";
+// import { season1Mmr } from './seasonReset/seasonResults'; 
+import { season2Mmr } from './seasonReset/seasonResults'; 
 
 const translateToSQLCommand = (list) => {
   return list.map((player: SqlPlayer) => {

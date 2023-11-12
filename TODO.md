@@ -156,6 +156,8 @@ https://discordjs.guide/additional-info/async-await.html#how-do-promises-work
 Re-add dathost integraton
     Move server_info.js to env variables
     Add more documentation on where to fetch env variables
+    CS2:
+        Sourcemod and DB integration needed from DatHost
 
 FIX BUG: New players added foreign key constraint
     Fixed?
@@ -398,3 +400,13 @@ Store only message id instead of entire messages
 ### Pick-em CS (Check on progames, choose stuff, hltv) (low prio)
 ### Integration with ebot server
 
+
+message: {
+    content: '',
+    embed: {
+      title: '**New Game!** Playing **cs**. MMR Avg diff: 6.25 mmr (Total: 12.5 mmr)',
+      description: '',
+      fields: [Array],
+      color: 2431681
+    }
+  },
