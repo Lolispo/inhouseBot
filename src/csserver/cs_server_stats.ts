@@ -3,7 +3,7 @@ import * as f from '../tools/f';
 import * as vdf from 'simple-vdf';
 import { fetchFile } from './cs_console';
 
-import { printMessage } from '../bot';
+import { printMessage } from '../utils';
 
 import { updateMMR } from '../game/mmr';
 import { cleanOnGameEnd, Game } from '../game/game';

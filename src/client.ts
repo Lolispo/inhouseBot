@@ -55,4 +55,5 @@ export const getTextChannel = async (channelId: string = getTextTestChannel()): 
 
 export const getChannels = () => client.channels;
 
+// eslint-disable-next-line @typescript-eslint/no-empty-function
 export const noop = () => {};

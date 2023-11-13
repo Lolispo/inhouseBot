@@ -2,9 +2,9 @@
 // Author: Petter Andersson
 
 // Should handle general help functions
-import { Message } from 'discord.js';
+import { EmbedBuilder, Message } from 'discord.js';
 import { promises as fs } from 'fs';
-import { EmbeddedMessage } from '../game/balance';
+import { IEmbeddedMessageInput } from '../types';
 
 export const getDefaultRemoveTime = () => 60000;
 
@@ -33,16 +33,19 @@ export const padString = (value, expectedMaxLength = '100%'.length) => {
  * Used to print message in channel, use for every use of channel.send for consistency
  * Returns promise for use in async functions
  */
-export const print = (messageVar: Message, message: string | EmbeddedMessage, callback = callbackPrintDefault) => {
+export const print = (messageVar: Message, message: string | IEmbeddedMessageInput, callback = callbackPrintDefault) => {
   let printableCommand = message;
-  if ((message as EmbeddedMessage).embed) { // Embedded Message
-    const embeddedMessage = message as EmbeddedMessage;
-    printableCommand = `(Embed)${embeddedMessage.embed.title}\t${embeddedMessage.embed.description}`;
-    messageVar.channel.send(message)
-      .then((result) => {
-        callback(result);
-      })
-      .catch(err => console.log(`@error on send for ${message} :\n${err}`));
+  if ((message as IEmbeddedMessageInput).embeds) { // Embedded Message
+    const embeddedMessage = message as IEmbeddedMessageInput;
+    const embeds = embeddedMessage.embeds;
+    embeds.forEach((embed: EmbedBuilder) => {
+      printableCommand = `(Embed)${embed.data}`;
+      messageVar.channel.send(message)
+        .then((result) => {
+          callback(result);
+        })
+        .catch(err => console.log(`@error on send for ${message} :\n${err}`));
+    });
   }
   console.log(`> ${printableCommand}`);
 

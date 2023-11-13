@@ -401,6 +401,8 @@ Store only message id instead of entire messages
 ### Integration with ebot server
 
 
+Fix embed message issue
+
 message: {
     content: '',
     embed: {

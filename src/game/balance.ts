@@ -3,7 +3,7 @@
 
 import * as f from '../tools/f';
 
-import { printMessage } from '../bot';
+import { printMessage } from '../utils';
 import { getTeamName } from '../teamNames';
 import { configureServer } from '../csserver/cs_server';
 import { getCsIp, getCsUrl } from '../csserver/server_info';
@@ -13,7 +13,8 @@ import { ConnectDotaAction } from '../commands/game/dota';
 import { Player, sortRating } from './player';
 import { gameIsCS, gameIsCSMain, gameIsDota, gameIsTest, GameModesType } from './gameModes';
 import { QueueAction } from '../commands/game/queue/queue';
-import { User } from 'discord.js';
+import { User, EmbedBuilder, AttachmentBuilder } from 'discord.js';
+import { IEmbeddedMessageInput } from '../types';
 
 /*
 	Handles getting the most balanced team matchup for the given 10 players
@@ -23,16 +24,9 @@ import { User } from 'discord.js';
 	Current implementation support addition of other factors, language support/known players etc
 	TODO: Check if this would work if restrictions for team sizes are removed, generateTeamCombs changes required
 */
-
-export interface EmbeddedMessage { // TODO: Refine with real type
-  content: any,
-  embed: any,
-  files?: any;
-}
-
 interface ReturnMessage {
-  message: string | EmbeddedMessage,
-  balanceInfo: IBalanceInfo
+  message: string | IEmbeddedMessageInput,
+  balanceInfo: IBalanceInfo,
 }
 
 const checkAllPlayersHaveConnectedSteamIds = (players: Player[], gameObject: Game): boolean => {
@@ -309,7 +303,7 @@ const buildReturnStringEmbed = (obj: IBalanceInfo, skipServer = false): ReturnMe
 
   let s = '';
   let gif;
-  const fields = [];
+  const fields: { name: string, value: string }[] = [];
   // console.log('@buildReturnString', obj)
 
   const team1Name = getTeamName(obj.team1, obj.game) || 'Team 1';
@@ -336,21 +330,34 @@ const buildReturnStringEmbed = (obj: IBalanceInfo, skipServer = false): ReturnMe
   fields.push({ name, value });
   // s += '*\n\n';
   const isCs = gameIsCS(obj.game);
+
+  const embeddedMessage = new EmbedBuilder()
+    .setTitle(title)
+    .setColor(0x251ac1)
+    .addFields(fields);
+  let file: AttachmentBuilder;
+
   if (isCs && !skipServer) {
-    // s += '*Connect:* \n';
-    s += `Link: ${getCsUrl()}`; // TODO: Embedded links or something [Named Link](<link>) (Steam link no work)
+    embeddedMessage.setURL(getCsUrl())
+    // s += `Link: ${getCsUrl()}`;
     s += `\n**${getCsIp()}**`;
   } else if (gameIsDota(obj.game)) {
-    const gifLink = 'res/dotaConnect.gif';
-    gif = [{
-      attachment: gifLink,
-      name: 'DotaConnect.gif',
-    }];
     s += 'Lobby Name: Dank\nPassword: 123';
+
+    file = new AttachmentBuilder(`res/dotaConnect.gif`, { name: 'DotaConnect.gif' });  
+    embeddedMessage.setImage(`attachment://DotaConnect.gif`)
   }
+
+  if (isCs) {
+    embeddedMessage.setDescription(s);
+  } else {
+    embeddedMessage.setFooter({ text: s });
+  }
+
+  /*
   const messageEmbedded: EmbeddedMessage = {
     // content: title,
-    content: 'X',
+    content: '',
     // TODO: Check embeds instead of embed
     embed: {
       title,
@@ -361,8 +368,15 @@ const buildReturnStringEmbed = (obj: IBalanceInfo, skipServer = false): ReturnMe
     },
     ...(gif && { files: gif }),
   };
+  */
 
-  return { message: messageEmbedded, balanceInfo: obj };
+  return { 
+    balanceInfo: obj,
+    message: { 
+      embeds: [embeddedMessage],
+      ...(gif && { files: [file] }),
+    }, 
+  };
 };
 
 // Build a string to return to print as message

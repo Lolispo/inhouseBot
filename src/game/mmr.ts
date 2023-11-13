@@ -1,7 +1,7 @@
 
 // Author: Petter Andersson and Robert Wörlund
 
-import { printMessage } from '../bot';
+import { printMessage } from '../utils';
 import { createMatch, updateDbMMR } from '../database/db_sequelize';
 import { Game } from './game';
 

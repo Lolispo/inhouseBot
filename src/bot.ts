@@ -603,11 +603,3 @@ async function callbackVoteText(message){
 	await message.react(emoji_agree);
 	message.react(emoji_disagree);
 }
-
-const noop = (message) => { // callback used when no operation is wanted
-	// Doesn't delete the message
-}
-
-export const printMessage = (message, channelMessage, callback = noop) => { // Default: NOT removing message
-	f.print(channelMessage, message, callback);
-}
