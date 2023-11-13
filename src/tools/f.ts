@@ -60,7 +60,7 @@ export const print = (messageVar: Message, message: string | IEmbeddedMessageInp
         .then((result) => {
           callback(result);
         })
-        .catch(err => console.log(`@error on send for ${message} :\n${err}`));
+        .catch(err => console.log(`@error on send for ${message}:\n${err}`));
     }
 
     // Recursively send restMessage

@@ -3,8 +3,8 @@ import { getUser, storeSteamIdDb } from './database/db_sequelize';
 import { getClientReference } from './client';
 import * as SteamID from 'steamid';
 import { Player } from './game/player';
-import { Message } from 'discord.js';
-import { EmbeddedMessage } from './game/balance';
+import { AttachmentBuilder, EmbedBuilder, Message } from 'discord.js';
+import { IEmbeddedMessageInput } from './types';
 
 export const enum SteamProfileMode {
   STEAM2 = 'STEAM2',
@@ -129,22 +129,27 @@ STEAM\_1:0:XXXXXXXX
 The bot uses the steamId2 format: STEAM\_1:0:XXXXXXXX`;
 
 const gifLink = 'res/fetchProfileUrl.gif';
-const fetchProfileGif = [{
-  attachment: gifLink,
-  name: 'FetchSteamProfile.gif',
-}];
+const fileName = 'FetchSteamProfile.gif'
+const file = new AttachmentBuilder(gifLink, { name: fileName });
 
-const enterSteamMessage: EmbeddedMessage = {
+const embed = new EmbedBuilder()
+  .setDescription(enterSteamIdString)
+  .setImage(`attachment://${fileName}`)
+
+const enterSteamIdMessage: IEmbeddedMessageInput = { embeds: [embed], files: [file] }
+
+  /*
+const enterSteamMessage: IEmbeddedMessageInput = 
   content: '',
-  embed: {
-    image: { url: `attachment://${fetchProfileGif[0].name}` },
+  embeds: {
+    image: { url: `attachment://${fileName}` },
     description: enterSteamIdString
   }, 
-  files: fetchProfileGif
-}
+  files: [fetchProfileGif]
+}*/
 
 export const connectSteamEntry = (message) => {
-	message.author.send(enterSteamMessage);
+	message.author.send(enterSteamIdMessage);
 	f.deleteDiscMessage(message, 10000, 'connectsteam');
 }
 
@@ -163,7 +168,7 @@ export const sendSteamId = async (message) => {
       f.deleteDiscMessage(result, 20000);
     });
     f.deleteDiscMessage(message, 10000, 'connectsteam');
-    message.author.send(enterSteamMessage);
+    message.author.send(enterSteamIdMessage);
   }
 }
 
@@ -178,7 +183,7 @@ export const notifyPlayersMissingSteamId = async (players: Player[]) => {
     const uid = player.uid;
     if (player.userName !== 'Groovy') {
       try {
-        client.users.cache.get(uid).send(enterSteamMessage);
+        client.users.cache.get(uid).send(enterSteamIdMessage);
       } catch (e) {
         console.error('Unable to send steamid fetch to user with uid' + uid + ':', e);
       }
