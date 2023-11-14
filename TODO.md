@@ -1,5 +1,12 @@
 # TODO:
 
+Fix embed message issue
+
+Cannot execute action on DM
+    Can't remove messages from DM error log
+
+Log into console.groups for deletion of messages not spamming so much
+
 Add unit tests for all files
 
 Add integration tests for main functionalities
@@ -399,16 +406,3 @@ Store only message id instead of entire messages
 ### Family Feud - alternative trivia
 ### Pick-em CS (Check on progames, choose stuff, hltv) (low prio)
 ### Integration with ebot server
-
-
-Fix embed message issue
-
-message: {
-    content: '',
-    embed: {
-      title: '**New Game!** Playing **cs**. MMR Avg diff: 6.25 mmr (Total: 12.5 mmr)',
-      description: '',
-      fields: [Array],
-      color: 2431681
-    }
-  },
