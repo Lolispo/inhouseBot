@@ -3,7 +3,11 @@
   "version": "1.0.0",
   "description": "inhouse matchmaking",
   "main": "index.js",
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "scripts": {
+    "preinstall": "npx check-node-version --package",
     "build": "tsc",
     "test": "jest --silent ts-node/register tests/",
     "test-nodb": "TEST_ENV=testwithoutdb jest --silent ts-node/register tests/",

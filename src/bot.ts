@@ -408,7 +408,7 @@ const findPlayersStart = (channel: VoiceChannel, gameObject?: Game): Player[] =>
 	const members: GuildMember[] = Array.from(channel.members.values()).filter(isNotBot);
 	members.forEach((member) => {
 		console.log('\t' + member.user.username + '(' + member.user.id + ')'); // Printar alla activa users (ej bots) i denna voice chat
-		players.push(createPlayer(member.user.displayName, member.user.id));
+		players.push(createPlayer(member.user.displayName || member.user.username, member.user.id));
 	});
 	if (gameObject) {
 		gameObject.setActiveMembers(members); // TODO Game
