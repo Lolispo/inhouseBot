@@ -138,7 +138,8 @@ export const getModeAndPlayers = (players: Player[], gameObject: Game, options, 
 		game = res.game;
 		defaultGame = res.defaultMode;
 	}
-	const skipServer = paramOptions.includes('noserver') || true || defaultGame; // Default game does not get server
+	const serverMode = paramOptions.includes('server');
+	const skipServer = serverMode ? false : paramOptions.includes('noserver') || true || defaultGame; // Default game does not get server
 	// console.log('getModeAndPlayers', game);
 	initializePlayers(players, game, (playerList: Player[]) => {
 		balanceTeams(playerList, game, gameObject, skipServer);
