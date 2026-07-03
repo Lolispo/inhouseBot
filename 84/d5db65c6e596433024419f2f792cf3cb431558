@@ -1,0 +1,21 @@
+docs/superpowers/specs/2026-07-03-inhousebot-showcase-design.md
+  s_8ab3be738dfcf0::t_76d6d36ee9e90c 107-114
+  s_8ab3be738dfcf0::t_51d35ea9b66859 132-133
+  s_8ab3be738dfcf0::t_815fdae93ce72f 63-68,70-74
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.9",
+  "base_commit_sha": "84d5db65c6e596433024419f2f792cf3cb431558",
+  "prompts": {},
+  "sessions": {
+    "s_8ab3be738dfcf0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "cf94adb6-e710-4b25-bfde-018836c1c49c",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Petter Andersson <12279747+Lolispo@users.noreply.github.com>"
+    }
+  }
+}
