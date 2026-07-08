@@ -1,0 +1,7 @@
+node_modules/
+dist/
+# Raw DB dump — contains steamids/PII, must never be committed.
+# Repopulate by re-extracting from RDS snapshot db-2024-03-03 (see docs spec).
+data-src/
+*.local
+.DS_Store

@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>inhouseBot — run your Discord voice channel like a ranked league</title>
+    <meta
+      name="description"
+      content="A Discord bot that balances teams by skill, tracks MMR across seven games, vetoes maps, and pulls real in-game CS stats. Built for the Kosa Tupp inhouse community — 535 matches over 3.5 years."
+    />
+    <link rel="icon" href="/inhousebot.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body data-game="cs">
+    <div class="grid-bg" aria-hidden="true"></div>
+
+    <!-- NAV -->
+    <header class="nav">
+      <a class="nav__brand" href="#top">
+        <img src="/inhousebot.png" alt="" width="28" height="28" />
+        <span>inhouse<b>Bot</b></span>
+      </a>
+      <nav class="nav__links">
+        <a href="#features">Features</a>
+        <a href="#numbers">The numbers</a>
+        <a href="#tech">How it's built</a>
+        <a href="#community">Kosa Tupp</a>
+      </nav>
+      <a class="btn btn--ghost" href="https://github.com/Lolispo/inhouseBot" target="_blank" rel="noopener">Source ↗</a>
+    </header>
+
+    <main id="top">
+      <!-- HERO -->
+      <section class="hero">
+        <div class="hero__copy">
+          <p class="cmd">petter@discord <span class="cmd__sep">~</span> <span class="cmd__prompt">-balance</span><span class="caret"></span></p>
+          <h1 class="hero__title">Ten people in a voice channel.<br /><em>One fair, ranked match.</em></h1>
+          <p class="hero__lead">
+            inhouseBot reads everyone in your Discord voice channel and splits them into the two
+            most evenly-matched teams it can build. It tracks a rating for every player across
+            seven games, runs a real competitive map veto, and pulls live kills, headshots and
+            entry frags straight off the CS server the moment a match ends.
+          </p>
+          <div class="hero__cta">
+            <a class="btn btn--solid" href="#numbers">See 3.5 years of matches</a>
+            <a class="btn btn--ghost" href="#features">What it does</a>
+          </div>
+          <dl class="ticker" id="ticker"><!-- populated by JS --></dl>
+        </div>
+
+        <div class="hero__media">
+          <figure class="broadcast" data-video="trailer">
+            <div class="broadcast__screen">
+              <span class="broadcast__badge">Season 2 · Trailer</span>
+              <button class="broadcast__play" type="button" aria-label="Play the Season 2 trailer">
+                <svg viewBox="0 0 24 24" width="34" height="34" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor" /></svg>
+              </button>
+              <p class="broadcast__note">Trailer embed drops in here</p>
+            </div>
+            <figcaption class="broadcast__bar">
+              <span class="dot"></span> LIVE LADDER — Kosa Tupp inhouse
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <!-- FEATURES -->
+      <section class="section" id="features">
+        <header class="section__head">
+          <p class="cmd cmd--label">-help</p>
+          <h2 class="section__title">Everything a pick-up game was missing</h2>
+        </header>
+        <div class="features" id="features-grid"><!-- populated by JS --></div>
+      </section>
+
+      <!-- NUMBERS -->
+      <section class="section section--numbers" id="numbers">
+        <header class="section__head">
+          <p class="cmd cmd--label">-leaderboard</p>
+          <h2 class="section__title">Every match, recorded</h2>
+          <p class="section__sub" id="numbers-sub"></p>
+        </header>
+
+        <div class="statstrip" id="statstrip"><!-- populated by JS --></div>
+
+        <div class="gameswitch" role="tablist" aria-label="Choose a game">
+          <button role="tab" class="gameswitch__btn is-active" data-switch="cs">Counter-Strike</button>
+          <button role="tab" class="gameswitch__btn" data-switch="dota">Dota 2</button>
+        </div>
+
+        <div class="numbers__grid">
+          <div class="panel panel--ladder">
+            <div class="panel__head"><h3>MMR ladder</h3><span class="panel__tag" id="ladder-tag"></span></div>
+            <div id="ladder"><!-- scoreboard table --></div>
+          </div>
+
+          <div class="panel panel--chart">
+            <div class="panel__head"><h3>Rating journeys</h3><span class="panel__tag">cumulative, top players</span></div>
+            <div id="mmr-chart"><!-- svg --></div>
+            <p class="panel__foot">Real per-match rating swings, summed over time. Season resets mean the line shows the shape of a climb, not today's ladder value.</p>
+          </div>
+        </div>
+
+        <div class="cs-only" id="cs-extra">
+          <div class="panel">
+            <div class="panel__head"><h3>Stat leaders</h3><span class="panel__tag" id="csleaders-tag"></span></div>
+            <div class="leaderboards" id="csleaders"><!-- populated by JS --></div>
+          </div>
+          <div class="numbers__grid">
+            <div class="panel">
+              <div class="panel__head"><h3>Maps played</h3><span class="panel__tag">Counter-Strike</span></div>
+              <div id="maps"><!-- bars --></div>
+            </div>
+            <div class="panel panel--chart">
+              <div class="panel__head"><h3>Activity</h3><span class="panel__tag">matches / month</span></div>
+              <div id="timeline"><!-- svg --></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="breadth">
+          <p class="breadth__label">CS and Dota are the headliners — but the same ladder ran</p>
+          <ul class="breadth__list" id="breadth"><!-- populated by JS --></ul>
+        </div>
+      </section>
+
+      <!-- TECH -->
+      <section class="section" id="tech">
+        <header class="section__head">
+          <p class="cmd cmd--label">cat README.md</p>
+          <h2 class="section__title">How it's built</h2>
+        </header>
+        <div class="tech">
+          <div class="tech__diagram" id="diagram"><!-- svg architecture --></div>
+          <div class="tech__notes">
+            <p>
+              A single Node + TypeScript service on <b>discord.js</b> drives the whole thing.
+              State lives in <b>MySQL</b> through Sequelize — players, per-game ratings, matches and
+              a full per-round CS stat sheet.
+            </p>
+            <p>
+              For Counter-Strike, the bot talks to a <b>get5</b> server (Dathost) and ingests the
+              end-of-match stat dump. For Dota, it opens a <b>socket</b> to a companion match-making
+              app to create and follow games. Everything else — balancing, veto, MMR maths, moving
+              people between voice channels — happens in the bot.
+            </p>
+            <ul class="chips" id="stack"><!-- populated by JS --></ul>
+            <p class="tech__authors">Built by <b>Petter Andersson</b>.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- COMMUNITY -->
+      <section class="section" id="community">
+        <header class="section__head">
+          <p class="cmd cmd--label">-community</p>
+          <h2 class="section__title">Kosa Tupp</h2>
+          <p class="section__sub">The inhouse community the bot was built for. Match VODs, cast highlights and the odd trailer.</p>
+        </header>
+        <div class="videos" id="videos"><!-- populated by JS --></div>
+        <a class="btn btn--ghost" href="https://kosatupp.se" target="_blank" rel="noopener">KosaTupp.se ↗</a>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p class="footer__meta">
+        <a href="https://petterbuilds.com">← petterbuilds.com</a>
+        <span id="footer-generated"></span>
+      </p>
+    </footer>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
