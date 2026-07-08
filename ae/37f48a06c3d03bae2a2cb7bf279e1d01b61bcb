@@ -1,0 +1,57 @@
+docs/superpowers/specs/2026-07-03-inhousebot-showcase-design.md
+  s_8ab3be738dfcf0::t_547da2911c1a04 1-62,69,75-106,115-131,134-142
+  s_8ab3be738dfcf0::t_76d6d36ee9e90c 107-114
+  s_8ab3be738dfcf0::t_51d35ea9b66859 132-133
+  s_8ab3be738dfcf0::t_815fdae93ce72f 63-68,70-74
+site/package.json
+  s_8ab3be738dfcf0::t_31bd057d205d78 1-17
+site/src/main.ts
+  s_8ab3be738dfcf0::t_967d68338aa75a 32
+  s_8ab3be738dfcf0::t_fa12f165481b2e 72
+  s_8ab3be738dfcf0::t_6b7b5ac55335a4 209-220
+  s_8ab3be738dfcf0::t_462256b7bc473b 1-21,28-31,33-71,73-138,140-151,153-183,185-208
+  s_8ab3be738dfcf0::t_1dcd48ec59c73c 184
+  s_8ab3be738dfcf0::t_275a7efd34beea 152
+  s_8ab3be738dfcf0::t_bc5a0c62f8819f 139
+  s_8ab3be738dfcf0::t_0d5e98681127ff 22-27
+site/.gitignore
+  s_8ab3be738dfcf0::t_779126e86ef0d4 1-7
+site/scripts/build-data.mjs
+  s_8ab3be738dfcf0::t_dcb675422c415b 1-201
+site/src/data/snapshot.json
+  s_8ab3be738dfcf0::t_9b7ea837669643 1
+site/vite.config.ts
+  s_8ab3be738dfcf0::t_7726affd8fda4b 1-7
+site/tsconfig.json
+  s_8ab3be738dfcf0::t_b14c1a88bd3836 1-15
+site/index.html
+  s_8ab3be738dfcf0::t_42b8b674c7704b 1-152,154-170,171-179
+  s_8ab3be738dfcf0::t_9ee658592ab573 153
+.gitignore
+  s_8ab3be738dfcf0::t_b4bca9c426615e 16-17
+  s_8ab3be738dfcf0::t_b0cfcd0fe06670 18
+site/src/charts.ts
+  s_8ab3be738dfcf0::t_33254ee8b42d5b 1-113
+site/src/style.css
+  s_8ab3be738dfcf0::t_8ee4d92b9ce7e9 1-620
+site/package-lock.json
+  s_8ab3be738dfcf0::t_7f741baceb0dfa 1-1002
+site/public/meta.json
+  s_8ab3be738dfcf0::t_43f5ac87401fa2 1-4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.9",
+  "base_commit_sha": "ae37f48a06c3d03bae2a2cb7bf279e1d01b61bcb",
+  "prompts": {},
+  "sessions": {
+    "s_8ab3be738dfcf0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "cf94adb6-e710-4b25-bfde-018836c1c49c",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Petter Andersson <12279747+Lolispo@users.noreply.github.com>"
+    }
+  }
+}
