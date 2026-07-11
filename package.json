@@ -59,7 +59,7 @@
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-import": "^2.23.4",
     "prettier": "^2.3.0",
-    "rewire": "^4.0.1",
+    "rewire": "^7.0.0",
     "typescript": "^5.0.2"
   },
   "directories": {
