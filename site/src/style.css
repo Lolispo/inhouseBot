@@ -309,6 +309,46 @@ img { max-width: 100%; display: block; }
   70% { box-shadow: 0 0 0 8px transparent; }
 }
 
+/* game logos above the hero broadcast */
+.gamemarks {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 1.1rem;
+}
+.gamemarks__feature {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(1.6rem, 4vw, 2.6rem);
+}
+.gamemarks__more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(1.4rem, 3.5vw, 2.2rem);
+  padding-top: 13px;
+  border-top: 1px solid var(--line-soft);
+  width: 100%;
+}
+.gamemark { display: block; width: auto; }
+.gamemark--cs { height: 38px; }
+.gamemark--dota { height: 40px; }
+.gamemark--sm {
+  height: 20px;
+  filter: grayscale(1) brightness(1.7) opacity(0.55);
+  transition: filter 0.2s ease, transform 0.2s ease;
+}
+.gamemark--sm:hover { filter: none; transform: translateY(-2px); }
+
+@media (max-width: 560px) {
+  .gamemarks { gap: 11px; margin-bottom: 0.9rem; }
+  .gamemark--cs { height: 30px; }
+  .gamemark--dota { height: 32px; }
+  .gamemark--sm { height: 16px; }
+}
+
 /* ---------- features ---------- */
 .features {
   display: grid;
