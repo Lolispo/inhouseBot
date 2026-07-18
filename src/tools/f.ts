@@ -38,11 +38,13 @@ export const print = (messageVar: Message, message: string | EmbeddedMessage, ca
   if ((message as EmbeddedMessage).embed) { // Embedded Message
     const embeddedMessage = message as EmbeddedMessage;
     printableCommand = `(Embed)${embeddedMessage.embed.title}\t${embeddedMessage.embed.description}`;
-    messageVar.channel.send(message)
-      .then((result) => {
-        callback(result);
-      })
-      .catch(err => console.log(`@error on send for ${message} :\n${err}`));
+    if ('send' in messageVar.channel) {
+      messageVar.channel.send(message)
+        .then((result) => {
+          callback(result);
+        })
+        .catch(err => console.log(`@error on send for ${message} :\n${err}`));
+    }
   }
   console.log(`> ${printableCommand}`);
 
@@ -53,11 +55,13 @@ export const print = (messageVar: Message, message: string | EmbeddedMessage, ca
     // Send first message
     if (messages.length >= 1) {      
       const firstMessage = messages[0];
-      messageVar.channel.send(firstMessage)
-        .then((result) => {
-          callback(result);
-        })
-        .catch(err => console.log(`@error on send for ${message} :\n${err}`));
+      if ('send' in messageVar.channel) {
+        messageVar.channel.send(firstMessage)
+          .then((result) => {
+            callback(result);
+          })
+          .catch(err => console.log(`@error on send for ${message} :\n${err}`));
+      }
     }
 
     // Recursively send restMessage
