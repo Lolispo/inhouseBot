@@ -1,0 +1,31 @@
+src/tools/load-environment.ts
+  s_c811744c976d4c::t_b6260c0705a22f 48-70
+.env.SAMPLE
+  s_c811744c976d4c::t_4feb4b9b151c11 17-18
+src/dota/socketClient.ts
+  s_c811744c976d4c::t_8bb32244c787ea 11
+  s_c811744c976d4c::t_857cf6eeaaf0a6 103-104
+tests/serverConfig.test.ts
+  s_c811744c976d4c::t_167ce72fe88e58 1-65
+src/game/gameModes.ts
+  s_c811744c976d4c::t_9312fa2c2d0889 5
+  s_c811744c976d4c::t_f7348993c5b24d 142-147
+README.md
+  s_c811744c976d4c::t_1dad434a4f40df 32-48
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "227fbe9239259472c63870510da58a77c8bbf3bf",
+  "prompts": {},
+  "sessions": {
+    "s_c811744c976d4c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "bc1ad1f3-98b2-4fbb-b562-752e699a5613",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Petter Andersson <12279747+Lolispo@users.noreply.github.com>"
+    }
+  }
+}
