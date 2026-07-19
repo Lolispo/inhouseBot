@@ -40,7 +40,7 @@
     "moment": "^2.29.1",
     "mysql": "^2.18.1",
     "mysql-promisify-pool": "^2.1.0",
-    "mysql2": "^1.7.0",
+    "mysql2": "^3.23.1",
     "node-cleanup": "^2.1.2",
     "sequelize": "^6.29.3",
     "simple-vdf": "^1.1.1",
