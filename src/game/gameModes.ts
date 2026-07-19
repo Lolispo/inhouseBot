@@ -2,6 +2,7 @@ import { initializePlayers } from "../database/db_sequelize";
 import { balanceTeams } from "./balance";
 import { Game } from "./game";
 import { Player } from "./player";
+import { isCsServerConfigured, isDotaServerConfigured } from "../tools/load-environment";
 
 export enum GameModesStandard {
 	CS = 'cs',
@@ -138,7 +139,12 @@ export const getModeAndPlayers = (players: Player[], gameObject: Game, options, 
 		game = res.game;
 		defaultGame = res.defaultMode;
 	}
-	const skipServer = paramOptions.includes('noserver') || defaultGame; // Default game does not get server
+	// Skip the server if: explicitly requested (`noserver`), it's the default game,
+	// or no server is actually configured for this game mode (auto-detected from env).
+	const serverConfiguredForGame =
+		(gameIsCS(game) && isCsServerConfigured())
+		|| ((gameIsDota(game) || gameIsTest(game)) && isDotaServerConfigured());
+	const skipServer = paramOptions.includes('noserver') || defaultGame || !serverConfiguredForGame;
 	// console.log('getModeAndPlayers', game);
 	initializePlayers(players, game, (playerList: Player[]) => {
 		balanceTeams(playerList, game, gameObject, skipServer);

@@ -8,8 +8,8 @@ import { split, unite } from '../voiceMove';
 import { updateMMR } from '../game/mmr';
 import { removeBotMessageDefaultTime } from '../bot';
 import { deleteDiscMessage } from '../tools/f';
+import { getDotaServerUrl } from '../tools/load-environment';
 
-const ipAdress = 'http://127.0.0.1:4545';
 let socket: Socket;
 
 export const configureSocket = () => {
@@ -100,7 +100,8 @@ export const cancelMatch = () => {
 }
 
 export const initSocketConnection = () => {
-  console.log('@Socket Initializing Connection ...');
+  const ipAdress = getDotaServerUrl();
+  console.log('@Socket Initializing Connection ...', ipAdress);
   socket = io(ipAdress);
   console.log('Socket established!');
   return configureSocket;

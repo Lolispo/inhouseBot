@@ -29,6 +29,23 @@ The bot is able to be easily configured to be setup together with a dathost host
 
 ### Prototype completed connecting the bot to a dota match creating application over socket connection
 
+The Dota match-making runs as a **separate companion app**, [DotesBot](https://github.com/Cronvs/DotesBot),
+which this bot connects to over a socket. To enable Dota servers:
+
+1. Clone and run [DotesBot](https://github.com/Cronvs/DotesBot) (needs its own Steam credentials —
+   `DOTABOT_STEAMUSER` / `DOTABOT_STEAMPW`). By default it listens on `http://127.0.0.1:4545`.
+2. Set `DOTA_SERVER_URL` in this bot's `.env` (e.g. `DOTA_SERVER_URL=http://127.0.0.1:4545`).
+
+### Automatic server detection
+
+You no longer need to pass `noserver` manually. A game is balanced **without** a server automatically
+whenever no server is configured for that mode:
+
+* **CS** uses a server only when `DATHOST_USER` / `DATHOST_PW` are set (Dathost).
+* **Dota** uses a server only when `DOTA_SERVER_URL` is set.
+
+Passing `noserver` still forces a game to be balanced without a server.
+
 ## Available commands
 
 Prefix and bot-name can be modified to own liking

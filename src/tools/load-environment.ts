@@ -46,3 +46,25 @@ export const getPrefix = () => {
   if (!Config.instance) getConfig();
   return Config.instance.prefix;
 }
+
+/**
+ * Whether a CS (Dathost) server is configured. When false, CS games are
+ * balanced without a server automatically (no need to pass `noserver`).
+ */
+export const isCsServerConfigured = (): boolean =>
+  Boolean(process.env.DATHOST_USER && process.env.DATHOST_PW);
+
+/**
+ * URL of the local Dota server app (DotesBot, https://github.com/Cronvs/DotesBot).
+ * Falls back to the historical hardcoded address for backwards compatibility.
+ */
+export const getDotaServerUrl = (): string =>
+  process.env.DOTA_SERVER_URL || 'http://127.0.0.1:4545';
+
+/**
+ * Whether a Dota server is configured. Set DOTA_SERVER_URL in .env (e.g.
+ * http://127.0.0.1:4545 when running DotesBot locally) to enable Dota servers.
+ * When false, Dota games are balanced without a server automatically.
+ */
+export const isDotaServerConfigured = (): boolean =>
+  Boolean(process.env.DOTA_SERVER_URL);
