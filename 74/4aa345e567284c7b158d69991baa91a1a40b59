@@ -1,0 +1,19 @@
+.github/workflows/deploy.yml
+  s_2634c2f3ebfbcd::t_50539cb53aec0f 1-39
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "744aa345e567284c7b158d69991baa91a1a40b59",
+  "prompts": {},
+  "sessions": {
+    "s_2634c2f3ebfbcd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b7247df2-93c1-4048-a39c-9ba2db00f50f",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Petter Andersson <12279747+Lolispo@users.noreply.github.com>"
+    }
+  }
+}
