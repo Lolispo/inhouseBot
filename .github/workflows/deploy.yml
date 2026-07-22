@@ -49,27 +49,6 @@ jobs:
           role-to-assume: arn:aws:iam::873163838676:role/petterbuilds-deploy
           aws-region: eu-north-1
 
-      - name: Inject RUM analytics snippet
-        run: |
-          set -euo pipefail
-          ssm() { aws ssm get-parameter --name "$1" --query Parameter.Value --output text; }
-          APP_ID=$(ssm /platform/rum/app-monitor-id)
-          POOL_ID=$(ssm /platform/rum/identity-pool-id)
-          ROLE_ARN=$(ssm /platform/rum/guest-role-arn)
-          RUM_REGION=$(ssm /platform/rum/region)
-          START='<!-- petterbuilds-rum:start -->'
-          END='<!-- petterbuilds-rum:end -->'
-          BLOCK="$START
-          <script>
-          (function(n,i,v,r,s,c,u,x,z){x=window.AwsRumClient={q:[],n:n,i:i,v:v,r:r,c:c,u:u};window[n]=function(c,p){x.q.push({c:c,p:p});};z=document.createElement('script');z.async=true;z.src=s;document.head.insertBefore(z,document.getElementsByTagName('script')[0]);})('cwr','$APP_ID','1.0.0','$RUM_REGION','https://client.rum.us-east-1.amazonaws.com/3.x/cwr.js',{sessionSampleRate:1,guestRoleArn:'$ROLE_ARN',identityPoolId:'$POOL_ID',endpoint:'https://dataplane.rum.$RUM_REGION.amazonaws.com',telemetries:['errors','performance'],allowCookies:false,enableXRay:false});
-          </script>
-          $END"
-          # awk reads BLOCK from the environment (ENVIRON["BLOCK"]) so a multi-line
-          # value doesn't error as "newline in string".
-          find dist -type f -name '*.html' | while read -r f; do
-            BLOCK="$BLOCK" awk 'BEGIN{skip=0;done=0}/petterbuilds-rum:start/{skip=1;next}/petterbuilds-rum:end/{skip=0;next}skip{next}{lines[NR]=$0}END{for(i=1;i<=NR;i++){l=lines[i];if(!done&&(l ~ /<\/head>/||l ~ /<\/body>/)){print ENVIRON["BLOCK"];done=1}print l}if(!done)print ENVIRON["BLOCK"]}' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
-          done
-
       - name: Sync to S3 and invalidate CloudFront
         run: |
           set -euo pipefail
