@@ -1,17 +1,18 @@
 # Deploys the showcase site (site/) to inhousebot.petterbuilds.com on push to main.
 #
-# This repo is primarily the Discord bot and is PUBLIC, so it can't consume the
-# private shared workflow in Lolispo/web-platform (a public repo can't use a
-# private reusable workflow). We therefore inline a minimal deploy here instead.
+# This repo is primarily the Discord bot and is PUBLIC. It now consumes the
+# shared reusable deploy in Lolispo/ci (also PUBLIC, so public→public is allowed)
+# instead of an inlined copy. The bot's dependency tree is never installed in CI:
+# working-directory scopes install/build/npm-cache to site/, and dist-dir keeps
+# its default (dist), resolving to site/dist.
 #
-# Kept deliberately lean vs the shared workflow: it installs/builds ONLY in site/
-# (the bot's dependency tree is never installed in CI), and hardcodes the two
-# values we actually use. Bucket + CloudFront distribution are still read from SSM
-# at deploy time so no infra ids live in this public repo. Auth is OIDC into the
-# platform's shared deploy role (its trust policy allows repo:Lolispo/*).
+# The role ARN is passed as a masked secret (AWS_DEPLOY_ROLE_ARN) so the account
+# id stays out of this public repo's run logs; AWS access is gated by the OIDC
+# role's trust policy (repo:Lolispo/*). Bucket + CloudFront distribution are read
+# from SSM at deploy time inside the shared workflow.
 #
-# Only triggers on site/** (and this file) so bot-only commits don't deploy.
-# The site build is self-contained: `vite build` reads the committed
+# Only triggers on site/** (and this file) so bot-only commits don't deploy. The
+# site build is self-contained: `vite build` reads the committed
 # site/src/data/snapshot.json. The raw DB dump (site/data-src/) is gitignored PII
 # and is NOT regenerated in CI.
 name: Deploy site
@@ -30,29 +31,12 @@ permissions:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: site
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
-        with:
-          node-version: "22"
-          cache: npm
-          cache-dependency-path: site/package-lock.json
-      - run: npm ci
-      - run: npm run build
-
-      - uses: aws-actions/configure-aws-credentials@v6
-        with:
-          role-to-assume: arn:aws:iam::873163838676:role/petterbuilds-deploy
-          aws-region: eu-north-1
-
-      - name: Sync to S3 and invalidate CloudFront
-        run: |
-          set -euo pipefail
-          BUCKET=$(aws ssm get-parameter --name /platform/apps-bucket --query Parameter.Value --output text)
-          DIST=$(aws ssm get-parameter --name /platform/distribution-id --query Parameter.Value --output text)
-          aws s3 sync dist "s3://$BUCKET/inhousebot/" --delete
-          aws cloudfront create-invalidation --distribution-id "$DIST" --paths "/inhousebot/*"
+    permissions:
+      id-token: write
+      contents: read
+    uses: Lolispo/ci/.github/workflows/deploy-app.yml@main
+    with:
+      app-id: inhousebot
+      working-directory: site
+    secrets:
+      role-arn: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
