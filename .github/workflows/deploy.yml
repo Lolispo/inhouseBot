@@ -1,0 +1,39 @@
+# Deploys the showcase site (site/) to inhousebot.petterbuilds.com on push to main.
+#
+# Unlike the other petterbuilds apps, this repo is primarily the Discord bot — the
+# site is the `site/` subfolder. So we only deploy when site/ (or this workflow)
+# changes, not on every bot commit.
+#
+# Uses the platform's reusable workflow (Lolispo/web-platform): it checks out, runs
+# npm ci at the repo root, runs build-command, assumes the shared OIDC deploy role
+# (baked in as a default — no repo variable or stored AWS keys), injects the RUM
+# analytics snippet, syncs dist-dir to s3://<bucket>/inhousebot/ and invalidates
+# CloudFront.
+#
+# NOTE: the root `npm ci` installs the bot's dependency tree even though only the
+# static site is being built. That's wasteful but harmless — the reusable workflow
+# always installs at root, and keeping the shared RUM/deploy step is worth it.
+#
+# The site build is self-contained: `vite build` reads the committed
+# site/src/data/snapshot.json. The raw DB dump (site/data-src/) is gitignored PII,
+# so `npm run data` is a local-only regeneration step and is NOT run in CI.
+name: Deploy site
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "site/**"
+      - ".github/workflows/deploy.yml"
+  workflow_dispatch: {}
+
+jobs:
+  deploy:
+    permissions:
+      id-token: write
+      contents: read
+    uses: Lolispo/web-platform/.github/workflows/deploy-app.yml@main
+    with:
+      app-id: inhousebot
+      build-command: "cd site && npm ci && npm run build"
+      dist-dir: site/dist
