@@ -1,0 +1,21 @@
+docs/home-hosting.md
+  s_758b3fd24a5421::t_56454c69aa90dc 106-110,114-117
+  s_758b3fd24a5421::t_592653df207deb 15-17,20-70,73-104
+  s_758b3fd24a5421::t_66c6f8c827650b 105
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "aa19e6d2cd6a71b68d9af7c2dd8aaf0b1e22c657",
+  "prompts": {},
+  "sessions": {
+    "s_758b3fd24a5421": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a800c7b0-734d-43d7-b6e1-682c0166cfbf",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Petter Andersson <12279747+Lolispo@users.noreply.github.com>"
+    }
+  }
+}
