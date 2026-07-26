@@ -282,6 +282,27 @@ Store only message id instead of entire messages
 
 ### Match history
 
+### Rewrite the Dota server (DotesBot) in TypeScript, inside this repo
+
+    Today Dota lobbies need a separate Python app (DotesBot) that this bot sockets to
+    on :4545. It is unmaintained, pinned to 2021 deps, and cannot log in: Steam
+    rejects it with EResult.InvalidPassword because the `steam` 1.4.4 lib only speaks
+    the legacy plaintext logon Valve has since retired.
+
+    Idea: reimplement it here as a module using a maintained Node Steam library
+    (steam-user + node-dota2 or similar) with Steam's modern auth, so there is one
+    repo, one language, one deploy, and no socket hop. Also drops the credential
+    caching patch we had to apply on the box just to make it start without a tty.
+
+    The socket contract is small, which is what makes this tractable - a rewrite only
+    needs to cover what we actually use, not all of DotesBot. From src/dota/socketClient.ts:
+        we emit:   READY, START_MATCH (teams), FETCH_MATCH, CANCEL_MATCH
+        we listen: SPLIT_DISCORD, MATCH (whoWon, matchId), MATCH_FINISHED (gameResult)
+    Note DotesBot.py in that repo is a whole separate standalone Discord bot we never
+    touch - only DotaWhisperer.py matters as the reference implementation.
+
+    Full context, the blocker and the install-if-revived path: docs/home-hosting.md
+
 # More
     
     Before uniting all players, should save their current voiceChannel

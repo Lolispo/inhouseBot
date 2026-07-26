@@ -41,6 +41,22 @@ ssh homeserver 'sudo systemctl restart inhousebot'
 ssh homeserver 'cd /srv/inhousebot && git pull && npm ci && npm run build && sudo systemctl restart inhousebot'
 ```
 
+### Closing the Ubuntu window is safe — rebooting is not
+
+`/etc/wsl.conf` sets `systemd=true`, so **systemd is PID 1 inside the distro** and keeps it alive
+after the last shell exits. Closing the Ubuntu terminal on the PC closes only that shell: the bot,
+MySQL and sshd keep running, which is why `ssh homeserver` works with no window open. Nothing runs
+in tmux — services are systemd units, and the box's own guidance is to never host a service in tmux,
+since it would die with its session.
+
+⚠️ **What does stop the bot is a Windows reboot or shutdown.** WSL does not start on its own, and
+`systemctl enable` only decides what happens once systemd starts. The Windows Startup folder is
+currently **empty** (verified 2026-07-26), so after a reboot the bot stays down until someone opens
+an Ubuntu window. Closing that gap is step 15 of the box's runbook (`/srv/setup/TODO.md`) and is
+still open: a shortcut in `shell:startup` running `wsl.exe -d Ubuntu -e true`, or a Task Scheduler
+task at system startup to also cover "nobody logged in". Only `wsl --shutdown` and a PC
+reboot/shutdown take the distro down.
+
 Two deliberate deviations from the box's `scs-units.template` pattern, both recorded in the unit itself:
 
 - **Runs as `petter`, not `svc`.** `.env` holds a live Discord bot token. Running as `svc` would
@@ -131,6 +147,13 @@ rather than fail).
   being mistaken for a live one.)
 - `MASTERID` is unset in `/srv/dotesbot/.env` — it was not in the rescued file. Typing `start` to the
   bot over Steam chat will `KeyError` until a steam32 account id is filled in.
+
+**Decision (2026-07-26): parked, and the preferred fix is a rewrite.** Rather than keep an
+unmaintained 2021 Python app alive on retired Steam auth, the intent is to reimplement it in
+TypeScript inside this repo against a maintained Node Steam library — one repo, one language, one
+deploy, no socket hop, and no credential-caching patch needed. The socket contract is small (7
+events, listed in [`TODO.md`](../TODO.md) under *Rewrite the Dota server*). Until then Dota games
+simply balance without a server, which is the graceful default.
 
 ### 2. Repo housekeeping
 - Clean up ~16 stale `origin/*` branches (history is squash-merged, so `--merged` doesn't flag them —
