@@ -14,6 +14,7 @@ Config is a plain local `.env` (no AWS SSM) — see [`.env.SAMPLE`](../.env.SAMP
 - [x] Auto-detect game server from env (no manual `noserver` needed) — see the Dota section in the [README](../README.md)
 - [x] Home bring-up — **the bot is live**, see [Running it](#running-it) (2026-07-26)
 - [x] Remote access from another PC — `ssh homeserver` lands straight in WSL Ubuntu
+- [x] Nightly database dumps into `/srv`, with a verified restore (2026-07-26)
 - [ ] Run Dota server (DotesBot) locally — **blocked on Steam credentials**, see below
 - [ ] Repo housekeeping
 
@@ -61,9 +62,37 @@ Restored and verified: 131 users, 242 ratings across 10 game modes, 473 matches,
 rows, 1278 CS stat lines; last match 2022-02-05. The dump needed its `GTID_PURGED` / `SQL_LOG_BIN`
 lines stripped, since it came off MySQL 5.7 (RDS) and those fail on 8.0 with `gtid_mode=OFF`.
 
-⚠️ **The database is not backed up.** The box's nightly `srv-backup` only covers `/srv`, and MySQL
-data lives in `/var/lib/mysql`. RDS used to do this automatically; nothing does now. A `mysqldump`
-into `/srv` on a timer would close the gap.
+### Database backups
+
+The box's nightly `srv-backup` only covers `/srv`, and MySQL data lives in `/var/lib/mysql` — so
+without this the restored history would have had no backup at all, where RDS used to do it
+automatically.
+
+`inhousebot-db-backup.timer` dumps the database to `/srv/mysql-backups/inhousebot-<date>.sql.gz`
+at 02:00 (`Persistent=true`, since a desktop PC isn't guaranteed to be awake), keeping 14. Landing
+it in `/srv` means the box's existing `srv-backup` carries it to the Windows side for free. It's
+outside this repo on purpose, so dumps never show up as git noise.
+
+```bash
+ssh homeserver 'sudo systemctl start inhousebot-db-backup'   # dump right now
+ssh homeserver 'systemctl list-timers inhousebot-db-backup'
+ssh homeserver 'ls -lh /srv/mysql-backups'
+```
+
+The script writes to `.partial` and only promotes the file after checking both gzip integrity and
+the `Dump completed` marker, so a failed run can't replace a good backup with a truncated one.
+Credentials come from `~/.inhousebot-my.cnf` (mode 600) rather than the command line, so the
+password never appears in `ps`.
+
+**Restore rehearsal — done 2026-07-26**, which the box had never tested for any service. A dump was
+restored into a scratch database and matched the live one exactly: same row counts across all six
+tables and an identical `CRC32` checksum over `ratings`. It needed no hand-editing, unlike the
+RDS-era dump. To restore for real:
+
+```bash
+zcat /srv/mysql-backups/inhousebot-<date>.sql.gz \
+  | mysql --defaults-extra-file=~/.inhousebot-my.cnf inhousebot
+```
 
 Also note the nightly backup tarball now contains `/srv/inhousebot/.env` (and `/srv/dotesbot/.env`),
 i.e. live secrets on the Windows filesystem — the same caveat the box's TODO already records for scs.
@@ -103,11 +132,7 @@ rather than fail).
 - `MASTERID` is unset in `/srv/dotesbot/.env` — it was not in the rescued file. Typing `start` to the
   bot over Steam chat will `KeyError` until a steam32 account id is filled in.
 
-### 2. Database backups
-- Nothing backs up MySQL today (see the warning above). A nightly `mysqldump` into `/srv` would ride
-  along on the box's existing `srv-backup.timer`.
-
-### 3. Repo housekeeping
+### 2. Repo housekeeping
 - Clean up ~16 stale `origin/*` branches (history is squash-merged, so `--merged` doesn't flag them —
   triage each with `git log origin/main..origin/<branch>`).
 - Consider running a local CS (get5/Dathost-style) server as a later follow-up.
