@@ -232,3 +232,21 @@ simply balance without a server, which is the graceful default.
   `GatewayIntentBits` is undefined inside Jest (a CJS/ESM interop issue in the test harness, since
   the same import resolves fine at runtime and the bot boots). Pre-existing, unrelated to hosting.
   Note the suite also needs a local `.env` present or it fails earlier on `process.env.ENVIRONMENT`.
+
+### 3. One box-wide backup job for every stateful container
+
+**Decided 2026-07-29, not started.** The preferred end state is a single periodic job on the box
+that dumps every container holding state, rather than one hand-written timer per app. That job would
+supersede `inhousebot-db-backup.timer` (`/usr/local/bin/inhousebot-db-backup`), and it should also
+cover the other app on the box, which currently has bind-mounted Postgres and Redis state under
+`/srv/enterprise-resilience-agent/data/` with **no dump behind it at all**.
+
+Two pieces of cleanup belong to the same pass, both deliberately left undone:
+
+- `srv-backup` (`/usr/local/bin/srv-backup`, a **shared** box script — not ours to change
+  unilaterally) now tars live InnoDB files from `/srv/inhousebot/data/mysql` every night. They are
+  not a restorable backup, so it is pure tarball weight on top of the real dump. Wants
+  `--exclude='data/mysql'`, and the same call should decide about `data/postgres` / `data/redis`.
+- `/var/lib/mysql` on the host is the pre-container rollback copy. Once the container has a week
+  behind it, delete it — it is otherwise dead disk, and a stale copy that a stray `unmask` could
+  quietly serve on 3306.
