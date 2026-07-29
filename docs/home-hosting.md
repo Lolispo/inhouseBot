@@ -15,6 +15,7 @@ Config is a plain local `.env` (no AWS SSM) — see [`.env.SAMPLE`](../.env.SAMP
 - [x] Home bring-up — **the bot is live**, see [Running it](#running-it) (2026-07-26)
 - [x] Remote access from another PC — `ssh homeserver` lands straight in WSL Ubuntu
 - [x] Nightly database dumps into `/srv`, with a verified restore (2026-07-26)
+- [x] MySQL moved into a Docker container; host `mysql.service` masked (2026-07-29)
 - [ ] Run Dota server (DotesBot) locally — **blocked on Steam credentials**, see below
 - [ ] Repo housekeeping
 
@@ -27,9 +28,9 @@ The bot runs on the home box as a systemd service. The box has its own conventio
 |---|---|
 | Host | `ssh homeserver` → port 2222 → WSL Ubuntu 24.04 on the W10 PC |
 | App | `/srv/inhousebot` (`root:srv`, 2775 setgid, per the box's service pattern) |
-| Service | `inhousebot.service` — enabled at boot, `Restart=on-failure` |
+| Service | `inhousebot.service` — enabled at boot, `Restart=on-failure`, `Requires=docker.service` |
 | Node | nvm `v22.22.1`, pinned by absolute path in the unit |
-| Database | local MySQL 8.0.46, db `inhousebot`, user `inhousebot`@`localhost` |
+| Database | MySQL 8.0.46 **in a container** — `inhousebot-mysql`, compose at `/srv/inhousebot/docker-compose.yml`, datadir `/srv/inhousebot/data/mysql`. Host `mysql.service` is **masked** |
 | Config | `/srv/inhousebot/.env`, mode **600 petter** (not group-readable — see below) |
 | Logs | `journalctl -u inhousebot -f` |
 
@@ -39,13 +40,18 @@ ssh homeserver 'journalctl -u inhousebot -n 50 --no-pager'
 ssh homeserver 'sudo systemctl restart inhousebot'
 # deploy a new version:
 ssh homeserver 'cd /srv/inhousebot && git pull && npm ci && npm run build && sudo systemctl restart inhousebot'
+# the database (see below — it is a container, not a host service):
+ssh homeserver 'docker ps --filter name=inhousebot-mysql'
+ssh homeserver 'docker logs --tail 50 inhousebot-mysql'
+ssh homeserver 'docker compose -f /srv/inhousebot/docker-compose.yml restart'
 ```
 
 ### Closing the Ubuntu window is safe — rebooting is not
 
 `/etc/wsl.conf` sets `systemd=true`, so **systemd is PID 1 inside the distro** and keeps it alive
 after the last shell exits. Closing the Ubuntu terminal on the PC closes only that shell: the bot,
-MySQL and sshd keep running, which is why `ssh homeserver` works with no window open. Nothing runs
+its MySQL container and sshd keep running, which is why `ssh homeserver` works with no window open.
+Nothing runs
 in tmux — services are systemd units, and the box's own guidance is to never host a service in tmux,
 since it would die with its session.
 
@@ -78,11 +84,70 @@ Restored and verified: 131 users, 242 ratings across 10 game modes, 473 matches,
 rows, 1278 CS stat lines; last match 2022-02-05. The dump needed its `GTID_PURGED` / `SQL_LOG_BIN`
 lines stripped, since it came off MySQL 5.7 (RDS) and those fail on 8.0 with `gtid_mode=OFF`.
 
+### MySQL runs in a container (2026-07-29)
+
+Moved off the host `mysql.service` for consistency with the box's direction — Docker is planned as
+the default runtime (`web-platform/docs/superpowers/specs/2026-07-27-home-server-docker-design.md`).
+Only the **database** moved: the bot itself stays a native systemd unit on purpose, because
+containerizing the Node process would put an image rebuild and `docker logs` between a human and
+every debug session, which isn't worth it for a service that gets edited by hand.
+
+`docker-compose.yml` lives at `/srv/inhousebot/docker-compose.yml` and is **not** in this repo — it
+is box-local and git-excluded via `.git/info/exclude`, matching the `docker-compose.box.yml`
+precedent set by the other app on the box. Its paths and uids are specific to that machine.
+
+The non-obvious parts, all of which are load-bearing:
+
+- **`network_mode: host`** — no bridge, no NAT. This kernel (`5.15 WSL2`) is already missing
+  netfilter extensions, so a bridged container is the risky configuration here, and host networking
+  also keeps `DB_HOST=localhost` in `.env` working with no code change.
+- **`--bind-address=127.0.0.1` and `--mysqlx=OFF`.** With host networking the image would otherwise
+  listen on `0.0.0.0`, i.e. the whole WiFi. `--mysqlx=OFF` is separate and easy to miss: the X
+  plugin **ignores `--bind-address`** and binds `*:33060` itself. Caught only because the dry-run
+  container ran alongside the still-live host server and collided on the port.
+- **`--default-authentication-plugin=mysql_native_password`.** The bot has two MySQL drivers —
+  sequelize on `mysql2`, and `mysql-promisify-pool` on the ancient `mysql@2.18`, used by
+  `src/birthday.ts` alone. `mysql@2` cannot speak `caching_sha2_password` at all, so the 8.0 default
+  would have broken the birthday feature and nothing else, months later.
+- **`--socket` / `--pid-file` moved into the datadir.** `/var/run/mysqld` inside the image is owned
+  by uid 999 and this container does not run as that user.
+- **`user: "1000:1001"` (petter:srv)** — so the bind-mounted datadir needs no root `chown` and keeps
+  the box's `/srv` group convention.
+- **Passwords via `MYSQL_*_FILE`**, never compose `environment:`. Anything in an `environment:`
+  block is readable by every member of the `docker` group through `docker inspect` — no sudo, no
+  audit trail. The files are mode 600 in `/srv/inhousebot/secrets/`.
+- **The DB user is `inhousebot`@`127.0.0.1` and `@localhost`**, not `@%` as `MYSQL_USER` creates it.
+
+⚠️ **The host `mysql.service` is masked, not just disabled** — and that distinction cost a live
+incident during the cutover. `inhousebot-db-backup.service` still carried `Requires=mysql.service`,
+and **a `Requires=` dependency starts a *disabled* unit**, so the retired host server went into a
+21-deep restart loop fighting the container for port 3306, at ~270 MB per attempt. Worse than the
+RAM: had the container ever stopped, one of those attempts would have won 3306 and the bot would
+have silently connected to the stale pre-cutover `/var/lib/mysql` copy. Both units now
+`Requires=docker.service`, and the host server is masked so nothing can pull it back up.
+
+`/var/lib/mysql` is deliberately left intact as a frozen pre-cutover copy — it is the rollback, and
+it can be deleted once the container has run for a while:
+
+```bash
+# rollback to the host server
+ssh -t homeserver 'sudo systemctl unmask mysql && sudo systemctl enable --now mysql'
+# then restore the pre-container unit deps (Requires=mysql.service) and restart the bot
+```
+
+Note the container is currently managed with a plain `docker compose` as `petter`, who is in the
+`docker` group. When that group membership is removed — a tracked decision on the box, since it is
+root-equivalent — this needs an enumerated sudoers line for
+`docker compose -f /srv/inhousebot/docker-compose.yml restart` instead.
+
 ### Database backups
 
-The box's nightly `srv-backup` only covers `/srv`, and MySQL data lives in `/var/lib/mysql` — so
-without this the restored history would have had no backup at all, where RDS used to do it
-automatically.
+The dumps were never about `/srv` coverage alone: the bot's history is irreplaceable and RDS used to
+back it up automatically. Since 2026-07-29 the datadir *is* inside `/srv`
+(`/srv/inhousebot/data/mysql`), so `srv-backup` does now sweep it up — **but only as live InnoDB
+files, which are not a restorable backup.** The logical dump below remains the real one. It also
+means the nightly tarball now carries a live datadir; adding an exclude for it is a shared-script
+change and is noted in the box's `INBOX-from-mac.md` rather than done unilaterally.
 
 `inhousebot-db-backup.timer` dumps the database to `/srv/mysql-backups/inhousebot-<date>.sql.gz`
 at 02:00 (`Persistent=true`, since a desktop PC isn't guaranteed to be awake), keeping 14. Landing
@@ -98,7 +163,11 @@ ssh homeserver 'ls -lh /srv/mysql-backups'
 The script writes to `.partial` and only promotes the file after checking both gzip integrity and
 the `Dump completed` marker, so a failed run can't replace a good backup with a truncated one.
 Credentials come from `~/.inhousebot-my.cnf` (mode 600) rather than the command line, so the
-password never appears in `ps`.
+password never appears in `ps`. Since the container cutover that file also carries
+`host=127.0.0.1` + `protocol=tcp`: without it the client defaults to the unix socket the retired
+host server used to own, and the timer would fail quietly. **That one line was the only change the
+backup flow needed** — the dump script's logic is untouched, and it still runs on the host with
+`mysql-client-8.0`, which is its own package and survives the server being masked.
 
 **Restore rehearsal — done 2026-07-26**, which the box had never tested for any service. A dump was
 restored into a scratch database and matched the live one exactly: same row counts across all six
