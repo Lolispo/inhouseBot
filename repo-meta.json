@@ -1,0 +1,22 @@
+{
+  "summary": "Discord inhouse-league bot. The showcase site is hosted; the bot runs on the box.",
+  "status": "live",
+  "tier": "active",
+  "resources": [
+    {
+      "kind": "s3-prefix",
+      "id": "petterbuilds-apps/inhousebot"
+    },
+    {
+      "kind": "platform-shared",
+      "id": "petterbuilds-edge",
+      "note": "CloudFront + router that serves this app; owned by web-platform"
+    },
+    {
+      "kind": "box-service",
+      "id": "inhousebot.service",
+      "host": "homeserver",
+      "note": "the bot itself; homeserver owns the unit file"
+    }
+  ]
+}
